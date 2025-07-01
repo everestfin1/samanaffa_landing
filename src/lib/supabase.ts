@@ -35,6 +35,17 @@ export const insertUserRegistration = async (data: Omit<UserRegistration, 'id' |
   try {
     console.log('Tentative d\'insertion des données:', data);
     
+    // Empêcher les inscriptions multiples avec le même numéro WhatsApp
+    const { data: existingNumber } = await supabase
+      .from('user_registrations')
+      .select('id')
+      .eq('whatsapp_number', data.whatsapp_number)
+      .maybeSingle();
+
+    if (existingNumber) {
+      throw new Error('Ce numéro WhatsApp est déjà enregistré.');
+    }
+
     const { data: result, error } = await supabase
       .from('user_registrations')
       .insert([data])

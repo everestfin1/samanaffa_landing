@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { ContactForm } from "../../components/ContactForm";
 import { HeroSection } from "./components/HeroSection";
+import { FeaturesSection } from "./components/FeaturesSection";
 import { SavingsPlanner } from "./components/ObjectivesSection";
 import { TestimonialsSection } from "./components/TestimonialsSection";
 import { Footer } from "./components/Footer";
 import { Objective, Persona } from "./data/types";
 import { objectives, personas } from "./data";
+import { FAQSection } from "./components/FAQSection";
+import { HeroExplainerSection } from "./components/HeroExplainerSection";
+import { WhatsAppFloatingButton } from "../../components/WhatsAppFloatingButton";
 
 const tauxParDuree = (mois: number): number => {
   if (mois <= 6) return 3.5;
@@ -99,6 +103,7 @@ export const LandingPage = (): JSX.Element => {
     <div className="bg-white flex flex-row justify-center w-full">
       <div className="bg-white w-full relative">
         <HeroSection />
+        <HeroExplainerSection />
         <SavingsPlanner 
           simulationMode={simulationMode}
           setSimulationMode={setSimulationMode}
@@ -139,7 +144,10 @@ export const LandingPage = (): JSX.Element => {
 
         <TestimonialsSection />
 
+        <FAQSection />
+
         <Footer />
+        <WhatsAppFloatingButton />
       </div>
     </div>
   );

@@ -156,15 +156,13 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
             <Card className="w-full max-w-[900px] rounded-2xl lg:rounded-[35px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
                 <CardContent className="p-4 lg:p-8">
                     {simulationMode === null && (
-                        <div className="text-center mb-6 animate-fade-in relative">
-                            <div className="relative bg-white/95 p-2 rounded-lg shadow-md transform transition-all duration-500 animate-bounce-subtle">
-                                <div className="flex flex-col items-center">
-                                    <h3 className="text-xl font-semibold text-[#30461f] mb-2">Commmençons ?</h3>
-                                    <p className="text-gray-600 mb-2">Sélectionnez une méthode de simulation.</p>
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#C38D1C] animate-bounce-subtle mt-1">
-                                        <path d="M12 16L6 10H18L12 16Z" fill="currentColor"/>
-                                    </svg>
-                                </div>
+                        <div className="text-center mb-6 animate-fade-in flex flex-col items-center gap-3">
+                            <h3 className="text-xl font-semibold text-[#30461f] mb-2">Commençons&nbsp;?</h3>
+                            <p className="text-gray-600">Sélectionne une méthode de simulation.</p>
+                            <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#435933] mx-auto animate-bounce-subtle">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
+                                    <path d="M12 16L6 10H18L12 16Z" fill="currentColor" />
+                                </svg>
                             </div>
                         </div>
                     )}
@@ -191,7 +189,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                             {/* Mode-specific selector */}
                             {simulationMode === 'objective' && (
                                 <div className="animate-fade-in">
-                                    <p className="text-center text-gray-600 mb-6">Sélectionnez ce qui vous motive le plus à épargner.</p>
+                                    <p className="text-center text-gray-600 mb-6">Sélectionne ce qui te motive le plus à épargner.</p>
                                     <div className="flex justify-center">
                                         <div className="flex flex-wrap justify-center items-center gap-4 max-w-4xl">
                                             {objectives.map((objective, index) => (
@@ -221,7 +219,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
 
                             {simulationMode === 'persona' && (
                                 <div className="space-y-3 animate-fade-in flex flex-col items-center justify-center w-full">
-                                    <p className="text-center text-gray-600 mb-6">Ou trouvez un profil qui vous ressemble pour commencer.</p>
+                                    <p className="text-center text-gray-600 mb-6">Ou trouve un profil qui te ressemble pour commencer.</p>
                                     <div className="w-full">
                                         <div className="flex items-center py-4 gap-4 lg:gap-6 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scrollbar-thumb-rounded-full">
                                             {personas.map((persona, index) => (

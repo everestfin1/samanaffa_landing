@@ -1,5 +1,16 @@
 export const personas = [
   {
+    id: "custom",
+    name: "Profil personnalisé",
+    amount: 25000,
+    duration: 36,
+    description: "Créez votre propre plan d'épargne sur mesure",
+    personalizedMessage: "Plan personnalisé\nDéfinissez librement votre objectif et vos paramètres",
+    emoji: "⭐",
+    shortName: "Profil personnalisé",
+    quote: "Crée ton plan sur mesure et atteins tes objectifs à ton rythme.",
+  },
+  {
     id: "mame",
     name: "La Mame protectrice Maam Seynabou",
     amount: 20000,
