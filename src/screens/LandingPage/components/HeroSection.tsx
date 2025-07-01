@@ -51,7 +51,7 @@ export const HeroSection: React.FC = () => {
             {/* Main title */}
             <h1 className="font-bold text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl leading-tight animate-fade-in">
               <span className=" md:block text-[#435933] mb-1 sm:mb-2">
-                Épargner
+                Épargne
               </span>
               <span className="ml-2 md:ml-0 md:block text-[#C38D1C]">intelligemment</span>
             </h1>
@@ -61,7 +61,7 @@ export const HeroSection: React.FC = () => {
               className="font-medium text-[#30461f] text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              pour réaliser vos projets.
+              pour réaliser tes projets.
             </h2>
 
             {/* Description */}
