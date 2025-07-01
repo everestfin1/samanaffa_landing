@@ -1,24 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 
-export const HeroSection: React.FC = () => {
-  const [offsetY, setOffsetY] = useState(0);
+interface HeroSectionProps {
+  onShowForm: () => void;
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setOffsetY(window.scrollY);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
+export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
   return (
-    <section className="relative w-full h-screen xl:h-[90vh] overflow-hidden">
-      {/* Background image with parallax */}
-      <div className="absolute blur-sm md:blur-none w-full h-full lg:w-[1123px] lg:h-full top-0 left-0 object-cover will-change-transform" style={{ transform: `translateY(${offsetY * 0.4}px)` }}>
+    <section className="relative w-full h-screen overflow-hidden">
+      {/* Background image */}
+      <div className="absolute blur-sm md:blur-none w-full h-full lg:w-[1123px] lg:h-full top-0 left-0 object-cover">
         <img
           className="w-full h-full object-cover object-center"
           alt="Background element"
-          src="/4x3-v2-3h-1.webp"
+          src="/4x3-v2-3h-1.png"
         />
       </div>
 
@@ -42,16 +36,16 @@ export const HeroSection: React.FC = () => {
         </div>
 
         {/* Main content container */}
-        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-screen px-4 sm:px-6 pt-10 xl:pt-0">
+        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-screen px-4 sm:px-6 pt-10">
           <div>
           </div>
           {/* Content section - Left side on desktop */}
-          <div className="flex-1 flex flex-col justify-center xl:justify-start items-center pt-20 xl:pt-40 text-center md:col-span-1 md:items-start md:text-start space-y-2 lg:space-y-6 max-w-lg md:max-w-none mx-auto md:mx-0 pb-8 md:pb-0">
+          <div className="md:rounded-2xl md:backdrop-blur-sm md:bg-white/30 md:px-2 md:py-4 md:my-4 flex-1 flex flex-col justify-center items-center pt-20 text-center md:col-span-1 md:items-start md:text-start space-y-2 lg:space-y-6 max-w-lg md:max-w-none mx-auto md:mx-0 pb-8 md:pb-0">
 
             {/* Main title */}
             <h1 className="font-bold text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl leading-tight animate-fade-in">
               <span className=" md:block text-[#435933] mb-1 sm:mb-2">
-                Épargne
+                Épargner
               </span>
               <span className="ml-2 md:ml-0 md:block text-[#C38D1C]">intelligemment</span>
             </h1>
@@ -61,7 +55,7 @@ export const HeroSection: React.FC = () => {
               className="font-medium text-[#30461f] text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              pour réaliser tes projets.
+              pour réaliser vos projets.
             </h2>
 
             {/* Description */}
@@ -87,14 +81,12 @@ export const HeroSection: React.FC = () => {
               style={{ animationDelay: "0.9s" }}
             >
               <button
-                onClick={() => {
-                  window.location.href = "/#simulator";
-                }}
+                onClick={onShowForm}
                 className="group relative px-6 sm:px-8 h-[52px] sm:h-[56px] lg:h-[60px] bg-gradient-to-r from-[#30461f] to-[#435933] hover:from-[#243318] hover:to-[#364529] rounded-xl lg:rounded-2xl text-white text-sm sm:text-base lg:text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 lg:gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 overflow-hidden max-w-xs sm:max-w-sm md:max-w-none"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                 <span className="relative z-10">
-                  Je me lance
+                  Je m'inscris
                 </span>
                 <svg
                   width="20"
@@ -114,35 +106,32 @@ export const HeroSection: React.FC = () => {
           </div>
 
           {/* Image section - Right side on desktop */}
-          <div className="flex-shrink-0 flex flex-col items-center justify-center md:justify-end md:pb-0 md:col-span-1 xl:justify-start xl:mt-20">
+          <div className="flex-shrink-0 flex flex-col items-center justify-center md:justify-end md:pb-0 md:col-span-1">
 
             {/* App store badges */}
-            <div className="w-full flex flex-col items-center">
-              <div className="flex justify-center items-center sm:gap-3 lg:gap-4">
+            <div className="w-full flex justify-center items-center sm:gap-3 lg:gap-4">
+              <img
+                className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 hover:scale-105 transition-transform duration-300 cursor-pointer"
+                alt="App Store"
+                src="/mobile-app-store-badge.svg"
+              />
+              <div className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 bg-baseblack rounded-[5px] overflow-hidden border border-solid border-[#a6a6a6] relative hover:scale-105 transition-transform duration-300 cursor-pointer">
                 <img
-                  className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 opacity-60 cursor-not-allowed"
-                  alt="App Store (bientôt disponible)"
-                  src="/mobile-app-store-badge.svg"
+                  className="absolute w-[65px] sm:w-[75px] lg:w-[85px] h-[13px] sm:h-[15px] lg:h-[17px] top-[13px] sm:top-[15px] lg:top-[17px] left-[32px] sm:left-[36px] lg:left-[41px]"
+                  alt="Google play"
+                  src="/google-play.svg"
                 />
-                <div className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 bg-baseblack rounded-[5px] overflow-hidden border border-solid border-[#a6a6a6] relative opacity-60 cursor-not-allowed">
-                  <img
-                    className="absolute w-[65px] sm:w-[75px] lg:w-[85px] h-[13px] sm:h-[15px] lg:h-[17px] top-[13px] sm:top-[15px] lg:top-[17px] left-[32px] sm:left-[36px] lg:left-[41px]"
-                    alt="Google play"
-                    src="/google-play.svg"
-                  />
-                  <img
-                    className="absolute w-[30px] sm:w-[35px] lg:w-[39px] h-1 sm:h-1 lg:h-1.5 top-[6px] sm:top-[6px] lg:top-[7px] left-[32px] sm:left-[36px] lg:left-[41px]"
-                    alt="Get it on"
-                    src="/get-it-on.svg"
-                  />
-                  <img
-                    className="absolute w-[18px] sm:w-[20px] lg:w-[23px] h-[21px] sm:h-[23px] lg:h-[26px] top-[5px] sm:top-[6px] lg:top-[7px] left-2 sm:left-2 lg:left-2.5"
-                    alt="Google play logo"
-                    src="/google-play-logo.png"
-                  />
-                </div>
+                <img
+                  className="absolute w-[30px] sm:w-[35px] lg:w-[39px] h-1 sm:h-1 lg:h-1.5 top-[6px] sm:top-[6px] lg:top-[7px] left-[32px] sm:left-[36px] lg:left-[41px]"
+                  alt="Get it on"
+                  src="/get-it-on.svg"
+                />
+                <img
+                  className="absolute w-[18px] sm:w-[20px] lg:w-[23px] h-[21px] sm:h-[23px] lg:h-[26px] top-[5px] sm:top-[6px] lg:top-[7px] left-2 sm:left-2 lg:left-2.5"
+                  alt="Google play logo"
+                  src="/google-play-logo.png"
+                />
               </div>
-              <p className="text-xs sm:text-sm text-gray-600 mt-2 italic">Bientôt disponible sur App Store et Google&nbsp;Play</p>
             </div>
             {/* Phone image */}
             <div className="flex justify-center">
