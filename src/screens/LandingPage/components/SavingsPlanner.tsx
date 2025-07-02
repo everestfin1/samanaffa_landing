@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "../../../components/ui/card";
 import { formatCurrency } from "../../../lib/utils";
 import { personas, objectives } from "../data";
+import { RefreshCw } from 'lucide-react';
 
 // --- HELPER FUNCTIONS ---
 const tauxParDuree = (mois: number): number => {
@@ -148,8 +149,12 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
     <section id="savings-planner" className="relative w-full pt-12 lg:pt-[76px] px-4 lg:px-[148px] bg-white">
       {/* Back to choice button */}
       <div className="text-center mb-8">
-        <button onClick={() => setSimulationMode(null)} className="text-sm text-gray-600 hover:text-[#435933] underline">
-            Changer ma méthode de simulation
+        <button
+          onClick={() => setSimulationMode(null)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8f5e8] text-[#30461f] font-semibold text-sm shadow hover:bg-[#cbead0] hover:text-[#243318] transition-all duration-200 border border-[#bfe2c2]"
+        >
+          <RefreshCw className="w-4 h-4" />
+          Changer ma méthode de simulation
         </button>
       </div>
 
