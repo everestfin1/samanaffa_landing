@@ -106,7 +106,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
           </div>
 
           {/* Image section - Right side on desktop */}
-          <div className="flex-shrink-0 flex flex-col items-center justify-end md:justify-end md:pb-0 md:col-span-1">
+          <div className="flex-shrink-0 flex flex-col items-center justify-center md:justify-center md:pb-0 md:col-span-1">
 
             {/* App store badges */}
             <div className="w-full flex justify-center items-center sm:gap-3 lg:gap-4">
