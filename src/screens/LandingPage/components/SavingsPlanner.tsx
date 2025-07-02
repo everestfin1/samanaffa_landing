@@ -133,10 +133,10 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
           </button>
           <button
             onClick={() => handleModeSelect("persona")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-white rounded-2xl text-[#01081b] font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-gray-200 hover:border-[#435933]/50"
+            className="group flex-1 max-w-sm px-8 py-6 bg-[#C38D1C] hover:bg-[#b3830f] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Trouver mon profil
-             <span className="block text-sm font-normal text-gray-600 mt-1">Laisse-nous te suggérer un point de départ.</span>
+             <span className="block text-sm font-normal text-white/80 mt-1">Laisse-nous te suggérer un point de départ.</span>
           </button>
         </div>
       </section>
