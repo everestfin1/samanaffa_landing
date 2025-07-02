@@ -77,7 +77,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
 
             {/* CTA button */}
             <div
-              className="pt-4 lg:pt-6 animate-fade-in w-full flex justify-center md:justify-start"
+              className="pt-1 lg:pt-2 animate-fade-in w-full flex justify-center md:justify-start"
               style={{ animationDelay: "0.9s" }}
             >
               <button
