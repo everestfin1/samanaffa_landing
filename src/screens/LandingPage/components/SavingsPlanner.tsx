@@ -126,14 +126,14 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
         <div className="flex flex-col sm:flex-row justify-center gap-4 lg:gap-8">
           <button
             onClick={() => handleModeSelect("objective")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-gradient-to-r from-[#30461f] to-[#435933] hover:from-[#243318] hover:to-[#364529] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
+            className="group w-full sm:flex-1 px-4 py-4 bg-gradient-to-r from-[#30461f] to-[#435933] hover:from-[#243318] hover:to-[#364529] text-white rounded-xl font-semibold text-sm lg:text-base transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Choisir un objectif
             <span className="block text-sm font-normal text-white/80 mt-1">Idéal si tu as un but précis en tête.</span>
           </button>
           <button
             onClick={() => handleModeSelect("persona")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-[#C38D1C] hover:bg-[#b3830f] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
+            className="group w-full sm:flex-1 px-4 py-4 bg-[#C38D1C] hover:bg-[#b3830f] text-white rounded-xl font-semibold text-sm lg:text-base transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Trouver mon profil
              <span className="block text-sm font-normal text-white/80 mt-1">Laisse-nous te suggérer un point de départ.</span>
