@@ -40,7 +40,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
           <div>
           </div>
           {/* Content section - Left side on desktop */}
-          <div className="md:rounded-2xl md:backdrop-blur-sm md:bg-white/30 md:px-2 md:py-4 md:my-4 flex-1 flex flex-col justify-center items-center pt-20 text-center md:col-span-1 md:items-start md:text-start space-y-2 lg:space-y-6 max-w-lg md:max-w-none mx-auto md:mx-0 pb-8 md:pb-0">
+          <div className="md:rounded-2xl md:backdrop-blur-sm md:bg-white/30 md:px-2 md:py-4 md:my-4 flex-1 flex flex-col justify-start items-center pt-4 text-center md:col-span-1 md:items-start md:text-start space-y-2 lg:space-y-6 max-w-lg md:max-w-none mx-auto md:mx-0 pb-8 md:pb-0">
 
             {/* Main title */}
             <h1 className="font-bold text-3xl sm:text-4xl md:text-4xl lg:text-5xl xl:text-6xl leading-tight animate-fade-in">
