@@ -6,7 +6,7 @@ interface HeroSectionProps {
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
   return (
-    <section className="relative w-full h-screen overflow-hidden">
+    <section className="relative w-full h-[85vh] lg:h-[80vh] overflow-hidden">
       {/* Background image */}
       <div className="absolute blur-sm md:blur-none w-full h-full lg:w-[1123px] lg:h-full top-0 left-0 object-cover">
         <img
@@ -36,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
         </div>
 
         {/* Main content container */}
-        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-screen px-4 sm:px-6 pt-10">
+        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-[85vh] px-4 sm:px-6 pt-10">
           <div>
           </div>
           {/* Content section - Left side on desktop */}
