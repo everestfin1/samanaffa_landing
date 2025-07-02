@@ -111,11 +111,11 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
             {/* App store badges */}
             <div className="w-full flex justify-center items-center sm:gap-3 lg:gap-4">
               <img
-                className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 hover:scale-105 transition-transform duration-300 cursor-pointer"
-                alt="App Store"
+                className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 opacity-60 cursor-not-allowed"
+                alt="App Store (bientôt disponible)"
                 src="/mobile-app-store-badge.svg"
               />
-              <div className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 bg-baseblack rounded-[5px] overflow-hidden border border-solid border-[#a6a6a6] relative hover:scale-105 transition-transform duration-300 cursor-pointer">
+              <div className="w-[120px] sm:w-[130px] lg:w-[135px] h-8 sm:h-9 lg:h-10 bg-baseblack rounded-[5px] overflow-hidden border border-solid border-[#a6a6a6] relative opacity-60 cursor-not-allowed">
                 <img
                   className="absolute w-[65px] sm:w-[75px] lg:w-[85px] h-[13px] sm:h-[15px] lg:h-[17px] top-[13px] sm:top-[15px] lg:top-[17px] left-[32px] sm:left-[36px] lg:left-[41px]"
                   alt="Google play"
@@ -133,6 +133,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
                 />
               </div>
             </div>
+            <p className="text-xs sm:text-sm text-gray-600 mt-2 italic text-center">Bientôt disponible sur App&nbsp;Store et Google&nbsp;Play</p>
             {/* Phone image */}
             <div className="flex justify-center">
               <img
