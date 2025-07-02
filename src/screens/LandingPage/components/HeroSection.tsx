@@ -106,7 +106,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
           </div>
 
           {/* Image section - Right side on desktop */}
-          <div className="flex-shrink-0 flex flex-col items-center justify-center md:justify-end md:pb-0 md:col-span-1">
+          <div className="flex-shrink-0 flex flex-col items-center justify-end md:justify-end md:pb-0 md:col-span-1">
 
             {/* App store badges */}
             <div className="w-full flex justify-center items-center sm:gap-3 lg:gap-4">
@@ -136,7 +136,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
             {/* Phone image */}
             <div className="flex justify-center">
               <img
-                className="w-[280px] sm:w-[320px] md:w-[500px] lg:w-[550px] xl:w-[650px] h-auto hover:scale-105 transition-transform duration-500 drop-shadow-2xl z-20"
+                className="w-[180px] sm:w-[220px] md:w-[300px] lg:w-[340px] xl:w-[380px] h-auto hover:scale-105 transition-transform duration-500 drop-shadow-2xl z-20"
                 alt="Application Sama Naffa sur téléphone"
                 src="/phone.png"
               />
