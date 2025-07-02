@@ -36,7 +36,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
         </div>
 
         {/* Main content container */}
-        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-[50vh] px-4 sm:px-6 pt-10">
+        <div className="flex flex-col md:grid md:grid-cols-3 md:gap-8 lg:gap-12 xl:gap-16 min-h-[50vh] px-4 sm:px-6 pt-2">
           <div>
           </div>
           {/* Content section - Left side on desktop */}
