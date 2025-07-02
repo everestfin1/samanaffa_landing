@@ -12,7 +12,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
         <img
           className="w-full h-full object-cover object-center"
           alt="Background element"
-          src="/4x3-v2-3h-1.png"
+          src="/4x3-v2-3h-1.webp"
         />
       </div>
 
