@@ -155,7 +155,7 @@ export const TestimonialCarousel: React.FC = () => {
 
         {/* Right side - Testimonials carousel */}
         <div className="flex-1 relative">
-          <div className="w-full max-w-[400px] h-[280px] lg:h-[300px] relative overflow-hidden mx-auto">
+          <div className="w-full max-w-[400px] h-[220px] lg:h-[260px] relative overflow-hidden mx-auto">
             {testimonials.map((testimonial, index) => (
               <Card
                 key={testimonial.id}
@@ -175,7 +175,7 @@ export const TestimonialCarousel: React.FC = () => {
                     </div>
                     
                     {/* Testimonial text */}
-                    <p className="text-general-colorsparagraph text-sm lg:text-base leading-relaxed min-h-[100px] lg:min-h-[120px]">
+                    <p className="text-general-colorsparagraph text-sm lg:text-base leading-relaxed min-h-[80px] lg:min-h-[90px]">
                       "{testimonial.text}"
                     </p>
                   </div>

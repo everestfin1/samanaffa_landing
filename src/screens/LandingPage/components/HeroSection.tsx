@@ -55,7 +55,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
               className="font-medium text-[#30461f] text-lg sm:text-xl md:text-xl lg:text-2xl xl:text-3xl leading-relaxed animate-fade-in"
               style={{ animationDelay: "0.3s" }}
             >
-              pour réaliser ton projets.
+              pour réaliser tes projets.
             </h2>
 
             {/* Description */}
