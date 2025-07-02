@@ -126,10 +126,10 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
         <div className="flex flex-col sm:flex-row justify-center gap-4 lg:gap-8">
           <button
             onClick={() => handleModeSelect("objective")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] rounded-2xl text-[#435933] font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-[#435933]/50"
+            className="group flex-1 max-w-sm px-8 py-6 bg-gradient-to-r from-[#30461f] to-[#435933] hover:from-[#243318] hover:to-[#364529] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Choisir un objectif
-            <span className="block text-sm font-normal text-gray-600 mt-1">Idéal si tu as un but précis en tête.</span>
+            <span className="block text-sm font-normal text-white/80 mt-1">Idéal si tu as un but précis en tête.</span>
           </button>
           <button
             onClick={() => handleModeSelect("persona")}
