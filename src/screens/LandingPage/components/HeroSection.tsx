@@ -27,7 +27,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onShowForm }) => {
 
       <div className="relative w-full h-full z-10">
         {/* Logo - Centered using Flexbox */}
-        <div className="flex justify-start w-full pt-4 pl-4">
+        <div className="flex justify-start w-full pt-4 pl-4 lg:pl-[133px]">
           <img
             className="w-[120px] h-[67px] sm:w-[140px] sm:h-[78px] lg:w-[194px] lg:h-[109px] object-cover hover:scale-105 transition-transform duration-300"
             alt="Logo SAMA NAFFA"
