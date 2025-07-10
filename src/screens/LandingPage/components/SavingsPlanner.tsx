@@ -3,6 +3,7 @@ import { Card, CardContent } from "../../../components/ui/card";
 import { formatCurrency } from "../../../lib/utils";
 import { personas, objectives } from "../data";
 import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // --- HELPER FUNCTIONS ---
 const tauxParDuree = (mois: number): number => {
@@ -154,7 +155,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8f5e8] text-[#30461f] font-semibold text-sm shadow hover:bg-[#cbead0] hover:text-[#243318] transition-all duration-200 border border-[#bfe2c2]"
         >
           <RefreshCw className="w-4 h-4" />
-          Changer ma méthode de simulation
+            Changer ma méthode de simulation
         </button>
       </div>
 
@@ -238,20 +239,69 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                 <label className="block text-base lg:text-lg font-medium text-[#060606]">
                                     Je me reconnais dans ce profil :
                                 </label>
-                                <select
-                                    value={selectedPersona}
-                                    onChange={(e) => handlePersonaChange(e.target.value)}
-                                    className="w-full p-3 lg:p-4 border-2 border-[#435933]/20 rounded-xl text-sm lg:text-base focus:border-[#435933] focus:outline-none transition-colors bg-[#e9f0e9] text-[#116237]"
-                                >
-                                    <option value="">
-                                        -- Choisissez votre profil --
-                                    </option>
-                                    {personas.map((persona) => (
-                                        <option key={persona.id} value={persona.id}>
-                                            {persona.emoji} {persona.shortName}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="w-full flex items-center">
+                                    <button
+                                        type="button"
+                                        aria-label="Précédent"
+                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        onClick={() => {
+                                            const container = document.getElementById('personas-scroll');
+                                            if (container) container.scrollBy({ left: -120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronLeft className="w-6 h-6 text-[#435933]" />
+                                    </button>
+                                    <div id="personas-scroll" className="flex items-center py-2 gap-4 lg:gap-6 px-2 overflow-x-auto scrollbar-hide w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                        {personas.map((persona) => (
+                                            <button
+                                                key={persona.id}
+                                                type="button"
+                                                onClick={() => handlePersonaChange(persona.id)}
+                                                className={`group flex flex-col items-center cursor-pointer transition-all duration-300 ${selectedPersona === persona.id ? 'opacity-100' : 'opacity-80'} flex-shrink-0`}
+                                                aria-pressed={selectedPersona === persona.id}
+                                                style={{ minWidth: '80px' }}
+                                            >
+                                                <span
+                                                    className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 lg:mb-3 transition-all duration-300 flex items-center justify-center text-2xl lg:text-3xl border border-solid
+                                                        ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#435933] border-[1.5px]' : 'bg-[#F2F8F4] border-gray-200 border border-[1px] group-hover:border-[#C38D1C]/30'}`}
+                                                >
+                                                    {persona.emoji}
+                                                </span>
+                                                {(() => {
+                                                    let [prenom, qualification] = persona.shortName.split(",");
+                                                    // Cas spécial pour 'Profil personnalisé'
+                                                    if (persona.id === 'custom') {
+                                                        prenom = 'Profil';
+                                                        qualification = 'personnalisé';
+                                                    }
+                                                    return (
+                                                        <>
+                                                            <span className={`font-medium text-xs lg:text-base transition-all duration-300 text-center mb-0 lg:mb-1 w-full block ${selectedPersona === persona.id ? 'text-[#435933] font-bold' : 'text-[#060606] group-hover:text-[#435933]'}`}>
+                                                                {prenom}
+                                                            </span>
+                                                            {qualification && (
+                                                                <span className="block text-[10px] lg:text-xs text-gray-500 text-center w-full mt-0.5 lg:mt-1 leading-tight">
+                                                                    {qualification.trim()}
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-label="Suivant"
+                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        onClick={() => {
+                                            const container = document.getElementById('personas-scroll');
+                                            if (container) container.scrollBy({ left: 120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronRight className="w-6 h-6 text-[#435933]" />
+                                    </button>
+                                </div>
                             </div>
                         )}
 

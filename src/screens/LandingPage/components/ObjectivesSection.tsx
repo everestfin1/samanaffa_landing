@@ -162,7 +162,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                             <div className="w-10 h-10 flex items-center justify-center rounded-full bg-[#435933] mx-auto animate-bounce-subtle">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-white">
                                     <path d="M12 16L6 10H18L12 16Z" fill="currentColor" />
-                                </svg>
+                                    </svg>
                             </div>
                         </div>
                     )}

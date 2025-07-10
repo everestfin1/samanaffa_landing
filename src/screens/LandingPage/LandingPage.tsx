@@ -75,17 +75,17 @@ export const LandingPage = (): JSX.Element => {
             className="w-full py-8 lg:py-16 px-4 lg:px-[133px] bg-gradient-to-br from-[#e8f5e8] via-[#f0f8f0] to-[#e8f5e8] animate-fade-in"
           >
             {formData && (
-              <ContactForm
+            <ContactForm
                 selectedObjective={formData.objective}
                 monthlyAmount={formData.monthlyAmount}
                 duration={formData.duration}
                 projectedAmount={formData.projectedAmount}
                 onObjectiveChange={noop}
                 onPersonaChange={noop}
-                objectives={objectives}
-                personas={personas}
+              objectives={objectives}
+              personas={personas}
                 simulationMode={null}
-              />
+            />
             )}
           </section>
         )}

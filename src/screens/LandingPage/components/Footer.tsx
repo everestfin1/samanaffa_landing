@@ -14,7 +14,7 @@ export const Footer: React.FC = () => {
                 >
                     Conditions générales d'utilisation
                 </button>
-            </footer>
+        </footer>
 
             <TermsModal show={showTerms} onClose={() => setShowTerms(false)} />
         </>
