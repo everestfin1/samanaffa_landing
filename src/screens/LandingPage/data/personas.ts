@@ -18,7 +18,7 @@ export const personas = [
     description: "Protège et guide sa famille avec sagesse",
     personalizedMessage:
       "Acheter votre première maison\nRéalisez votre rêve d'accession à la propriété",
-    icon: "/ic_mame malick.png", // La Mame protectrice (si c'est bien pour Maam Seynabou, sinon à corriger)
+    icon: "/ic_maam seynabou.png", // La Mame protectrice
     shortName: "Maam Seynabou, la Mame protectrice",
     quote:
       "Tu penses à ta famille d'abord. L'épargne, c'est ta façon de les protéger demain.",
