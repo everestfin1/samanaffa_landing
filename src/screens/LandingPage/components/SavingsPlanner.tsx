@@ -261,12 +261,12 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                 aria-pressed={selectedPersona === persona.id}
                                                 style={{ minWidth: '80px' }}
                                             >
-                                                <span
-                                                    className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 lg:mb-3 transition-all duration-300 flex items-center justify-center text-2xl lg:text-3xl border border-solid
-                                                        ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#435933] border-[1.5px]' : 'bg-[#F2F8F4] border-gray-200 border border-[1px] group-hover:border-[#C38D1C]/30'}`}
-                                                >
-                                                    {persona.emoji}
-                                                </span>
+                                                <img
+                                                    src={persona.icon}
+                                                    alt={persona.name}
+                                                    className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full mb-2 lg:mb-3 transition-all duration-300 border border-solid ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
+                                                    style={{objectFit: 'contain'}}
+                                                />
                                                 {(() => {
                                                     let [prenom, qualification] = persona.shortName.split(",");
                                                     // Cas spécial pour 'Profil personnalisé'
