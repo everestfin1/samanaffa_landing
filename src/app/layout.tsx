@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -17,7 +17,6 @@ export const metadata: Metadata = {
   description: "Plateforme mobile-first pour l'épargne personnalisée et les investissements APE. Ouvrez un compte en 3 clics maximum avec confirmation immédiate.",
   keywords: "épargne, investissement, APE, mobile money, BCEAO, Sama Naffa",
   authors: [{ name: "Sama Naffa" }],
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
   robots: "index, follow",
   openGraph: {
     title: "Sama Naffa - Épargne et Investissement Simplifié",
@@ -30,6 +29,12 @@ export const metadata: Metadata = {
     title: "Sama Naffa - Épargne Mobile",
     description: "Plateforme d'épargne digitale sécurisée avec confirmations immédiates",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
