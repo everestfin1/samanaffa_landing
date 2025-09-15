@@ -1,103 +1,250 @@
-import Image from "next/image";
+import Header from "../components/common/Header";
+import Footer from "../components/common/Footer";
+import Hero from "../components/hero/Hero";
+import Simulator from "../components/simulator/Simulator";
+import { personas } from "../content/personas";
+import PersonaCard from "../components/cards/PersonaCard";
+import { CheckCircle, Users, Award, Shield } from "lucide-react";
+import Button from "@/components/common/Button";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
+      <main>
+        {/* Hero Section */}
+        <Hero />
+
+        {/* Why Sama Naffa Section */}
+        <section id="pourquoi" className="py-20 bg-card">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-card-foreground mb-6">
+                Pourquoi choisir Sama Naffa ?
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Découvrez les avantages qui font de nous la référence de l&apos;épargne digitale au Sénégal
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-20">
+              <div className="text-center group">
+                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+                  <Shield className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-card-foreground mb-4">
+                  Sécurité maximale
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Conformité BCEAO et protocoles de sécurité bancaires pour protéger vos fonds
+                </p>
+              </div>
+
+              <div className="text-center group">
+                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+                  <CheckCircle className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-card-foreground mb-4">
+                  Confirmation immédiate
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Validation instantanée de vos transactions avec notifications WhatsApp
+                </p>
+              </div>
+
+              <div className="text-center group">
+                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+                  <Users className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-card-foreground mb-4">
+                  Communauté active
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Rejoignez plus de 10 000 épargnants satisfaits et partagez vos succès
+                </p>
+              </div>
+
+              <div className="text-center group">
+                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
+                  <Award className="w-10 h-10" />
+                </div>
+                <h3 className="text-xl font-bold text-card-foreground mb-4">
+                  Taux préférentiels
+                </h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Bénéficiez des meilleurs taux d&apos;intérêt selon votre profil et durée
+                </p>
+              </div>
+            </div>
+
+            {/* Key Stats */}
+            <div className="bg-foreground rounded-3xl p-12 text-background">
+              <div className="grid md:grid-cols-3 gap-12 text-center">
+                <div>
+                  <div className="text-5xl font-bold mb-3">10,000+</div>
+                  <div className="text-background/80 text-lg font-medium">Épargnants actifs</div>
+                </div>
+                <div>
+                  <div className="text-5xl font-bold mb-3">2.5Mdt</div>
+                  <div className="text-background/80 text-lg font-medium">D&apos;épargne gérée</div>
+                </div>
+                <div>
+                  <div className="text-5xl font-bold mb-3">98%</div>
+                  <div className="text-background/80 text-lg font-medium">Taux de satisfaction</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Simulator Section */}
+        <Simulator />
+
+        {/* Personas Preview Section */}
+        <section className="py-20 bg-muted">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-foreground mb-6">
+                Épargnez selon votre profil
+              </h2>
+              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
+                Découvrez nos programmes d&apos;épargne personnalisés adaptés à votre situation et objectifs
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+              {personas.slice(0, 3).map((persona) => (
+                <PersonaCard key={persona.slug} persona={persona} />
+              ))}
+            </div>
+
+            <div className="text-center">
+              <Button href="/personas" variant="outline" size="lg">
+                Voir tous les profils
+              </Button>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="py-20 bg-card">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-card-foreground mb-6">
+                Ils nous font confiance
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Découvrez les témoignages de notre communauté d&apos;épargnants
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <div className="bg-muted rounded-2xl p-8 group hover:bg-accent hover:text-accent-foreground transition-all duration-300">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-foreground rounded-2xl flex items-center justify-center mr-4 group-hover:bg-accent-foreground">
+                    <span className="text-background font-bold text-lg group-hover:text-accent">MF</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-card-foreground group-hover:text-accent-foreground">Marie Faye</div>
+                    <div className="text-sm text-muted-foreground group-hover:text-accent-foreground/70">Étudiante</div>
+                  </div>
+                </div>
+                <p className="text-muted-foreground group-hover:text-accent-foreground/90 italic leading-relaxed">
+                  &quot;Grâce à Sama Naffa, j&apos;ai pu financer mes études facilement.
+                  Le processus est simple et les intérêts sont très intéressants.&quot;
+                </p>
+              </div>
+
+              <div className="bg-muted rounded-2xl p-8 group hover:bg-accent hover:text-accent-foreground transition-all duration-300">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-foreground rounded-2xl flex items-center justify-center mr-4 group-hover:bg-accent-foreground">
+                    <span className="text-background font-bold text-lg group-hover:text-accent">AD</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-card-foreground group-hover:text-accent-foreground">Amadou Diallo</div>
+                    <div className="text-sm text-muted-foreground group-hover:text-accent-foreground/70">Entrepreneur</div>
+                  </div>
+                </div>
+                <p className="text-muted-foreground group-hover:text-accent-foreground/90 italic leading-relaxed">
+                  &quot;La plateforme est parfaite pour les entrepreneurs comme moi.
+                  J&apos;ai pu constituer un fond d&apos;urgence rapidement et simplement.&quot;
+                </p>
+              </div>
+
+              <div className="bg-muted rounded-2xl p-8 group hover:bg-accent hover:text-accent-foreground transition-all duration-300">
+                <div className="flex items-center mb-6">
+                  <div className="w-14 h-14 bg-foreground rounded-2xl flex items-center justify-center mr-4 group-hover:bg-accent-foreground">
+                    <span className="text-background font-bold text-lg group-hover:text-accent">KS</span>
+                  </div>
+                  <div>
+                    <div className="font-bold text-card-foreground group-hover:text-accent-foreground">Khadija Sy</div>
+                    <div className="text-sm text-muted-foreground group-hover:text-accent-foreground/70">Fonctionnaire</div>
+                  </div>
+                </div>
+                <p className="text-muted-foreground group-hover:text-accent-foreground/90 italic leading-relaxed">
+                  &quot;Service fiable et sécurisé. Les retraits sont faciles et
+                  les intérêts s&apos;accumulent régulièrement. Je recommande !&quot;
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ Preview Section */}
+        <section id="faq" className="py-20 bg-muted">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-4xl font-bold text-foreground mb-6">
+                Questions fréquentes
+              </h2>
+              <p className="text-xl text-muted-foreground">
+                Tout ce que vous devez savoir sur Sama Naffa
+              </p>&quot;
+            </div>
+
+            <div className="space-y-6">
+              <details className="bg-card rounded-2xl p-8 shadow-sm border border-border group">
+                <summary className="font-bold text-card-foreground cursor-pointer text-lg group-hover:text-accent transition-colors duration-300">
+                  Comment ouvrir un compte d&apos;épargne ?
+                </summary>
+                <p className="mt-6 text-muted-foreground leading-relaxed">
+                  Ouvrir un compte est simple : choisissez votre profil, remplissez le formulaire KYC,
+                  effectuez votre premier versement. Tout se fait en ligne en quelques minutes.&quot;
+                </p>
+              </details>
+
+              <details className="bg-card rounded-2xl p-8 shadow-sm border border-border group">
+                <summary className="font-bold text-card-foreground cursor-pointer text-lg group-hover:text-accent transition-colors duration-300">
+                  Mes fonds sont-ils sécurisés ?
+                </summary>
+                <p className="mt-6 text-muted-foreground leading-relaxed">
+                  Absolument ! Nous sommes conformes aux normes BCEAO et travaillons avec des
+                  partenaires bancaires de confiance. Vos fonds sont garantis et sécurisés.&quot;
+                </p>
+              </details>
+
+              <details className="bg-card rounded-2xl p-8 shadow-sm border border-border group">
+                <summary className="font-bold text-card-foreground cursor-pointer text-lg group-hover:text-accent transition-colors duration-300">
+                  Comment effectuer des retraits ?
+                </summary>
+                <p className="mt-6 text-muted-foreground leading-relaxed">
+                  Les retraits peuvent être effectués à tout moment selon les conditions de votre profil.
+                  Ils sont traités instantanément via mobile money ou virement bancaire.&quot;
+                </p>
+              </details>
+            </div>
+
+            <div className="text-center mt-12">
+              <Button href="/faq" size="lg">
+                Voir toutes les questions
+              </Button>
+            </div>
+          </div>
+        </section>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+      <Footer />
     </div>
   );
 }
