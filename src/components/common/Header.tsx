@@ -34,7 +34,7 @@ export default function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-muted-foreground hover:text-foreground transition-colors duration-300 font-medium"
+                className="text-muted-foreground hover:text-accent transition-colors duration-300 font-medium"
               >
                 {link.label}
               </Link>
@@ -51,7 +51,7 @@ export default function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
-            className="md:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-all duration-300"
+            className="md:hidden p-2 rounded-xl text-muted-foreground hover:text-accent hover:bg-muted transition-all duration-300"
             aria-label="Toggle menu"
           >
             {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -63,14 +63,14 @@ export default function Header() {
           <div className="md:hidden border-t border-border py-6">
             <nav className="flex flex-col space-y-4">
               {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-300 px-2 py-2 font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {link.label}
-                </Link>
+              <Link
+                key={link.href}
+                href={link.href}
+                className="text-muted-foreground hover:text-accent transition-colors duration-300 px-2 py-2 font-medium"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
               ))}
               <div className="pt-4 border-t border-border">
                 <Button

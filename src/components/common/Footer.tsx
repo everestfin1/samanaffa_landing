@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Facebook, Twitter, Instagram, MessageCircle } from "lucide-react";
+import { Facebook, Twitter, Instagram, MessageCircle, CheckCircle } from "lucide-react";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -33,16 +33,16 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-muted border-t border-border">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+    <footer className="bg-muted border-t border-border/50 shadow-sm">
+      <div className="container py-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
           {/* Company Info */}
           <div className="lg:col-span-1">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-10 h-10 bg-foreground rounded-xl flex items-center justify-center">
-                <span className="text-background font-bold text-sm">SN</span>
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">SN</span>
               </div>
-              <span className="text-xl font-bold text-foreground">Sama Naffa</span>
+              <span className="text-xl font-bold text-primary">Sama Naffa</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed mb-6">
               Épargner pour vos projets, facilement et en toute sécurité.
@@ -53,7 +53,7 @@ export default function Footer() {
                 <Link
                   key={social.label}
                   href={social.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-300 p-2 rounded-lg hover:bg-card"
+                  className="text-muted-foreground hover:text-accent transition-colors duration-300 p-2 rounded-lg hover:bg-card"
                   aria-label={social.label}
                 >
                   <social.icon size={20} />
@@ -127,12 +127,12 @@ export default function Footer() {
               <span className="text-sm text-muted-foreground">
                 © {currentYear} Sama Naffa. Tous droits réservés.
               </span>
-              <div className="flex items-center space-x-2">
-                <div className="w-6 h-6 bg-foreground rounded-full flex items-center justify-center">
-                  <span className="text-background text-xs font-bold">✓</span>
-                </div>
-                <span className="text-sm text-muted-foreground">Conforme BCEAO</span>
+            <div className="flex items-center space-x-2">
+              <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                <CheckCircle size={12} className="text-primary-foreground" />
               </div>
+              <span className="text-sm text-muted-foreground">Conforme BCEAO</span>
+            </div>
             </div>
             <div className="text-sm text-muted-foreground">
               <Link href="/intouch" className="hover:text-foreground transition-colors duration-300">

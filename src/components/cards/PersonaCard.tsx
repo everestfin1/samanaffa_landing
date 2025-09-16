@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, User } from "lucide-react";
 import { Persona } from "../../content/personas";
 import { getFormattedRate, project } from "../../lib/rates";
 
@@ -49,17 +49,17 @@ export default function PersonaCard({ persona, className = "" }: PersonaCardProp
 
       {/* Key Metrics */}
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="text-center p-4 bg-muted rounded-xl group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
-          <div className="text-lg font-bold text-card-foreground group-hover:text-accent-foreground">
+        <div className="text-center p-4 bg-muted rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+          <div className="text-lg font-bold text-card-foreground group-hover:text-primary-foreground">
             {formatCurrency(persona.defaults.amount)}
           </div>
-          <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/70">Mensuel</div>
+          <div className="text-xs text-muted-foreground group-hover:text-primary-foreground/70">Mensuel</div>
         </div>
-        <div className="text-center p-4 bg-muted rounded-xl group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
-          <div className="text-lg font-bold text-card-foreground group-hover:text-accent-foreground">
+        <div className="text-center p-4 bg-muted rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+          <div className="text-lg font-bold text-card-foreground group-hover:text-primary-foreground">
             {persona.defaults.months} mois
           </div>
-          <div className="text-xs text-muted-foreground group-hover:text-accent-foreground/70">Durée</div>
+          <div className="text-xs text-muted-foreground group-hover:text-primary-foreground/70">Durée</div>
         </div>
       </div>
 
@@ -73,7 +73,7 @@ export default function PersonaCard({ persona, className = "" }: PersonaCardProp
         </div>
         <div className="flex justify-between items-center text-sm">
           <span className="text-muted-foreground">Intérêts gagnés:</span>
-          <span className="font-semibold text-accent">
+          <span className="font-semibold text-primary">
             +{formatCurrency(totalInterest)}
           </span>
         </div>

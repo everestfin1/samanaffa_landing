@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Shield, Zap, Smartphone } from "lucide-react";
+import { ArrowRight, Shield, Zap, Smartphone, PiggyBank, TrendingUp } from "lucide-react";
 import Button from "../common/Button";
 
 export default function Hero() {
@@ -25,20 +25,20 @@ export default function Hero() {
           {/* Trust Indicators */}
           <div className="flex flex-wrap justify-center items-center gap-8 mb-16">
             <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-              <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center">
-                <Shield className="w-4 h-4 text-background" />
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <Shield className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="font-medium">Conforme BCEAO</span>
             </div>
             <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-              <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center">
-                <Zap className="w-4 h-4 text-background" />
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <Zap className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="font-medium">3 clics maximum</span>
             </div>
             <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-              <div className="w-8 h-8 bg-foreground rounded-full flex items-center justify-center">
-                <Smartphone className="w-4 h-4 text-background" />
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <Smartphone className="w-4 h-4 text-primary-foreground" />
               </div>
               <span className="font-medium">100% Mobile</span>
             </div>
@@ -52,8 +52,8 @@ export default function Hero() {
               className="group bg-card rounded-3xl p-10 shadow-sm border border-border hover:shadow-lg transition-all duration-500 hover:-translate-y-2"
             >
               <div className="text-center">
-                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
-                  <span className="text-4xl">💰</span>
+                <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-primary group-hover:text-primary-foreground transition-all duration-300">
+                  <PiggyBank className="w-10 h-10" />
                 </div>
                 <h3 className="text-2xl font-bold text-card-foreground mb-4">
                   Épargner selon mon profil
@@ -61,8 +61,8 @@ export default function Hero() {
                 <p className="text-muted-foreground mb-6 leading-relaxed">
                   Découvrez votre programme d&apos;épargne personnalisé adapté à vos objectifs
                 </p>
-                <div className="flex items-center justify-center text-foreground font-semibold group-hover:text-accent transition-colors duration-300">
-                  Commencer
+                <div className="flex items-center justify-center text-foreground font-semibold group-hover:text-primary transition-colors duration-300">
+                  Découvrir
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </div>
@@ -75,7 +75,7 @@ export default function Hero() {
             >
               <div className="text-center">
                 <div className="w-20 h-20 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:bg-accent group-hover:text-accent-foreground transition-all duration-300">
-                  <span className="text-4xl">📈</span>
+                  <TrendingUp className="w-10 h-10" />
                 </div>
                 <h3 className="text-2xl font-bold text-card-foreground mb-4">
                   Souscrire à l&apos;APE
@@ -83,7 +83,7 @@ export default function Hero() {
                 <p className="text-muted-foreground mb-6 leading-relaxed">
                   Investissez dans l&apos;Actionnariat Populaire Economique avec rendement garanti
                 </p>
-                <div className="flex items-center justify-center text-foreground font-semibold group-hover:text-accent transition-colors duration-300">
+                <div className="flex items-center justify-center text-foreground font-semibold group-hover:text-primary transition-colors duration-300">
                   Découvrir
                   <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>

@@ -64,7 +64,7 @@ export default function Simulator() {
               height: 24px;
               width: 24px;
               border-radius: 50%;
-              background: var(--foreground);
+              background: var(--primary);
               cursor: pointer;
               border: 3px solid var(--background);
               box-shadow: 0 4px 8px rgba(0,0,0,0.15);
@@ -78,7 +78,7 @@ export default function Simulator() {
               height: 24px;
               width: 24px;
               border-radius: 50%;
-              background: var(--foreground);
+              background: var(--primary);
               cursor: pointer;
               border: 3px solid var(--background);
               box-shadow: 0 4px 8px rgba(0,0,0,0.15);
