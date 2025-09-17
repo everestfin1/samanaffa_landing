@@ -1,255 +1,209 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
-import Button from "../../components/common/Button";
-import { faqItems, faqCategories, getFAQByCategory, searchFAQ } from "../../content/faq";
-import { ArrowLeft, Search, ChevronDown, ChevronUp } from "lucide-react";
-import Link from "next/link";
+import { useState } from 'react';
+import { 
+  ChevronDownIcon,
+  QuestionMarkCircleIcon,
+  DevicePhoneMobileIcon,
+  BuildingLibraryIcon,
+  ShieldCheckIcon,
+  BanknotesIcon
+} from '@heroicons/react/24/outline';
+
+interface FAQItem {
+  id: number;
+  question: string;
+  answer: string;
+  category: 'general' | 'sama-naffa' | 'ape' | 'security';
+}
+
+const faqData: FAQItem[] = [
+  // General Questions
+  {
+    id: 1,
+    question: "Qu'est-ce que Sama Naffa ?",
+    answer: "Sama Naffa est une plateforme financière digitale qui offre des services bancaires et d'épargne innovants. Nous proposons des solutions d'épargne flexibles et des produits d'investissement pour vous aider à atteindre vos objectifs financiers.",
+    category: 'general'
+  },
+  {
+    id: 2,
+    question: "Comment puis-je ouvrir un compte ?",
+    answer: "L'ouverture d'un compte est simple et rapide. Cliquez sur 'Commencer' dans la navigation, remplissez le formulaire d'inscription en quelques étapes, et votre compte sera activé immédiatement après vérification de vos informations.",
+    category: 'general'
+  },
+  {
+    id: 3,
+    question: "Quels documents sont nécessaires pour l'inscription ?",
+    answer: "Vous aurez besoin d'une pièce d'identité valide (CNI, passeport), d'un justificatif de domicile récent, et d'un numéro de téléphone mobile pour la vérification.",
+    category: 'general'
+  },
+
+  // Sama Naffa Questions
+  {
+    id: 4,
+    question: "Comment fonctionne l'épargne avec Sama Naffa ?",
+    answer: "Sama Naffa propose plusieurs options d'épargne : épargne libre avec intérêts quotidiens, défis d'épargne (comme le défi 52 semaines), et épargne programmée pour vos objectifs spécifiques.",
+    category: 'sama-naffa'
+  },
+  {
+    id: 5,
+    question: "Quel est le taux d'intérêt sur l'épargne ?",
+    answer: "Nos taux d'épargne sont compétitifs et varient selon le type de produit. L'épargne libre offre jusqu'à 3% par an, tandis que les produits à terme peuvent offrir des taux plus élevés.",
+    category: 'sama-naffa'
+  },
+  {
+    id: 6,
+    question: "Puis-je retirer mon argent à tout moment ?",
+    answer: "Oui, avec l'épargne libre, vous pouvez retirer vos fonds à tout moment. Pour les produits à terme, des conditions spécifiques s'appliquent selon la durée d'engagement.",
+    category: 'sama-naffa'
+  },
+
+  // APE Questions
+  {
+    id: 7,
+    question: "Qu'est-ce que l'APE Sénégal ?",
+    answer: "L'APE (Agence de Promotion des Exportations) Sénégal propose des produits d'investissement et des obligations pour diversifier votre portefeuille et générer des rendements attractifs.",
+    category: 'ape'
+  },
+  {
+    id: 8,
+    question: "Quel est le montant minimum pour investir dans les produits APE ?",
+    answer: "Le montant minimum varie selon le produit. Les obligations démarrent généralement à partir de 100 000 FCFA, tandis que certains produits d'investissement peuvent avoir des seuils différents.",
+    category: 'ape'
+  },
+  {
+    id: 9,
+    question: "Quels sont les risques associés aux investissements APE ?",
+    answer: "Comme tout investissement, les produits APE comportent des risques. Cependant, ils sont régulés par la BCEAO et offrent différents niveaux de risque selon votre profil d'investisseur.",
+    category: 'ape'
+  },
+
+  // Security Questions
+  {
+    id: 10,
+    question: "Mes données sont-elles sécurisées ?",
+    answer: "Absolument. Nous utilisons un chiffrement de niveau bancaire, une authentification à deux facteurs, et nous sommes conformes aux réglementations BCEAO en matière de sécurité des données.",
+    category: 'security'
+  },
+  {
+    id: 11,
+    question: "Comment protégez-vous mon argent ?",
+    answer: "Vos fonds sont protégés par plusieurs niveaux de sécurité : ségrégation des comptes clients, partenariats avec des banques agréées, et couverture d'assurance selon les réglementations en vigueur.",
+    category: 'security'
+  }
+];
 
 export default function FAQPage() {
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [openItems, setOpenItems] = useState<number[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
 
-  const toggleExpanded = (itemId: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    setExpandedItems(newExpanded);
+  const toggleItem = (id: number) => {
+    setOpenItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(item => item !== id)
+        : [...prev, id]
+    );
   };
 
-  const getFilteredFAQ = () => {
-    let filtered = faqItems;
+  const filteredFAQ = activeCategory === 'all' 
+    ? faqData 
+    : faqData.filter(item => item.category === activeCategory);
 
-    if (selectedCategory !== 'all') {
-      filtered = getFAQByCategory(selectedCategory);
-    }
-
-    if (searchQuery.trim()) {
-      filtered = searchFAQ(searchQuery);
-    }
-
-    return filtered;
-  };
-
-  const filteredFAQ = getFilteredFAQ();
+  const categories = [
+    { id: 'all', name: 'Toutes les questions', icon: QuestionMarkCircleIcon },
+    { id: 'general', name: 'Général', icon: QuestionMarkCircleIcon },
+    { id: 'sama-naffa', name: 'Sama Naffa', icon: DevicePhoneMobileIcon },
+    { id: 'ape', name: 'APE Sénégal', icon: BuildingLibraryIcon },
+    { id: 'security', name: 'Sécurité', icon: ShieldCheckIcon }
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
+    <div className="min-h-screen bg-white-smoke">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-night mb-4">
+            Questions Fréquemment Posées
+          </h1>
+          <p className="text-xl text-night/70 max-w-2xl mx-auto">
+            Trouvez rapidement les réponses à vos questions sur nos services et produits financiers.
+          </p>
+        </div>
 
-      <main>
-        {/* Hero Section */}
-        <section className="py-20 bg-card">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <Link
-                href="/"
-                className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-300 mb-8"
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour à l&apos;accueil
-              </Link>
-              
-              <h1 className="text-5xl font-bold text-card-foreground mb-6">
-                Questions fréquentes
-              </h1>
-              
-              <p className="text-xl text-muted-foreground max-w-3xl mx-auto leading-relaxed mb-8">
-                Trouvez rapidement les réponses à vos questions sur Sama Naffa, 
-                l&apos;épargne personnalisée et l&apos;Actionnariat Populaire Economique
-              </p>
-
-              {/* Search Bar */}
-              <div className="max-w-2xl mx-auto relative">
-                <div className="relative">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Rechercher une question..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-muted border border-border rounded-2xl text-card-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-foreground focus:border-transparent"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Category Filter */}
-            <div className="flex flex-wrap justify-center gap-4 mb-12">
+        {/* Category Filter */}
+        <div className="flex flex-wrap justify-center gap-3 mb-8">
+          {categories.map((category) => {
+            const IconComponent = category.icon;
+            return (
               <button
-                onClick={() => setSelectedCategory('all')}
-                className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                  selectedCategory === 'all'
-                    ? 'bg-foreground text-background'
-                    : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
+                key={category.id}
+                onClick={() => setActiveCategory(category.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  activeCategory === category.id
+                    ? 'bg-gold-metallic text-night shadow-sm'
+                    : 'bg-white text-night/70 hover:text-night hover:bg-gold-metallic/10 border border-timberwolf/30'
                 }`}
               >
-                Toutes les questions
+                <IconComponent className="w-4 h-4" />
+                <span>{category.name}</span>
               </button>
-              {faqCategories.map((category) => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-6 py-3 rounded-xl font-medium transition-all duration-300 ${
-                    selectedCategory === category.id
-                      ? 'bg-foreground text-background'
-                      : 'bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-                  }`}
-                >
-                  <span className="mr-2">{category.icon}</span>
-                  {category.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
+            );
+          })}
+        </div>
 
         {/* FAQ Items */}
-        <section className="py-20 bg-muted">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            {filteredFAQ.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="w-16 h-16 bg-muted rounded-2xl flex items-center justify-center mx-auto mb-6">
-                  <Search className="w-8 h-8 text-muted-foreground" />
+        <div className="space-y-4">
+          {filteredFAQ.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-lg border border-timberwolf/20 shadow-sm overflow-hidden"
+            >
+              <button
+                onClick={() => toggleItem(item.id)}
+                className="w-full px-6 py-4 text-left flex items-center justify-between hover:bg-timberwolf/5 transition-colors"
+              >
+                <span className="font-medium text-night pr-4">{item.question}</span>
+                <ChevronDownIcon
+                  className={`w-5 h-5 text-night/50 transition-transform ${
+                    openItems.includes(item.id) ? 'rotate-180' : ''
+                  }`}
+                />
+              </button>
+              {openItems.includes(item.id) && (
+                <div className="px-6 pb-4 text-night/70 leading-relaxed">
+                  {item.answer}
                 </div>
-                <h3 className="text-xl font-bold text-card-foreground mb-4">
-                  Aucune question trouvée
-                </h3>
-                <p className="text-muted-foreground mb-6">
-                  Essayez de modifier votre recherche ou de changer de catégorie
-                </p>
-                <Button
-                  onClick={() => {
-                    setSearchQuery('');
-                    setSelectedCategory('all');
-                  }}
-                  variant="outline"
-                >
-                  Réinitialiser la recherche
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredFAQ.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-card rounded-2xl border border-border overflow-hidden"
-                  >
-                    <button
-                      onClick={() => toggleExpanded(item.id)}
-                      className="w-full p-6 text-left flex items-center justify-between hover:bg-muted transition-colors duration-300"
-                    >
-                      <span className="text-lg font-semibold text-card-foreground pr-4">
-                        {item.question}
-                      </span>
-                      {expandedItems.has(item.id) ? (
-                        <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      ) : (
-                        <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                      )}
-                    </button>
-                    
-                    {expandedItems.has(item.id) && (
-                      <div className="px-6 pb-6">
-                        <div className="border-t border-border pt-4">
-                          <p className="text-muted-foreground leading-relaxed">
-                            {item.answer}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* Contact Section */}
-        <section className="py-20 bg-card">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-4xl font-bold text-card-foreground mb-6">
-              Vous ne trouvez pas votre réponse ?
-            </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Notre équipe d&apos;assistance est là pour vous aider 7j/7
-            </p>
-            
-            <div className="grid md:grid-cols-3 gap-8 mb-12">
-              <div className="bg-muted rounded-2xl p-6">
-                <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-background text-xl">💬</span>
-                </div>
-                <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                  WhatsApp
-                </h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Réponse immédiate
-                </p>
-                <a
-                  href="https://wa.me/221XXXXXXXXX"
-                  className="text-foreground hover:text-accent transition-colors duration-300 font-medium"
-                >
-                  +221 XX XX XX XX XX
-                </a>
-              </div>
-
-              <div className="bg-muted rounded-2xl p-6">
-                <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-background text-xl">📧</span>
-                </div>
-                <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                  Email
-                </h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Réponse sous 24h
-                </p>
-                <a
-                  href="mailto:support@sama-naffa.sn"
-                  className="text-foreground hover:text-accent transition-colors duration-300 font-medium"
-                >
-                  support@sama-naffa.sn
-                </a>
-              </div>
-
-              <div className="bg-muted rounded-2xl p-6">
-                <div className="w-12 h-12 bg-foreground rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-background text-xl">📞</span>
-                </div>
-                <h3 className="text-lg font-semibold text-card-foreground mb-2">
-                  Téléphone
-                </h3>
-                <p className="text-muted-foreground text-sm mb-4">
-                  Lun-Ven 8h-18h
-                </p>
-                <a
-                  href="tel:+221XXXXXXXXX"
-                  className="text-foreground hover:text-accent transition-colors duration-300 font-medium"
-                >
-                  +221 XX XX XX XX XX
-                </a>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button href="/assistance" size="lg">
-                Page d&apos;assistance
-              </Button>
-              <Button href="/" variant="outline" size="lg">
-                Retour à l&apos;accueil
-              </Button>
-            </div>
+        <div className="mt-16 bg-gradient-to-r from-gold-metallic/10 to-timberwolf/10 rounded-2xl p-8 text-center">
+          <h2 className="text-2xl font-bold text-night mb-4">
+            Vous ne trouvez pas votre réponse ?
+          </h2>
+          <p className="text-night/70 mb-6">
+            Notre équipe de support est là pour vous aider. Contactez-nous directement.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="tel:+221123456789"
+              className="inline-flex items-center justify-center space-x-2 bg-gold-metallic text-night px-6 py-3 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+            >
+              <BanknotesIcon className="w-5 h-5" />
+              <span>Appelez-nous</span>
+            </a>
+            <a
+              href="mailto:support@samanaffa.sn"
+              className="inline-flex items-center justify-center space-x-2 bg-white text-night px-6 py-3 rounded-lg font-semibold border border-timberwolf/20 hover:bg-timberwolf/10 transition-colors"
+            >
+              <span>Écrivez-nous</span>
+            </a>
           </div>
-        </section>
-      </main>
-
-      <Footer />
+        </div>
+      </div>
     </div>
   );
 }
+
