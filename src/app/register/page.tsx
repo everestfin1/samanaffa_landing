@@ -120,14 +120,27 @@ export default function RegisterPage() {
 
   const handleSubmit = async () => {
     if (!validateStep(4)) return;
-    
+
     setIsLoading(true);
-    
+
     // Simulate registration process
     setTimeout(() => {
       setIsLoading(false);
-      // Set authentication state
+
+      // Store user data and authentication state
+      const userData = {
+        ...formData,
+        userId: 'user_' + Date.now(),
+        registrationDate: new Date().toISOString(),
+        isNewUser: true,
+        kycStatus: 'pending'
+      };
+
       localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('userData', JSON.stringify(userData));
+      localStorage.setItem('kycRequired', 'true');
+      localStorage.setItem('userSource', 'registration'); // Track how user got here
+
       // Trigger storage event to update navigation
       window.dispatchEvent(new Event('storage'));
       router.push('/portal');

@@ -41,11 +41,27 @@ export default function LoginPage() {
       setIsLoading(false);
       // For demo purposes, accept any email/password combination
       if (formData.email && formData.password) {
-        // Set authentication state
+        // Create user data from login form (simulating existing user)
+        const emailParts = formData.email.split('@');
+        const nameParts = emailParts[0].split('.');
+        
+        const userData = {
+          firstName: nameParts[0] ? nameParts[0].charAt(0).toUpperCase() + nameParts[0].slice(1) : 'Utilisateur',
+          lastName: nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : 'Demo',
+          email: formData.email,
+          phone: '+221 77 123 45 67',
+          userId: 'USR_' + Date.now(),
+          isNewUser: false,
+          kycStatus: 'approved'
+        };
+
+        // Set authentication state and user data
         localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('userData', JSON.stringify(userData));
+        localStorage.setItem('userSource', 'login'); // Track how user got here
         // Trigger storage event to update navigation
         window.dispatchEvent(new Event('storage'));
-        router.push('/portal');
+        router.push('/portal/dashboard');
       } else {
         setError('Veuillez remplir tous les champs');
       }

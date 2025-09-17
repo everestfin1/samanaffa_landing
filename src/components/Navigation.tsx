@@ -25,8 +25,9 @@ export default function Navigation() {
   const [isOverLightBackground, setIsOverLightBackground] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Determine if we're on the home page based on current pathname
+  // Determine if we're on the home page or portal page based on current pathname
   const isHomePage = pathname === '/';
+  const isPortalPage = pathname.startsWith('/portal');
 
   // Check authentication status on mount
   useEffect(() => {
@@ -115,6 +116,11 @@ export default function Navigation() {
     setIsMobileMenuOpen(false);
     setIsPlusDropdownOpen(false);
   }, [pathname]);
+
+  // Hide navigation on portal page
+  if (isPortalPage) {
+    return null;
+  }
 
   return (
     <header

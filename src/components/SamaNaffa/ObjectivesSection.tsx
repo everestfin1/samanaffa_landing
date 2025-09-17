@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from "re
 import { Objective, Persona } from "../data/types";
 import { Card, CardContent } from "../ui/card";
 import { formatCurrency } from "@/lib/utils";
+import Image from "next/image";
 
 // --- HELPER FUNCTIONS & HOOKS ---
 
@@ -202,10 +203,12 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                     style={{ animationDelay: `${index * 0.05}s` }}
                                                 >
                                                     <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 transition-all duration-300 group-hover:shadow-md ${selectedObjective?.id === objective.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4]"}`}>
-                                                        <img
+                                                        <Image
                                                             className="absolute w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 group-hover:scale-110"
                                                             alt={objective.name}
                                                             src={objective.icon}
+                                                            width={50}
+                                                            height={50}
                                                         />
                                                          {selectedObjective?.id === objective.id && <div className="absolute inset-0 rounded-full bg-[#435933]/10 animate-subtle-pulse"></div>}
                                                     </div>

@@ -1,10 +1,16 @@
 'use client'
 import { ShieldCheckIcon } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
 
 export default function Footer() {
     const router = useRouter();
+    const pathname = usePathname();
+
+    // Hide footer on portal pages
+    if (pathname.startsWith('/portal')) {
+        return null;
+    }
   return (
     <footer className="relative bg-night text-white py-24">
     {/* Subtle gold gradient overlay */}
