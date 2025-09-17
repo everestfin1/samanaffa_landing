@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Bars3Icon,
@@ -141,65 +142,26 @@ export default function Navigation() {
             <div className="flex-shrink-0">
               <Link 
                 href="/"
-                className={`text-2xl font-bold transition-colors drop-shadow-lg ${
-                  isOverLightBackground
-                    ? 'text-night hover:text-gold-metallic'
-                    : isHomePage
-                      ? 'text-white hover:text-gold-metallic'
-                      : 'text-night hover:text-gold-metallic'
-                }`}
+                className="transition-opacity hover:opacity-80 drop-shadow-lg"
               >
-                Sama Naffa
+                <Image
+                  src="/sama_naffa_logo.png"
+                  alt="Sama Naffa"
+                  width={120}
+                  height={40}
+                  className="h-10 w-auto"
+                  priority
+                />
               </Link>
             </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/"
-              className={`transition-colors font-medium drop-shadow ${
-                isOverLightBackground
-                  ? 'text-gray-dark/80 hover:text-night'
-                  : isHomePage
-                    ? 'text-white/80 hover:text-white'
-                    : 'text-gray-dark/80 hover:text-night'
-              }`}
-            >
-              Accueil
-            </Link>
-
-            <Link
-              href="/sama-naffa"
-              className={`transition-colors font-medium drop-shadow ${
-                isOverLightBackground
-                  ? 'text-gray-dark/80 hover:text-night'
-                  : isHomePage
-                    ? 'text-white/80 hover:text-white'
-                    : 'text-gray-dark/80 hover:text-night'
-              }`}
-            >
-              Sama Naffa
-            </Link>
-
-            <Link
-              href="/ape"
-              className={`transition-colors font-medium drop-shadow ${
-                isOverLightBackground
-                  ? 'text-gray-dark/80 hover:text-night'
-                  : isHomePage
-                    ? 'text-white/80 hover:text-white'
-                    : 'text-gray-dark/80 hover:text-night'
-              }`}
-            >
-              APE Sénégal
-            </Link>
-
-            {/* Plus Dropdown */}
-            <div className="relative" ref={dropdownRef}>
-              <button
-                onClick={() => setIsPlusDropdownOpen(!isPlusDropdownOpen)}
-                className={`flex items-center space-x-1 transition-colors font-medium drop-shadow ${
+          {/* Desktop Navigation - Centered nav items */}
+          <div className="hidden md:flex items-center justify-center flex-1">
+            <div className="flex items-center space-x-8">
+              <Link
+                href="/"
+                className={`transition-colors font-medium drop-shadow ${
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
@@ -207,45 +169,110 @@ export default function Navigation() {
                       : 'text-gray-dark/80 hover:text-night'
                 }`}
               >
-                <PlusIcon className="w-4 h-4" />
-                <span>Plus</span>
-                <ChevronDownIcon className={`w-4 h-4 transition-transform ${isPlusDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+                Accueil
+              </Link>
 
-              {isPlusDropdownOpen && (
-                <div className={`absolute top-full left-0 mt-2 w-48 rounded-lg shadow-2xl border py-2 z-50 backdrop-blur-md ${
+              <Link
+                href="/sama-naffa"
+                className={`transition-colors font-medium drop-shadow ${
                   isOverLightBackground
-                    ? 'bg-white/95 border-gray-light/30'
+                    ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
-                      ? 'bg-white/95 border-gold-metallic/20'
-                      : 'bg-white/95 border-gray-light/30'
-                }`}>
-                  <Link
-                    href="/faq"
-                    className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
-                  >
-                    <QuestionMarkCircleIcon className="w-5 h-5 text-gold-metallic" />
-                    <span className="font-medium text-night">FAQ</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
-                  >
-                    <PhoneIcon className="w-5 h-5 text-gold-metallic" />
-                    <span className="font-medium text-night">Contact</span>
-                  </Link>
-                </div>
-              )}
-            </div>
+                      ? 'text-white/80 hover:text-white'
+                      : 'text-gray-dark/80 hover:text-night'
+                }`}
+              >
+                Sama Naffa
+              </Link>
 
-            {/* User Actions */}
-            <div className="flex items-center space-x-3">
-              {isHydrated ? (
-                isAuthenticated ? (
-                <div className="flex items-center space-x-3">
-                  <Link 
-                    href="/portal"
-                    className={`flex items-center space-x-2 transition-colors drop-shadow ${
+              <Link
+                href="/ape"
+                className={`transition-colors font-medium drop-shadow ${
+                  isOverLightBackground
+                    ? 'text-gray-dark/80 hover:text-night'
+                    : isHomePage
+                      ? 'text-white/80 hover:text-white'
+                      : 'text-gray-dark/80 hover:text-night'
+                }`}
+              >
+                APE Sénégal
+              </Link>
+
+              {/* Plus Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsPlusDropdownOpen(!isPlusDropdownOpen)}
+                  className={`flex items-center space-x-1 transition-colors font-medium drop-shadow ${
+                    isOverLightBackground
+                      ? 'text-gray-dark/80 hover:text-night'
+                      : isHomePage
+                        ? 'text-white/80 hover:text-white'
+                        : 'text-gray-dark/80 hover:text-night'
+                  }`}
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  <span>Plus</span>
+                  <ChevronDownIcon className={`w-4 h-4 transition-transform ${isPlusDropdownOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isPlusDropdownOpen && (
+                  <div className={`absolute top-full left-0 mt-2 w-48 rounded-lg shadow-2xl border py-2 z-50 backdrop-blur-md ${
+                    isOverLightBackground
+                      ? 'bg-white/95 border-gray-light/30'
+                      : isHomePage
+                        ? 'bg-white/95 border-gold-metallic/20'
+                        : 'bg-white/95 border-gray-light/30'
+                  }`}>
+                    <Link
+                      href="/faq"
+                      className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
+                    >
+                      <QuestionMarkCircleIcon className="w-5 h-5 text-gold-metallic" />
+                      <span className="font-medium text-night">FAQ</span>
+                    </Link>
+                    <Link
+                      href="/contact"
+                      className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
+                    >
+                      <PhoneIcon className="w-5 h-5 text-gold-metallic" />
+                      <span className="font-medium text-night">Contact</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* User Actions - Right aligned */}
+          <div className="hidden md:flex items-center space-x-3">
+            {isHydrated ? (
+              isAuthenticated ? (
+              <div className="flex items-center space-x-3">
+                <Link 
+                  href="/portal"
+                  className={`flex items-center space-x-2 transition-colors drop-shadow ${
+                    isOverLightBackground
+                      ? 'text-gray-dark/80 hover:text-night'
+                      : isHomePage
+                        ? 'text-white/80 hover:text-white'
+                        : 'text-gray-dark/80 hover:text-night'
+                  }`}
+                >
+                  <UserIcon className="w-5 h-5" />
+                  <span className="text-sm">Mon Portail</span>
+                </Link>
+                <Link 
+                  href="/portal"
+                  className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
+                >
+                  Tableau de bord
+                </Link>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-3">
+                <Link 
+                  href="/login"
+                    className={`transition-colors text-sm font-medium drop-shadow ${
                       isOverLightBackground
                         ? 'text-gray-dark/80 hover:text-night'
                         : isHomePage
@@ -253,60 +280,37 @@ export default function Navigation() {
                           : 'text-gray-dark/80 hover:text-night'
                     }`}
                   >
-                    <UserIcon className="w-5 h-5" />
-                    <span className="text-sm">Mon Portail</span>
-                  </Link>
-                  <Link 
-                    href="/portal"
-                    className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
-                  >
-                    Tableau de bord
-                  </Link>
-                </div>
-              ) : (
-                <div className="flex items-center space-x-3">
-                  <Link 
-                    href="/login"
-                      className={`transition-colors text-sm font-medium drop-shadow ${
-                        isOverLightBackground
-                          ? 'text-gray-dark/80 hover:text-night'
-                          : isHomePage
-                            ? 'text-white/80 hover:text-white'
-                            : 'text-gray-dark/80 hover:text-night'
-                      }`}
-                    >
-                      Se connecter
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
-                    >
-                      Commencer
-                    </Link>
-                  </div>
-                )
-              ) : (
-                // Render default state during SSR to match initial client render
-                <div className="flex items-center space-x-3">
-                  <Link
-                    href="/login"
-                    className={`transition-colors text-sm font-medium drop-shadow ${
-                      isOverLightBackground
-                        ? 'text-gray-dark/80 hover:text-night'
-                        : 'text-white/80 hover:text-white'
-                    }`}
-                  >
                     Se connecter
                   </Link>
-                  <Link 
+                  <Link
                     href="/register"
                     className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
                   >
                     Commencer
                   </Link>
                 </div>
-              )}
-            </div>
+              )
+            ) : (
+              // Render default state during SSR to match initial client render
+              <div className="flex items-center space-x-3">
+                <Link
+                  href="/login"
+                  className={`transition-colors text-sm font-medium drop-shadow ${
+                    isOverLightBackground
+                      ? 'text-gray-dark/80 hover:text-night'
+                      : 'text-white/80 hover:text-white'
+                  }`}
+                >
+                  Se connecter
+                </Link>
+                <Link 
+                  href="/register"
+                  className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
+                >
+                  Commencer
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile Menu Button */}

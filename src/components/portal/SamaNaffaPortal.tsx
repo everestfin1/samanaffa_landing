@@ -23,7 +23,11 @@ import {
   ShieldCheckIcon,
   PlayIcon,
   DocumentTextIcon,
-  ArrowTrendingUpIcon
+  ArrowTrendingUpIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  WalletIcon,
+  CreditCardIcon
 } from '@heroicons/react/24/outline';
 
 interface SavingsGoal {
@@ -85,7 +89,11 @@ interface FinancialHealthScore {
 }
 
 export default function SamaNaffaPortal() {
-  const [activeSection, setActiveSection] = useState<'overview' | 'goals' | 'challenges' | 'tontine' | 'education' | 'health' | 'joint'>('overview');
+  const [activeSection, setActiveSection] = useState<'overview' | 'naffas' | 'education' | 'health' | 'tontine'>('overview');
+  const [activeNaffaTab, setActiveNaffaTab] = useState<'goals' | 'challenges' | 'joint'>('goals');
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
+  const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [savingsGoals, setSavingsGoals] = useState<SavingsGoal[]>([
     {
       id: '1',
@@ -253,7 +261,7 @@ export default function SamaNaffaPortal() {
       {/* Quick Actions */}
       <div className="grid md:grid-cols-3 gap-6">
         <button 
-          onClick={() => setActiveSection('goals')}
+          onClick={() => {setActiveSection('naffas'); setActiveNaffaTab('goals');}}
           className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-shadow text-left hover:border-gold-metallic/30"
         >
           <div className="flex items-center space-x-4">
@@ -268,7 +276,7 @@ export default function SamaNaffaPortal() {
         </button>
 
         <button 
-          onClick={() => setActiveSection('challenges')}
+          onClick={() => {setActiveSection('naffas'); setActiveNaffaTab('challenges');}}
           className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-shadow text-left hover:border-gold-metallic/30"
         >
           <div className="flex items-center space-x-4">
@@ -303,7 +311,7 @@ export default function SamaNaffaPortal() {
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-night">Progression de vos objectifs</h3>
           <button 
-            onClick={() => setActiveSection('goals')}
+            onClick={() => {setActiveSection('naffas'); setActiveNaffaTab('goals');}}
             className="text-gold-metallic hover:text-green-700 font-medium"
           >
             Voir tout
@@ -330,6 +338,129 @@ export default function SamaNaffaPortal() {
           ))}
         </div>
       </div>
+    </div>
+  );
+
+  const renderTransferModal = () => (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-night">
+            {transferType === 'deposit' ? 'Effectuer un dépôt' : 'Effectuer un retrait'}
+          </h3>
+          <button 
+            onClick={() => setShowTransferModal(false)}
+            className="text-night/60 hover:text-night"
+          >
+            ✕
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-night mb-2">Montant (FCFA)</label>
+            <input 
+              type="number" 
+              placeholder="50000"
+              className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
+            />
+          </div>
+          
+          {transferType === 'withdraw' && (
+            <div>
+              <label className="block text-sm font-medium text-night mb-2">Méthode de retrait</label>
+              <select className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent">
+                <option>Orange Money</option>
+                <option>Wave</option>
+                <option>Virement bancaire</option>
+                <option>Retrait en agence</option>
+              </select>
+            </div>
+          )}
+          
+          {transferType === 'deposit' && (
+            <div>
+              <label className="block text-sm font-medium text-night mb-2">Méthode de dépôt</label>
+              <select className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent">
+                <option>Orange Money</option>
+                <option>Wave</option>
+                <option>Virement bancaire</option>
+                <option>Espèces en agence</option>
+                <option>Carte bancaire</option>
+              </select>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-night mb-2">Note (optionnel)</label>
+            <textarea 
+              placeholder="Motif de la transaction..."
+              rows={3}
+              className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
+            />
+          </div>
+        </div>
+
+        <div className="flex space-x-3 mt-6">
+          <button 
+            onClick={() => setShowTransferModal(false)}
+            className="flex-1 border border-timberwolf/30 text-night py-3 px-4 rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
+          >
+            Annuler
+          </button>
+          <button 
+            onClick={() => {
+              setShowTransferModal(false);
+              // Here you would handle the actual transaction
+            }}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors text-white ${
+              transferType === 'deposit' 
+                ? 'bg-gold-metallic hover:bg-gold-dark' 
+                : 'bg-red-600 hover:bg-red-700'
+            }`}
+          >
+            {transferType === 'deposit' ? 'Déposer' : 'Retirer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderMesNaffas = () => (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-3xl font-bold text-night">Mes Naffas</h2>
+        {/* TODO: Add a button to add a new Naffa */}
+      </div>
+
+      {/* Sub Navigation */}
+      <div className="bg-white rounded-xl border border-timberwolf/20 p-2">
+        <div className="flex space-x-2">
+          {[
+            { id: 'goals', label: 'Objectifs d\'épargne', icon: BanknotesIcon },
+            { id: 'challenges', label: 'Défis d\'épargne', icon: TrophyIcon },
+            { id: 'joint', label: 'Comptes joints', icon: UsersIcon }
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveNaffaTab(tab.id as 'goals' | 'challenges' | 'joint')}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                activeNaffaTab === tab.id
+                  ? 'bg-gold-metallic text-white shadow-lg'
+                  : 'text-night hover:bg-timberwolf/10'
+              }`}
+            >
+              <tab.icon className="w-4 h-4" />
+              <span className="hidden md:inline">{tab.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content based on active tab */}
+      {activeNaffaTab === 'goals' && renderGoalsManager()}
+      {activeNaffaTab === 'challenges' && renderChallenges()}
+      {activeNaffaTab === 'joint' && renderJointAccounts()}
     </div>
   );
 
@@ -397,11 +528,22 @@ export default function SamaNaffaPortal() {
               </p>
             </div>
 
-            <div className="flex space-x-3">
-              <button className="flex-1 bg-gold-metallic text-white py-2 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors">
-                Ajuster
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => {setTransferType('deposit'); setSelectedAccount(goal.id); setShowTransferModal(true);}}
+                className="flex-1 bg-gold-metallic text-white py-2 px-3 rounded-lg font-medium hover:bg-gold-dark transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <ArrowDownIcon className="w-4 h-4" />
+                <span>Déposer</span>
               </button>
-              <button className="flex-1 border border-gold-metallic text-gold-metallic py-2 px-4 rounded-lg font-medium hover:bg-green-50 transition-colors">
+              <button 
+                onClick={() => {setTransferType('withdraw'); setSelectedAccount(goal.id); setShowTransferModal(true);}}
+                className="flex-1 bg-red-600 text-white py-2 px-3 rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <ArrowUpIcon className="w-4 h-4" />
+                <span>Retirer</span>
+              </button>
+              <button className="flex-1 border border-gold-metallic text-gold-metallic py-2 px-3 rounded-lg font-medium hover:bg-green-50 transition-colors text-sm">
                 Détails
               </button>
             </div>
@@ -529,12 +671,19 @@ export default function SamaNaffaPortal() {
               ))}
             </div>
 
-            <div className="flex space-x-3">
-              <button className="flex-1 bg-gold-metallic text-white py-2 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors">
-                Continuer le défi
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => {setTransferType('deposit'); setSelectedAccount(challenge.id); setShowTransferModal(true);}}
+                className="flex-1 bg-gold-metallic text-white py-2 px-3 rounded-lg font-medium hover:bg-gold-dark transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <ArrowDownIcon className="w-4 h-4" />
+                <span>Déposer</span>
               </button>
-              <button className="flex-1 border border-yellow-600 text-gold-dark py-2 px-4 rounded-lg font-medium hover:bg-yellow-50 transition-colors">
-                Voir les détails
+              <button className="flex-1 border border-yellow-600 text-gold-dark py-2 px-3 rounded-lg font-medium hover:bg-yellow-50 transition-colors text-sm">
+                Continuer
+              </button>
+              <button className="flex-1 border border-timberwolf/30 text-night py-2 px-3 rounded-lg font-medium hover:bg-timberwolf/10 transition-colors text-sm">
+                Détails
               </button>
             </div>
           </div>
@@ -1010,9 +1159,18 @@ export default function SamaNaffaPortal() {
               </div>
             </div>
 
-            <button className="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-              Voir les détails
-            </button>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => {setTransferType('deposit'); setSelectedAccount('joint-1'); setShowTransferModal(true);}}
+                className="flex-1 bg-gold-metallic text-white py-2 px-3 rounded-lg font-medium hover:bg-gold-dark transition-colors flex items-center justify-center space-x-1 text-sm"
+              >
+                <ArrowDownIcon className="w-4 h-4" />
+                <span>Déposer</span>
+              </button>
+              <button className="flex-1 bg-indigo-600 text-white py-2 px-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-sm">
+                Détails
+              </button>
+            </div>
           </div>
 
           {/* Create New Joint Account */}
@@ -1135,18 +1293,14 @@ export default function SamaNaffaPortal() {
 
   const renderSectionContent = () => {
     switch (activeSection) {
-      case 'goals':
-        return renderGoalsManager();
-      case 'challenges':
-        return renderChallenges();
+      case 'naffas':
+        return renderMesNaffas();
       case 'tontine':
         return renderTontineCalculator();
       case 'education':
         return renderEducation();
       case 'health':
         return renderHealthScore();
-      case 'joint':
-        return renderJointAccounts();
       default:
         return renderOverview();
     }
@@ -1159,16 +1313,14 @@ export default function SamaNaffaPortal() {
         <div className="flex flex-wrap gap-2">
           {[
             { id: 'overview', label: 'Vue d\'ensemble', icon: ChartBarIcon },
-            { id: 'goals', label: 'Objectifs', icon: BanknotesIcon },
-            { id: 'challenges', label: 'Défis', icon: TrophyIcon },
+            { id: 'naffas', label: 'Mes Naffas', icon: WalletIcon },
             { id: 'tontine', label: 'Tontines', icon: UserGroupIcon },
-            { id: 'joint', label: 'Comptes joints', icon: UsersIcon },
             { id: 'education', label: 'Éducation', icon: BookOpenIcon },
             { id: 'health', label: 'Santé financière', icon: HeartIcon }
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveSection(tab.id as 'overview' | 'goals' | 'challenges' | 'tontine' | 'education' | 'health' | 'joint')}
+              onClick={() => setActiveSection(tab.id as 'overview' | 'naffas' | 'tontine' | 'education' | 'health')}
               className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors ${
                 activeSection === tab.id
                   ? 'bg-gold-metallic text-night shadow-lg'
@@ -1184,6 +1336,9 @@ export default function SamaNaffaPortal() {
 
       {/* Section Content */}
       {renderSectionContent()}
+      
+      {/* Transfer Modal */}
+      {showTransferModal && renderTransferModal()}
     </div>
   );
 }

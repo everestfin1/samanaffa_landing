@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   UserIcon,
   HomeIcon,
@@ -134,14 +135,17 @@ export default function PortalHeader({
           <div className="flex items-center flex-shrink-0">
             <button
               onClick={() => router.push('/portal/dashboard')}
-              className="flex items-center space-x-2 text-night hover:text-gold-metallic transition-colors focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 rounded-md p-2"
+              className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 rounded-md p-2"
               aria-label="Retourner à l'accueil"
             >
-              <div className="w-8 h-8 bg-gold-metallic/10 rounded-lg flex items-center justify-center">
-                <BuildingLibraryIcon className="w-5 h-5 text-gold-metallic" />
-              </div>
-              <span className="text-base font-semibold hidden sm:inline">Sama Naffa</span>
-              <span className="sm:hidden">SN</span>
+              <Image
+                src="/sama_naffa_logo.png"
+                alt="Sama Naffa"
+                width={100}
+                height={32}
+                className="h-8 w-auto"
+                priority
+              />
             </button>
           </div>
 
