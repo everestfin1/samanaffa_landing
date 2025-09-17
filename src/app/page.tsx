@@ -6,7 +6,8 @@ import {
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
   ArrowRightIcon,
-  CheckIcon
+  CheckIcon,
+  ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 
@@ -37,14 +38,7 @@ export default function Home() {
           
           <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
             <div className="text-center space-y-16 w-full">
-              {/* Powered by Everest */}
-              {/* <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
-                <span className="text-white/70">Powered by</span>
-                <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-semibold tracking-wide">
-                  Everest
-                </span>
-              </div> */}
-
+              
               {/* Main heading */}
               <div className="space-y-8">
                 <h1 className="text-6xl lg:text-8xl text-white font-extralight tracking-tight leading-none drop-shadow-2xl">
@@ -62,9 +56,9 @@ export default function Home() {
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              {/* <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <button 
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/register')}
                   className="group relative px-12 py-5 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold-metallic/40 hover:-translate-y-1 hover:scale-105"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -76,9 +70,26 @@ export default function Home() {
                 >
                   <span className="group-hover:text-gold-light transition-colors">Explorer l'APE</span>
                 </button>
-              </div>
+              </div> */}
 
             </div>
+          </div>
+          
+          {/* Scroll Down Indicator */}
+          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+            <button 
+              onClick={() => {
+                const servicesSection = document.querySelector('[aria-label="Nos services"]');
+                servicesSection?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="group flex flex-col items-center gap-2 text-white/80 hover:text-gold-light transition-all duration-300"
+              aria-label="Faire défiler vers le bas"
+            >
+              <span className="text-sm font-light tracking-wide">Découvrir</span>
+              <div className="w-8 h-8 border-2 border-white/40 rounded-full flex items-center justify-center group-hover:border-gold-light/60 transition-colors duration-300">
+                <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
+              </div>
+            </button>
           </div>
         </section>
 

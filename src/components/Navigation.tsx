@@ -286,7 +286,7 @@ export default function Navigation() {
                     href="/register"
                     className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
                   >
-                    Commencer
+                    Ouvrir un compte
                   </Link>
                 </div>
               )
@@ -307,7 +307,7 @@ export default function Navigation() {
                   href="/register"
                   className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
                 >
-                  Commencer
+                  Ouvrir un compte
                 </Link>
               </div>
             )}
@@ -448,7 +448,7 @@ export default function Navigation() {
                       href="/register"
                       className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
                     >
-                      Commencer
+                      Ouvrir un compte
                     </Link>
                   </div>
                 )

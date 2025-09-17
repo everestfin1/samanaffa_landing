@@ -1103,79 +1103,111 @@ export default function SamaNaffaPortal() {
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold text-night">Comptes joints</h2>
-        <button className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors flex items-center space-x-2">
-          <UsersIcon className="w-5 h-5" />
-          <span>Créer un groupe</span>
+        <button className="group relative px-6 py-3 bg-gradient-to-r from-gold-dark to-gold-metallic text-white font-semibold rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-gold-metallic/30 hover:-translate-y-0.5 flex items-center space-x-2">
+          <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <UsersIcon className="w-5 h-5 relative z-10" />
+          <span className="relative z-10">Créer un groupe</span>
         </button>
       </div>
 
       {/* Joint Account Preview */}
-      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+      <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gold-metallic/10 p-8 hover:border-gold-metallic/20 transition-all duration-500">
         <h3 className="text-xl font-bold text-night mb-6">Aperçu des comptes partagés</h3>
         
         <div className="grid md:grid-cols-2 gap-8">
           {/* Sample Joint Account */}
-          <div className="border border-indigo-200 rounded-lg p-6 bg-indigo-50">
-            <div className="flex items-center justify-between mb-4">
-              <h4 className="font-bold text-night">Famille Diallo - Maison</h4>
-              <span className="bg-indigo-100 text-indigo-800 px-2 py-1 rounded text-sm">Actif</span>
+          <div className="group relative bg-white/80 backdrop-blur-sm border border-gold-metallic/20 rounded-2xl p-6 hover:border-gold-metallic/40 transition-all duration-500 hover:shadow-xl hover:shadow-gold-metallic/10 hover:-translate-y-1">
+            {/* Gold accent line */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-t-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-2xl flex items-center justify-center group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
+                  <UsersIcon className="w-6 h-6 text-gold-metallic" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-night">Famille Diallo - Maison</h4>
+                  <p className="text-sm text-night/60">Épargne familiale</p>
+                </div>
+              </div>
+              <span className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 text-gold-dark px-3 py-1 rounded-full text-sm font-medium border border-gold-metallic/20">Actif</span>
             </div>
             
+            <div className="space-y-4 mb-6">
+              <div className="flex justify-between items-center">
+                <span className="text-night/70 font-light">Objectif:</span>
+                <span className="font-bold text-night">10 000 000 FCFA</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-night/70 font-light">Collecté:</span>
+                <span className="font-bold text-gold-metallic">3 500 000 FCFA</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-night/70 font-light">Participants:</span>
+                <span className="font-bold text-night">4 membres</span>
+              </div>
+            </div>
+
+            <div className="w-full bg-timberwolf/20 rounded-full h-3 mb-6">
+              <div className="bg-gradient-to-r from-gold-dark to-gold-metallic h-3 rounded-full transition-all duration-500" style={{ width: '35%' }}></div>
+            </div>
+
             <div className="space-y-3 mb-6">
-              <div className="flex justify-between">
-                <span className="text-night/70">Objectif:</span>
-                <span className="font-semibold text-night">10 000 000 FCFA</span>
+              <div className="flex items-center justify-between text-sm bg-timberwolf/5 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
+                  <span className="text-night/70">Papa Diallo</span>
+                </div>
+                <span className="font-semibold text-night">125 000 FCFA/mois</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-night/70">Collecté:</span>
-                <span className="font-semibold text-gold-metallic">3 500 000 FCFA</span>
+              <div className="flex items-center justify-between text-sm bg-timberwolf/5 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
+                  <span className="text-night/70">Maman Diallo</span>
+                </div>
+                <span className="font-semibold text-night">75 000 FCFA/mois</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-night/70">Participants:</span>
-                <span className="font-semibold text-night">4 membres</span>
+              <div className="flex items-center justify-between text-sm bg-gradient-to-r from-gold-light/10 to-gold-metallic/5 rounded-lg p-3 border border-gold-metallic/20">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
+                  <span className="text-night/70">Vous</span>
+                </div>
+                <span className="font-bold text-gold-metallic">50 000 FCFA/mois</span>
               </div>
-            </div>
-
-            <div className="w-full bg-white rounded-full h-2 mb-4">
-              <div className="bg-indigo-500 h-2 rounded-full" style={{ width: '35%' }}></div>
-            </div>
-
-            <div className="space-y-2 mb-4">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-night/70">Papa Diallo</span>
-                <span className="font-medium text-night">125 000 FCFA/mois</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-night/70">Maman Diallo</span>
-                <span className="font-medium text-night">75 000 FCFA/mois</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-night/70">Vous</span>
-                <span className="font-medium text-gold-metallic">50 000 FCFA/mois</span>
-              </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-night/70">Frère Moussa</span>
-                <span className="font-medium text-night">40 000 FCFA/mois</span>
+              <div className="flex items-center justify-between text-sm bg-timberwolf/5 rounded-lg p-3">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
+                  <span className="text-night/70">Frère Moussa</span>
+                </div>
+                <span className="font-semibold text-night">40 000 FCFA/mois</span>
               </div>
             </div>
 
-            <div className="flex space-x-2">
+            <div className="flex space-x-3">
               <button 
                 onClick={() => {setTransferType('deposit'); setSelectedAccount('joint-1'); setShowTransferModal(true);}}
-                className="flex-1 bg-gold-metallic text-white py-2 px-3 rounded-lg font-medium hover:bg-gold-dark transition-colors flex items-center justify-center space-x-1 text-sm"
+                className="flex-1 bg-gradient-to-r from-gold-dark to-gold-metallic text-white py-3 px-4 rounded-xl font-medium hover:shadow-lg hover:shadow-gold-metallic/30 transition-all duration-300 hover:-translate-y-0.5 flex items-center justify-center space-x-2"
               >
                 <ArrowDownIcon className="w-4 h-4" />
                 <span>Déposer</span>
               </button>
-              <button className="flex-1 bg-indigo-600 text-white py-2 px-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors text-sm">
+              <button className="flex-1 border-2 border-gold-metallic/30 text-gold-metallic py-3 px-4 rounded-xl font-medium hover:bg-gold-metallic/5 hover:border-gold-metallic/50 transition-all duration-300">
                 Détails
               </button>
             </div>
           </div>
 
           {/* Create New Joint Account */}
-          <div className="border border-timberwolf/20 rounded-lg p-6">
-            <h4 className="font-bold text-night mb-4">Créer un nouveau groupe</h4>
+          <div className="bg-white/80 backdrop-blur-sm border border-gold-metallic/20 rounded-2xl p-6 hover:border-gold-metallic/40 transition-all duration-500 hover:shadow-xl hover:shadow-gold-metallic/10">
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-2xl flex items-center justify-center">
+                <PlusIcon className="w-6 h-6 text-gold-metallic" />
+              </div>
+              <div>
+                <h4 className="font-bold text-night">Créer un nouveau groupe</h4>
+                <p className="text-sm text-night/60">Épargnez ensemble</p>
+              </div>
+            </div>
             
             <div className="space-y-4">
               <div>
@@ -1183,7 +1215,7 @@ export default function SamaNaffaPortal() {
                 <input 
                   type="text" 
                   placeholder="Ex: Famille - Projet maison"
-                  className="w-full px-4 py-2 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-gold-metallic/50 transition-all duration-300 bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -1192,7 +1224,7 @@ export default function SamaNaffaPortal() {
                 <input 
                   type="number" 
                   placeholder="5000000"
-                  className="w-full px-4 py-2 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-gold-metallic/50 transition-all duration-300 bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -1200,7 +1232,7 @@ export default function SamaNaffaPortal() {
                 <label className="block text-sm font-medium text-night mb-2">Date cible</label>
                 <input 
                   type="date" 
-                  className="w-full px-4 py-2 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-gold-metallic/50 transition-all duration-300 bg-white/50 backdrop-blur-sm"
                 />
               </div>
               
@@ -1209,12 +1241,12 @@ export default function SamaNaffaPortal() {
                 <input 
                   type="email" 
                   placeholder="email@exemple.com"
-                  className="w-full px-4 py-2 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-gold-metallic/50 transition-all duration-300 bg-white/50 backdrop-blur-sm"
                 />
               </div>
             </div>
 
-            <button className="w-full bg-indigo-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-indigo-700 transition-colors mt-6">
+            <button className="w-full bg-gradient-to-r from-gold-dark to-gold-metallic text-white py-3 px-6 rounded-xl font-semibold hover:shadow-lg hover:shadow-gold-metallic/30 transition-all duration-300 hover:-translate-y-0.5 mt-6">
               Créer le groupe
             </button>
           </div>
@@ -1222,70 +1254,76 @@ export default function SamaNaffaPortal() {
       </div>
 
       {/* Approval Flow Simulation */}
-      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+      <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-gold-metallic/10 p-8 hover:border-gold-metallic/20 transition-all duration-500">
         <h3 className="text-xl font-bold text-night mb-6">Processus d'approbation</h3>
         
         <div className="space-y-4">
-          <div className="flex items-center space-x-4 p-4 bg-green-50 rounded-lg border border-green-200">
-            <CheckCircleIcon className="w-6 h-6 text-green-500" />
+          <div className="flex items-center space-x-4 p-6 bg-gradient-to-r from-green-50/80 to-green-100/50 backdrop-blur-sm rounded-2xl border border-green-200/50">
+            <div className="w-12 h-12 bg-green-100/80 rounded-2xl flex items-center justify-center">
+              <CheckCircleIcon className="w-6 h-6 text-green-600" />
+            </div>
             <div className="flex-1">
-              <div className="font-medium text-night">Retrait approuvé - 150 000 FCFA</div>
+              <div className="font-semibold text-night">Retrait approuvé - 150 000 FCFA</div>
               <div className="text-sm text-night/60">Approuvé par 3/4 membres • Il y a 2 jours</div>
             </div>
-            <span className="text-sm text-gold-metallic font-medium">Traité</span>
+            <span className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 text-gold-dark px-3 py-2 rounded-full text-sm font-medium border border-gold-metallic/20">Traité</span>
           </div>
 
-          <div className="flex items-center space-x-4 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <ClockIcon className="w-6 h-6 text-yellow-500" />
+          <div className="flex items-center space-x-4 p-6 bg-gradient-to-r from-yellow-50/80 to-yellow-100/50 backdrop-blur-sm rounded-2xl border border-yellow-200/50">
+            <div className="w-12 h-12 bg-yellow-100/80 rounded-2xl flex items-center justify-center">
+              <ClockIcon className="w-6 h-6 text-yellow-600" />
+            </div>
             <div className="flex-1">
-              <div className="font-medium text-night">Demande de retrait - 75 000 FCFA</div>
+              <div className="font-semibold text-night">Demande de retrait - 75 000 FCFA</div>
               <div className="text-sm text-night/60">En attente d'approbation • 2/4 membres</div>
             </div>
             <div className="flex space-x-2">
-              <button className="bg-gold-metallic text-white px-3 py-1 rounded text-sm hover:bg-gold-dark transition-colors">
+              <button className="bg-gradient-to-r from-gold-dark to-gold-metallic text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-gold-metallic/30 transition-all duration-300 hover:-translate-y-0.5">
                 Approuver
               </button>
-              <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
+              <button className="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:shadow-lg hover:shadow-red-500/30 transition-all duration-300 hover:-translate-y-0.5">
                 Rejeter
               </button>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <UsersIcon className="w-6 h-6 text-blue-500" />
+          <div className="flex items-center space-x-4 p-6 bg-gradient-to-r from-blue-50/80 to-blue-100/50 backdrop-blur-sm rounded-2xl border border-blue-200/50">
+            <div className="w-12 h-12 bg-blue-100/80 rounded-2xl flex items-center justify-center">
+              <UsersIcon className="w-6 h-6 text-blue-600" />
+            </div>
             <div className="flex-1">
-              <div className="font-medium text-night">Nouveau membre ajouté</div>
+              <div className="font-semibold text-night">Nouveau membre ajouté</div>
               <div className="text-sm text-night/60">Aminata Sow a rejoint le groupe • Il y a 1 semaine</div>
             </div>
-            <span className="text-sm text-gold-dark font-medium">Info</span>
+            <span className="bg-gradient-to-r from-blue-100/50 to-blue-200/30 text-blue-700 px-3 py-2 rounded-full text-sm font-medium border border-blue-200/50">Info</span>
           </div>
         </div>
       </div>
 
       {/* Features Overview */}
       <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="bg-purple-100 p-3 rounded-xl w-fit mb-4">
-            <ShieldCheckIcon className="w-6 h-6 text-purple-600" />
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl border border-gold-metallic/10 p-6 hover:border-gold-metallic/30 transition-all duration-500 hover:shadow-xl hover:shadow-gold-metallic/10 hover:-translate-y-1">
+          <div className="w-14 h-14 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-3xl flex items-center justify-center mb-4 group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
+            <ShieldCheckIcon className="w-7 h-7 text-gold-metallic" />
           </div>
-          <h4 className="font-bold text-night mb-2">Sécurisé</h4>
-          <p className="text-sm text-night/70">Toutes les transactions nécessitent l'approbation de la majorité des membres</p>
+          <h4 className="font-bold text-night mb-3 text-lg">Sécurisé</h4>
+          <p className="text-night/70 leading-relaxed">Toutes les transactions nécessitent l'approbation de la majorité des membres</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="bg-green-100 p-3 rounded-xl w-fit mb-4">
-            <ArrowTrendingUpIcon className="w-6 h-6 text-gold-metallic" />
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl border border-gold-metallic/10 p-6 hover:border-gold-metallic/30 transition-all duration-500 hover:shadow-xl hover:shadow-gold-metallic/10 hover:-translate-y-1">
+          <div className="w-14 h-14 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-3xl flex items-center justify-center mb-4 group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
+            <ArrowTrendingUpIcon className="w-7 h-7 text-gold-metallic" />
           </div>
-          <h4 className="font-bold text-night mb-2">Transparent</h4>
-          <p className="text-sm text-night/70">Tous les membres voient les contributions et les retraits en temps réel</p>
+          <h4 className="font-bold text-night mb-3 text-lg">Transparent</h4>
+          <p className="text-night/70 leading-relaxed">Tous les membres voient les contributions et les retraits en temps réel</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="bg-blue-100 p-3 rounded-xl w-fit mb-4">
-            <UsersIcon className="w-6 h-6 text-gold-dark" />
+        <div className="group bg-white/80 backdrop-blur-sm rounded-2xl border border-gold-metallic/10 p-6 hover:border-gold-metallic/30 transition-all duration-500 hover:shadow-xl hover:shadow-gold-metallic/10 hover:-translate-y-1">
+          <div className="w-14 h-14 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-3xl flex items-center justify-center mb-4 group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
+            <UsersIcon className="w-7 h-7 text-gold-metallic" />
           </div>
-          <h4 className="font-bold text-night mb-2">Collaboratif</h4>
-          <p className="text-sm text-night/70">Atteignez vos objectifs plus rapidement en épargnant ensemble</p>
+          <h4 className="font-bold text-night mb-3 text-lg">Collaboratif</h4>
+          <p className="text-night/70 leading-relaxed">Atteignez vos objectifs plus rapidement en épargnant ensemble</p>
         </div>
       </div>
     </div>
@@ -1315,7 +1353,7 @@ export default function SamaNaffaPortal() {
             { id: 'overview', label: 'Vue d\'ensemble', icon: ChartBarIcon },
             { id: 'naffas', label: 'Mes Naffas', icon: WalletIcon },
             { id: 'tontine', label: 'Tontines', icon: UserGroupIcon },
-            { id: 'education', label: 'Éducation', icon: BookOpenIcon },
+            { id: 'education', label: 'Éducation Financière', icon: BookOpenIcon },
             { id: 'health', label: 'Santé financière', icon: HeartIcon }
           ].map((tab) => (
             <button
