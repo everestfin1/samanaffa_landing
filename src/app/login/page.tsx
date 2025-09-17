@@ -73,9 +73,6 @@ export default function LoginPage() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="bg-gold-metallic/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-            <ShieldCheckIcon className="w-8 h-8 text-gold-metallic" />
-          </div>
           <h1 className="text-3xl font-bold text-night mb-2">
             Connexion
           </h1>

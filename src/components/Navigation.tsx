@@ -136,8 +136,8 @@ export default function Navigation() {
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20">
-          {/* Logo */}
+        <div className="hidden md:grid md:grid-cols-3 md:items-center h-20">
+          {/* Logo - Left Column */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <Link 
@@ -156,8 +156,8 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* Desktop Navigation - Centered nav items */}
-          <div className="hidden md:flex items-center justify-center flex-1">
+          {/* Desktop Navigation - Center Column */}
+          <div className="flex items-center justify-center">
             <div className="flex items-center space-x-8">
               <Link
                 href="/"
@@ -243,8 +243,8 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* User Actions - Right aligned */}
-          <div className="hidden md:flex items-center space-x-3">
+          {/* User Actions - Right Column */}
+          <div className="flex items-center justify-end space-x-3">
             {isHydrated ? (
               isAuthenticated ? (
               <div className="flex items-center space-x-3">
@@ -313,8 +313,31 @@ export default function Navigation() {
             )}
           </div>
 
+        </div>
+
+        {/* Mobile Layout */}
+        <div className="flex justify-between items-center h-20 md:hidden">
+          {/* Logo */}
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Link 
+                href="/"
+                className="transition-opacity hover:opacity-80 drop-shadow-lg"
+              >
+                <Image
+                  src="/sama_naffa_logo.png"
+                  alt="Sama Naffa"
+                  width={120}
+                  height={40}
+                  className="h-10 w-auto"
+                  priority
+                />
+              </Link>
+            </div>
+          </div>
+
           {/* Mobile Menu Button */}
-          <div className="md:hidden">
+          <div>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`p-2 drop-shadow transition-colors ${

@@ -25,32 +25,25 @@ export default function Home() {
           <div 
             className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url(/bg_image.jpg)',
+              backgroundImage: 'url(/momar_bg.jpg)',
             }}
           ></div>
           
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-night/60 via-night/40 to-night/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-night/60 via-night/90 to-night/70"></div>
           
           {/* Subtle metallic accent overlay */}
           <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/5 via-transparent to-gold-metallic/10"></div>
           
           <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
             <div className="text-center space-y-16 w-full">
-              {/* Trust badge */}
-              <div className="inline-flex items-center gap-3 px-8 py-4 bg-white/10 backdrop-blur-lg border border-gold-metallic/40 rounded-full text-base font-medium shadow-2xl hover:bg-white/15 transition-all duration-300">
-                <div className="relative">
-                  <ShieldCheckIcon className="w-6 h-6 text-gold-metallic drop-shadow-sm" />
-                  <div className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-gradient-to-r from-gold-metallic to-gold-light rounded-full opacity-75 animate-pulse"></div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-bold tracking-wide">
-                    Conforme BCEAO
-                  </span>
-                  <span className="text-white/60 text-sm">•</span>
-                  <span className="text-white/90 font-light">Sécurisé et Réglementé</span>
-                </div>
-              </div>
+              {/* Powered by Everest */}
+              {/* <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
+                <span className="text-white/70">Powered by</span>
+                <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-semibold tracking-wide">
+                  Everest
+                </span>
+              </div> */}
 
               {/* Main heading */}
               <div className="space-y-8">
@@ -71,11 +64,11 @@ export default function Home() {
               {/* CTA Buttons */}
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <button 
-                  onClick={() => router.push('/sama-naffa')}
+                  onClick={() => router.push('/login')}
                   className="group relative px-12 py-5 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold-metallic/40 hover:-translate-y-1 hover:scale-105"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                  <span className="relative">Commencer maintenant</span>
+                  <span className="relative">Ouvrir un compte</span>
                 </button>
                 <button 
                   onClick={() => router.push('/ape')}
@@ -85,23 +78,6 @@ export default function Home() {
                 </button>
               </div>
 
-              {/* Social proof */}
-              <div className="flex justify-center items-center gap-16 pb-20">
-                <div className="text-center group">
-                  <div className="text-4xl lg:text-5xl font-extralight text-white mb-2 group-hover:text-gold-metallic transition-colors drop-shadow-lg">10,000+</div>
-                  <div className="text-sm text-white/70 uppercase tracking-wider">Clients</div>
-                </div>
-                <div className="w-px h-16 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-                <div className="text-center group">
-                  <div className="text-4xl lg:text-5xl font-extralight text-white mb-2 group-hover:text-gold-metallic transition-colors drop-shadow-lg">8%</div>
-                  <div className="text-sm text-white/70 uppercase tracking-wider">Rendement APE</div>
-                </div>
-                <div className="w-px h-16 bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-                <div className="text-center group">
-                  <div className="text-4xl lg:text-5xl font-extralight text-white mb-2 group-hover:text-gold-metallic transition-colors drop-shadow-lg">24/7</div>
-                  <div className="text-sm text-white/70 uppercase tracking-wider">Support</div>
-                </div>
-              </div>
             </div>
           </div>
         </section>
