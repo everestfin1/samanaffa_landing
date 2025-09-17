@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from "react";
-import { Card, CardContent } from "../../../components/ui/card";
-import { formatCurrency } from "../../../lib/utils";
 import { Objective, Persona } from "../data/types";
+import { Card, CardContent } from "../ui/card";
+import { formatCurrency } from "@/lib/utils";
 
 // --- HELPER FUNCTIONS & HOOKS ---
 
