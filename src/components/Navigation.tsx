@@ -1,30 +1,89 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { 
   Bars3Icon,
   XMarkIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
-  UserIcon
+  UserIcon,
+  ChevronDownIcon,
+  QuestionMarkCircleIcon,
+  PhoneIcon
 } from '@heroicons/react/24/outline';
 
-interface NavigationProps {
-  activeTab?: 'sama-naffa' | 'ape' | 'home';
-  onTabChange?: (tab: 'sama-naffa' | 'ape' | 'home') => void;
-  isAuthenticated?: boolean;
-}
-
-export default function Navigation({ 
-  activeTab = 'home', 
-  onTabChange,
-  isAuthenticated = false 
-}: NavigationProps) {
+export default function Navigation() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const handleTabClick = (tab: 'sama-naffa' | 'ape' | 'home') => {
-    onTabChange?.(tab);
+  // Check authentication status on mount
+  useEffect(() => {
+    // Check if user is authenticated (you can implement your own logic here)
+    const checkAuth = () => {
+      // For demo purposes, check localStorage or session storage
+      const authStatus = localStorage.getItem('isAuthenticated');
+      setIsAuthenticated(authStatus === 'true');
+    };
+    
+    checkAuth();
+    
+    // Listen for auth changes
+    window.addEventListener('storage', checkAuth);
+    return () => window.removeEventListener('storage', checkAuth);
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsServicesDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleNavigate = (page: string) => {
+    // Use Next.js router for navigation
+    switch (page) {
+      case 'home':
+        router.push('/');
+        break;
+      case 'sama-naffa':
+        router.push('/sama-naffa');
+        break;
+      case 'ape':
+        router.push('/ape');
+        break;
+      case 'faq':
+        router.push('/faq');
+        break;
+      case 'contact':
+        router.push('/contact');
+        break;
+      case 'login':
+        router.push('/login');
+        break;
+      case 'register':
+        router.push('/register');
+        break;
+      case 'portal':
+      case 'dashboard':
+        router.push('/portal');
+        break;
+      default:
+        break;
+    }
     setIsMobileMenuOpen(false);
+    setIsServicesDropdownOpen(false);
   };
 
   return (
@@ -34,73 +93,106 @@ export default function Navigation({
           {/* Logo */}
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <button 
-                onClick={() => handleTabClick('home')}
+              <Link 
+                href="/"
                 className="text-2xl font-bold text-night hover:text-gold-metallic transition-colors"
               >
                 Sama Naffa
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
-            {/* Main Navigation Tabs */}
-            <div className="flex items-center space-x-1 bg-timberwolf/20 rounded-lg p-1">
+          <div className="hidden md:flex items-center space-x-8">
+            <Link
+              href="/"
+              className="text-night/70 hover:text-night transition-colors font-medium"
+            >
+              Accueil
+            </Link>
+            
+            {/* Services Dropdown */}
+            <div className="relative" ref={dropdownRef}>
               <button
-                onClick={() => handleTabClick('home')}
-                className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  activeTab === 'home'
-                    ? 'bg-white text-night shadow-sm'
-                    : 'text-night/70 hover:text-night hover:bg-white/50'
-                }`}
+                onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
+                className="flex items-center space-x-1 text-night/70 hover:text-night transition-colors font-medium"
               >
-                Accueil
+                <span>Services</span>
+                <ChevronDownIcon className={`w-4 h-4 transition-transform ${isServicesDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-              <button
-                onClick={() => handleTabClick('sama-naffa')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  activeTab === 'sama-naffa'
-                    ? 'bg-white text-night shadow-sm'
-                    : 'text-night/70 hover:text-night hover:bg-white/50'
-                }`}
-              >
-                <DevicePhoneMobileIcon className="w-4 h-4" />
-                <span>Sama Naffa</span>
-              </button>
-              <button
-                onClick={() => handleTabClick('ape')}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
-                  activeTab === 'ape'
-                    ? 'bg-white text-night shadow-sm'
-                    : 'text-night/70 hover:text-night hover:bg-white/50'
-                }`}
-              >
-                <BuildingLibraryIcon className="w-4 h-4" />
-                <span>APE Sénégal</span>
-              </button>
+              
+              {isServicesDropdownOpen && (
+                <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-timberwolf/20 py-2 z-50">
+                  <Link
+                    href="/sama-naffa"
+                    className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-timberwolf/10 transition-colors"
+                  >
+                    <DevicePhoneMobileIcon className="w-5 h-5 text-gold-metallic" />
+                    <div>
+                      <div className="font-medium text-night">Sama Naffa</div>
+                      <div className="text-sm text-night/60">Banque digitale et épargne</div>
+                    </div>
+                  </Link>
+                  <Link
+                    href="/ape"
+                    className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-timberwolf/10 transition-colors"
+                  >
+                    <BuildingLibraryIcon className="w-5 h-5 text-gold-metallic" />
+                    <div>
+                      <div className="font-medium text-night">APE Sénégal</div>
+                      <div className="text-sm text-night/60">Investissements et obligations</div>
+                    </div>
+                  </Link>
+                </div>
+              )}
             </div>
 
+            <Link
+              href="/faq"
+              className="flex items-center space-x-1 text-night/70 hover:text-night transition-colors font-medium"
+            >
+              <span>FAQ</span>
+            </Link>
+            
+            <Link
+              href="/contact"
+              className="flex items-center space-x-1 text-night/70 hover:text-night transition-colors font-medium"
+            >
+              <span>Contact</span>
+            </Link>
+
             {/* User Actions */}
-            <div className="flex items-center space-x-4 ml-6">
+            <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <div className="flex items-center space-x-3">
-                  <button className="flex items-center space-x-2 text-night/70 hover:text-night transition-colors">
+                  <Link 
+                    href="/portal"
+                    className="flex items-center space-x-2 text-night/70 hover:text-night transition-colors"
+                  >
                     <UserIcon className="w-5 h-5" />
                     <span className="text-sm">Mon Portail</span>
-                  </button>
-                  <button className="bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gold-metallic/90 transition-colors">
+                  </Link>
+                  <Link 
+                    href="/portal"
+                    className="bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gold-metallic/90 transition-colors"
+                  >
                     Tableau de bord
-                  </button>
+                  </Link>
                 </div>
               ) : (
                 <div className="flex items-center space-x-3">
-                  <button className="text-night/70 hover:text-night transition-colors text-sm font-medium">
+                  <Link 
+                    href="/login"
+                    className="text-night/70 hover:text-night transition-colors text-sm font-medium"
+                  >
                     Se connecter
-                  </button>
-                  <button className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-semibold text-sm hover:bg-gold-metallic/90 transition-colors">
+                  </Link>
+                  <Link 
+                    href="/register"
+                    className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-semibold text-sm hover:bg-gold-metallic/90 transition-colors"
+                  >
                     Commencer
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>
@@ -125,58 +217,80 @@ export default function Navigation({
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-timberwolf/20 bg-white">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              <button
-                onClick={() => handleTabClick('home')}
-                className={`block w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  activeTab === 'home'
-                    ? 'bg-gold-metallic/10 text-night'
-                    : 'text-night/70 hover:text-night hover:bg-timberwolf/20'
-                }`}
+              <Link
+                href="/"
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
               >
                 Accueil
-              </button>
-              <button
-                onClick={() => handleTabClick('sama-naffa')}
-                className={`flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  activeTab === 'sama-naffa'
-                    ? 'bg-gold-metallic/10 text-night'
-                    : 'text-night/70 hover:text-night hover:bg-timberwolf/20'
-                }`}
+              </Link>
+              
+              {/* Mobile Services Section */}
+              <div className="px-3 py-2">
+                <div className="text-sm font-medium text-night/50 mb-2">Services</div>
+                <div className="space-y-1 ml-2">
+                  <Link
+                    href="/sama-naffa"
+                    className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
+                  >
+                    <DevicePhoneMobileIcon className="w-5 h-5" />
+                    <span>Sama Naffa</span>
+                  </Link>
+                  <Link
+                    href="/ape"
+                    className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
+                  >
+                    <BuildingLibraryIcon className="w-5 h-5" />
+                    <span>APE Sénégal</span>
+                  </Link>
+                </div>
+              </div>
+              
+              <Link
+                href="/faq"
+                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
               >
-                <DevicePhoneMobileIcon className="w-5 h-5" />
-                <span>Sama Naffa (Banque Digitale)</span>
-              </button>
-              <button
-                onClick={() => handleTabClick('ape')}
-                className={`flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium transition-colors ${
-                  activeTab === 'ape'
-                    ? 'bg-gold-metallic/10 text-night'
-                    : 'text-night/70 hover:text-night hover:bg-timberwolf/20'
-                }`}
+                <span>FAQ</span>
+              </Link>
+              
+              <Link
+                href="/contact"
+                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
               >
-                <BuildingLibraryIcon className="w-5 h-5" />
-                <span>APE Sénégal</span>
-              </button>
+                <span>Contact</span>
+              </Link>
             </div>
+            
             <div className="border-t border-timberwolf/20 px-2 pt-3 pb-3">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <button className="flex items-center space-x-2 w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors">
+                  <Link 
+                    href="/portal"
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors"
+                  >
                     <UserIcon className="w-5 h-5" />
                     <span>Mon Portail</span>
-                  </button>
-                  <button className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors">
+                  </Link>
+                  <Link 
+                    href="/portal"
+                    className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+                  >
                     Tableau de bord
-                  </button>
+                  </Link>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <button className="w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors font-medium">
+                  <Link 
+                    href="/login"
+                    className="w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors font-medium"
+                  >
                     Se connecter
-                  </button>
-                  <button className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors">
+                  </Link>
+                  <Link 
+                    href="/register"
+                    className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+                  >
                     Commencer
-                  </button>
+                  </Link>
                 </div>
               )}
             </div>

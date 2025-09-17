@@ -102,13 +102,13 @@ p, .body-copy {
 }
 
 /* Link Styles */
-a {
+a:not([class*="text-"]) {
   color: inherit;
   text-decoration: none;
   transition: color 0.2s ease-in-out;
 }
 
-a:hover {
+a:not([class*="text-"]):hover {
   color: var(--gold-metallic);
 }
 
