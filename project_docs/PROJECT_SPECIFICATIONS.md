@@ -9,11 +9,11 @@ Ce document détaille l'architecture et les spécifications techniques de la pla
 
 ### 2.1 Structure Principale
 - **Accueil**: Page d'accueil avec présentation générale
-- **Offres/Produits/Services**: Menu déroulant avec:
-  - Sama Naffa (Banque digitale et épargne)
-  - APE Sénégal (Investissements et obligations)
-- **FAQ**: Questions fréquemment posées
-- **Contact**: Informations de contact et formulaire
+- **Sama Naffa (Banque digitale et épargne)**
+- ** APE Sénégal (Investissements et obligations)** 
+- Plus (dropdown):
+   - **FAQ**: Questions fréquemment posées
+   - **Contact**: Informations de contact et formulaire
 - **Se connecter**: Accès au portail client existant
 - **Commencer**: Inscription de nouveaux clients
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -16,8 +16,9 @@ import {
   DevicePhoneMobileIcon,
   BuildingLibraryIcon
 } from '@heroicons/react/24/outline';
-import SamaNaffaTab from '../../components/SamaNaffaTab';
-import APETab from '../../components/APETab';
+import SamaNaffa from '../../components/SamaNaffa/SamaNaffa';
+import APE from '../../components/APE/APE';
+import { useRouter } from 'next/navigation';
 
 type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected';
 type ActiveTab = 'overview' | 'sama-naffa' | 'ape' | 'kyc';
@@ -364,9 +365,9 @@ export default function PortalPage() {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'sama-naffa':
-        return <SamaNaffaTab />;
+        return <SamaNaffa />;
       case 'ape':
-        return <APETab />;
+        return <APE />;
       case 'kyc':
         return renderKYCFlow();
       default:

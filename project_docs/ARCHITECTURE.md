@@ -19,7 +19,7 @@ La plateforme Sama Naffa a été refactorisée pour adopter une architecture mod
 - **Contact.tsx** : Informations de contact et formulaire de contact
 - **LandingTab.tsx** : Page d'accueil (refactorisée)
 - **SamaNaffaTab.tsx** : Détails des services Sama Naffa (réutilisée)
-- **APETab.tsx** : Détails des services APE Sénégal (réutilisée)
+- **APE.tsx** : Détails des services APE Sénégal (réutilisée)
 
 #### 2.2.2 Pages d'Authentification
 - **Login.tsx** : Connexion sécurisée avec options multiples

@@ -1,5 +1,5 @@
-import SamaNaffaTab from '../../components/SamaNaffaTab';
+import SamaNaffa from '../../components/SamaNaffa/SamaNaffa';
 
 export default function SamaNaffaPage() {
-  return <SamaNaffaTab />;
+  return <SamaNaffa />;
 }
