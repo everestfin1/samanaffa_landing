@@ -34,6 +34,9 @@ interface FormSubmissionData {
     monthlyAmount: number;
     duration: number;
     projectedAmount: number;
+    simulationMode: 'objective' | 'persona';
+    selectedPersona?: string;
+    selectedObjective?: number;
 }
 interface SavingsPlannerProps {
   onShowForm: (data: FormSubmissionData) => void;
@@ -109,6 +112,9 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
         monthlyAmount: mensualite,
         duration: Math.round((duree / 12) * 10) / 10, // in years
         projectedAmount: Math.round(capitalFinal),
+        simulationMode: simulationMode || 'objective',
+        selectedPersona: selectedPersona || undefined,
+        selectedObjective: selectedObjective || undefined,
     });
   }
 

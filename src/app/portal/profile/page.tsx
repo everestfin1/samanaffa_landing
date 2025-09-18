@@ -44,7 +44,6 @@ interface KYCDocument {
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [kycStatus] = useState<KYCStatus>('approved');
   const [userData, setUserData] = useState<UserData>({
     firstName: 'Amadou',
     lastName: 'Diallo',
@@ -52,7 +51,7 @@ export default function ProfilePage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'approved'
+    kycStatus: 'completed'
   });
 
   const [isEditing, setIsEditing] = useState(false);
@@ -160,7 +159,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-light">
       <PortalHeader
         userData={userData}
-        kycStatus={kycStatus}
+        kycStatus={userData.kycStatus}
         activeTab="profile"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}

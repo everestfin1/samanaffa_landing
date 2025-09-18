@@ -52,7 +52,7 @@ export default function LoginPage() {
           phone: '+221 77 123 45 67',
           userId: 'USR_' + Date.now(),
           isNewUser: false,
-          kycStatus: 'approved'
+          kycStatus: 'completed'
         };
 
         // Set authentication state and user data

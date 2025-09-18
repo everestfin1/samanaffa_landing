@@ -119,7 +119,6 @@ export default function PortalHeader({
     // Clear authentication state
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('userData');
-    localStorage.removeItem('kycRequired');
     localStorage.removeItem('userSource');
     // Trigger storage event to update other components
     window.dispatchEvent(new Event('storage'));
@@ -150,7 +149,7 @@ export default function PortalHeader({
           </div>
 
           {/* Desktop Navigation - Compact with Labels */}
-          {kycStatus === 'approved' && (
+          {(
             <nav 
               className="hidden md:flex items-center space-x-2 lg:space-x-3"
               role="navigation"
@@ -183,7 +182,7 @@ export default function PortalHeader({
           {/* User Actions - Right Side */}
           <div className="flex items-center space-x-2">
             {/* Quick Actions: Notifications and User Dropdown */}
-            {kycStatus === 'approved' && (
+            {(
               <div className="flex items-center space-x-2">
                 {/* Notifications Quick Access */}
                 <button
@@ -256,7 +255,7 @@ export default function PortalHeader({
             )}
 
             {/* Mobile Menu Button */}
-            {kycStatus === 'approved' && (
+            {(
               <button
                 onClick={toggleMobileMenu}
                 className="md:hidden p-2 text-night/70 hover:text-night hover:bg-timberwolf/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2"
@@ -271,7 +270,7 @@ export default function PortalHeader({
         </div>
 
         {/* Mobile Navigation Menu */}
-        {isMobileMenuOpen && kycStatus === 'approved' && (
+        {isMobileMenuOpen && (
           <div 
             className="md:hidden border-t border-timberwolf/20 bg-white/95 backdrop-blur-sm"
             id="mobile-menu"

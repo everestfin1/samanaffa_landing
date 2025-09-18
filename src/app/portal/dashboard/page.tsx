@@ -45,7 +45,6 @@ interface UserData {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [kycStatus, setKycStatus] = useState<KYCStatus>('approved');
   const [userData] = useState<UserData>({
     firstName: 'Amadou',
     lastName: 'Diallo',
@@ -53,7 +52,7 @@ export default function DashboardPage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'approved'
+    kycStatus: 'completed' // Always completed since KYC is done during registration
   });
 
   const [kycSteps] = useState<KYCStep[]>([
@@ -280,20 +279,14 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-gray-light">
       <PortalHeader
         userData={userData}
-        kycStatus={kycStatus}
+        kycStatus={userData.kycStatus}
         activeTab="dashboard"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {kycStatus === 'approved' ? (
-          renderApprovedDashboard()
-        ) : (
-          <div className="text-center">
-            <p className="text-night/70">Veuillez compléter votre KYC pour accéder au tableau de bord.</p>
-          </div>
-        )}
+        {renderApprovedDashboard()}
       </main>
     </div>
   );

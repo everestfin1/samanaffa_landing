@@ -10,9 +10,14 @@ import {
   ArrowRightIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
+import { useRouter } from 'next/navigation';
+import { useSelection } from '../../lib/selection-context';
 import Image from 'next/image';
 
 export default function APE() {
+  const router = useRouter();
+  const { setSelectionData } = useSelection();
+  
   const investmentTranches = [
     {
       id: "A",
@@ -72,9 +77,26 @@ export default function APE() {
     }
   ];
 
-  const scrollToFormWithTranche = (trancheId: string) => {
-    // This would scroll to a subscription form with the selected tranche
-    console.log(`Scrolling to form with tranche ${trancheId}`);
+  const handleTrancheSelection = (trancheId: string) => {
+    // Find the selected tranche
+    const selectedTranche = investmentTranches.find(t => t.id === trancheId);
+    
+    if (!selectedTranche) return;
+
+    // Store selection data in context and localStorage
+    setSelectionData({
+      type: 'ape',
+      trancheId: selectedTranche.id,
+      duration: selectedTranche.duration,
+      rate: selectedTranche.rate,
+      coupon: selectedTranche.coupon,
+      amount: selectedTranche.amount,
+      nominalValue: selectedTranche.nominalValue,
+      additionalInfo: selectedTranche.additionalInfo
+    });
+
+    // Navigate to registration
+    router.push('/register');
   };
 
   return (
@@ -225,7 +247,7 @@ export default function APE() {
 
                   {/* CTA Button */}
                   <button
-                    onClick={() => scrollToFormWithTranche(tranche.id)}
+                    onClick={() => handleTrancheSelection(tranche.id)}
                     className="w-full px-6 py-4 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-bold text-lg rounded-2xl hover:shadow-xl hover:shadow-gold-metallic/30 transition-all duration-300 hover:-translate-y-1 group/btn"
                   >
                     <span className="flex items-center justify-center">

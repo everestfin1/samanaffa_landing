@@ -13,7 +13,9 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import { SavingsPlanner } from './SavingsPlanner';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSelection } from '../../lib/selection-context';
 import Image from 'next/image';
 
 interface FormSubmissionData {
@@ -21,15 +23,71 @@ interface FormSubmissionData {
   monthlyAmount: number;
   duration: number;
   projectedAmount: number;
+  simulationMode: 'objective' | 'persona';
+  selectedPersona?: string;
+  selectedObjective?: number;
 }
 
 export default function SamaNaffa() {
+  const router = useRouter();
+  const { setSelectionData } = useSelection();
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState<FormSubmissionData | null>(null);
+  
+  // Refs for scrolling
+  const summaryRef = useRef<HTMLDivElement>(null);
+  const plannerRef = useRef<HTMLDivElement>(null);
+
+  const scrollToElement = (elementRef: React.RefObject<HTMLDivElement | null>, offset = -100) => {
+    if (elementRef.current) {
+      const elementTop = elementRef.current.offsetTop + offset;
+      window.scrollTo({
+        top: elementTop,
+        behavior: 'smooth'
+      });
+    }
+  };
 
   const handleShowForm = (data: FormSubmissionData) => {
     setFormData(data);
     setShowForm(true);
+  };
+
+  const handleModifyPlan = () => {
+    setShowForm(false);
+    // Scroll back to the planner after a short delay to ensure state has updated
+    setTimeout(() => {
+      scrollToElement(plannerRef, -50);
+    }, 100);
+  };
+
+  // Auto-scroll to summary when form is shown
+  useEffect(() => {
+    if (showForm) {
+      // Small delay to ensure the DOM has updated
+      setTimeout(() => {
+        scrollToElement(summaryRef, -50);
+      }, 100);
+    }
+  }, [showForm]);
+
+  const handleStartNow = () => {
+    if (!formData) return;
+
+    // Store selection data in context and localStorage
+    setSelectionData({
+      type: 'sama-naffa',
+      objective: formData.objective,
+      monthlyAmount: formData.monthlyAmount,
+      duration: formData.duration,
+      projectedAmount: formData.projectedAmount,
+      simulationMode: formData.simulationMode,
+      selectedPersona: formData.selectedPersona,
+      selectedObjective: formData.selectedObjective,
+    });
+
+    // Navigate to registration
+    router.push('/register');
   };
 
   const features = [
@@ -127,12 +185,14 @@ export default function SamaNaffa() {
         </section>
 
         {/* Savings Planner Section - Moved under hero */}
-        <SavingsPlanner onShowForm={handleShowForm} />
+        <div ref={plannerRef}>
+          <SavingsPlanner onShowForm={handleShowForm} />
+        </div>
 
 
         {/* Form Display Section */}
         {showForm && formData && (
-          <section className="py-16 bg-white">
+          <div ref={summaryRef} className="py-16 bg-white">
             <div className="max-w-2xl mx-auto px-6">
               <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg">
                 <h3 className="text-2xl font-medium text-night mb-6 text-center">
@@ -158,18 +218,21 @@ export default function SamaNaffa() {
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
-                    onClick={() => setShowForm(false)}
+                    onClick={handleModifyPlan}
                     className="px-6 py-3 bg-gray-100 text-night font-medium rounded-xl hover:bg-gray-200 transition-colors"
                   >
                     Modifier le plan
                   </button>
-                  <button className="px-8 py-3 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold rounded-xl hover:shadow-lg transition-all duration-300">
+                  <button 
+                    onClick={handleStartNow}
+                    className="px-8 py-3 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+                  >
                     Commencer maintenant
                   </button>
                 </div>
               </div>
             </div>
-          </section>
+          </div>
         )}
       </main>
     </div>

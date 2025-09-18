@@ -43,7 +43,6 @@ interface Notification {
 
 export default function NotificationsPage() {
   const router = useRouter();
-  const [kycStatus] = useState<KYCStatus>('approved');
   const [userData] = useState<UserData>({
     firstName: 'Amadou',
     lastName: 'Diallo',
@@ -51,7 +50,7 @@ export default function NotificationsPage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'approved'
+    kycStatus: 'completed'
   });
 
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -195,7 +194,7 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-gray-light">
       <PortalHeader
         userData={userData}
-        kycStatus={kycStatus}
+        kycStatus={userData.kycStatus}
         activeTab="notifications"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}
