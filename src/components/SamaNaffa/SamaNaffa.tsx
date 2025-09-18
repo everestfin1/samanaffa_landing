@@ -114,7 +114,7 @@ export default function SamaNaffa() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-[#F2F8F4]">
       {/* Skip to content */}
       <a href="#main" className="skip-link">Aller au contenu principal</a>
       
@@ -138,9 +138,9 @@ export default function SamaNaffa() {
           
           <div className="relative max-w-6xl mx-auto px-6 h-full flex items-center">
             <div className="text-center w-full">
-              <h1 className="text-4xl lg:text-6xl text-white font-light tracking-tight mb-6 drop-shadow-2xl">
+              <h1 className="text-4xl lg:text-6xl text-white font-bold tracking-tight mb-6 drop-shadow-2xl">
                 Sama Naffa
-                <span className="block text-2xl lg:text-3xl text-white/95 font-light mt-2">
+                <span className="block text-2xl lg:text-3xl text-white/95 font-medium mt-2">
                   Épargne Intelligente pour l'Afrique de l'Ouest
                 </span>
               </h1>
@@ -153,29 +153,29 @@ export default function SamaNaffa() {
           </div>
         </section>
         {/* Features Grid - Horizontal Layout */}
-        <section className="py-16 bg-gray-50" aria-label="Fonctionnalités principales">
+        <section className="py-16 bg-[#F2F8F4]" aria-label="Fonctionnalités principales">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl text-night font-light mb-4 tracking-tight">
+              <h2 className="text-3xl lg:text-4xl text-[#01081b] font-bold mb-4 tracking-tight">
                 Fonctionnalités Principales
               </h2>
-              <p className="text-lg text-gray-medium font-light max-w-2xl mx-auto">
+              <p className="text-lg text-gray-600 font-normal max-w-2xl mx-auto">
                 Des outils modernes pour une épargne intelligente et culturellement adaptée
               </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {features.map((feature, index) => (
-                <div key={index} className="bg-white rounded-2xl p-8 border border-gray-200 hover:border-gold-metallic/30 hover:shadow-lg transition-all duration-300">
+                <div key={index} className="bg-white rounded-2xl p-8 border border-[#435933]/20 hover:border-[#435933]/40 hover:shadow-xl transition-all duration-300">
                   <div className="flex items-start gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-gold-metallic/10 rounded-xl flex items-center justify-center">
-                        <feature.icon className="w-7 h-7 text-gold-metallic" />
+                      <div className="w-14 h-14 bg-[#435933]/10 rounded-xl flex items-center justify-center">
+                        <feature.icon className="w-7 h-7 text-[#435933]" />
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-xl font-medium text-night mb-3">{feature.title}</h3>
-                      <p className="text-gray-dark leading-relaxed font-light">{feature.description}</p>
+                      <h3 className="text-xl font-semibold text-[#01081b] mb-3">{feature.title}</h3>
+                      <p className="text-gray-600 leading-relaxed font-normal">{feature.description}</p>
                     </div>
                   </div>
                 </div>
@@ -194,38 +194,38 @@ export default function SamaNaffa() {
         {showForm && formData && (
           <div ref={summaryRef} className="py-16 bg-white">
             <div className="max-w-2xl mx-auto px-6">
-              <div className="bg-white rounded-2xl p-8 border border-gray-200 shadow-lg">
-                <h3 className="text-2xl font-medium text-night mb-6 text-center">
+              <div className="bg-white rounded-2xl lg:rounded-[35px] p-8 border border-[#435933]/20 shadow-xl">
+                <h3 className="text-2xl font-bold text-[#01081b] mb-6 text-center">
                   Récapitulatif de votre plan d'épargne
                 </h3>
                 <div className="space-y-4 mb-8">
-                  <div className="flex justify-between items-center p-4 bg-gold-metallic/5 rounded-lg border border-gold-metallic/20">
-                    <span className="font-medium text-night">Objectif:</span>
-                    <span className="text-gray-dark">{formData.objective}</span>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
+                    <span className="font-semibold text-[#01081b]">Objectif:</span>
+                    <span className="text-gray-600">{formData.objective}</span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gold-metallic/5 rounded-lg border border-gold-metallic/20">
-                    <span className="font-medium text-night">Montant mensuel:</span>
-                    <span className="text-gray-dark">{formData.monthlyAmount.toLocaleString()} FCFA</span>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
+                    <span className="font-semibold text-[#01081b]">Montant mensuel:</span>
+                    <span className="text-gray-600">{formData.monthlyAmount.toLocaleString()} FCFA</span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gold-metallic/5 rounded-lg border border-gold-metallic/20">
-                    <span className="font-medium text-night">Durée:</span>
-                    <span className="text-gray-dark">{formData.duration} ans</span>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
+                    <span className="font-semibold text-[#01081b]">Durée:</span>
+                    <span className="text-gray-600">{formData.duration} ans</span>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gold-metallic/5 rounded-lg border border-gold-metallic/20">
-                    <span className="font-bold text-night">Capital final estimé:</span>
-                    <span className="font-bold text-gold-metallic text-lg">{formData.projectedAmount.toLocaleString()} FCFA</span>
+                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
+                    <span className="font-bold text-[#01081b]">Capital final estimé:</span>
+                    <span className="font-bold text-[#435933] text-lg">{formData.projectedAmount.toLocaleString()} FCFA</span>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
                     onClick={handleModifyPlan}
-                    className="px-6 py-3 bg-gray-100 text-night font-medium rounded-xl hover:bg-gray-200 transition-colors"
+                    className="px-6 py-3 bg-gray-100 text-[#01081b] font-semibold rounded-xl hover:bg-gray-200 transition-colors"
                   >
                     Modifier le plan
                   </button>
                   <button 
                     onClick={handleStartNow}
-                    className="px-8 py-3 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold rounded-xl hover:shadow-lg transition-all duration-300"
+                    className="px-8 py-3 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-xl hover:shadow-xl transition-all duration-300"
                   >
                     Commencer maintenant
                   </button>

@@ -136,28 +136,9 @@ export default function Navigation() {
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="hidden md:grid md:grid-cols-3 md:items-center h-20">
-          {/* Logo - Left Column */}
+        <div className="hidden md:flex md:items-center md:justify-between h-20">
+          {/* Desktop Navigation - Left Side */}
           <div className="flex items-center">
-            <div className="flex-shrink-0">
-              <Link 
-                href="/"
-                className="transition-opacity hover:opacity-80 drop-shadow-lg"
-              >
-                <Image
-                  src="/sama_naffa_logo.png"
-                  alt="Sama Naffa"
-                  width={120}
-                  height={40}
-                  className="h-10 w-auto"
-                  priority
-                />
-              </Link>
-            </div>
-          </div>
-
-          {/* Desktop Navigation - Center Column */}
-          <div className="flex items-center justify-center">
             <div className="flex items-center space-x-8">
               <Link
                 href="/"
@@ -243,7 +224,26 @@ export default function Navigation() {
             </div>
           </div>
 
-          {/* User Actions - Right Column */}
+          {/* Logo - Center */}
+          <div className="flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
+            <div className="flex-shrink-0">
+              <Link 
+                href="/"
+                className="transition-opacity hover:opacity-80 drop-shadow-lg"
+              >
+                <Image
+                  src="/sama_naffa_logo.png"
+                  alt="Sama Naffa"
+                  width={160}
+                  height={53}
+                  className="h-14 w-auto"
+                  priority
+                />
+              </Link>
+            </div>
+          </div>
+
+          {/* User Actions - Right Side */}
           <div className="flex items-center justify-end space-x-3">
             {isHydrated ? (
               isAuthenticated ? (
