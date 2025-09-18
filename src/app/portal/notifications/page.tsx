@@ -50,7 +50,7 @@ export default function NotificationsPage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'completed'
+    kycStatus: 'approved'
   });
 
   const [notifications, setNotifications] = useState<Notification[]>([

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import ComparativeTools from '../../../components/portal/ComparativeTools';
 import PortalHeader from '../../../components/portal/PortalHeader';
 
-type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected' | 'completed';
+type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected';
 
 interface UserData {
   firstName: string;
@@ -26,7 +26,7 @@ export default function ComparePage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'completed'
+    kycStatus: 'approved'
   });
 
   const handleLogout = () => {

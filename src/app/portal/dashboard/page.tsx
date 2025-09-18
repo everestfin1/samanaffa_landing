@@ -52,7 +52,7 @@ export default function DashboardPage() {
     phone: '+221 77 123 45 67',
     userId: 'USR_2024_001',
     isNewUser: false,
-    kycStatus: 'completed' // Always completed since KYC is done during registration
+    kycStatus: 'approved' 
   });
 
   const [kycSteps] = useState<KYCStep[]>([
