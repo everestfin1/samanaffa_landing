@@ -10,6 +10,7 @@ import {
   ChevronDownIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
@@ -23,12 +24,15 @@ export default function Home() {
       <main id="main">
         <section className="relative overflow-hidden bg-white h-screen -mt-20" aria-label="Hero">
           {/* Background Image */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: 'url(/momar_bg.jpg)',
-            }}
-          ></div>
+          <div className="absolute inset-0">
+            <Image
+              src="/momar_bg.jpg"
+              alt="Background"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
           
           {/* Dark overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-br from-night/60 via-night/90 to-night/70"></div>

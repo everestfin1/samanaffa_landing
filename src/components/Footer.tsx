@@ -1,5 +1,6 @@
 'use client'
 import { ShieldCheckIcon } from 'lucide-react'
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
 
@@ -33,21 +34,13 @@ export default function Footer() {
           </div>
           
           <div className="flex flex-wrap gap-6">
-            <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 backdrop-blur-sm border border-gold-metallic/20 rounded-full text-sm text-white/80">
-              <ShieldCheckIcon className="w-4 h-4 text-gold-metallic" />
-              <span className="bg-gradient-to-r from-gold-metallic to-gold-light bg-clip-text text-transparent font-medium">
-                Conforme BCEAO
-              </span>
-            </div>
-            {/* <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/5 backdrop-blur-sm border border-gold-metallic/20 rounded-full text-sm text-white/80">
-              <div className="w-2 h-2 bg-gradient-to-r from-gold-metallic to-gold-light rounded-full"></div>
-              <span>Sécurisé et Réglementé</span>
-            </div> */}
             <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
-                <span className="text-white/70">Powered by</span>
+                <span className="text-white/70">Opéré par</span>
+                <Link href="https://everest-new.vercel.app" target="_blank" className="hover:text-gold-metallic transition-colors duration-300">
                 <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-semibold tracking-wide">
-                  Everest
+                  Everest Finance SGI
                 </span>
+                </Link>
               </div>
           </div>
 

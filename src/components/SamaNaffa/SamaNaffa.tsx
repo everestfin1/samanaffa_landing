@@ -60,13 +60,13 @@ export default function SamaNaffa() {
       {/* Skip to content */}
       <a href="#main" className="skip-link">Aller au contenu principal</a>
       
-      {/* Header Section - With Background Image */}
+      {/* Hero Section */}
       <main id="main">
-        <section className="relative pt-32 pb-20 overflow-hidden" aria-label="Sama Naffa Header">
+        <section className="relative pt-32 pb-16 overflow-hidden h-[60vh]" aria-label="Sama Naffa Hero">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
-              src="/sama-naffa_bg_1.webp"
+              src="/sama-naffa_bg.jpg"
               alt="Sama Naffa - Épargne Intelligente pour l'Afrique de l'Ouest"
               fill
               className="object-cover object-center"
@@ -78,15 +78,8 @@ export default function SamaNaffa() {
           {/* Enhanced dark overlay for better text contrast */}
           <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/80 to-white/30 "></div>
           
-          <div className="relative max-w-6xl mx-auto px-6">
-            <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-white/20 backdrop-blur-lg border border-white/40 rounded-full text-sm font-medium mb-6 shadow-2xl">
-                <DevicePhoneMobileIcon className="w-5 h-5 text-white" />
-                <span className="text-white font-semibold">
-                  Banque Digitale Moderne
-                </span>
-              </div>
-
+          <div className="relative max-w-6xl mx-auto px-6 h-full flex items-center">
+            <div className="text-center w-full">
               <h1 className="text-4xl lg:text-6xl text-white font-light tracking-tight mb-6 drop-shadow-2xl">
                 Sama Naffa
                 <span className="block text-2xl lg:text-3xl text-white/95 font-light mt-2">
@@ -94,30 +87,13 @@ export default function SamaNaffa() {
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto mb-12 drop-shadow-lg">
+              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto drop-shadow-lg">
                 Révolutionnez vos habitudes d'épargne avec des outils modernes
                 adaptés à la culture financière sénégalaise.
               </p>
-
-              {/* Quick Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-                <div className="bg-white/25 backdrop-blur-lg rounded-2xl p-6 border border-white/40 shadow-2xl hover:bg-white/30 hover:shadow-3xl transition-all duration-300">
-                  <div className="text-3xl font-light text-white mb-2">10%</div>
-                  <div className="text-sm text-white/95 font-medium">Rendement Maximum</div>
-                </div>
-                <div className="bg-white/25 backdrop-blur-lg rounded-2xl p-6 border border-white/40 shadow-2xl hover:bg-white/30 hover:shadow-3xl transition-all duration-300">
-                  <div className="text-3xl font-light text-white mb-2">1,000</div>
-                  <div className="text-sm text-white/95 font-medium">FCFA Minimum</div>
-                </div>
-                <div className="bg-white/25 backdrop-blur-lg rounded-2xl p-6 border border-white/40 shadow-2xl hover:bg-white/30 hover:shadow-3xl transition-all duration-300">
-                  <div className="text-3xl font-light text-white mb-2">24/7</div>
-                  <div className="text-sm text-white/95 font-medium">Accès Mobile</div>
-                </div>
-              </div>
             </div>
           </div>
         </section>
-
         {/* Features Grid - Horizontal Layout */}
         <section className="py-16 bg-gray-50" aria-label="Fonctionnalités principales">
           <div className="max-w-6xl mx-auto px-6">
@@ -150,8 +126,9 @@ export default function SamaNaffa() {
           </div>
         </section>
 
-      {/* Savings Planner Section */}
-      <SavingsPlanner onShowForm={handleShowForm} />
+        {/* Savings Planner Section - Moved under hero */}
+        <SavingsPlanner onShowForm={handleShowForm} />
+
 
         {/* Form Display Section */}
         {showForm && formData && (
@@ -194,29 +171,6 @@ export default function SamaNaffa() {
             </div>
           </section>
         )}
-
-        {/* Simple Call to Action */}
-        <section className="py-16 bg-gradient-to-br from-gold-metallic/5 to-gold-light/10">
-          <div className="max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-3xl lg:text-4xl text-night font-light mb-4">
-              Prêt à Commencer Votre Épargne ?
-            </h2>
-            <p className="text-lg text-gray-medium font-light mb-8 max-w-2xl mx-auto">
-              Rejoignez des milliers d'utilisateurs qui transforment leur avenir financier avec Sama Naffa.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button className="px-8 py-4 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold rounded-xl hover:shadow-lg transition-all duration-300">
-                <span className="flex items-center justify-center">
-                  Créer mon compte
-                  <ArrowRightIcon className="w-5 h-5 ml-2" />
-                </span>
-              </button>
-              <button className="px-8 py-4 bg-white border border-gold-metallic/30 text-night font-medium rounded-xl hover:bg-gold-metallic/5 transition-all duration-300">
-                En savoir plus
-              </button>
-            </div>
-          </div>
-        </section>
       </main>
     </div>
   );
