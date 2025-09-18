@@ -26,7 +26,7 @@ export default function Home() {
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
-              src="/momar_bg.jpg"
+              src="/sama-naffa_bg.jpg"
               alt="Background"
               fill
               className="object-cover"
@@ -34,25 +34,25 @@ export default function Home() {
             />
           </div>
           
-          {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-night/60 via-night/90 to-night/70"></div>
+          {/* Light overlay for better text readability on white background */}
+          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/40 to-white/30"></div>
           
-          {/* Subtle metallic accent overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/5 via-transparent to-gold-metallic/10"></div>
+          {/* Subtle gold accent overlay to complement the image */}
+          <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/10 via-gold-light/5 to-gold-metallic/15"></div>
           
           <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
             <div className="text-center space-y-16 w-full">
               
               {/* Main heading */}
               <div className="space-y-8">
-                <h1 className="text-6xl lg:text-8xl text-white font-extralight tracking-tight leading-none drop-shadow-2xl">
+                <h1 className="text-6xl lg:text-8xl text-night font-extralight tracking-tight leading-none drop-shadow-lg">
                   Votre épargne,
                   <br />
-                  <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-light">
+                  <span className="bg-gradient-to-r from-gold-dark via-gold-metallic to-gold-dark bg-clip-text text-transparent font-light">
                     notre expertise
                   </span>
                 </h1>
-                <p className="text-xl lg:text-2xl text-white/90 max-w-4xl mx-auto font-light leading-relaxed drop-shadow-lg">
+                <p className="text-xl lg:text-2xl text-night/80 max-w-4xl mx-auto font-normal leading-relaxed drop-shadow-sm">
                   La plateforme d'épargne et d'investissement de référence au Sénégal.
                   <br className="hidden lg:block" />
                   Transformez vos objectifs financiers en réalité.
@@ -60,21 +60,21 @@ export default function Home() {
               </div>
 
               {/* CTA Buttons */}
-              {/* <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <button 
                   onClick={() => router.push('/register')}
-                  className="group relative px-12 py-5 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold-metallic/40 hover:-translate-y-1 hover:scale-105"
+                  className="group relative px-12 py-5 bg-gradient-to-r from-gold-dark to-gold-metallic text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold-metallic/40 hover:-translate-y-1 hover:scale-105"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <span className="relative">Ouvrir un compte</span>
                 </button>
                 <button 
                   onClick={() => router.push('/ape')}
-                  className="group px-12 py-5 bg-white/10 backdrop-blur-md border-2 border-white/30 text-white font-semibold text-lg rounded-2xl hover:bg-white/20 hover:border-gold-metallic/50 transition-all duration-300 hover:shadow-xl"
+                  className="group px-12 py-5 bg-night/90 backdrop-blur-md border-2 border-night/30 text-white font-semibold text-lg rounded-2xl hover:bg-night hover:border-gold-metallic/50 transition-all duration-300 hover:shadow-xl"
                 >
                   <span className="group-hover:text-gold-light transition-colors">Explorer l'APE</span>
                 </button>
-              </div> */}
+              </div>
 
             </div>
           </div>
@@ -86,11 +86,11 @@ export default function Home() {
                 const servicesSection = document.querySelector('[aria-label="Nos services"]');
                 servicesSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="group flex flex-col items-center gap-2 text-white/80 hover:text-gold-light transition-all duration-300"
+              className="group flex flex-col items-center gap-2 text-night/70 hover:text-gold-metallic transition-all duration-300"
               aria-label="Faire défiler vers le bas"
             >
               <span className="text-sm font-light tracking-wide">Découvrir</span>
-              <div className="w-8 h-8 border-2 border-white/40 rounded-full flex items-center justify-center group-hover:border-gold-light/60 transition-colors duration-300">
+              <div className="w-8 h-8 border-2 border-night/30 rounded-full flex items-center justify-center group-hover:border-gold-metallic/60 transition-colors duration-300">
                 <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
               </div>
             </button>

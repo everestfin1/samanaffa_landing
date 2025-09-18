@@ -68,14 +68,8 @@ export default function PortalHeader({
       icon: BuildingLibraryIcon,
       ariaLabel: 'Accéder à APE Sénégal',
       href: '/portal/ape'
-    },
-    {
-      id: 'compare' as ActiveTab,
-      label: 'Comparaison',
-      icon: ScaleIcon,
-      ariaLabel: 'Outils de comparaison',
-      href: '/portal/compare'
     }
+    // Removed comparison page as per simplification requirements
   ];
 
   const handleTabChange = (tab: ActiveTab, href: string) => {

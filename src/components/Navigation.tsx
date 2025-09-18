@@ -129,7 +129,7 @@ export default function Navigation() {
         isOverLightBackground
           ? 'bg-white/95 border-b border-gray-light/30 shadow-lg'
           : isHomePage
-            ? 'bg-white/'
+            ? ''
             : 'bg-white/95 border-b border-gray-light/30 shadow-lg'
       } sticky top-0 z-50  transition-all duration-300`}
       role="banner"
@@ -146,7 +146,7 @@ export default function Navigation() {
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
-                      ? 'text-white/80 hover:text-white'
+                      ? 'text-night/80 hover:text-night'
                       : 'text-gray-dark/80 hover:text-night'
                 }`}
               >
@@ -159,7 +159,7 @@ export default function Navigation() {
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
-                      ? 'text-white/80 hover:text-white'
+                      ? 'text-night/80 hover:text-night'
                       : 'text-gray-dark/80 hover:text-night'
                 }`}
               >
@@ -172,7 +172,7 @@ export default function Navigation() {
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
-                      ? 'text-white/80 hover:text-white'
+                      ? 'text-night/80 hover:text-night'
                       : 'text-gray-dark/80 hover:text-night'
                 }`}
               >
@@ -187,7 +187,7 @@ export default function Navigation() {
                     isOverLightBackground
                       ? 'text-gray-dark/80 hover:text-night'
                       : isHomePage
-                        ? 'text-white/80 hover:text-white'
+                        ? 'text-night/80 hover:text-night'
                         : 'text-gray-dark/80 hover:text-night'
                   }`}
                 >
@@ -254,7 +254,7 @@ export default function Navigation() {
                     isOverLightBackground
                       ? 'text-gray-dark/80 hover:text-night'
                       : isHomePage
-                        ? 'text-white/80 hover:text-white'
+                        ? 'text-night/80 hover:text-night'
                         : 'text-gray-dark/80 hover:text-night'
                   }`}
                 >
@@ -276,7 +276,7 @@ export default function Navigation() {
                       isOverLightBackground
                         ? 'text-gray-dark/80 hover:text-night'
                         : isHomePage
-                          ? 'text-white/80 hover:text-white'
+                          ? 'text-night/80 hover:text-night'
                           : 'text-gray-dark/80 hover:text-night'
                     }`}
                   >
@@ -298,7 +298,7 @@ export default function Navigation() {
                   className={`transition-colors text-sm font-medium drop-shadow ${
                     isOverLightBackground
                       ? 'text-gray-dark/80 hover:text-night'
-                      : 'text-white/80 hover:text-white'
+                      : 'text-night/80 hover:text-night'
                   }`}
                 >
                   Se connecter
@@ -344,7 +344,7 @@ export default function Navigation() {
                 isOverLightBackground
                   ? 'text-gray-dark hover:text-night'
                   : isHomePage
-                    ? 'text-white hover:text-gold-metallic'
+                    ? 'text-night hover:text-gold-metallic'
                     : 'text-gray-dark hover:text-night'
               }`}
             >

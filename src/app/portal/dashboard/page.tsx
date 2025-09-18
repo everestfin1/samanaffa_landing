@@ -211,27 +211,7 @@ export default function DashboardPage() {
           </div>
         </button>
 
-        <button 
-          onClick={() => router.push('/portal/compare')}
-          className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-shadow text-left hover:border-gold-metallic/30"
-        >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="bg-night/10 p-3 rounded-xl">
-              <ChartBarIcon className="w-6 h-6 text-night" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-night">Comparaison</h3>
-              <p className="text-sm text-night/60">Outils d'analyse</p>
-            </div>
-          </div>
-          <div className="text-sm text-night/70 mb-3">
-            Comparez les produits et optimisez votre stratégie d'investissement.
-          </div>
-          <div className="flex items-center text-gold-metallic text-sm font-medium">
-            <span>Accéder</span>
-            <ArrowRightIcon className="w-4 h-4 ml-2" />
-          </div>
-        </button>
+        {/* Comparison tool removed as per simplification requirements */}
       </div>
 
       {/* Recent Activity */}
