@@ -133,14 +133,14 @@ export default function APE() {
                 </span>
               </div>
 
-              <h1 className="text-4xl lg:text-6xl text-white font-light tracking-tight mb-6 drop-shadow-2xl">
-                APE Sénégal
+              <h1 className="text-4xl lg:text-6xl text-white font-light tracking-tight mb-6 ">
+                Emprunt Obligataire
                 <span className="block text-2xl lg:text-3xl text-white/95 font-light mt-2">
                   Appel Public à l'Épargne
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto drop-shadow-lg">
+              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto ">
                 Investissement sécurisé dans les obligations d'État avec rendements fixes garantis.
                 <br className="hidden lg:block" />
                 Participez au financement des projets stratégiques du Sénégal.

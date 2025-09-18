@@ -64,9 +64,9 @@ export default function PortalHeader({
     },
     {
       id: 'ape' as ActiveTab,
-      label: 'APE Sénégal',
+      label: 'Emprunt Obligataire',
       icon: BuildingLibraryIcon,
-      ariaLabel: 'Accéder à APE Sénégal',
+      ariaLabel: 'Accéder à Emprunt Obligataire',
       href: '/portal/ape'
     }
     // Removed comparison page as per simplification requirements

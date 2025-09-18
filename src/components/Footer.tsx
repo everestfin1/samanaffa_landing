@@ -1,5 +1,5 @@
 'use client'
-import { ShieldCheckIcon } from 'lucide-react'
+import { ShieldCheckIcon, PhoneIcon, HelpCircleIcon } from 'lucide-react'
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
@@ -53,14 +53,34 @@ export default function Footer() {
                   onClick={() => router.push('/sama-naffa')} 
                   className="block text-white/60 hover:text-gold-metallic transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  Sama Naffa • Banque Digitale
+                  Sama Naffa • Épargne Inclusive
                 </button>
                 <button 
                   onClick={() => router.push('/ape')} 
                   className="block text-white/60 hover:text-gold-metallic transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  APE Sénégal • Investissement d'État
+                  Emprunt Obligataire • Investissement d'État
                 </button>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-light mb-4 text-white/90 text-lg">Support</h4>
+              <div className="space-y-3">
+                <Link 
+                  href="/faq"
+                  className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
+                >
+                  <HelpCircleIcon className="w-5 h-5" />
+                  <span>FAQ</span>
+                </Link>
+                <Link 
+                  href="/contact"
+                  className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
+                >
+                  <PhoneIcon className="w-5 h-5" />
+                  <span>Contact</span>
+                </Link>
               </div>
             </div>
           </div>

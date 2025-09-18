@@ -9,7 +9,7 @@ Ce document détaille l'architecture et les spécifications techniques de la pla
 
 ### 2.1 Structure Principale
 - **Accueil**: Page d'accueil avec présentation générale
-- **Sama Naffa (Banque digitale et épargne)**
+- **Sama Naffa (Épargne Inclusive)**
 - ** APE Sénégal (Investissements et obligations)** 
 - Plus (dropdown):
    - **FAQ**: Questions fréquemment posées

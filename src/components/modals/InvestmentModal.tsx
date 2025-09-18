@@ -66,7 +66,7 @@ export default function InvestmentModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">Souscrire à APE Sénégal</h3>
+          <h3 className="text-xl font-bold text-night">Souscrire à Emprunt Obligataire</h3>
           <button 
             onClick={onClose}
             className="text-night/60 hover:text-night"

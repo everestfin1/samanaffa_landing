@@ -198,7 +198,7 @@ export default function DashboardPage() {
               <BuildingLibraryIcon className="w-6 h-6 text-gold-dark" />
             </div>
             <div>
-              <h3 className="font-semibold text-night">APE Sénégal</h3>
+              <h3 className="font-semibold text-night">Emprunt Obligataire</h3>
               <p className="text-sm text-night/60">Obligations d'État</p>
             </div>
           </div>

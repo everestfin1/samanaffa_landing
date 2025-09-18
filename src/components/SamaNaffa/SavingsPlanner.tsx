@@ -123,7 +123,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
   // Initial choice prompt
   if (!simulationMode) {
     return (
-      <section className="text-center py-12 lg:py-20 px-4 rounded-2xl p-8 bg-white mb-16">
+      <section className="text-center py-12 lg:py-20 px-4 rounded-2xl p-8 bg-[#435933]/10">
         <h2 className="font-bold text-[#01081b] text-2xl lg:text-[38px] leading-tight mb-4">
           Comment veux-tu commencer ?
         </h2>

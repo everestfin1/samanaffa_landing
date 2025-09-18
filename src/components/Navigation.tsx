@@ -9,11 +9,7 @@ import {
   XMarkIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
-  UserIcon,
-  ChevronDownIcon,
-  QuestionMarkCircleIcon,
-  PhoneIcon,
-  PlusIcon
+  UserIcon
 } from '@heroicons/react/24/outline';
 
 export default function Navigation() {
@@ -21,10 +17,8 @@ export default function Navigation() {
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isPlusDropdownOpen, setIsPlusDropdownOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isOverLightBackground, setIsOverLightBackground] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Determine if we're on the home page or portal page based on current pathname
   const isHomePage = pathname === '/';
@@ -50,19 +44,6 @@ export default function Navigation() {
     };
   }, []);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsPlusDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
 
   // Detect when header is over light backgrounds (only on home page)
   useEffect(() => {
@@ -115,7 +96,6 @@ export default function Navigation() {
   // Close mobile menu when route changes
   useEffect(() => {
     setIsMobileMenuOpen(false);
-    setIsPlusDropdownOpen(false);
   }, [pathname]);
 
   // Hide navigation on portal page
@@ -142,7 +122,7 @@ export default function Navigation() {
             <div className="flex items-center space-x-8">
               <Link
                 href="/"
-                className={`transition-colors font-medium drop-shadow ${
+                className={`transition-colors font-medium  ${
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
@@ -155,7 +135,7 @@ export default function Navigation() {
 
               <Link
                 href="/sama-naffa"
-                className={`transition-colors font-medium drop-shadow ${
+                className={`transition-colors font-medium  ${
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
@@ -168,7 +148,7 @@ export default function Navigation() {
 
               <Link
                 href="/ape"
-                className={`transition-colors font-medium drop-shadow ${
+                className={`transition-colors font-medium  ${
                   isOverLightBackground
                     ? 'text-gray-dark/80 hover:text-night'
                     : isHomePage
@@ -176,51 +156,9 @@ export default function Navigation() {
                       : 'text-gray-dark/80 hover:text-night'
                 }`}
               >
-                APE Sénégal
+                Emprunt Obligataire
               </Link>
 
-              {/* Plus Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setIsPlusDropdownOpen(!isPlusDropdownOpen)}
-                  className={`flex items-center space-x-1 transition-colors font-medium drop-shadow ${
-                    isOverLightBackground
-                      ? 'text-gray-dark/80 hover:text-night'
-                      : isHomePage
-                        ? 'text-night/80 hover:text-night'
-                        : 'text-gray-dark/80 hover:text-night'
-                  }`}
-                >
-                  <PlusIcon className="w-4 h-4" />
-                  <span>Plus</span>
-                  <ChevronDownIcon className={`w-4 h-4 transition-transform ${isPlusDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isPlusDropdownOpen && (
-                  <div className={`absolute top-full left-0 mt-2 w-48 rounded-lg shadow-2xl border py-2 z-50 backdrop-blur-md ${
-                    isOverLightBackground
-                      ? 'bg-white/95 border-gray-light/30'
-                      : isHomePage
-                        ? 'bg-white/95 border-gold-metallic/20'
-                        : 'bg-white/95 border-gray-light/30'
-                  }`}>
-                    <Link
-                      href="/faq"
-                      className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
-                    >
-                      <QuestionMarkCircleIcon className="w-5 h-5 text-gold-metallic" />
-                      <span className="font-medium text-night">FAQ</span>
-                    </Link>
-                    <Link
-                      href="/contact"
-                      className="flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors"
-                    >
-                      <PhoneIcon className="w-5 h-5 text-gold-metallic" />
-                      <span className="font-medium text-night">Contact</span>
-                    </Link>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -229,7 +167,7 @@ export default function Navigation() {
             <div className="flex-shrink-0">
               <Link 
                 href="/"
-                className="transition-opacity hover:opacity-80 drop-shadow-lg"
+                className="transition-opacity hover:opacity-80 "
               >
                 <Image
                   src="/sama_naffa_logo.png"
@@ -250,7 +188,7 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link 
                   href="/portal"
-                  className={`flex items-center space-x-2 transition-colors drop-shadow ${
+                  className={`flex items-center space-x-2 transition-colors  ${
                     isOverLightBackground
                       ? 'text-gray-dark/80 hover:text-night'
                       : isHomePage
@@ -272,7 +210,7 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link 
                   href="/login"
-                    className={`transition-colors text-sm font-medium drop-shadow ${
+                    className={`transition-colors text-sm font-medium  ${
                       isOverLightBackground
                         ? 'text-gray-dark/80 hover:text-night'
                         : isHomePage
@@ -282,12 +220,7 @@ export default function Navigation() {
                   >
                     Se connecter
                   </Link>
-                  <Link
-                    href="/register"
-                    className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
-                  >
-                    Ouvrir un compte
-                  </Link>
+
                 </div>
               )
             ) : (
@@ -295,19 +228,13 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
-                  className={`transition-colors text-sm font-medium drop-shadow ${
+                  className={`transition-colors text-sm font-medium  ${
                     isOverLightBackground
                       ? 'text-gray-dark/80 hover:text-night'
                       : 'text-night/80 hover:text-night'
                   }`}
                 >
                   Se connecter
-                </Link>
-                <Link 
-                  href="/register"
-                  className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
-                >
-                  Ouvrir un compte
                 </Link>
               </div>
             )}
@@ -322,7 +249,7 @@ export default function Navigation() {
             <div className="flex-shrink-0">
               <Link 
                 href="/"
-                className="transition-opacity hover:opacity-80 drop-shadow-lg"
+                className="transition-opacity hover:opacity-80 "
               >
                 <Image
                   src="/sama_naffa_logo.png"
@@ -340,7 +267,7 @@ export default function Navigation() {
           <div>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2 drop-shadow transition-colors ${
+              className={`p-2  transition-colors ${
                 isOverLightBackground
                   ? 'text-gray-dark hover:text-night'
                   : isHomePage
@@ -387,29 +314,9 @@ export default function Navigation() {
                 className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
               >
                 <BuildingLibraryIcon className="w-5 h-5" />
-                <span>APE Sénégal</span>
+                <span>Emprunt Obligataire</span>
               </Link>
 
-              {/* Mobile Plus Section */}
-              <div className="px-3 py-2">
-                <div className="text-sm font-medium text-night/50 mb-2">Plus</div>
-                <div className="space-y-1 ml-2">
-                  <Link
-                    href="/faq"
-                    className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
-                  >
-                    <QuestionMarkCircleIcon className="w-5 h-5" />
-                    <span>FAQ</span>
-                  </Link>
-                  <Link
-                    href="/contact"
-                    className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
-                  >
-                    <PhoneIcon className="w-5 h-5" />
-                    <span>Contact</span>
-                  </Link>
-                </div>
-              </div>
             </div>
             
             <div className={`border-t px-2 pt-3 pb-3 ${
@@ -443,12 +350,6 @@ export default function Navigation() {
                       className="w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors font-medium"
                     >
                       Se connecter
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
-                    >
-                      Ouvrir un compte
                     </Link>
                   </div>
                 )

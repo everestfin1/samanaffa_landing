@@ -61,7 +61,7 @@ const faqData: FAQItem[] = [
   // APE Questions
   {
     id: 7,
-    question: "Qu'est-ce que l'APE Sénégal ?",
+    question: "Qu'est-ce que l'Emprunt Obligataire ?",
     answer: "L'APE (Agence de Promotion des Exportations) Sénégal propose des produits d'investissement et des obligations pour diversifier votre portefeuille et générer des rendements attractifs.",
     category: 'ape'
   },
@@ -113,7 +113,7 @@ export default function FAQPage() {
     { id: 'all', name: 'Toutes les questions', icon: QuestionMarkCircleIcon },
     { id: 'general', name: 'Général', icon: QuestionMarkCircleIcon },
     { id: 'sama-naffa', name: 'Sama Naffa', icon: DevicePhoneMobileIcon },
-    { id: 'ape', name: 'APE Sénégal', icon: BuildingLibraryIcon },
+    { id: 'ape', name: 'Emprunt Obligataire', icon: BuildingLibraryIcon },
     { id: 'security', name: 'Sécurité', icon: ShieldCheckIcon }
   ];
 

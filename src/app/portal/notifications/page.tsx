@@ -57,7 +57,7 @@ export default function NotificationsPage() {
     {
       id: '1',
       title: 'Paiement d\'intérêts APE reçu',
-      message: 'Vous avez reçu un paiement de 34 750 FCFA pour vos investissements APE Sénégal.',
+      message: 'Vous avez reçu un paiement de 34 750 FCFA pour vos investissements Emprunt Obligataire.',
       type: 'success',
       category: 'investment',
       timestamp: '2025-09-17T10:30:00Z',

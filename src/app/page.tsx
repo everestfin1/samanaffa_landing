@@ -34,28 +34,20 @@ export default function Home() {
             />
           </div>
           
-          {/* Light overlay for better text readability on white background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-white/40 to-white/30"></div>
-          
-          {/* Subtle gold accent overlay to complement the image */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/10 via-gold-light/5 to-gold-metallic/15"></div>
-          
           <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
             <div className="text-center space-y-16 w-full">
               
               {/* Main heading */}
-              <div className="space-y-8">
-                <h1 className="text-6xl lg:text-8xl text-night font-extralight tracking-tight leading-none drop-shadow-lg">
+              <div className="space-y-4">
+                <h1 className="text-6xl lg:text-8xl pb-4 text-night font-extralight tracking-tight leading-none">
                   Votre épargne,
                   <br />
                   <span className="bg-gradient-to-r from-gold-dark via-gold-metallic to-gold-dark bg-clip-text text-transparent font-light">
                     notre expertise
                   </span>
                 </h1>
-                <p className="text-xl lg:text-2xl text-night/80 max-w-4xl mx-auto font-normal leading-relaxed drop-shadow-sm">
-                  La plateforme d'épargne et d'investissement de référence au Sénégal.
-                  <br className="hidden lg:block" />
-                  Transformez vos objectifs financiers en réalité.
+                <p className="text-xl lg:text-2xl text-night/80 max-w-xl mx-auto font-normal leading-relaxed">
+                    La plateforme d'épargne et d'investissement de référence au Sénégal.
                 </p>
               </div>
 
@@ -67,12 +59,6 @@ export default function Home() {
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <span className="relative">Ouvrir un compte</span>
-                </button>
-                <button 
-                  onClick={() => router.push('/ape')}
-                  className="group px-12 py-5 bg-night/90 backdrop-blur-md border-2 border-night/30 text-white font-semibold text-lg rounded-2xl hover:bg-night hover:border-gold-metallic/50 transition-all duration-300 hover:shadow-xl"
-                >
-                  <span className="group-hover:text-gold-light transition-colors">Explorer l'APE</span>
                 </button>
               </div>
 
@@ -128,7 +114,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-3xl font-light text-night mb-2">Sama Naffa</h3>
-                      <p className="text-gray-medium text-lg font-light">Banque Digitale Moderne</p>
+                      <p className="text-gray-medium text-lg font-light">Épargne Inclusive Moderne</p>
                     </div>
                   </div>
                   
@@ -175,7 +161,7 @@ export default function Home() {
                       <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light text-night mb-2">APE Sénégal</h3>
+                      <h3 className="text-3xl font-light text-night mb-2">Emprunt Obligataire</h3>
                       <p className="text-gray-medium text-lg font-light">Appel Public à l'Épargne</p>
                     </div>
                   </div>

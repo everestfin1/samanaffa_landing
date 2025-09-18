@@ -114,7 +114,7 @@ export default function SamaNaffa() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#F2F8F4]">
+    <div className="min-h-screen">
       {/* Skip to content */}
       <a href="#main" className="skip-link">Aller au contenu principal</a>
       
@@ -138,14 +138,14 @@ export default function SamaNaffa() {
           
           <div className="relative max-w-6xl mx-auto px-6 h-full flex items-center">
             <div className="text-center w-full">
-              <h1 className="text-4xl lg:text-6xl text-white font-bold tracking-tight mb-6 drop-shadow-2xl">
+              <h1 className="text-4xl lg:text-6xl text-white font-bold tracking-tight mb-6 ">
                 Sama Naffa
                 <span className="block text-2xl lg:text-3xl text-white/95 font-medium mt-2">
                   Épargne Intelligente pour l'Afrique de l'Ouest
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto drop-shadow-lg">
+              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto ">
                 Révolutionnez vos habitudes d'épargne avec des outils modernes
                 adaptés à la culture financière sénégalaise.
               </p>
@@ -153,7 +153,7 @@ export default function SamaNaffa() {
           </div>
         </section>
         {/* Features Grid - Horizontal Layout */}
-        <section className="py-16 bg-[#F2F8F4]" aria-label="Fonctionnalités principales">
+        <section className="py-16" aria-label="Fonctionnalités principales">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-12">
               <h2 className="text-3xl lg:text-4xl text-[#01081b] font-bold mb-4 tracking-tight">

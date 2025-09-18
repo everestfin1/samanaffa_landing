@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sama Naffa — Épargne Digitale et APE Sénégal",
+  title: "Sama Naffa — Épargne Digitale et Emprunt Obligataire",
   description: "Plateforme mobile-first pour l'épargne digitale et l'Appel Public à l'Épargne de l'État du Sénégal. Banque moderne, tontines digitales, investissements sécurisés. Conforme BCEAO.",
-  keywords: "épargne, banque digitale, APE Sénégal, tontine, investissement, BCEAO, mobile banking",
+  keywords: "épargne, Épargne Inclusive, Emprunt Obligataire, tontine, investissement, BCEAO, mobile banking",
   authors: [{ name: "Everest Finance SGI" }],
 };
 

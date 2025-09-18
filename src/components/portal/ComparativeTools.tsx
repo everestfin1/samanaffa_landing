@@ -205,7 +205,7 @@ export default function ComparativeTools() {
                 <div className="bg-blue-100 p-2 rounded-lg">
                   <ShieldCheckIcon className="w-6 h-6 text-blue-600" />
                 </div>
-                <h4 className="text-lg font-bold text-night">APE Sénégal</h4>
+                <h4 className="text-lg font-bold text-night">Emprunt Obligataire</h4>
               </div>
               
               <div className="space-y-4">
@@ -253,7 +253,7 @@ export default function ComparativeTools() {
               <div className="text-center">
                 <div className="font-semibold text-night">Meilleur rendement</div>
                 <div className={`text-lg font-bold ${samaNaffaReturn > apeReturn ? 'text-green-600' : 'text-blue-600'}`}>
-                  {samaNaffaReturn > apeReturn ? 'Sama Naffa' : 'APE Sénégal'}
+                  {samaNaffaReturn > apeReturn ? 'Sama Naffa' : 'Emprunt Obligataire'}
                 </div>
                 <div className="text-xs text-night/60">
                   +{Math.abs(samaNaffaReturn - apeReturn).toLocaleString('fr-FR', { maximumFractionDigits: 0 })} FCFA
@@ -261,7 +261,7 @@ export default function ComparativeTools() {
               </div>
               <div className="text-center">
                 <div className="font-semibold text-night">Sécurité</div>
-                <div className="text-lg font-bold text-blue-600">APE Sénégal</div>
+                <div className="text-lg font-bold text-blue-600">Emprunt Obligataire</div>
                 <div className="text-xs text-night/60">Garantie État</div>
               </div>
               <div className="text-center">
@@ -309,7 +309,7 @@ export default function ComparativeTools() {
 
               <div className="border border-timberwolf/20 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-night">APE Sénégal</span>
+                  <span className="font-medium text-night">Emprunt Obligataire</span>
                   <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-sm">Risque Faible</span>
                 </div>
                 <div className="space-y-2 text-sm text-night/70">
@@ -353,7 +353,7 @@ export default function ComparativeTools() {
 
               <div className="border border-timberwolf/20 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="font-medium text-night">APE Sénégal</span>
+                  <span className="font-medium text-night">Emprunt Obligataire</span>
                   <div className="flex items-center space-x-2">
                     <div className="w-16 bg-timberwolf/20 rounded-full h-2">
                       <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '60%' }}></div>
@@ -476,7 +476,7 @@ export default function ComparativeTools() {
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="flex items-center space-x-2 mb-3">
                     <ShieldCheckIcon className="w-5 h-5 text-blue-600" />
-                    <span className="font-semibold text-night">APE Sénégal</span>
+                    <span className="font-semibold text-night">Emprunt Obligataire</span>
                   </div>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between">

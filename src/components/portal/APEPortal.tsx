@@ -73,7 +73,7 @@ export default function APEPortal() {
       <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-3xl font-bold text-night mb-2">APE Sénégal</h2>
+            <h2 className="text-3xl font-bold text-night mb-2">Emprunt Obligataire</h2>
             <p className="text-night/70 text-lg">Investissez dans les obligations d'État du Sénégal</p>
           </div>
           <div className="hidden md:block">

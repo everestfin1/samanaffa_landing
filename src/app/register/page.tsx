@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useSelection, getInitialDepositFromSelection, getAccountTypeFromSelection, getMonthlyGoalFromSelection } from '../../lib/selection-context';
+import { useSelection, getInitialDepositFromSelection, getMonthlyGoalFromSelection } from '../../lib/selection-context';
 import {
   UserIcon,
   IdentificationIcon,
@@ -38,7 +38,6 @@ interface FormData {
   selfieImage: File | null;
   
   // Step 3: Account Setup & Security
-  accountType: 'savings' | 'investment' | 'both';
   initialDeposit: string;
   monthlyGoal: string;
   password: string;
@@ -58,6 +57,8 @@ export default function RegisterPage() {
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [formData, setFormData] = useState<FormData>({
     firstName: '',
     lastName: '',
@@ -73,7 +74,6 @@ export default function RegisterPage() {
     idFrontImage: null,
     idBackImage: null,
     selfieImage: null,
-    accountType: 'savings',
     initialDeposit: '',
     monthlyGoal: '',
     password: '',
@@ -90,7 +90,6 @@ export default function RegisterPage() {
     if (selectionData) {
       setFormData(prev => ({
         ...prev,
-        accountType: getAccountTypeFromSelection(selectionData),
         initialDeposit: getInitialDepositFromSelection(selectionData),
         monthlyGoal: getMonthlyGoalFromSelection(selectionData),
       }));
@@ -103,6 +102,131 @@ export default function RegisterPage() {
     { id: 3, title: 'Configuration du compte', icon: ShieldCheckIcon, description: 'Sécurité et finalisation' }
   ];
 
+  const getStepValidationStatus = (step: number) => {
+    const stepFields = {
+      1: ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth'],
+      2: ['address', 'city', 'occupation', 'monthlyIncome', 'idNumber'],
+      3: ['initialDeposit', 'password', 'confirmPassword', 'pin', 'confirmPin']
+    };
+
+    const fields = stepFields[step as keyof typeof stepFields] || [];
+    const hasErrors = fields.some(field => errors[field]);
+    const allFilled = fields.every(field => formData[field as keyof FormData]);
+    
+    if (hasErrors) return 'error';
+    if (allFilled) return 'valid';
+    return 'pending';
+  };
+
+  // Validation functions
+  const validateField = (name: string, value: any): string => {
+    switch (name) {
+      case 'firstName':
+      case 'lastName':
+        if (!value || value.trim().length < 2) {
+          return `${name === 'firstName' ? 'Prénom' : 'Nom'} doit contenir au moins 2 caractères`;
+        }
+        if (!/^[a-zA-ZÀ-ÿ\s'-]+$/.test(value)) {
+          return `${name === 'firstName' ? 'Prénom' : 'Nom'} ne peut contenir que des lettres`;
+        }
+        return '';
+      
+      case 'email':
+        if (!value) return 'Email est requis';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+          return 'Format d\'email invalide';
+        }
+        return '';
+      
+      case 'phone':
+        if (!value) return 'Numéro de téléphone est requis';
+        const phoneRegex = /^(\+221\s?)?[0-9]{2}\s?[0-9]{3}\s?[0-9]{2}\s?[0-9]{2}$/;
+        if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+          return 'Format de téléphone invalide (ex: 77 123 45 67)';
+        }
+        return '';
+      
+      case 'dateOfBirth':
+        if (!value) return 'Date de naissance est requise';
+        const birthDate = new Date(value);
+        const today = new Date();
+        const age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
+        
+        if (actualAge < 18) {
+          return 'Vous devez avoir au moins 18 ans pour créer un compte';
+        }
+        if (birthDate > today) {
+          return 'Date de naissance invalide';
+        }
+        return '';
+      
+      case 'address':
+        if (!value || value.trim().length < 5) {
+          return 'Adresse doit contenir au moins 5 caractères';
+        }
+        return '';
+      
+      case 'city':
+        if (!value) return 'Ville est requise';
+        return '';
+      
+      case 'occupation':
+        if (!value) return 'Profession est requise';
+        return '';
+      
+      case 'monthlyIncome':
+        if (!value) return 'Revenus mensuels sont requis';
+        return '';
+      
+      case 'idNumber':
+        if (!value) return 'Numéro de document est requis';
+        if (value.length < 5) {
+          return 'Numéro de document trop court';
+        }
+        return '';
+      
+      case 'password':
+        if (!value) return 'Mot de passe est requis';
+        if (value.length < 8) {
+          return 'Mot de passe doit contenir au moins 8 caractères';
+        }
+        if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(value)) {
+          return 'Mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre';
+        }
+        return '';
+      
+      case 'confirmPassword':
+        if (!value) return 'Confirmation du mot de passe est requise';
+        if (value !== formData.password) {
+          return 'Les mots de passe ne correspondent pas';
+        }
+        return '';
+      
+      case 'pin':
+        if (!value) return 'Code PIN est requis';
+        if (!/^\d{4}$/.test(value)) {
+          return 'Code PIN doit contenir exactement 4 chiffres';
+        }
+        return '';
+      
+      case 'confirmPin':
+        if (!value) return 'Confirmation du PIN est requise';
+        if (value !== formData.pin) {
+          return 'Les codes PIN ne correspondent pas';
+        }
+        return '';
+      
+      case 'initialDeposit':
+        if (!value) return 'Dépôt initial est requis';
+        return '';
+      
+      default:
+        return '';
+    }
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
@@ -110,6 +234,27 @@ export default function RegisterPage() {
     setFormData(prev => ({
       ...prev,
       [name]: type === 'checkbox' ? checked : value
+    }));
+
+    // Validate field on change
+    const error = validateField(name, type === 'checkbox' ? checked : value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
+    }));
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setTouched(prev => ({
+      ...prev,
+      [name]: true
+    }));
+    
+    const error = validateField(name, value);
+    setErrors(prev => ({
+      ...prev,
+      [name]: error
     }));
   };
 
@@ -132,26 +277,66 @@ export default function RegisterPage() {
     return value;
   };
 
+  const getFieldError = (fieldName: string): string => {
+    return touched[fieldName] ? errors[fieldName] || '' : '';
+  };
+
+  const hasFieldError = (fieldName: string): boolean => {
+    return touched[fieldName] && !!errors[fieldName];
+  };
+
   const validateStep = (step: number): boolean => {
-    switch (step) {
-      case 1:
-        return !!(formData.firstName && formData.lastName && formData.email && formData.phone && formData.dateOfBirth);
-      case 2:
-        return !!(formData.address && formData.city && formData.occupation && formData.monthlyIncome && 
-                 formData.idNumber && formData.idFrontImage && formData.selfieImage);
-      case 3:
-        return !!(formData.accountType && formData.initialDeposit && 
-                 formData.password && formData.confirmPassword && 
-                 formData.password === formData.confirmPassword &&
-                 formData.pin && formData.confirmPin &&
-                 formData.pin === formData.confirmPin &&
-                 formData.termsAccepted && formData.privacyAccepted);
-      default:
-        return false;
+    const stepFields = {
+      1: ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth'],
+      2: ['address', 'city', 'occupation', 'monthlyIncome', 'idNumber'],
+      3: ['initialDeposit', 'password', 'confirmPassword', 'pin', 'confirmPin']
+    };
+
+    const fields = stepFields[step as keyof typeof stepFields] || [];
+    
+    // Check if all required fields are filled and valid
+    for (const field of fields) {
+      if (!formData[field as keyof FormData]) return false;
+      if (errors[field]) return false;
     }
+
+    // Additional checks for specific steps
+    if (step === 2) {
+      if (!formData.idFrontImage || !formData.selfieImage) return false;
+    }
+    
+    if (step === 3) {
+      if (formData.password !== formData.confirmPassword) return false;
+      if (formData.pin !== formData.confirmPin) return false;
+      if (!formData.termsAccepted || !formData.privacyAccepted) return false;
+    }
+
+    return true;
   };
 
   const handleNext = () => {
+    // Mark all fields in current step as touched to show validation errors
+    const stepFields = {
+      1: ['firstName', 'lastName', 'email', 'phone', 'dateOfBirth'],
+      2: ['address', 'city', 'occupation', 'monthlyIncome', 'idNumber'],
+      3: ['initialDeposit', 'password', 'confirmPassword', 'pin', 'confirmPin']
+    };
+
+    const fields = stepFields[currentStep as keyof typeof stepFields] || [];
+    const newTouched = { ...touched };
+    fields.forEach(field => {
+      newTouched[field] = true;
+    });
+    setTouched(newTouched);
+
+    // Validate all fields in current step
+    const newErrors = { ...errors };
+    fields.forEach(field => {
+      const value = formData[field as keyof FormData];
+      newErrors[field] = validateField(field, value);
+    });
+    setErrors(newErrors);
+
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3));
     }
@@ -211,11 +396,22 @@ export default function RegisterPage() {
             name="firstName"
             value={formData.firstName}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('firstName') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             placeholder="Amadou"
             required
             autoComplete="given-name"
           />
+          {getFieldError('firstName') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('firstName')}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-semibold text-night mb-2">Nom de famille *</label>
@@ -224,11 +420,22 @@ export default function RegisterPage() {
             name="lastName"
             value={formData.lastName}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('lastName') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             placeholder="Diallo"
             required
             autoComplete="family-name"
           />
+          {getFieldError('lastName') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('lastName')}
+            </p>
+          )}
         </div>
       </div>
       
@@ -239,11 +446,22 @@ export default function RegisterPage() {
           name="email"
           value={formData.email}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+          onBlur={handleBlur}
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            hasFieldError('email') 
+              ? 'border-red-400 bg-red-50' 
+              : 'border-timberwolf/30'
+          }`}
           placeholder="amadou.diallo@email.com"
           required
           autoComplete="email"
         />
+        {getFieldError('email') && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <ExclamationTriangleIcon className="w-4 h-4" />
+            {getFieldError('email')}
+          </p>
+        )}
       </div>
       
       <div>
@@ -255,13 +473,26 @@ export default function RegisterPage() {
           onChange={(e) => {
             const formatted = formatPhoneNumber(e.target.value);
             setFormData(prev => ({ ...prev, phone: formatted }));
+            const error = validateField('phone', formatted);
+            setErrors(prev => ({ ...prev, phone: error }));
           }}
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+          onBlur={handleBlur}
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            hasFieldError('phone') 
+              ? 'border-red-400 bg-red-50' 
+              : 'border-timberwolf/30'
+          }`}
           placeholder="77 123 45 67"
           required
           autoComplete="tel"
         />
         <p className="text-xs text-night/60 mt-1">Format: 77 XXX XX XX ou +221 XX XXX XX XX</p>
+        {getFieldError('phone') && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <ExclamationTriangleIcon className="w-4 h-4" />
+            {getFieldError('phone')}
+          </p>
+        )}
       </div>
       
       <div>
@@ -271,12 +502,23 @@ export default function RegisterPage() {
           name="dateOfBirth"
           value={formData.dateOfBirth}
           onChange={handleInputChange}
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+          onBlur={handleBlur}
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            hasFieldError('dateOfBirth') 
+              ? 'border-red-400 bg-red-50' 
+              : 'border-timberwolf/30'
+          }`}
           required
           max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
           autoComplete="bday"
         />
         <p className="text-xs text-night/60 mt-1">Vous devez avoir au moins 18 ans</p>
+        {getFieldError('dateOfBirth') && (
+          <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+            <ExclamationTriangleIcon className="w-4 h-4" />
+            {getFieldError('dateOfBirth')}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -300,7 +542,12 @@ export default function RegisterPage() {
             name="city"
             value={formData.city}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('city') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             required
           >
             <option value="">Sélectionnez votre ville</option>
@@ -314,6 +561,12 @@ export default function RegisterPage() {
             <option value="Louga">Louga</option>
             <option value="Autre">Autre</option>
           </select>
+          {getFieldError('city') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('city')}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-semibold text-night mb-2">Quartier/Commune *</label>
@@ -322,10 +575,21 @@ export default function RegisterPage() {
             name="address"
             value={formData.address}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('address') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             placeholder="Ex: Plateau, Medina, HLM..."
             required
           />
+          {getFieldError('address') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('address')}
+            </p>
+          )}
         </div>
       </div>
 
@@ -337,7 +601,12 @@ export default function RegisterPage() {
             name="occupation"
             value={formData.occupation}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('occupation') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             required
           >
             <option value="">Sélectionnez votre profession</option>
@@ -351,6 +620,12 @@ export default function RegisterPage() {
             <option value="Retraité">Retraité</option>
             <option value="Autre">Autre</option>
           </select>
+          {getFieldError('occupation') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('occupation')}
+            </p>
+          )}
         </div>
         <div>
           <label className="block text-sm font-semibold text-night mb-2">Revenus mensuels *</label>
@@ -358,7 +633,12 @@ export default function RegisterPage() {
             name="monthlyIncome"
             value={formData.monthlyIncome}
             onChange={handleInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+            onBlur={handleBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('monthlyIncome') 
+                ? 'border-red-400 bg-red-50' 
+                : 'border-timberwolf/30'
+            }`}
             required
           >
             <option value="">Sélectionnez vos revenus</option>
@@ -368,6 +648,12 @@ export default function RegisterPage() {
             <option value="500,000 - 1,000,000">500,000 - 1,000,000 FCFA</option>
             <option value="> 1,000,000">Plus de 1,000,000 FCFA</option>
           </select>
+          {getFieldError('monthlyIncome') && (
+            <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              {getFieldError('monthlyIncome')}
+            </p>
+          )}
         </div>
       </div>
 
@@ -400,10 +686,21 @@ export default function RegisterPage() {
               name="idNumber"
               value={formData.idNumber}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                hasFieldError('idNumber') 
+                  ? 'border-red-400 bg-red-50' 
+                  : 'border-timberwolf/30'
+              }`}
               placeholder="Ex: 1234567890123"
               required
             />
+            {getFieldError('idNumber') && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4" />
+                {getFieldError('idNumber')}
+              </p>
+            )}
           </div>
         </div>
 
@@ -616,33 +913,6 @@ export default function RegisterPage() {
         <h4 className="font-semibold text-night mb-4">Configuration du compte</h4>
         
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-night mb-2">Type de compte *</label>
-            <div className="grid gap-3">
-              {[
-                { value: 'savings', label: 'Sama Naffa - Épargne', desc: 'Compte d\'épargne avec intérêts', icon: '💰' },
-                { value: 'investment', label: 'APE - Investissement', desc: 'Produits d\'investissement et obligations', icon: '📈' },
-                { value: 'both', label: 'Compte Complet', desc: 'Épargne et investissement', icon: '🎯' }
-              ].map((option) => (
-                <label key={option.value} className="flex items-center space-x-3 p-3 border border-timberwolf/30 rounded-lg cursor-pointer hover:bg-white hover:shadow-sm transition-all duration-200">
-                  <input
-                    type="radio"
-                    name="accountType"
-                    value={option.value}
-                    checked={formData.accountType === option.value}
-                    onChange={handleInputChange}
-                    className="w-4 h-4 text-gold-metallic border-timberwolf/30"
-                  />
-                  <span className="text-xl">{option.icon}</span>
-                  <div className="flex-1">
-                    <div className="font-medium text-night">{option.label}</div>
-                    <div className="text-sm text-night/60">{option.desc}</div>
-                  </div>
-                </label>
-              ))}
-            </div>
-          </div>
-          
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-night mb-2">Dépôt initial *</label>
@@ -650,7 +920,12 @@ export default function RegisterPage() {
                 name="initialDeposit"
                 value={formData.initialDeposit}
                 onChange={handleInputChange}
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+                onBlur={handleBlur}
+                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                  hasFieldError('initialDeposit') 
+                    ? 'border-red-400 bg-red-50' 
+                    : 'border-timberwolf/30'
+                }`}
                 required
               >
                 <option value="">Choisir le montant</option>
@@ -661,6 +936,12 @@ export default function RegisterPage() {
                 <option value="500000">500,000 FCFA</option>
                 <option value="custom">Montant personnalisé</option>
               </select>
+              {getFieldError('initialDeposit') && (
+                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                  <ExclamationTriangleIcon className="w-4 h-4" />
+                  {getFieldError('initialDeposit')}
+                </p>
+              )}
             </div>
             
             <div>
@@ -673,6 +954,25 @@ export default function RegisterPage() {
                 className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
                 placeholder="Ex: 50,000"
               />
+            </div>
+          </div>
+          
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                <span className="text-blue-600 text-sm">ℹ️</span>
+              </div>
+              <div>
+                <h5 className="font-medium text-blue-900 mb-1">Types de comptes disponibles</h5>
+                <p className="text-sm text-blue-800">
+                  Une fois votre compte créé, vous pourrez accéder à votre portail et choisir entre :
+                </p>
+                <ul className="text-sm text-blue-800 mt-2 space-y-1">
+                  <li>• <strong>Sama Naffa</strong> - Compte d'épargne avec objectifs personnalisés</li>
+                  <li>• <strong>Emprunt Obligataire</strong> - Investissement dans les obligations d'État</li>
+                  <li>• <strong>Compte Complet</strong> - Accès aux deux services</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
@@ -693,12 +993,23 @@ export default function RegisterPage() {
               name="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                hasFieldError('password') 
+                  ? 'border-red-400 bg-red-50' 
+                  : 'border-timberwolf/30'
+              }`}
               placeholder="Minimum 8 caractères"
               required
               minLength={8}
             />
             <p className="text-xs text-night/60 mt-1">Lettres, chiffres et symboles recommandés</p>
+            {getFieldError('password') && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4" />
+                {getFieldError('password')}
+              </p>
+            )}
           </div>
           
           <div>
@@ -708,10 +1019,21 @@ export default function RegisterPage() {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                hasFieldError('confirmPassword') 
+                  ? 'border-red-400 bg-red-50' 
+                  : 'border-timberwolf/30'
+              }`}
               placeholder="Retaper le mot de passe"
               required
             />
+            {getFieldError('confirmPassword') && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4" />
+                {getFieldError('confirmPassword')}
+              </p>
+            )}
           </div>
         </div>
 
@@ -723,13 +1045,24 @@ export default function RegisterPage() {
               name="pin"
               value={formData.pin}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 text-center text-2xl tracking-widest"
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 text-center text-2xl tracking-widest ${
+                hasFieldError('pin') 
+                  ? 'border-red-400 bg-red-50' 
+                  : 'border-timberwolf/30'
+              }`}
               placeholder="••••"
               required
               maxLength={4}
               pattern="[0-9]{4}"
             />
             <p className="text-xs text-night/60 mt-1">Pour les transactions rapides</p>
+            {getFieldError('pin') && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4" />
+                {getFieldError('pin')}
+              </p>
+            )}
           </div>
           
           <div>
@@ -739,12 +1072,23 @@ export default function RegisterPage() {
               name="confirmPin"
               value={formData.confirmPin}
               onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 text-center text-2xl tracking-widest"
+              onBlur={handleBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 text-center text-2xl tracking-widest ${
+                hasFieldError('confirmPin') 
+                  ? 'border-red-400 bg-red-50' 
+                  : 'border-timberwolf/30'
+              }`}
               placeholder="••••"
               required
               maxLength={4}
               pattern="[0-9]{4}"
             />
+            {getFieldError('confirmPin') && (
+              <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                <ExclamationTriangleIcon className="w-4 h-4" />
+                {getFieldError('confirmPin')}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -826,17 +1170,29 @@ export default function RegisterPage() {
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
               
+              const validationStatus = getStepValidationStatus(step.id);
+              
               return (
                 <div key={step.id} className="flex items-center">
                   <div className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
                     isCompleted 
                       ? 'bg-green-500 border-green-500 text-white shadow-lg scale-110'
                       : isActive
-                        ? 'border-gold-metallic text-gold-metallic bg-gold-metallic/10 shadow-md scale-105'
-                        : 'border-timberwolf/40 text-timberwolf/40 bg-white'
+                        ? validationStatus === 'error'
+                          ? 'border-red-400 text-red-400 bg-red-50 shadow-md scale-105'
+                          : validationStatus === 'valid'
+                            ? 'border-green-400 text-green-400 bg-green-50 shadow-md scale-105'
+                            : 'border-gold-metallic text-gold-metallic bg-gold-metallic/10 shadow-md scale-105'
+                        : validationStatus === 'error'
+                          ? 'border-red-300 text-red-300 bg-red-50'
+                          : validationStatus === 'valid'
+                            ? 'border-green-300 text-green-300 bg-green-50'
+                            : 'border-timberwolf/40 text-timberwolf/40 bg-white'
                   }`}>
                     {isCompleted ? (
                       <CheckCircleIcon className="w-7 h-7" />
+                    ) : validationStatus === 'error' ? (
+                      <ExclamationTriangleIcon className="w-6 h-6" />
                     ) : (
                       <IconComponent className="w-6 h-6" />
                     )}
@@ -855,10 +1211,23 @@ export default function RegisterPage() {
               const isActive = currentStep === step.id;
               const isCompleted = currentStep > step.id;
               
+              const validationStatus = getStepValidationStatus(step.id);
+              
               return (
                 <div key={step.id} className={`text-center max-w-[140px] transition-all duration-300 ${
-                  isActive ? 'text-gold-metallic font-semibold' : 
-                  isCompleted ? 'text-green-600 font-medium' : 'text-night/60'
+                  isActive 
+                    ? validationStatus === 'error'
+                      ? 'text-red-500 font-semibold'
+                      : validationStatus === 'valid'
+                        ? 'text-green-600 font-semibold'
+                        : 'text-gold-metallic font-semibold'
+                    : isCompleted 
+                      ? 'text-green-600 font-medium' 
+                      : validationStatus === 'error'
+                        ? 'text-red-400 font-medium'
+                        : validationStatus === 'valid'
+                          ? 'text-green-500 font-medium'
+                          : 'text-night/60'
                 }`}>
                   <div className="text-sm font-medium mb-1">{step.title}</div>
                   <div className="text-xs text-night/50">{step.description}</div>
