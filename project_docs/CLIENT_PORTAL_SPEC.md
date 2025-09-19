@@ -18,9 +18,15 @@ Related docs:
 
 ## 2. Roles & Access
 
-- Public Visitor: Read‑only landing, basic calculators (outside this spec).
-- Client User (Authenticated): Access to this Client Portal.
-- Admin (Super): Separate Admin Portal (outside this spec).
+- **Public Visitor**: Read‑only landing, basic calculators (outside this spec).
+- **Client User (Authenticated)**: Access to this Client Portal via OTP-based authentication.
+- **Admin (Super)**: Separate Admin Portal with JWT-based authentication (outside this spec).
+
+### Authentication Flow
+- **Registration**: Email/phone + OTP verification
+- **Login**: Email/phone + OTP verification (no passwords)
+- **Session Management**: NextAuth.js with JWT tokens
+- **Account Creation**: Auto-creates both Sama Naffa and APE accounts
 
 ## 3. Information Architecture
 

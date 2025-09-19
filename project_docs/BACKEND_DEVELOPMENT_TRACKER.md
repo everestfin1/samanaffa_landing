@@ -39,105 +39,133 @@ This document tracks the **streamlined backend development** for rapid market en
 **Dependencies:** None  
 
 ### 2. Authentication & User Management (OTP-Only)
-- [ ] **Lucid Auth Setup**
-  - [ ] Install and configure Lucid Auth
-  - [ ] Session management configuration
-  - [ ] OTP generation and validation
-  - [ ] Rate limiting for OTP requests
+- [x] **NextAuth.js Setup**
+  - [x] Install and configure NextAuth.js
+  - [x] Session management configuration
+  - [x] OTP generation and validation
+  - [x] Rate limiting for OTP requests
   
-- [ ] **OTP Delivery System**
-  - [ ] Nodemailer configuration for email OTP
-  - [ ] Twilio integration for SMS OTP
-  - [ ] OTP template management
-  - [ ] Delivery status tracking
+- [x] **OTP Delivery System**
+  - [x] Nodemailer configuration for email OTP
+  - [x] Twilio integration for SMS OTP
+  - [x] OTP template management
+  - [x] Delivery status tracking
   
-- [ ] **User Registration System**
-  - [ ] Email/phone registration with OTP verification
-  - [ ] Profile creation workflow
-  - [ ] Auto-create both accounts (Sama Naffa + APE)
-  - [ ] Session-based authentication (no passwords)
+- [x] **User Registration System**
+  - [x] Email/phone registration with OTP verification
+  - [x] Profile creation workflow
+  - [x] Auto-create both accounts (Sama Naffa + APE)
+  - [x] Session-based authentication (no passwords)
   
-- [ ] **User Profile Management**
-  - [ ] Profile CRUD operations
-  - [ ] Language preferences (FR/EN)
-  - [ ] Communication settings
-  - [ ] KYC document upload
+- [x] **User Profile Management**
+  - [x] Profile CRUD operations
+  - [x] Language preferences (FR/EN)
+  - [x] Communication settings
+  - [x] KYC document upload
 
 **Priority:** 🔴 Critical  
 **Estimated Time:** 2-3 days  
 **Dependencies:** Database setup  
 
 ### 3. Transaction Intent System (Core Innovation)
-- [ ] **Intent Capture System**
-  - [ ] Sama Naffa deposit requests
-  - [ ] APE investment requests (with tranche selection)
-  - [ ] Payment method selection
-  - [ ] User notes and preferences
+- [x] **Intent Capture System**
+  - [x] Sama Naffa deposit requests
+  - [x] APE investment requests (with tranche selection)
+  - [x] Payment method selection
+  - [x] User notes and preferences
   
-- [ ] **Email Notification System**
-  - [ ] Send transaction requests to admin/managers
-  - [ ] User confirmation emails
-  - [ ] Status update notifications
-  - [ ] Email templates (FR/EN)
+- [x] **Email Notification System**
+  - [x] Send transaction requests to admin/managers
+  - [x] User confirmation emails
+  - [x] Status update notifications
+  - [x] Email templates (FR/EN)
 
 **Priority:** 🔴 Critical  
 **Estimated Time:** 2-3 days  
 **Dependencies:** User system  
 
 ### 4. Basic KYC Management
-- [ ] **Document Management**
-  - [ ] Secure file upload (Vercel Blob)
-  - [ ] Document type validation
-  - [ ] KYC status tracking
-  - [ ] Admin review interface
+- [x] **Document Management**
+  - [x] Secure file upload (Vercel Blob)
+  - [x] Document type validation
+  - [x] KYC status tracking
+  - [x] Admin review interface
 
 **Priority:** 🟡 High  
 **Estimated Time:** 1-2 days  
 **Dependencies:** User system  
 
 ### 5. Admin Dashboard (Simplified)
-- [ ] **User Management**
-  - [ ] View registered users
-  - [ ] KYC status management
-  - [ ] User search and filtering
+- [x] **User Management**
+  - [x] View registered users
+  - [x] KYC status management
+  - [x] User search and filtering
   
-- [ ] **Transaction Intent Management**
-  - [ ] View all transaction requests
-  - [ ] Update request status
-  - [ ] Add admin notes
-  - [ ] Contact tracking
+- [x] **Transaction Intent Management**
+  - [x] View all transaction requests
+  - [x] Update request status
+  - [x] Add admin notes
+  - [x] Contact tracking
 
 **Priority:** 🟡 High  
 **Estimated Time:** 2-3 days  
 **Dependencies:** Core systems  
 
 ### 6. API Routes Structure (OTP-Based)
-- [ ] **Authentication Endpoints**
-  - [ ] `POST /api/auth/register` - Register with email/phone
-  - [ ] `POST /api/auth/send-otp` - Send OTP (email/SMS)
-  - [ ] `POST /api/auth/verify-otp` - Verify OTP and create session
-  - [ ] `POST /api/auth/logout` - End session
-  - [ ] `GET /api/auth/me` - Get current user from session
+- [x] **Authentication Endpoints**
+  - [x] `POST /api/auth/send-otp` - Send OTP (email/SMS)
+  - [x] `POST /api/auth/verify-otp` - Verify OTP and create session
+  - [x] `GET /api/auth/[...nextauth]` - NextAuth.js endpoints
   
-- [ ] **User Management Endpoints**
-  - [ ] `GET /api/users/profile` - Get user profile
-  - [ ] `PUT /api/users/profile` - Update user profile
-  - [ ] `GET /api/accounts` - Get user's accounts
-  - [ ] `POST /api/kyc/upload` - Upload KYC documents
+- [x] **User Management Endpoints**
+  - [x] `GET /api/users/profile` - Get user profile
+  - [x] `PUT /api/users/profile` - Update user profile
+  - [x] `GET /api/accounts` - Get user's accounts
+  - [x] `POST /api/kyc/upload` - Upload KYC documents
   
-- [ ] **Transaction Intent Endpoints**
-  - [ ] `POST /api/transactions/intent` - Submit transaction request
-  - [ ] `GET /api/transactions/intents` - Get user's transaction history
-  - [ ] `PUT /api/transactions/intent/:id/cancel` - Cancel pending intent
+- [x] **Transaction Intent Endpoints**
+  - [x] `POST /api/transactions/intent` - Submit transaction request
+  - [x] `GET /api/transactions/intent` - Get user's transaction history
   
-- [ ] **Admin Endpoints**
-  - [ ] `GET /api/admin/users` - List users (admin only)
-  - [ ] `GET /api/admin/transactions/intents` - List all intents (admin only)
-  - [ ] `PUT /api/admin/transactions/intent/:id` - Update intent status (admin only)
+- [x] **Admin Endpoints**
+  - [x] `GET /api/admin/users` - List users (admin only)
+  - [x] `GET /api/admin/transactions` - List all intents (admin only)
+  - [x] `PUT /api/admin/transactions/:id` - Update intent status (admin only)
+  - [x] `POST /api/admin/auth/login` - Admin login with JWT
+  - [x] `POST /api/admin/auth/logout` - Admin logout
 
 **Priority:** 🔴 Critical  
 **Estimated Time:** 1 day  
 **Dependencies:** All core systems  
+
+### 7. Frontend Integration (Current Phase)
+- [ ] **Authentication Flow Updates**
+  - [ ] Replace mock login with OTP-based authentication
+  - [ ] Update registration flow to use backend APIs
+  - [ ] Implement proper session management
+  - [ ] Add loading states and error handling
+  
+- [ ] **User Profile Integration**
+  - [ ] Connect profile management to backend
+  - [ ] Implement KYC document upload
+  - [ ] Add account information display
+  - [ ] Update user preferences handling
+  
+- [ ] **Transaction Intent Integration**
+  - [ ] Connect transaction forms to backend APIs
+  - [ ] Implement real-time status updates
+  - [ ] Add transaction history display
+  - [ ] Update notification system
+  
+- [ ] **Admin Dashboard Integration**
+  - [ ] Connect admin dashboard to backend
+  - [ ] Implement real-time data updates
+  - [ ] Add proper error handling
+  - [ ] Update user management interface
+
+**Priority:** 🔴 Critical  
+**Estimated Time:** 3-4 days  
+**Dependencies:** Backend APIs completed  
 
 ---
 
@@ -621,35 +649,46 @@ const smsOTPTemplate = `Votre code Sama Naffa: {OTP_CODE}. Expire dans 5min.`
 | 2025-09-19 | Initial comprehensive tracker created | ✅ Complete | Assistant |
 | 2025-09-19 | Streamlined to 2-week MVP strategy | ✅ Complete | Assistant |
 | 2025-09-19 | Database schema and email templates defined | ✅ Complete | Assistant |
-| 2025-09-19 | Updated to OTP-only auth with Lucid Auth | ✅ Complete | Assistant |
-| TBD | Database setup and Prisma configuration | 🔄 Next | - |
-| TBD | Authentication system implementation | ⏳ Pending | - |
-| TBD | Transaction intent system | ⏳ Pending | - |
+| 2025-09-19 | Updated to OTP-only auth with NextAuth.js | ✅ Complete | Assistant |
+| 2025-09-19 | Database setup and Prisma configuration | ✅ Complete | Assistant |
+| 2025-09-19 | Authentication system implementation | ✅ Complete | Assistant |
+| 2025-09-19 | Transaction intent system | ✅ Complete | Assistant |
+| 2025-09-19 | Admin dashboard with JWT security | ✅ Complete | Assistant |
+| 2025-09-19 | Frontend integration plan created | ✅ Complete | Assistant |
+| TBD | Frontend authentication integration | 🔄 Next | - |
+| TBD | Frontend profile management integration | ⏳ Pending | - |
+| TBD | Frontend transaction integration | ⏳ Pending | - |
 
 ---
 
 ## 🚀 Immediate Next Actions (Today)
 
-### Priority 1: Start Development
-1. **Set up development environment**
-   - Initialize PostgreSQL database
-   - Configure Prisma ORM
-   - Set up environment variables
+### Priority 1: Frontend Integration
+1. **Update Authentication Flow**
+   - Replace mock login with OTP-based authentication
+   - Update registration page to use backend APIs
+   - Implement proper session management
 
-2. **Begin authentication system**
-   - User registration with OTP
-   - JWT token management
-   - Basic profile creation
+2. **Connect User Profile Management**
+   - Connect profile components to backend APIs
+   - Implement KYC document upload
+   - Add account information display
 
-3. **Create account auto-setup**
-   - Generate Sama Naffa account on registration
-   - Generate APE investment account on registration
-   - Account number generation logic
+3. **Integrate Transaction Forms**
+   - Connect transaction forms to backend APIs
+   - Implement real-time status updates
+   - Add transaction history display
 
-### Priority 2: Email System Setup
-1. **Configure email provider** (SendGrid recommended)
-2. **Create email templates** for transaction intents
-3. **Test email delivery** and formatting
+### Priority 2: Testing & Deployment
+1. **End-to-End Testing**
+   - Test complete user flows
+   - Verify API integrations
+   - Test error scenarios
+
+2. **Production Deployment**
+   - Set up production database
+   - Configure environment variables
+   - Deploy to production environment
 
 ---
 
