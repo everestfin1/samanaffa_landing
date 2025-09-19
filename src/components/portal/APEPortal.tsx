@@ -96,7 +96,7 @@ export default function APEPortal() {
       <div className="grid grid-cols-1 gap-6">
         {/* Investment Total Card */}
         <div>
-          <div className="relative bg-gold-dark rounded-2xl p-8 text-white overflow-hidden">
+          <div className="relative bg-black/90 rounded-2xl p-8 text-white overflow-hidden">
             {/* Grainy texture overlay */}
             <div className="absolute inset-0 opacity-30 z-10" style={{
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
@@ -156,7 +156,7 @@ export default function APEPortal() {
                     <p className="text-white/70 text-sm mb-1">Valeur projetée</p>
                     <div className="flex items-baseline gap-2">
                       <p className="text-xl font-bold">{totalProjectedValue.toLocaleString()} FCFA</p>
-                      <p className="text-sm text-sama-primary-green font-medium">
+                      <p className="text-sm text-sama-primary-green-light font-medium">
                         (+{(totalProjectedValue - totalInvestment).toLocaleString()})
                       </p>
                     </div>

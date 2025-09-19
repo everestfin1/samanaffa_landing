@@ -40,13 +40,11 @@ interface FormData {
   placeOfBirth: string;
   gender: 'masculin' | 'feminin';
   
-  // Step 3: Address and Referral
+  // Step 3: Address
   country: string;
   region: string;
   district: string;
   address: string;
-  hasReferralCode: boolean;
-  referralCode: string;
   
   // Step 4: Identity Validation
   selfieImage: File | null;
@@ -103,8 +101,6 @@ export default function RegisterPage() {
     region: 'Dakar',
     district: '',
     address: '',
-    hasReferralCode: false,
-    referralCode: '',
     
     // Step 4
     selfieImage: null,
@@ -140,7 +136,7 @@ export default function RegisterPage() {
   const steps = [
     { id: 1, title: 'Informations personnelles', icon: UserIcon, description: 'Civilité, nom, téléphone, email, profession' },
     { id: 2, title: 'Vérification d\'identité', icon: IdentificationIcon, description: 'Document d\'identité et dates' },
-    { id: 3, title: 'Adresse et parrainage', icon: DocumentTextIcon, description: 'Adresse complète et code parrainage' },
+    { id: 3, title: 'Adresse', icon: DocumentTextIcon, description: 'Adresse complète' },
     { id: 4, title: 'Validation d\'identité', icon: CameraIcon, description: 'Selfie et scan de documents' },
     { id: 5, title: 'Conditions et signature', icon: ShieldCheckIcon, description: 'Termes et signature' }
   ];
@@ -245,12 +241,6 @@ export default function RegisterPage() {
       
       case 'district':
         if (!value) return 'District/Commune est requis';
-        return '';
-      
-      case 'referralCode':
-        if (formData.hasReferralCode && !value) {
-          return 'Code de parrainage est requis';
-        }
         return '';
       
       case 'pin':
@@ -442,10 +432,6 @@ export default function RegisterPage() {
       if (errors[field]) return false;
     }
 
-    // Additional checks for specific steps
-    if (step === 3) {
-      if (formData.hasReferralCode && !formData.referralCode) return false;
-    }
     
     if (step === 4) {
       if (!formData.idBackImage && formData.idType === 'cni') return false;
@@ -913,31 +899,6 @@ export default function RegisterPage() {
           </p>
         )}
       </div>
-
-      {/* Sexe */}
-      <div>
-        <label className="block text-sm font-semibold text-night mb-2">Sexe *</label>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { value: 'masculin', label: 'Masculin' },
-            { value: 'feminin', label: 'Féminin' }
-          ].map((option) => (
-            <label key={option.value} className="flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-gold-metallic/10">
-              <input
-                type="radio"
-                name="gender"
-                value={option.value}
-                checked={formData.gender === option.value}
-                onChange={handleInputChange}
-                className="sr-only"
-              />
-              <span className={`font-medium ${formData.gender === option.value ? 'text-gold-metallic' : 'text-night/70'}`}>
-                {option.label}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
     </div>
   );
 
@@ -947,9 +908,9 @@ export default function RegisterPage() {
       <div className="bg-green-50 rounded-xl p-4 mb-6">
         <div className="flex items-center gap-3 mb-2">
           <DocumentTextIcon className="w-5 h-5 text-green-600" />
-          <h3 className="font-semibold text-night">Adresse et parrainage</h3>
+          <h3 className="font-semibold text-night">Adresse</h3>
         </div>
-        <p className="text-sm text-night/70">Étape 3 sur 5 - Votre adresse complète et code de parrainage</p>
+        <p className="text-sm text-night/70">Étape 3 sur 5 - Votre adresse complète</p>
       </div>
 
       {/* Pays de résidence */}
@@ -1051,63 +1012,6 @@ export default function RegisterPage() {
           </p>
         )}
       </div>
-
-      {/* Code de parrainage */}
-      <div className="border border-timberwolf/30 rounded-xl p-6 bg-gold-metallic/5">
-        <h4 className="font-semibold text-night mb-4">Code de parrainage</h4>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-semibold text-night mb-2">Avez-vous un code de parrainage ?</label>
-            <div className="grid grid-cols-2 gap-3">
-              {[
-                { value: true, label: 'Oui' },
-                { value: false, label: 'Non' }
-              ].map((option) => (
-                <label key={option.label} className="flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-gold-metallic/10">
-                  <input
-                    type="radio"
-                    name="hasReferralCode"
-                    checked={formData.hasReferralCode === option.value}
-                    onChange={(e) => setFormData(prev => ({ ...prev, hasReferralCode: option.value }))}
-                    className="sr-only"
-                  />
-                  <span className={`font-medium ${formData.hasReferralCode === option.value ? 'text-gold-metallic' : 'text-night/70'}`}>
-                    {option.label}
-                  </span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {formData.hasReferralCode && (
-            <div>
-              <label className="block text-sm font-semibold text-night mb-2">Code de parrainage *</label>
-              <input
-                type="text"
-                name="referralCode"
-                value={formData.referralCode}
-                onChange={handleInputChange}
-                onBlur={handleBlur}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-                  hasFieldError('referralCode') 
-                    ? 'border-red-400 bg-red-50' 
-                    : 'border-timberwolf/30'
-                }`}
-                placeholder="Entrez votre code de parrainage"
-                required={formData.hasReferralCode}
-              />
-              {getFieldError('referralCode') && (
-                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                  <ExclamationTriangleIcon className="w-4 h-4" />
-                  {getFieldError('referralCode')}
-                </p>
-              )}
-              <p className="text-xs text-night/60 mt-1">Le code de parrainage vous permet de bénéficier d'avantages exclusifs</p>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   );
 
@@ -1125,14 +1029,13 @@ export default function RegisterPage() {
       {/* Selfie Verification */}
       <div className="border-2 border-dashed border-blue-400/30 rounded-xl p-6 bg-blue-50">
         <h4 className="font-semibold text-night mb-4 flex items-center gap-2">
-          <CameraIcon className="w-5 h-5" />
-          Validation de votre identité
+          <UserIcon className="w-5 h-5" />
+          Photo de profil pour vérification d'identité
         </h4>
         
         <div className="flex flex-col items-center">
-          {/* Two options: Take photo or Upload */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full mb-4">
-            {/* Take Photo Option */}
+          {/* Single upload box with avatar icon */}
+          <div className="w-full max-w-sm">
             <div className="relative">
               <input
                 type="file"
@@ -1140,7 +1043,7 @@ export default function RegisterPage() {
                 capture="user"
                 onChange={(e) => handleFileChange(e, 'selfieImage')}
                 className="hidden"
-                id="selfie-camera"
+                id="selfie-upload"
                 onClick={() => {
                   if (navigator.mediaDevices && typeof navigator.mediaDevices.getUserMedia === 'function') {
                     console.log('Camera API available');
@@ -1151,39 +1054,16 @@ export default function RegisterPage() {
                 }}
               />
               <label
-                htmlFor="selfie-camera"
-                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
-                  formData.selfieImage 
-                    ? 'border-green-400 bg-green-50 text-green-700' 
-                    : 'border-blue-400/50 bg-blue-50 hover:bg-blue-100 text-night/70'
-                }`}
-              >
-                <CameraIcon className="w-8 h-8 mb-2" />
-                <span className="text-sm font-medium">Prendre une photo</span>
-                <span className="text-xs text-center">Caméra frontale</span>
-              </label>
-            </div>
-
-            {/* Upload File Option */}
-            <div className="relative">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => handleFileChange(e, 'selfieImage')}
-                className="hidden"
-                id="selfie-upload"
-              />
-              <label
                 htmlFor="selfie-upload"
-                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 ${
                   formData.selfieImage 
                     ? 'border-green-400 bg-green-50 text-green-700' 
                     : 'border-blue-400/50 bg-blue-50 hover:bg-blue-100 text-night/70'
                 }`}
               >
-                <CloudArrowUpIcon className="w-8 h-8 mb-2" />
-                <span className="text-sm font-medium">Télécharger une photo</span>
-                <span className="text-xs text-center">Depuis votre appareil</span>
+                <UserIcon className="w-12 h-12 mb-3" />
+                <span className="text-base font-medium mb-1">Ajouter votre photo</span>
+                <span className="text-sm text-center">Prendre une photo ou télécharger depuis votre appareil</span>
               </label>
             </div>
           </div>
@@ -1608,7 +1488,7 @@ export default function RegisterPage() {
                 disabled={!validateStep(currentStep)}
                 className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
                   validateStep(currentStep)
-                    ? 'bg-gradient-to-r from-gold-dark to-gold-metallic text-night hover:shadow-lg hover:-translate-y-0.5'
+                    ? 'bg-gradient-to-r from-gold-dark to-gold-metallic text-white hover:shadow-lg hover:-translate-y-0.5'
                     : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
                 }`}
               >
@@ -1621,7 +1501,7 @@ export default function RegisterPage() {
                 disabled={!validateStep(5) || isLoading}
                 className={`flex items-center space-x-2 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
                   validateStep(5) && !isLoading
-                    ? 'bg-gradient-to-r from-green-600 to-green-500 text-white hover:shadow-xl hover:-translate-y-0.5'
+                    ? 'bg-sama-primary-green text-white hover:shadow-xl hover:-translate-y-0.5'
                     : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
                 }`}
               >
@@ -1632,7 +1512,7 @@ export default function RegisterPage() {
                   </>
                 ) : (
                   <>
-                    <span>🎉 Créer mon compte</span>
+                    <span>Créer mon compte</span>
                     <CheckCircleIcon className="w-6 h-6" />
                   </>
                 )}

@@ -5,6 +5,8 @@ import { personas, objectives } from "../data";
 import { RefreshCw } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from "next/image";
+import { useRouter } from 'next/navigation';
+import { useSelection } from '@/lib/selection-context';
 
 // --- HELPER FUNCTIONS ---
 const tauxParDuree = (mois: number): number => {
@@ -31,22 +33,12 @@ const calculerCapitalFinal = (
 };
 
 // --- PROPS ---
-interface FormSubmissionData {
-    objective: string;
-    monthlyAmount: number;
-    duration: number;
-    projectedAmount: number;
-    simulationMode: 'objective' | 'persona';
-    selectedPersona?: string;
-    selectedObjective?: number;
-}
-interface SavingsPlannerProps {
-  onShowForm: (data: FormSubmissionData) => void;
-}
 
-export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
-  onShowForm,
-}) => {
+export const SavingsPlanner: React.FC = () => {
+  // --- ROUTER & CONTEXT ---
+  const router = useRouter();
+  const { setSelectionData } = useSelection();
+
   // --- STATE MANAGEMENT ---
   const [simulationMode, setSimulationMode] = useState<"objective" | "persona" | null>(null);
   const [selectedObjective, setSelectedObjective] = useState<number | null>(null);
@@ -109,15 +101,20 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
             ? selectedPersonaData.name
             : "Plan personnalisé";
 
-    onShowForm({
-        objective: objectiveName,
-        monthlyAmount: mensualite,
-        duration: Math.round((duree / 12) * 10) / 10, // in years
-        projectedAmount: Math.round(capitalFinal),
-        simulationMode: simulationMode!,
-        selectedPersona: simulationMode === 'persona' ? selectedPersona : undefined,
-        selectedObjective: simulationMode === 'objective' ? selectedObjective || undefined : undefined,
+    // Store selection data in context and localStorage
+    setSelectionData({
+      type: 'sama-naffa',
+      objective: objectiveName,
+      monthlyAmount: mensualite,
+      duration: Math.round((duree / 12) * 10) / 10, // in years
+      projectedAmount: Math.round(capitalFinal),
+      simulationMode: simulationMode!,
+      selectedPersona: simulationMode === 'persona' ? selectedPersona : undefined,
+      selectedObjective: simulationMode === 'objective' ? selectedObjective || undefined : undefined,
     });
+
+    // Navigate directly to registration
+    router.push('/register');
   }
 
   // --- RENDER LOGIC ---
@@ -125,7 +122,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
   // Initial choice prompt
   if (!simulationMode) {
     return (
-      <section className="text-center py-12 lg:py-20 px-4 bg-white">
+      <section className="text-center pb-12 lg:pb-20 px-4 bg-white">
         <h2 className="font-bold text-[#01081b] text-2xl lg:text-[38px] leading-tight mb-4">
           Comment veux-tu commencer ?
         </h2>
@@ -154,7 +151,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
 
   // Main planner UI
   return (
-    <section id="savings-planner" className="relative w-full pt-12 lg:pt-[76px] px-4 lg:px-[148px] bg-white">
+    <section id="savings-planner" className="relative w-full px-4 lg:px-[148px] bg-white">
       {/* Back to choice button */}
       <div className="text-center mb-8">
         <button

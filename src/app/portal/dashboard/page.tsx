@@ -119,99 +119,107 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-night">Aperçu financier</h2>
+          <div className="h-px bg-gradient-to-r from-gold-metallic/20 to-transparent flex-1 ml-4"></div>
+        </div>
+        
+        <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-night/60">Épargne totale</p>
+              <p className="text-sm text-night/60 font-medium">Épargne totale</p>
               <p className="text-2xl font-bold text-night">2 200 000 FCFA</p>
             </div>
-            <BanknotesIcon className="w-8 h-8 text-gold-metallic" />
+            <div className="bg-gold-metallic/10 p-2 rounded-lg">
+              <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
+            </div>
           </div>
-          <div className="text-sm text-gold-dark">+12% ce mois</div>
+          <div className="text-sm text-gold-dark font-medium">+12% ce mois</div>
         </div>
 
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
+        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-night/60">Investissements APE</p>
+              <p className="text-sm text-night/60 font-medium">Investissements APE</p>
               <p className="text-2xl font-bold text-night">1 500 000 FCFA</p>
             </div>
-            <BuildingLibraryIcon className="w-8 h-8 text-gold-dark" />
-          </div>
-          <div className="text-sm text-gold-dark">Rendement 6.85%</div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60">Objectifs actifs</p>
-              <p className="text-2xl font-bold text-night">3</p>
+            <div className="bg-gold-metallic/10 p-2 rounded-lg">
+              <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
             </div>
-            <StarIcon className="w-8 h-8 text-gold-metallic" />
           </div>
-          <div className="text-sm text-night/70">En bonne voie</div>
+          <div className="text-sm text-gold-dark font-medium">Rendement 6.85%</div>
         </div>
-
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
+        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-sm text-night/60">Prochains intérêts</p>
+              <p className="text-sm text-night/60 font-medium">Prochains intérêts</p>
               <p className="text-2xl font-bold text-night">51 625 FCFA</p>
             </div>
-            <ClockIcon className="w-8 h-8 text-gold-dark" />
+            <div className="bg-gold-metallic/10 p-2 rounded-lg">
+              <ClockIcon className="w-6 h-6 text-gold-metallic" />
+            </div>
           </div>
-          <div className="text-sm text-gold-dark">Dans 45 jours</div>
+          <div className="text-sm text-gold-dark font-medium">Dans 45 jours</div>
+        </div>
         </div>
       </div>
 
       {/* Quick Access Cards */}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <button 
-          onClick={() => router.push('/portal/sama-naffa')}
-          className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-shadow text-left hover:border-gold-metallic/30"
-        >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="bg-gold-metallic/10 p-3 rounded-xl">
-              <DevicePhoneMobileIcon className="w-6 h-6 text-gold-metallic" />
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-night">Accès rapide</h2>
+          <div className="h-px bg-gradient-to-r from-gold-metallic/20 to-transparent flex-1 ml-4"></div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 gap-6">
+          <button 
+            onClick={() => router.push('/portal/sama-naffa')}
+            className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
+          >
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
+                <DevicePhoneMobileIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">Sama Naffa</h3>
+                <p className="text-sm text-night/60 font-medium">Épargne intelligente</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-night">Sama Naffa</h3>
-              <p className="text-sm text-night/60">Épargne intelligente</p>
+            <div className="text-sm text-night/70 mb-6 leading-relaxed">
+              Gérez vos objectifs d'épargne, participez aux défis et créez des comptes joints.
             </div>
-          </div>
-          <div className="text-sm text-night/70 mb-3">
-            Gérez vos objectifs d'épargne, participez aux défis et créez des comptes joints.
-          </div>
-          <div className="flex items-center text-gold-metallic text-sm font-medium">
-            <span>Accéder</span>
-            <ArrowRightIcon className="w-4 h-4 ml-2" />
-          </div>
-        </button>
+            <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
+              <span>Accéder au service</span>
+              <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
 
-        <button 
-          onClick={() => router.push('/portal/ape')}
-          className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-shadow text-left hover:border-gold-metallic/30"
-        >
-          <div className="flex items-center space-x-4 mb-4">
-            <div className="bg-gold-dark/10 p-3 rounded-xl">
-              <BuildingLibraryIcon className="w-6 h-6 text-gold-dark" />
+          <button 
+            onClick={() => router.push('/portal/ape')}
+            className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
+          >
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
+                <BuildingLibraryIcon className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">Emprunt Obligataire</h3>
+                <p className="text-sm text-night/60 font-medium">Obligations d'État</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-semibold text-night">Emprunt Obligataire</h3>
-              <p className="text-sm text-night/60">Obligations d'État</p>
+            <div className="text-sm text-night/70 mb-6 leading-relaxed">
+              Investissez dans les obligations souveraines avec un rendement garanti.
             </div>
-          </div>
-          <div className="text-sm text-night/70 mb-3">
-            Investissez dans les obligations souveraines avec un rendement garanti.
-          </div>
-          <div className="flex items-center text-gold-metallic text-sm font-medium">
-            <span>Accéder</span>
-            <ArrowRightIcon className="w-4 h-4 ml-2" />
-          </div>
-        </button>
+            <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
+              <span>Accéder au service</span>
+              <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </button>
 
-        {/* Comparison tool removed as per simplification requirements */}
+          {/* Comparison tool removed as per simplification requirements */}
+        </div>
       </div>
 
       {/* Recent Activity */}
