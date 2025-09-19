@@ -8,9 +8,9 @@ import React from 'react'
 export default function Footer() {
     const router = useRouter();
     const pathname = usePathname();
-
+    const isAdminPage = pathname.startsWith('/admin');
     // Hide footer on portal pages
-    if (pathname.startsWith('/portal')) {
+    if (pathname.startsWith('/portal') || isAdminPage) {
         return null;
     }
     const currentYear = new Date().getFullYear();

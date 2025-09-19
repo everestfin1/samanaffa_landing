@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 
 export async function GET(request: NextRequest) {
+  // Verify admin authentication
+  const { error, user } = await verifyAdminAuth(request)
+  
+  if (error || !user) {
+    return createErrorResponse('Unauthorized', 401)
+  }
   try {
     const { searchParams } = new URL(request.url)
     const kycStatus = searchParams.get('kycStatus')

@@ -19,9 +19,11 @@ export default function Navigation() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [isOverLightBackground, setIsOverLightBackground] = useState(false);
+  const [isAdminLoading, setIsAdminLoading] = useState(false);
 
   // Determine if we're on the home page or portal page based on current pathname
   const isHomePage = pathname === '/';
+  const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
 
   // Check authentication status on mount
@@ -43,6 +45,21 @@ export default function Navigation() {
       window.removeEventListener('storage', checkAuth);
     };
   }, []);
+
+  // Handle admin route loading state (for any additional admin-specific logic)
+  useEffect(() => {
+    if (isAdminPage && !pathname.includes('/login')) {
+      setIsAdminLoading(true);
+      // Keep loading state during admin auth flow
+      const timeout = setTimeout(() => {
+        setIsAdminLoading(false);
+      }, 200); // Slightly longer timeout for safety
+
+      return () => clearTimeout(timeout);
+    } else {
+      setIsAdminLoading(false);
+    }
+  }, [pathname, isAdminPage]);
 
 
   // Detect when header is over light backgrounds (only on home page)
@@ -98,8 +115,11 @@ export default function Navigation() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Hide navigation on portal page
-  if (isPortalPage) {
+  // Hide navigation on portal page or admin pages (including during auth flow)
+  // For admin pages, hide immediately if it's not the login page, or if loading
+  const shouldHideNavigation = isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading));
+
+  if (shouldHideNavigation) {
     return null;
   }
 

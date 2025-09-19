@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Verify admin authentication
+  const { error, user } = await verifyAdminAuth(request)
+  
+  if (error || !user) {
+    return createErrorResponse('Unauthorized', 401)
+  }
   try {
     const { id } = params
     const { status, adminNotes } = await request.json()
@@ -92,6 +99,12 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // Verify admin authentication
+  const { error, user } = await verifyAdminAuth(request)
+  
+  if (error || !user) {
+    return createErrorResponse('Unauthorized', 401)
+  }
   try {
     const { id } = params
 

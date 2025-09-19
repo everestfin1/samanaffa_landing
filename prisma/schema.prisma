@@ -129,13 +129,17 @@ model KycDocument {
 
 // Admin Users
 model AdminUser {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
-  name         String
-  role         AdminRole @default(ADMIN)
-  lastLogin    DateTime?
-  createdAt    DateTime @default(now())
+  id             String    @id @default(cuid())
+  email          String    @unique
+  passwordHash   String
+  name           String
+  role           AdminRole @default(ADMIN)
+  isActive       Boolean   @default(true)
+  failedAttempts Int       @default(0)
+  lockedUntil    DateTime?
+  lastLogin      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
 
   @@map("admin_users")
 }
