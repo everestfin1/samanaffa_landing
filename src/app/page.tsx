@@ -12,12 +12,77 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import Image from 'next/image';
+import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
   const [showVideo, setShowVideo] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.3
+      }
+    }
+  };
+
+  const lineVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 50,
+      scale: 0.8
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }
+  };
+
+  const wordVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 30,
+      scale: 0.9
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }
+  };
+
+  const subtitleVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 40,
+      scale: 0.95
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }
+  };
+
+  const buttonVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 30,
+      scale: 0.9
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1
+    }
+  };
 
   const handleVideoEnd = () => {
     // Start transition immediately with minimal delay
@@ -79,24 +144,77 @@ export default function Home() {
           </div>
           
           <div className="relative max-w-[500px] mx-auto px-6 h-full flex items-center pt-20">
-            <div className="text-center space-y-8 w-full">
+            <motion.div 
+              className="text-center space-y-8 w-full"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
               
               {/* Main heading */}
               <div className="space-y-4">
-                <h1 className="text-6xl lg:text-8xl pb-4 font-extralight tracking-tight leading-none">
-                  <span className="sama-text-green">Épargne</span>
+                <motion.h1 
+                  className="text-6xl lg:text-8xl pb-4 font-extralight tracking-tight leading-none"
+                  variants={containerVariants}
+                >
+                  <motion.div 
+                    variants={lineVariants} 
+                    className="inline-block"
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  >
+                    <motion.span 
+                      className="sama-text-green"
+                      variants={wordVariants}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      Épargne
+                    </motion.span>
+                  </motion.div>
                   <br />
-                  <span className="sama-text-gold font-light">intelligemment</span>
+                  <motion.div 
+                    variants={lineVariants} 
+                    className="inline-block"
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  >
+                    <motion.span 
+                      className="sama-text-gold font-light"
+                      variants={wordVariants}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      intelligemment
+                    </motion.span>
+                  </motion.div>
                   <br />
-                  <span className="sama-text-green">pour réaliser tes projets</span>
-                </h1>
-                <p className="text-xl lg:text-2xl sama-text-primary max-w-[300px] mx-auto font-normal leading-relaxed">
+                  <motion.div 
+                    variants={lineVariants} 
+                    className="inline-block"
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                  >
+                    <motion.span 
+                      className="sama-text-green"
+                      variants={wordVariants}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                    >
+                      pour réaliser tes projets
+                    </motion.span>
+                  </motion.div>
+                </motion.h1>
+                
+                <motion.p 
+                  className="text-xl lg:text-2xl sama-text-primary max-w-[300px] mx-auto font-normal leading-relaxed"
+                  variants={subtitleVariants}
+                  transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+                >
                     Rejoignez la révolution de l'épargne digitale en Afrique de l'Ouest avec <span className="sama-text-green">Sama Naffa</span>.
-                </p>
+                </motion.p>
               </div>
 
               {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+              <motion.div 
+                className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                variants={buttonVariants}
+                transition={{ duration: 0.7, delay: 1.8, ease: "easeOut" }}
+              >
                 <button 
                   onClick={() => router.push('/register')}
                   className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
@@ -104,27 +222,38 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   <span className="relative">Ouvrir un compte</span>
                 </button>
-              </div>
+              </motion.div>
 
-            </div>
+            </motion.div>
           </div>
           
           {/* Scroll Down Indicator */}
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 animate-bounce">
-            <button 
+          <motion.div 
+            className="absolute bottom-4 left-1/2 transform -translate-x-1/2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 2.5, duration: 0.8 }}
+          >
+            <motion.button 
               onClick={() => {
                 const servicesSection = document.querySelector('[aria-label="Nos services"]');
                 servicesSection?.scrollIntoView({ behavior: 'smooth' });
               }}
               className="group flex flex-col items-center gap-2 sama-text-secondary hover:sama-text-gold transition-all duration-300"
               aria-label="Faire défiler vers le bas"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
               <span className="text-sm font-light tracking-wide">Découvrir</span>
-              <div className="w-8 h-8 border-2 sama-border-light rounded-full flex items-center justify-center group-hover:border-sama-accent-gold/60 transition-colors duration-300">
+              <motion.div 
+                className="w-8 h-8 border-2 sama-border-light rounded-full flex items-center justify-center group-hover:border-sama-accent-gold/60 transition-colors duration-300"
+                animate={{ y: [0, 4, 0] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              >
                 <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
-              </div>
-            </button>
-          </div>
+              </motion.div>
+            </motion.button>
+          </motion.div>
         </section>
 
         {/* Services Section */}
