@@ -86,7 +86,7 @@ This document tracks the **streamlined backend development** for rapid market en
 
 ### 4. Basic KYC Management
 - [ ] **Document Management**
-  - [ ] Secure file upload (AWS S3)
+  - [ ] Secure file upload (Vercel Blob)
   - [ ] Document type validation
   - [ ] KYC status tracking
   - [ ] Admin review interface
@@ -377,7 +377,7 @@ function generateReferenceNumber(
 - [ ] User confirmation emails
 
 #### Days 5-7: KYC & Basic Admin
-- [ ] KYC document upload (AWS S3)
+- [ ] KYC document upload (Vercel Blob)
 - [ ] KYC status management
 - [ ] Basic admin authentication
 - [ ] Admin view of users and intents
@@ -443,7 +443,7 @@ function generateReferenceNumber(
 
 ### Production Deployment
 - **Database:** PostgreSQL on AWS RDS with automated backups
-- **File Storage:** AWS S3 with CloudFront CDN
+- **File Storage:** Vercel Blob (MVP) → AWS S3 + CloudFront (Phase 2)
 - **Application:** Vercel or AWS with auto-scaling
 - **Monitoring:** Application monitoring and error tracking
 - **Email:** SendGrid with delivery tracking
@@ -458,6 +458,7 @@ function generateReferenceNumber(
 - [ ] Bank transfer automation
 - [ ] Real-time payment processing
 - [ ] Automated transaction confirmation
+- [ ] **File Storage Migration:** Vercel Blob → AWS S3 + CloudFront CDN
 
 ### Phase 3: Advanced Features (Weeks 7-10)
 - [ ] Savings calculators and goal tracking
@@ -472,6 +473,70 @@ function generateReferenceNumber(
 - [ ] Multi-language support (Wolof)
 - [ ] Regional expansion features
 - [ ] AI-powered insights  
+
+---
+
+## 📁 Vercel Blob File Storage Implementation
+
+### Why Vercel Blob for MVP
+- **Zero Setup Time:** Works immediately with Next.js + Vercel
+- **Cost-Effective:** Free tier (1GB storage, 1GB bandwidth/month)
+- **Security Built-in:** Automatic HTTPS, access controls
+- **Fast Implementation:** Simple API, TypeScript support
+- **Migration Path:** Easy transition to AWS S3 in Phase 2
+
+### KYC Document Upload Implementation
+```typescript
+// Install Vercel Blob
+npm install @vercel/blob
+
+// API Route: app/api/kyc/upload/route.ts
+import { put } from '@vercel/blob';
+import { NextRequest, NextResponse } from 'next/server';
+
+export async function POST(request: NextRequest) {
+  const formData = await request.formData();
+  const file = formData.get('file') as File;
+  
+  // Validate file type (KYC documents only)
+  const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+  if (!allowedTypes.includes(file.type)) {
+    return NextResponse.json({ error: 'Invalid file type' }, { status: 400 });
+  }
+
+  // Validate file size (max 10MB for KYC docs)
+  if (file.size > 10 * 1024 * 1024) {
+    return NextResponse.json({ error: 'File too large' }, { status: 400 });
+  }
+
+  try {
+    const blob = await put(`kyc/${Date.now()}-${file.name}`, file, {
+      access: 'public', // For admin review access
+    });
+
+    return NextResponse.json({
+      url: blob.url,
+      filename: file.name,
+      size: file.size,
+      uploadedAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+  }
+}
+```
+
+### Environment Variables Required
+```bash
+# .env.local
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_xxx
+```
+
+### Migration Strategy to AWS S3 (Phase 2)
+- **Data Migration:** Export all Vercel Blob files to S3
+- **URL Updates:** Update database file URLs
+- **CDN Setup:** Configure CloudFront for global delivery
+- **Cost Optimization:** S3 lifecycle policies for old documents
 
 ---
 
