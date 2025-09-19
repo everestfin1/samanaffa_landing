@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
 
 interface InvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: InvestmentData) => void;
+  preselectedTranche?: 'A' | 'B' | 'C' | 'D' | null;
 }
 
 interface InvestmentData {
@@ -25,11 +26,19 @@ const trancheOptions = [
 export default function InvestmentModal({ 
   isOpen, 
   onClose, 
-  onConfirm 
+  onConfirm,
+  preselectedTranche
 }: InvestmentModalProps) {
   const [amount, setAmount] = useState<string>('100000');
-  const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>('D');
+  const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>(preselectedTranche || 'D');
   const [method, setMethod] = useState<string>('orange-money');
+
+  // Update tranche when preselectedTranche changes
+  useEffect(() => {
+    if (preselectedTranche) {
+      setTranche(preselectedTranche);
+    }
+  }, [preselectedTranche]);
 
   const calculateProjectedValue = (amount: number, tranche: 'A' | 'B' | 'C' | 'D') => {
     const option = trancheOptions.find(t => t.value === tranche);
@@ -77,25 +86,17 @@ export default function InvestmentModal({
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-night mb-3">Choisir une tranche</label>
-              <div className="grid grid-cols-2 gap-3">
-                {trancheOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setTranche(option.value)}
-                    className={`p-4 border-2 rounded-lg transition-all text-left ${
-                      tranche === option.value
-                        ? 'border-gold-metallic bg-gold-light/20 text-gold-dark'
-                        : 'border-timberwolf/30 hover:border-gold-metallic/40'
-                    }`}
-                  >
-                    <div className="font-semibold">{option.label}</div>
-                    <div className="text-sm text-night/60">{option.description}</div>
-                    <div className="text-sm font-bold text-gold-metallic">{option.rate}%</div>
-                  </button>
-                ))}
+            {/* Selected Tranche Display */}
+            <div className="bg-gold-light/20 border border-gold-metallic/30 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-semibold text-gold-dark">{selectedOption?.label}</h4>
+                  <p className="text-sm text-night/60">{selectedOption?.description}</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-lg font-bold text-gold-metallic">{selectedOption?.rate}%</div>
+                  <div className="text-xs text-night/50">par an</div>
+                </div>
               </div>
             </div>
 

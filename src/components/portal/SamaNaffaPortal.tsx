@@ -7,14 +7,18 @@ import {
   ArrowRightIcon,
   ArrowUpIcon,
   ArrowDownIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import TransferModal from '../modals/TransferModal';
+import Image from 'next/image';
 
 export default function SamaNaffaPortal() {
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const [showBalance, setShowBalance] = useState(false);
   
   // Simplified: Only primary Naffa (savings account)
   const [primaryNaffa] = useState({
@@ -54,40 +58,69 @@ export default function SamaNaffaPortal() {
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-night">{primaryNaffa.title}</h3>
-          <span className="text-sm text-night/60">Compte N°: {primaryNaffa.accountNumber}</span>
         </div>
 
-        {/* Account Balance */}
-        <div className="grid md:grid-cols-2 gap-8 mb-8">
-          <div className="bg-gradient-to-r from-gold-metallic/10 to-gold-light/10 rounded-2xl p-6 border border-gold-metallic/20">
-            <div className="flex items-center space-x-3 mb-4">
-              <BanknotesIcon className="w-8 h-8 text-gold-metallic" />
-              <div>
-                <h4 className="text-lg font-semibold text-night">Solde Principal</h4>
-                <p className="text-sm text-night/60">Montant total épargné</p>
-              </div>
+        {/* Account Balance Card */}
+        <div className="mb-8">
+          {/* Card Design */}
+          <div className="relative bg-gradient-to-br from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark rounded-2xl p-8 text-white overflow-hidden">
+            {/* Grainy texture overlay */}
+            <div className="absolute inset-0 opacity-80 z-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+              mixBlendMode: 'overlay'
+            }}></div>
+            
+            {/* Decorative circles */}
+            <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full"></div>
+            <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full"></div>
+            <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full"></div>
+            
+            {/* Logo */}
+            <div className="absolute top-6 right-6 z-30">
+                <Image 
+                  src="/sama_naffa_logo.png" 
+                  alt="Sama Naffa Logo" 
+                  className="h-12 w-auto"
+                  width={100}
+                  height={100}
+                  quality={100}
+                />
             </div>
-            <div className="text-3xl font-bold text-night mb-2">
-              {primaryNaffa.currentAmount.toLocaleString()} FCFA
-            </div>
-            <div className="text-sm text-night/60">
-              Dernier dépôt: {new Date(primaryNaffa.lastDeposit).toLocaleDateString('fr-FR')}
-            </div>
-          </div>
 
-          <div className="bg-gradient-to-r from-green-50 to-green-100/50 rounded-2xl p-6 border border-green-200/50">
-            <div className="flex items-center space-x-3 mb-4">
-              <ArrowTrendingUpIcon className="w-8 h-8 text-green-600" />
-              <div>
-                <h4 className="text-lg font-semibold text-night">Intérêts Acquis</h4>
-                <p className="text-sm text-night/60">Taux: {primaryNaffa.interestRate}% annuel</p>
+            {/* Card Content */}
+            <div className="relative z-10">
+              <div className="mb-8">
+                <h4 className="text-lg font-medium text-white/90 mb-2">Solde Naffa</h4>
+                <div className="flex items-center space-x-3">
+                  <div className="text-2xl font-bold tracking-wider">
+                    {showBalance ? `${primaryNaffa.currentAmount.toLocaleString()} FCFA` : '••••••••••••'}
+                  </div>
+                  <button 
+                    onClick={() => setShowBalance(!showBalance)}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
+                  </button>
+                </div>
               </div>
-            </div>
-            <div className="text-3xl font-bold text-green-600 mb-2">
-              {primaryNaffa.interestEarned.toLocaleString()} FCFA
-            </div>
-            <div className="text-sm text-night/60">
-              Intérêts cumulés depuis l'ouverture
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-white/70 text-sm mb-1">Association</p>
+                  <p className="text-lg font-mono tracking-wider">{primaryNaffa.accountNumber}</p>
+                </div>
+                
+                <div className="flex justify-between items-end">
+                  <div>
+                    <p className="text-white/70 text-xs">Taux d'intérêt</p>
+                    <p className="text-lg font-semibold">{primaryNaffa.interestRate}% annuel</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-white/70 text-xs">Intérêts acquis</p>
+                    <p className="text-lg font-semibold">{primaryNaffa.interestEarned.toLocaleString()} FCFA</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -111,55 +144,107 @@ export default function SamaNaffaPortal() {
         </div>
       </div>
 
-      {/* Create New Naffa */}
+      {/* Transaction History */}
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-        <h3 className="text-xl font-bold text-night mb-6">Ouvrir un nouveau compte Naffa</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          <div>
-            <label className="block text-sm font-medium text-night mb-2">Nom du compte</label>
-            <input 
-              type="text" 
-              placeholder="Ex: Épargne voyage"
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-night mb-2">Dépôt initial (FCFA)</label>
-            <input 
-              type="number" 
-              placeholder="50000"
-              min="10000"
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
-            />
-          </div>
-          <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-night mb-2">Objectif (optionnel)</label>
-            <input 
-              type="text" 
-              placeholder="Décrire l'objectif de ce compte..."
-              className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
-            />
-          </div>
-        </div>
+        <h3 className="text-xl font-bold text-night mb-6">Historique des transactions</h3>
         
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start space-x-3">
-            <InformationCircleIcon className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-night mb-1">Information importante</h4>
-              <p className="text-sm text-night/70">
-                • Taux d'intérêt: {primaryNaffa.interestRate}% annuel<br/>
-                • Dépôt minimum: 10,000 FCFA<br/>
-                • Aucuns frais de tenue de compte<br/>
-                • Accès 24h/24 à vos fonds
-              </p>
-            </div>
-          </div>
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-timberwolf/20">
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Date</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Type</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Description</th>
+                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Montant</th>
+                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Solde</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-timberwolf/10">
+              {[
+                {
+                  date: '2025-09-15',
+                  type: 'Dépôt',
+                  description: 'Virement depuis compte courant',
+                  amount: 200000,
+                  balance: 1700000,
+                  isCredit: true
+                },
+                {
+                  date: '2025-09-10',
+                  type: 'Intérêts',
+                  description: 'Intérêts mensuels',
+                  amount: 10625,
+                  balance: 1500000,
+                  isCredit: true
+                },
+                {
+                  date: '2025-09-05',
+                  type: 'Dépôt',
+                  description: 'Dépôt en espèces',
+                  amount: 150000,
+                  balance: 1489375,
+                  isCredit: true
+                },
+                {
+                  date: '2025-08-28',
+                  type: 'Retrait',
+                  description: 'Retrait ATM',
+                  amount: 50000,
+                  balance: 1339375,
+                  isCredit: false
+                },
+                {
+                  date: '2025-08-20',
+                  type: 'Dépôt',
+                  description: 'Virement depuis compte courant',
+                  amount: 300000,
+                  balance: 1389375,
+                  isCredit: true
+                },
+                {
+                  date: '2025-08-10',
+                  type: 'Intérêts',
+                  description: 'Intérêts mensuels',
+                  amount: 8125,
+                  balance: 1089375,
+                  isCredit: true
+                }
+              ].map((transaction, index) => (
+                <tr key={index} className="hover:bg-timberwolf/5 transition-colors">
+                  <td className="py-4 px-2 text-sm text-night">
+                    {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      transaction.type === 'Dépôt' ? 'bg-green-100 text-green-800' :
+                      transaction.type === 'Retrait' ? 'bg-red-100 text-red-800' :
+                      'bg-blue-100 text-blue-800'
+                    }`}>
+                      {transaction.type}
+                    </span>
+                  </td>
+                  <td className="py-4 px-2 text-sm text-night/70">
+                    {transaction.description}
+                  </td>
+                  <td className={`py-4 px-2 text-sm font-semibold text-right ${
+                    transaction.isCredit ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {transaction.isCredit ? '+' : '-'}{transaction.amount.toLocaleString()} FCFA
+                  </td>
+                  <td className="py-4 px-2 text-sm font-medium text-right text-night">
+                    {transaction.balance.toLocaleString()} FCFA
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
-        <button className="w-full bg-gold-metallic text-white py-3 px-6 rounded-lg font-semibold hover:bg-gold-dark transition-colors mt-6">
-          Ouvrir le compte
-        </button>
+        <div className="mt-6 flex justify-center">
+          <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
+            Charger plus de transactions
+          </button>
+        </div>
       </div>
       
       {/* Transfer Modal */}

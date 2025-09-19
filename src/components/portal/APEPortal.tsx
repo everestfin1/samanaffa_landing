@@ -12,6 +12,7 @@ import {
   ShieldCheckIcon
 } from '@heroicons/react/24/outline';
 import InvestmentModal from '../modals/InvestmentModal';
+import { ArrowRightIcon } from 'lucide-react';
 
 interface Investment {
   id: string;
@@ -26,6 +27,7 @@ interface Investment {
 
 export default function APEPortal() {
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
+  const [selectedTranche, setSelectedTranche] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
   
   // Current investments
   const [investments] = useState<Investment[]>([
@@ -61,7 +63,13 @@ export default function APEPortal() {
   const handleInvestmentConfirm = (data: { amount: number; tranche: 'A' | 'B' | 'C' | 'D'; method: string }) => {
     console.log('Investment data:', data);
     setShowInvestmentModal(false);
+    setSelectedTranche(null);
     // Here you would handle the actual investment
+  };
+
+  const handleTrancheClick = (tranche: 'A' | 'B' | 'C' | 'D') => {
+    setSelectedTranche(tranche);
+    setShowInvestmentModal(true);
   };
 
   const totalInvestment = investments.reduce((sum, inv) => sum + inv.amount, 0);
@@ -85,164 +93,268 @@ export default function APEPortal() {
       </div>
 
       {/* Portfolio Overview */}
-      <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60">Investissement Total</p>
-              <p className="text-2xl font-bold text-night">{totalInvestment.toLocaleString()} FCFA</p>
-            </div>
-            <BanknotesIcon className="w-8 h-8 text-gold-metallic" />
-          </div>
-          <div className="text-sm text-gold-dark">{investments.length} investissement(s) actif(s)</div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60">Valeur Projetée</p>
-              <p className="text-2xl font-bold text-night">{totalProjectedValue.toLocaleString()} FCFA</p>
-            </div>
-            <ArrowTrendingUpIcon className="w-8 h-8 text-green-600" />
-          </div>
-          <div className="text-sm text-green-600">
-            +{(totalProjectedValue - totalInvestment).toLocaleString()} FCFA d'intérêts
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl border border-timberwolf/20 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60">Rendement Moyen</p>
-              <p className="text-2xl font-bold text-night">
-                {investments.length > 0 
-                  ? (investments.reduce((sum, inv) => sum + inv.interestRate, 0) / investments.length).toFixed(2)
-                  : '0.00'
-                }%
-              </p>
-            </div>
-            <ShieldCheckIcon className="w-8 h-8 text-night" />
-          </div>
-          <div className="text-sm text-night/70">Garanti par l'État</div>
-        </div>
-      </div>
-
-      {/* Quick Investment */}
-      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">Effectuer un nouvel investissement</h3>
-          <button 
-            onClick={() => setShowInvestmentModal(true)}
-            className="bg-gold-metallic text-white px-6 py-3 rounded-lg font-semibold hover:bg-gold-dark transition-colors flex items-center space-x-2"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>Investir maintenant</span>
-          </button>
-        </div>
-
-        <div className="grid md:grid-cols-4 gap-4">
-          {trancheOptions.map((option) => (
-            <div 
-              key={option.value}
-              className="border border-timberwolf/20 rounded-lg p-4 hover:border-gold-metallic/30 transition-colors"
-            >
-              <div className="text-center">
-                <h4 className="font-bold text-night mb-2">{option.label}</h4>
-                <p className="text-sm text-night/60 mb-2">{option.description}</p>
-                <div className="text-lg font-bold text-gold-metallic">{option.rate}%</div>
-                <div className="text-xs text-night/50">par an</div>
+      <div className="grid grid-cols-1 gap-6">
+        {/* Investment Total Card */}
+        <div>
+          <div className="relative bg-gold-dark rounded-2xl p-8 text-white overflow-hidden">
+            {/* Grainy texture overlay */}
+            <div className="absolute inset-0 opacity-30 z-10" style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+              mixBlendMode: 'overlay'
+            }}></div>
+            
+            {/* Decorative circles */}
+            <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full"></div>
+            <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full"></div>
+            <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full"></div>
+            
+            {/* Logo */}
+            <div className="absolute top-6 right-6 z-50">
+              <div className="bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">
+                <span className="text-xs font-bold text-white">APE</span>
               </div>
             </div>
-          ))}
-        </div>
 
-        <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <div className="flex items-start space-x-3">
-            <InformationCircleIcon className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
-            <div>
-              <h4 className="font-semibold text-night mb-1">Informations importantes</h4>
-              <ul className="text-sm text-night/70 space-y-1">
-                <li>• Investissement minimum: 10,000 FCFA</li>
-                <li>• Intérêts versés semestriellement</li>
-                <li>• Capital garanti par l'État du Sénégal</li>
-                <li>• Possibilité de revente sur le marché secondaire</li>
-              </ul>
+            {/* Card Content */}
+            <div className="relative z-10 h-full flex flex-col">
+              {/* Header Section */}
+              <div className="mb-6">
+                <h4 className="text-lg font-medium text-white/90 mb-2">Investissement Total</h4>
+                <div className="text-3xl font-bold tracking-wider">
+                  {totalInvestment.toLocaleString()} FCFA
+                </div>
+              </div>
+
+              {/* Main Content Grid */}
+              <div className="flex-1 grid grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">Compte N°</p>
+                    <p className="text-lg font-mono tracking-wider">APE-2025-001</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">Investissements actifs</p>
+                    <p className="text-2xl font-bold">{investments.length}</p>
+                  </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-4">
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">Rendement moyen</p>
+                    <p className="text-2xl font-bold text-gold-light">
+                      {investments.length > 0 
+                        ? (investments.reduce((sum, inv) => sum + inv.interestRate, 0) / investments.length).toFixed(2)
+                        : '0.00'
+                      }%
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">Valeur projetée</p>
+                    <div className="flex items-baseline gap-2">
+                      <p className="text-xl font-bold">{totalProjectedValue.toLocaleString()} FCFA</p>
+                      <p className="text-sm text-sama-primary-green font-medium">
+                        (+{(totalProjectedValue - totalInvestment).toLocaleString()})
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+
       </div>
 
-      {/* Current Investments */}
-      {investments.length > 0 && (
-        <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-          <h3 className="text-xl font-bold text-night mb-6">Mes investissements APE</h3>
-          <div className="space-y-4">
-            {investments.map((investment) => (
-              <div key={investment.id} className="border border-timberwolf/20 rounded-lg p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="flex items-center space-x-3 mb-2">
-                      <h4 className="font-semibold text-night">Tranche {investment.tranche}</h4>
-                      <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                        {investment.term} ans
-                      </span>
-                      <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                        {investment.interestRate}%
-                      </span>
-                    </div>
-                    <p className="text-sm text-night/60">
-                      Acheté le {new Date(investment.purchaseDate).toLocaleDateString('fr-FR')}
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-lg font-bold text-night">
-                      {investment.amount.toLocaleString()} FCFA
-                    </div>
-                    <div className="text-sm text-night/60">Investi</div>
+      {/* Investment Tranches */}
+      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+        <div className="mb-8">
+          <h3 className="text-xl font-bold text-night mb-2">Choisissez Votre Tranche d'Investissement</h3>
+          <p className="text-night/70">4 options d'investissement adaptées à vos objectifs financiers</p>
+        </div>
+
+        <div className="grid md:grid-cols-4 gap-6">
+          {trancheOptions.map((option, index) => {
+            const colors = [
+              { bg: 'bg-green-500', text: 'text-white' }, // Emission A - Green
+              { bg: 'bg-yellow-400', text: 'text-black' }, // Emission B - Yellow
+              { bg: 'bg-red-600', text: 'text-white' },    // Emission C - Red
+              { bg: 'bg-gray-700', text: 'text-white' }    // Emission D - Dark Gray
+            ];
+            const color = colors[index];
+            
+            return (
+              <div 
+                key={option.value}
+                className="bg-white rounded-2xl border border-timberwolf/20 p-6 hover:shadow-lg transition-all duration-300 group"
+              >
+                {/* Header with colored background */}
+                <div className={`${color.bg} rounded-t-2xl -m-6 mb-4 p-4 ${color.text}`}>
+                  <h4 className="font-bold text-lg uppercase">Emission {option.value}</h4>
+                </div>
+                
+                {/* Interest Rate */}
+                <div className="text-center mb-6">
+                  <div className="text-4xl font-bold text-night mb-2">{option.rate}%</div>
+                  <div className="text-sm text-night/60">SUR {option.term} ANS</div>
+                </div>
+                
+                {/* Nominal Value */}
+                <div className="border-t border-timberwolf/20 pt-4 mb-6">
+                  <div className="text-sm text-night/60 mb-1">VALEUR NOMINALE:</div>
+                  <div className="font-bold text-night">10 000 FCFA*</div>
+                </div>
+                
+                {/* Emission Amount */}
+                <div className="mb-6">
+                  <div className="text-sm text-night/60 mb-1">Montant de l'émission:</div>
+                  <div className="font-bold text-night">
+                    {option.value === 'A' && '60 milliards de FCFA'}
+                    {option.value === 'B' && '100 milliards de FCFA'}
+                    {option.value === 'C' && '80 milliards de FCFA'}
+                    {option.value === 'D' && '60 milliards de FCFA'}
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-night/60">Prochain paiement</span>
-                    <div className="font-semibold text-gold-metallic">
-                      {new Date(investment.nextPayment).toLocaleDateString('fr-FR')}
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-night/60">Valeur à maturité</span>
-                    <div className="font-semibold text-green-600">
-                      {investment.totalValue.toLocaleString()} FCFA
-                    </div>
-                  </div>
-                  <div>
-                    <span className="text-night/60">Plus-value projetée</span>
-                    <div className="font-semibold text-green-600">
-                      +{(investment.totalValue - investment.amount).toLocaleString()} FCFA
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <button 
-                    onClick={() => setShowInvestmentModal(true)}
-                    className="bg-gold-metallic text-white py-2 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors flex items-center space-x-2"
-                  >
-                    <ArrowDownIcon className="w-4 h-4" />
-                    <span>Investir davantage</span>
-                  </button>
-                </div>
+                {/* Invest Button */}
+                <button
+                  onClick={() => handleTrancheClick(option.value)}
+                  className="w-full bg-gold-metallic text-white py-3 px-4 rounded-lg font-semibold hover:bg-gold-dark transition-colors flex items-center justify-center space-x-2 group-hover:scale-105 transform duration-200"
+                >
+                  <span>J'investis</span>
+                  <ArrowRightIcon className="w-4 h-4" />
+                </button>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </div>
-      )}
+      </div>
+
+      {/* Investment History */}
+      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+        <h3 className="text-xl font-bold text-night mb-6">Historique des investissements</h3>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-timberwolf/20">
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Date</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Type</th>
+                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Tranche</th>
+                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Montant</th>
+                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Taux</th>
+                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Échéance</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-timberwolf/10">
+              {[
+                {
+                  date: '2025-09-15',
+                  type: 'Investissement',
+                  tranche: 'D',
+                  amount: 1000000,
+                  rate: 6.95,
+                  maturity: '2035-08-15',
+                  isInvestment: true
+                },
+                {
+                  date: '2025-09-01',
+                  type: 'Investissement',
+                  tranche: 'B',
+                  amount: 500000,
+                  rate: 6.60,
+                  maturity: '2030-09-01',
+                  isInvestment: true
+                },
+                {
+                  date: '2025-08-15',
+                  type: 'Intérêts',
+                  tranche: 'D',
+                  amount: 17375,
+                  rate: 6.95,
+                  maturity: '2035-08-15',
+                  isInvestment: false
+                },
+                {
+                  date: '2025-08-01',
+                  type: 'Intérêts',
+                  tranche: 'B',
+                  amount: 8250,
+                  rate: 6.60,
+                  maturity: '2030-09-01',
+                  isInvestment: false
+                },
+                {
+                  date: '2025-07-15',
+                  type: 'Intérêts',
+                  tranche: 'D',
+                  amount: 17375,
+                  rate: 6.95,
+                  maturity: '2035-08-15',
+                  isInvestment: false
+                },
+                {
+                  date: '2025-07-01',
+                  type: 'Intérêts',
+                  tranche: 'B',
+                  amount: 8250,
+                  rate: 6.60,
+                  maturity: '2030-09-01',
+                  isInvestment: false
+                }
+              ].map((transaction, index) => (
+                <tr key={index} className="hover:bg-timberwolf/5 transition-colors">
+                  <td className="py-4 px-2 text-sm text-night">
+                    {new Date(transaction.date).toLocaleDateString('fr-FR')}
+                  </td>
+                  <td className="py-4 px-2">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      transaction.type === 'Investissement' ? 'bg-blue-100 text-blue-800' :
+                      'bg-green-100 text-green-800'
+                    }`}>
+                      {transaction.type}
+                    </span>
+                  </td>
+                  <td className="py-4 px-2 text-sm text-night/70">
+                    Tranche {transaction.tranche}
+                  </td>
+                  <td className={`py-4 px-2 text-sm font-semibold text-right ${
+                    transaction.isInvestment ? 'text-blue-600' : 'text-green-600'
+                  }`}>
+                    {transaction.isInvestment ? '+' : '+'}{transaction.amount.toLocaleString()} FCFA
+                  </td>
+                  <td className="py-4 px-2 text-sm font-medium text-right text-night">
+                    {transaction.rate}%
+                  </td>
+                  <td className="py-4 px-2 text-sm font-medium text-right text-night">
+                    {new Date(transaction.maturity).toLocaleDateString('fr-FR')}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="mt-6 flex justify-center">
+          <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
+            Charger plus d'investissements
+          </button>
+        </div>
+      </div>
 
       {/* Investment Modal */}
       <InvestmentModal
         isOpen={showInvestmentModal}
-        onClose={() => setShowInvestmentModal(false)}
+        onClose={() => {
+          setShowInvestmentModal(false);
+          setSelectedTranche(null);
+        }}
         onConfirm={handleInvestmentConfirm}
+        preselectedTranche={selectedTranche}
       />
     </div>
   );
