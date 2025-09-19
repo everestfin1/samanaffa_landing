@@ -50,7 +50,7 @@ export default function LoginPage() {
           lastName: nameParts[1] ? nameParts[1].charAt(0).toUpperCase() + nameParts[1].slice(1) : 'Demo',
           email: formData.email,
           phone: '+221 77 123 45 67',
-          userId: 'USR_' + Date.now(),
+          userId: 'USR_' + Math.floor(Math.random() * 1000000),
           isNewUser: false,
           kycStatus: 'completed'
         };

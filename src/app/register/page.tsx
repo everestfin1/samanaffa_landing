@@ -358,7 +358,7 @@ export default function RegisterPage() {
       // Store user data and authentication state
       const userData = {
         ...formData,
-        userId: 'user_' + Date.now(),
+        userId: 'user_' + Math.floor(Math.random() * 1000000),
         registrationDate: new Date().toISOString(),
         isNewUser: true,
         kycStatus: 'completed', // KYC is now completed during registration
@@ -509,7 +509,11 @@ export default function RegisterPage() {
               : 'border-timberwolf/30'
           }`}
           required
-          max={new Date(new Date().setFullYear(new Date().getFullYear() - 18)).toISOString().split('T')[0]}
+          max={(() => {
+            const today = new Date();
+            const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+            return eighteenYearsAgo.toISOString().split('T')[0];
+          })()}
           autoComplete="bday"
         />
         <p className="text-xs text-night/60 mt-1">Vous devez avoir au moins 18 ans</p>

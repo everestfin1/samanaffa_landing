@@ -54,19 +54,19 @@ export default function ContactPage() {
     {
       icon: PhoneIcon,
       title: 'Téléphone',
-      details: ['+221 33 123 45 67', '+221 77 123 45 67'],
+      details: ['+221 33 822 87 00', '+221 33 822 87 01'],
       action: 'Appelez-nous'
     },
     {
       icon: EnvelopeIcon,
       title: 'Email',
-      details: ['support@samanaffa.sn', 'info@samanaffa.sn'],
+      details: ['contact@everestfin.com'],
       action: 'Écrivez-nous'
     },
     {
       icon: MapPinIcon,
       title: 'Adresse',
-      details: ['Dakar, Plateau', 'Rue de la République, Sénégal'],
+      details: ['18 Boulevard de la République', 'Dakar, Sénégal BP: 11659-13000'],
       action: 'Visitez-nous'
     },
     {
@@ -273,7 +273,7 @@ export default function ContactPage() {
             <div className="text-center text-night/50">
               <MapPinIcon className="w-12 h-12 mx-auto mb-4" />
               <p>Carte interactive à venir</p>
-              <p className="text-sm">Dakar, Plateau - Rue de la République</p>
+              <p className="text-sm">18 Boulevard de la République, Dakar, Sénégal</p>
             </div>
           </div>
         </div>

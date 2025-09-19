@@ -1,6 +1,7 @@
 'use client'
-import { ShieldCheckIcon, PhoneIcon, HelpCircleIcon } from 'lucide-react'
+
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
 
@@ -12,6 +13,7 @@ export default function Footer() {
     if (pathname.startsWith('/portal')) {
         return null;
     }
+    const currentYear = new Date().getFullYear();
   return (
     <footer className="relative bg-night text-white py-24">
     {/* Subtle gold gradient overlay */}
@@ -22,11 +24,15 @@ export default function Footer() {
         {/* Brand Section */}
         <div className="lg:col-span-2 space-y-8">
           <div>
-            <h3 className="text-4xl font-extralight mb-4">
-              <span className="bg-gradient-to-r from-gold-metallic via-gold-light to-gold-metallic bg-clip-text text-transparent">
-                Sama Naffa
-              </span>
-            </h3>
+            <div className="mb-6">
+              <Image
+                src="/sama_naffa_logo.png"
+                alt="Sama Naffa Logo"
+                width={250}
+                height={80}
+                className="h-20 w-auto"
+              />
+            </div>
             <p className="text-white/70 text-xl font-light leading-relaxed max-w-2xl">
               Votre partenaire de confiance pour l'épargne et l'investissement au Sénégal. 
               Une approche moderne de la finance traditionnelle.
@@ -35,12 +41,9 @@ export default function Footer() {
           
           <div className="flex flex-wrap gap-6">
             <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
-                <span className="text-white/70">Opéré par</span>
-                <Link href="https://everest-new.vercel.app" target="_blank" className="hover:text-gold-metallic transition-colors duration-300">
                 <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-semibold tracking-wide">
-                  Everest Finance SGI
+                  Agrément n° SGI /DA/2016/60
                 </span>
-                </Link>
               </div>
           </div>
 
@@ -71,14 +74,12 @@ export default function Footer() {
                   href="/faq"
                   className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
                 >
-                  <HelpCircleIcon className="w-5 h-5" />
                   <span>FAQ</span>
                 </Link>
                 <Link 
                   href="/contact"
                   className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
                 >
-                  <PhoneIcon className="w-5 h-5" />
                   <span>Contact</span>
                 </Link>
               </div>
@@ -92,13 +93,15 @@ export default function Footer() {
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
               <div className="group hover:text-gold-metallic transition-colors duration-300 cursor-pointer">
-                <p className="text-lg">+221 33 XXX XX XX</p>
+                <p className="text-lg">+221 33 822 87 00</p>
+                <p className="text-lg">+221 33 822 87 01</p>
               </div>
               <div className="group hover:text-gold-metallic transition-colors duration-300 cursor-pointer">
-                <p className="text-lg">contact@samanaffa.sn</p>
+                <p className="text-lg">contact@everestfin.com</p>
               </div>
               <div className="pt-2">
-                <p className="text-white/50">Dakar, Sénégal</p>
+                <p className="text-white/50">18 Boulevard de la République</p>
+                <p className="text-white/50">Dakar, Sénégal BP: 11659-13000</p>
               </div>
             </div>
           </div>
@@ -108,7 +111,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/10 mt-16 pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
-          <p>&copy; 2025 Sama Naffa. Tous droits réservés.</p>
+          <p>&copy; {currentYear} Sama Naffa. Tous droits réservés.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-gold-metallic transition-colors duration-300">Confidentialité</a>
             <a href="#" className="hover:text-gold-metallic transition-colors duration-300">Conditions d'utilisation</a>

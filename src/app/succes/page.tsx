@@ -92,7 +92,7 @@ export default function SuccessPage() {
                   </div>
                   <div className="flex justify-between py-3 border-b border-border">
                     <span className="text-muted-foreground">Date d&apos;ouverture</span>
-                    <span className="font-semibold text-card-foreground">{new Date().toLocaleDateString('fr-FR')}</span>
+                    <span className="font-semibold text-card-foreground" suppressHydrationWarning>{new Date().toLocaleDateString('fr-FR')}</span>
                   </div>
                   <div className="flex justify-between py-3">
                     <span className="text-muted-foreground">Statut</span>
@@ -121,7 +121,7 @@ export default function SuccessPage() {
                   </div>
                   <div className="flex justify-between py-3">
                     <span className="text-muted-foreground">Prochaine échéance</span>
-                    <span className="font-semibold text-card-foreground">1er {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { month: 'long' })}</span>
+                    <span className="font-semibold text-card-foreground" suppressHydrationWarning>1er {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { month: 'long' })}</span>
                   </div>
                 </div>
               </div>

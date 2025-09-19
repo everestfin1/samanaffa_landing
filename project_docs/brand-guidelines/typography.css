@@ -1,0 +1,167 @@
+/* Sama Naffa Everest - Typography System */
+
+:root {
+  /* Font Family */
+  --sama-font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  /* Font Sizes */
+  --sama-text-xs: 0.75rem;    /* 12px */
+  --sama-text-sm: 0.875rem;   /* 14px */
+  --sama-text-base: 1rem;     /* 16px */
+  --sama-text-lg: 1.125rem;   /* 18px */
+  --sama-text-xl: 1.25rem;    /* 20px */
+  --sama-text-2xl: 1.5rem;    /* 24px */
+  --sama-text-3xl: 1.875rem;  /* 30px */
+  --sama-text-4xl: 2.25rem;   /* 36px */
+  --sama-text-5xl: 3rem;      /* 48px */
+  --sama-text-6xl: 3.75rem;   /* 60px */
+  
+  /* Font Weights */
+  --sama-font-normal: 400;
+  --sama-font-medium: 500;
+  --sama-font-semibold: 600;
+  --sama-font-bold: 700;
+  
+  /* Line Heights */
+  --sama-leading-tight: 1.1;
+  --sama-leading-snug: 1.2;
+  --sama-leading-normal: 1.5;
+  --sama-leading-relaxed: 1.6;
+  --sama-leading-loose: 1.8;
+}
+
+/* Base Typography */
+body {
+  font-family: var(--sama-font-family);
+  font-size: var(--sama-text-base);
+  font-weight: var(--sama-font-normal);
+  line-height: var(--sama-leading-normal);
+  color: var(--sama-text-primary);
+}
+
+/* Heading Styles */
+.sama-heading-hero {
+  font-size: var(--sama-text-5xl);
+  font-weight: var(--sama-font-bold);
+  line-height: var(--sama-leading-tight);
+  color: var(--sama-primary-green);
+}
+
+.sama-heading-section {
+  font-size: var(--sama-text-4xl);
+  font-weight: var(--sama-font-bold);
+  line-height: var(--sama-leading-snug);
+  color: var(--sama-text-primary);
+}
+
+.sama-heading-subsection {
+  font-size: var(--sama-text-2xl);
+  font-weight: var(--sama-font-semibold);
+  line-height: var(--sama-leading-snug);
+  color: var(--sama-secondary-green);
+}
+
+.sama-heading-card {
+  font-size: var(--sama-text-xl);
+  font-weight: var(--sama-font-semibold);
+  line-height: var(--sama-leading-snug);
+  color: var(--sama-text-primary);
+}
+
+/* Body Text Styles */
+.sama-body-large {
+  font-size: var(--sama-text-lg);
+  font-weight: var(--sama-font-normal);
+  line-height: var(--sama-leading-relaxed);
+  color: var(--sama-text-secondary);
+}
+
+.sama-body-regular {
+  font-size: var(--sama-text-base);
+  font-weight: var(--sama-font-normal);
+  line-height: var(--sama-leading-normal);
+  color: var(--sama-text-secondary);
+}
+
+.sama-body-small {
+  font-size: var(--sama-text-sm);
+  font-weight: var(--sama-font-normal);
+  line-height: var(--sama-leading-normal);
+  color: var(--sama-text-muted);
+}
+
+.sama-body-xs {
+  font-size: var(--sama-text-xs);
+  font-weight: var(--sama-font-normal);
+  line-height: var(--sama-leading-normal);
+  color: var(--sama-text-muted);
+}
+
+/* Special Text Styles */
+.sama-text-accent {
+  color: var(--sama-accent-gold);
+  font-weight: var(--sama-font-semibold);
+}
+
+.sama-text-emphasis {
+  color: var(--sama-primary-green);
+  font-weight: var(--sama-font-semibold);
+}
+
+.sama-text-highlight {
+  background: linear-gradient(135deg, var(--sama-primary-green), var(--sama-accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: var(--sama-font-bold);
+}
+
+/* Responsive Typography */
+@media (max-width: 640px) {
+  .sama-heading-hero {
+    font-size: var(--sama-text-3xl);
+  }
+  
+  .sama-heading-section {
+    font-size: var(--sama-text-2xl);
+  }
+  
+  .sama-heading-subsection {
+    font-size: var(--sama-text-xl);
+  }
+}
+
+@media (min-width: 1024px) {
+  .sama-heading-hero {
+    font-size: var(--sama-text-6xl);
+  }
+  
+  .sama-heading-section {
+    font-size: var(--sama-text-5xl);
+  }
+}
+
+/* Text Utilities */
+.sama-text-center { text-align: center; }
+.sama-text-left { text-align: left; }
+.sama-text-right { text-align: right; }
+
+.sama-font-light { font-weight: 300; }
+.sama-font-normal { font-weight: var(--sama-font-normal); }
+.sama-font-medium { font-weight: var(--sama-font-medium); }
+.sama-font-semibold { font-weight: var(--sama-font-semibold); }
+.sama-font-bold { font-weight: var(--sama-font-bold); }
+
+.sama-uppercase { text-transform: uppercase; }
+.sama-lowercase { text-transform: lowercase; }
+.sama-capitalize { text-transform: capitalize; }
+
+.sama-underline { text-decoration: underline; }
+.sama-no-underline { text-decoration: none; }
+
+/* Letter Spacing */
+.sama-tracking-tight { letter-spacing: -0.025em; }
+.sama-tracking-normal { letter-spacing: 0; }
+.sama-tracking-wide { letter-spacing: 0.025em; }
+.sama-tracking-wider { letter-spacing: 0.05em; }
+.sama-tracking-widest { letter-spacing: 0.1em; }

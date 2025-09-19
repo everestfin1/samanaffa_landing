@@ -1,0 +1,81 @@
+/* Sama Naffa Everest - Color Palette CSS Variables */
+
+:root {
+  /* Primary Brand Colors */
+  --sama-primary-green: #435933;
+  --sama-primary-green-light: #5a7344;
+  --sama-primary-green-dark: #364529;
+  
+  /* Secondary Brand Colors */
+  --sama-secondary-green: #30461f;
+  --sama-secondary-green-light: #243318;
+  
+  /* Accent Colors */
+  --sama-accent-gold: #C38D1C; 
+  --sama-accent-gold-dark: #BF8C35;
+  
+  /* Base Colors */
+  --sama-black: #000000;
+  --sama-white: #ffffff;
+  
+  /* Text Colors */
+  --sama-text-primary: #01081b;
+  --sama-text-secondary: #4d525f;
+  --sama-text-muted: #969696;
+  
+  /* Background Colors */
+  --sama-bg-light: #f7f6f6;
+  --sama-bg-card: #ffffff;
+  --sama-bg-overlay: rgba(255, 255, 255, 0.9);
+  
+  /* Light Green Backgrounds */
+  --sama-bg-light-green: #e8f5e8;
+  --sama-bg-light-green-alt: #f0f8f0;
+  --sama-bg-light-green-card: #F2F8F4;
+  
+  /* Semantic Colors */
+  --sama-success: #377e36;
+  --sama-warning: #fcbe1d;
+  
+  /* Border Colors */
+  --sama-border-light: rgba(67, 89, 51, 0.1);
+  --sama-border-medium: rgba(67, 89, 51, 0.2);
+  --sama-border-dark: rgba(67, 89, 51, 0.3);
+  
+  /* Shadow Colors */
+  --sama-shadow-light: rgba(67, 89, 51, 0.08);
+  --sama-shadow-medium: rgba(67, 89, 51, 0.12);
+  --sama-shadow-dark: rgba(67, 89, 51, 0.15);
+  
+  /* Gradient Definitions */
+  --sama-gradient-primary: linear-gradient(135deg, #30461f, #435933);
+  --sama-gradient-primary-hover: linear-gradient(135deg, #243318, #364529);
+  --sama-gradient-accent: linear-gradient(135deg, #C38D1C, #b3830f);
+  --sama-gradient-bg-light: linear-gradient(135deg, #F2F8F4, white);
+  --sama-gradient-bg-card: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+}
+
+/* Color Utility Classes */
+.sama-text-primary { color: var(--sama-text-primary); }
+.sama-text-secondary { color: var(--sama-text-secondary); }
+.sama-text-muted { color: var(--sama-text-muted); }
+.sama-text-green { color: var(--sama-primary-green); }
+.sama-text-gold { color: var(--sama-accent-gold); }
+
+.sama-bg-primary { background-color: var(--sama-primary-green); }
+.sama-bg-secondary { background-color: var(--sama-secondary-green); }
+.sama-bg-accent { background-color: var(--sama-accent-gold); }
+.sama-bg-light { background-color: var(--sama-bg-light); }
+.sama-bg-light-green { background-color: var(--sama-bg-light-green); }
+
+.sama-border-primary { border-color: var(--sama-primary-green); }
+.sama-border-light { border-color: var(--sama-border-light); }
+
+/* Gradient Utility Classes */
+.sama-gradient-primary { background: var(--sama-gradient-primary); }
+.sama-gradient-accent { background: var(--sama-gradient-accent); }
+.sama-gradient-bg-light { background: var(--sama-gradient-bg-light); }
+
+/* Hover States */
+.sama-hover-primary:hover { background: var(--sama-gradient-primary-hover); }
+.sama-hover-accent:hover { background: var(--sama-accent-gold-dark); }

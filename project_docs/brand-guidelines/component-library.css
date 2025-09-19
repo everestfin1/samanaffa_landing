@@ -1,0 +1,390 @@
+/* Sama Naffa Everest - Component Library */
+
+/* Button Components */
+.sama-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  border-radius: 12px;
+  font-weight: var(--sama-font-semibold);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  border: none;
+  position: relative;
+  overflow: hidden;
+}
+
+.sama-button:focus-visible {
+  outline: 2px solid var(--sama-primary-green);
+  outline-offset: 2px;
+}
+
+.sama-button:disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+/* Button Variants */
+.sama-button-primary {
+  background: var(--sama-gradient-primary);
+  color: white;
+  padding: 12px 24px;
+  box-shadow: 0 4px 12px var(--sama-shadow-light);
+}
+
+.sama-button-primary:hover {
+  background: var(--sama-gradient-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--sama-shadow-medium);
+}
+
+.sama-button-secondary {
+  background: var(--sama-accent-gold);
+  color: white;
+  padding: 12px 24px;
+  box-shadow: 0 4px 12px rgba(195, 141, 28, 0.2);
+}
+
+.sama-button-secondary:hover {
+  background: var(--sama-accent-gold-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(195, 141, 28, 0.3);
+}
+
+.sama-button-outline {
+  background: transparent;
+  color: var(--sama-secondary-green);
+  border: 2px solid var(--sama-secondary-green);
+  padding: 10px 22px;
+}
+
+.sama-button-outline:hover {
+  background: var(--sama-secondary-green);
+  color: white;
+}
+
+.sama-button-ghost {
+  background: transparent;
+  color: var(--sama-primary-green);
+  padding: 12px 24px;
+}
+
+.sama-button-ghost:hover {
+  background: var(--sama-bg-light-green);
+  color: var(--sama-primary-green);
+}
+
+/* Button Sizes */
+.sama-button-sm {
+  padding: 8px 16px;
+  font-size: var(--sama-text-sm);
+  border-radius: 8px;
+}
+
+.sama-button-lg {
+  padding: 16px 32px;
+  font-size: var(--sama-text-lg);
+  border-radius: 16px;
+}
+
+.sama-button-xl {
+  padding: 20px 40px;
+  font-size: var(--sama-text-xl);
+  border-radius: 20px;
+}
+
+/* Button Shimmer Effect */
+.sama-button-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.sama-button-shimmer:hover::before {
+  left: 100%;
+}
+
+/* Card Components */
+.sama-card {
+  background: var(--sama-bg-card);
+  border-radius: 16px;
+  box-shadow: 0 6px 24px var(--sama-shadow-light);
+  border: 1px solid var(--sama-border-light);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.sama-card:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 36px var(--sama-shadow-medium);
+}
+
+.sama-card-header {
+  padding: 24px 24px 0 24px;
+}
+
+.sama-card-content {
+  padding: 24px;
+}
+
+.sama-card-footer {
+  padding: 0 24px 24px 24px;
+}
+
+/* Feature Card */
+.sama-card-feature {
+  background: var(--sama-gradient-bg-light);
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid var(--sama-border-light);
+  transition: all 0.3s ease;
+}
+
+.sama-card-feature:hover {
+  background: var(--sama-gradient-bg-card);
+  transform: translateY(-4px);
+}
+
+/* Input Components */
+.sama-input {
+  background: var(--sama-bg-card);
+  border: 2px solid var(--sama-border-light);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: var(--sama-text-sm);
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.sama-input:focus {
+  border-color: var(--sama-primary-green);
+  box-shadow: 0 0 0 3px rgba(67, 89, 51, 0.1);
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.sama-input::placeholder {
+  color: var(--sama-text-muted);
+}
+
+.sama-input:disabled {
+  background: var(--sama-bg-light);
+  color: var(--sama-text-muted);
+  cursor: not-allowed;
+}
+
+/* Label Components */
+.sama-label {
+  display: block;
+  font-size: var(--sama-text-sm);
+  font-weight: var(--sama-font-medium);
+  color: var(--sama-text-primary);
+  margin-bottom: 8px;
+}
+
+/* Slider Components */
+.sama-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: linear-gradient(to right, var(--sama-primary-green), #e5e7eb);
+  border-radius: 4px;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.sama-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sama-gradient-accent);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 3px 8px var(--sama-shadow-light);
+  transition: all 0.3s ease;
+}
+
+.sama-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 20px var(--sama-shadow-medium);
+}
+
+.sama-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--sama-gradient-accent);
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 3px 8px var(--sama-shadow-light);
+  transition: all 0.3s ease;
+}
+
+/* Avatar Components */
+.sama-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--sama-bg-light-green);
+}
+
+.sama-avatar-sm {
+  width: 32px;
+  height: 32px;
+}
+
+.sama-avatar-md {
+  width: 40px;
+  height: 40px;
+}
+
+.sama-avatar-lg {
+  width: 48px;
+  height: 48px;
+}
+
+.sama-avatar-xl {
+  width: 64px;
+  height: 64px;
+}
+
+/* Badge Components */
+.sama-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: var(--sama-text-xs);
+  font-weight: var(--sama-font-medium);
+}
+
+.sama-badge-primary {
+  background: var(--sama-bg-light-green);
+  color: var(--sama-primary-green);
+}
+
+.sama-badge-accent {
+  background: rgba(195, 141, 28, 0.1);
+  color: var(--sama-accent-gold);
+}
+
+.sama-badge-success {
+  background: rgba(55, 126, 54, 0.1);
+  color: var(--sama-success);
+}
+
+/* Alert Components */
+.sama-alert {
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid;
+  margin-bottom: 16px;
+}
+
+.sama-alert-info {
+  background: var(--sama-bg-light-green);
+  border-color: var(--sama-border-light);
+  color: var(--sama-primary-green);
+}
+
+.sama-alert-warning {
+  background: rgba(252, 190, 29, 0.1);
+  border-color: rgba(252, 190, 29, 0.3);
+  color: var(--sama-warning);
+}
+
+.sama-alert-success {
+  background: rgba(55, 126, 54, 0.1);
+  border-color: rgba(55, 126, 54, 0.3);
+  color: var(--sama-success);
+}
+
+/* Modal Components */
+.sama-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.sama-modal-content {
+  background: var(--sama-bg-card);
+  border-radius: 20px;
+  padding: 24px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Loading Components */
+.sama-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--sama-border-light);
+  border-top: 2px solid var(--sama-primary-green);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Progress Components */
+.sama-progress {
+  width: 100%;
+  height: 8px;
+  background: var(--sama-bg-light);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sama-progress-bar {
+  height: 100%;
+  background: var(--sama-gradient-primary);
+  transition: width 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 640px) {
+  .sama-button {
+    padding: 10px 20px;
+    font-size: var(--sama-text-sm);
+  }
+  
+  .sama-card {
+    border-radius: 12px;
+  }
+  
+  .sama-card-content {
+    padding: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sama-button-lg {
+    padding: 20px 40px;
+    font-size: var(--sama-text-xl);
+  }
+  
+  .sama-card {
+    border-radius: 20px;
+  }
+}
