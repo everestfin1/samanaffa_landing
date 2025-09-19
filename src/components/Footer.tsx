@@ -15,9 +15,9 @@ export default function Footer() {
     }
     const currentYear = new Date().getFullYear();
   return (
-    <footer className="relative bg-night text-white py-24">
-    {/* Subtle gold gradient overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-night via-night to-night/95"></div>
+    <footer className="relative sama-bg-secondary text-white py-24">
+    {/* Subtle gradient overlay */}
+    <div className="absolute inset-0 bg-gradient-to-t from-sama-secondary-green via-sama-secondary-green to-sama-secondary-green/95"></div>
     
     <div className="relative max-w-6xl mx-auto px-6">
       <div className="grid lg:grid-cols-3 gap-16 items-start">
@@ -41,7 +41,7 @@ export default function Footer() {
           
           <div className="flex flex-wrap gap-6">
             <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
-                <span className="bg-gradient-to-r from-gold-light via-gold-metallic to-gold-light bg-clip-text text-transparent font-semibold tracking-wide">
+                <span className="bg-gradient-to-r from-sama-accent-gold via-sama-accent-gold-dark to-sama-accent-gold bg-clip-text text-transparent font-semibold tracking-wide">
                   Agrément n° SGI /DA/2016/60
                 </span>
               </div>
@@ -54,13 +54,13 @@ export default function Footer() {
               <div className="space-y-3">
                 <button 
                   onClick={() => router.push('/sama-naffa')} 
-                  className="block text-white/60 hover:text-gold-metallic transition-all duration-300 text-left font-light hover:translate-x-1"
+                  className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
                   Sama Naffa • Épargne Inclusive
                 </button>
                 <button 
                   onClick={() => router.push('/ape')} 
-                  className="block text-white/60 hover:text-gold-metallic transition-all duration-300 text-left font-light hover:translate-x-1"
+                  className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
                   Emprunt Obligataire • Investissement d'État
                 </button>
@@ -72,13 +72,13 @@ export default function Footer() {
               <div className="space-y-3">
                 <Link 
                   href="/faq"
-                  className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
+                  className="flex items-center space-x-3 text-white/60 hover:text-sama-accent-gold transition-all duration-300 font-light hover:translate-x-1"
                 >
                   <span>FAQ</span>
                 </Link>
                 <Link 
                   href="/contact"
-                  className="flex items-center space-x-3 text-white/60 hover:text-gold-metallic transition-all duration-300 font-light hover:translate-x-1"
+                  className="flex items-center space-x-3 text-white/60 hover:text-sama-accent-gold transition-all duration-300 font-light hover:translate-x-1"
                 >
                   <span>Contact</span>
                 </Link>
@@ -92,11 +92,11 @@ export default function Footer() {
           <div>
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
-              <div className="group hover:text-gold-metallic transition-colors duration-300 cursor-pointer">
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
                 <p className="text-lg">+221 33 822 87 00</p>
                 <p className="text-lg">+221 33 822 87 01</p>
               </div>
-              <div className="group hover:text-gold-metallic transition-colors duration-300 cursor-pointer">
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
                 <p className="text-lg">contact@everestfin.com</p>
               </div>
               <div className="pt-2">
@@ -113,8 +113,8 @@ export default function Footer() {
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
           <p>&copy; {currentYear} Sama Naffa. Tous droits réservés.</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-gold-metallic transition-colors duration-300">Confidentialité</a>
-            <a href="#" className="hover:text-gold-metallic transition-colors duration-300">Conditions d'utilisation</a>
+            <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</a>
+            <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Conditions d'utilisation</a>
           </div>
         </div>
       </div>

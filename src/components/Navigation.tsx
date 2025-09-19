@@ -107,10 +107,10 @@ export default function Navigation() {
     <header
       className={`${
         isOverLightBackground
-          ? 'bg-white/95 border-b border-gray-light/30 shadow-lg'
+          ? 'sama-bg-card/95 border-b sama-border-light shadow-lg'
           : isHomePage
             ? ''
-            : 'bg-white/95 border-b border-gray-light/30 shadow-lg'
+            : 'sama-bg-card/95 border-b sama-border-light shadow-lg'
       } sticky top-0 z-50  transition-all duration-300`}
       role="banner"
       suppressHydrationWarning
@@ -124,10 +124,10 @@ export default function Navigation() {
                 href="/"
                 className={`transition-colors font-medium  ${
                   isOverLightBackground
-                    ? 'text-gray-dark/80 hover:text-night'
+                    ? 'sama-text-secondary hover:sama-text-primary'
                     : isHomePage
-                      ? 'text-night/80 hover:text-night'
-                      : 'text-gray-dark/80 hover:text-night'
+                      ? 'sama-text-primary/80 hover:sama-text-primary'
+                      : 'sama-text-secondary hover:sama-text-primary'
                 }`}
               >
                 Accueil
@@ -137,10 +137,10 @@ export default function Navigation() {
                 href="/sama-naffa"
                 className={`transition-colors font-medium  ${
                   isOverLightBackground
-                    ? 'text-gray-dark/80 hover:text-night'
+                    ? 'sama-text-secondary hover:sama-text-green'
                     : isHomePage
-                      ? 'text-night/80 hover:text-night'
-                      : 'text-gray-dark/80 hover:text-night'
+                      ? 'sama-text-primary/80 hover:sama-text-green'
+                      : 'sama-text-secondary hover:sama-text-green'
                 }`}
               >
                 Sama Naffa
@@ -150,10 +150,10 @@ export default function Navigation() {
                 href="/ape"
                 className={`transition-colors font-medium  ${
                   isOverLightBackground
-                    ? 'text-gray-dark/80 hover:text-night'
+                    ? 'sama-text-secondary hover:sama-text-gold'
                     : isHomePage
-                      ? 'text-night/80 hover:text-night'
-                      : 'text-gray-dark/80 hover:text-night'
+                      ? 'sama-text-primary/80 hover:sama-text-gold'
+                      : 'sama-text-secondary hover:sama-text-gold'
                 }`}
               >
                 Emprunt Obligataire
@@ -190,10 +190,10 @@ export default function Navigation() {
                   href="/portal"
                   className={`flex items-center space-x-2 transition-colors  ${
                     isOverLightBackground
-                      ? 'text-gray-dark/80 hover:text-night'
+                      ? 'sama-text-secondary hover:sama-text-primary'
                       : isHomePage
-                        ? 'text-night/80 hover:text-night'
-                        : 'text-gray-dark/80 hover:text-night'
+                        ? 'sama-text-primary/80 hover:sama-text-primary'
+                        : 'sama-text-secondary hover:sama-text-primary'
                   }`}
                 >
                   <UserIcon className="w-5 h-5" />
@@ -201,7 +201,7 @@ export default function Navigation() {
                 </Link>
                 <Link 
                   href="/portal"
-                  className="bg-gradient-to-r from-gold-dark to-gold-metallic text-night px-6 py-2.5 rounded-lg font-semibold text-sm hover:from-gold-metallic hover:to-gold-light transition-all duration-300 hover:shadow-lg hover:shadow-gold-metallic/25"
+                  className="sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1"
                 >
                   Tableau de bord
                 </Link>
@@ -212,10 +212,10 @@ export default function Navigation() {
                   href="/login"
                     className={`transition-colors text-sm font-medium  ${
                       isOverLightBackground
-                        ? 'text-gray-dark/80 hover:text-night'
+                        ? 'sama-text-secondary hover:sama-text-primary'
                         : isHomePage
-                          ? 'text-night/80 hover:text-night'
-                          : 'text-gray-dark/80 hover:text-night'
+                          ? 'sama-text-primary/80 hover:sama-text-primary'
+                          : 'sama-text-secondary hover:sama-text-primary'
                     }`}
                   >
                     Se connecter
@@ -230,8 +230,8 @@ export default function Navigation() {
                   href="/login"
                   className={`transition-colors text-sm font-medium  ${
                     isOverLightBackground
-                      ? 'text-gray-dark/80 hover:text-night'
-                      : 'text-night/80 hover:text-night'
+                      ? 'sama-text-secondary hover:sama-text-primary'
+                      : 'sama-text-primary/80 hover:sama-text-primary'
                   }`}
                 >
                   Se connecter
@@ -269,10 +269,10 @@ export default function Navigation() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className={`p-2  transition-colors ${
                 isOverLightBackground
-                  ? 'text-gray-dark hover:text-night'
+                  ? 'sama-text-secondary hover:sama-text-primary'
                   : isHomePage
-                    ? 'text-night hover:text-gold-metallic'
-                    : 'text-gray-dark hover:text-night'
+                    ? 'sama-text-primary hover:sama-text-gold'
+                    : 'sama-text-secondary hover:sama-text-primary'
               }`}
             >
               {isMobileMenuOpen ? (
@@ -288,22 +288,22 @@ export default function Navigation() {
         {isMobileMenuOpen && (
           <div className={`md:hidden border-t backdrop-blur-md ${
             isOverLightBackground
-              ? 'bg-white/95 border-gray-light/30'
+              ? 'sama-bg-card/95 sama-border-light'
               : isHomePage
-                ? 'border-white/20 bg-white/95'
-                : 'bg-white/95 border-gray-light/30'
+                ? 'border-white/20 sama-bg-card/95'
+                : 'sama-bg-card/95 sama-border-light'
           }`}>
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link
                 href="/"
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
+                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-primary hover:sama-bg-light-green transition-colors"
               >
                 Accueil
               </Link>
 
               <Link
                 href="/sama-naffa"
-                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
+                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-green hover:sama-bg-light-green transition-colors"
               >
                 <DevicePhoneMobileIcon className="w-5 h-5" />
                 <span>Sama Naffa</span>
@@ -311,7 +311,7 @@ export default function Navigation() {
 
               <Link
                 href="/ape"
-                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium text-night/70 hover:text-night hover:bg-timberwolf/20 transition-colors"
+                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-gold hover:bg-sama-accent-gold/10 transition-colors"
               >
                 <BuildingLibraryIcon className="w-5 h-5" />
                 <span>Emprunt Obligataire</span>
@@ -321,24 +321,24 @@ export default function Navigation() {
             
             <div className={`border-t px-2 pt-3 pb-3 ${
               isOverLightBackground
-                ? 'border-gray-light/30'
+                ? 'sama-border-light'
                 : isHomePage
-                  ? 'border-timberwolf/20'
-                  : 'border-gray-light/30'
+                  ? 'border-white/20'
+                  : 'sama-border-light'
             }`}>
               {isHydrated ? (
                 isAuthenticated ? (
                 <div className="space-y-2">
                   <Link 
                     href="/portal"
-                    className="flex items-center space-x-2 w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors"
+                    className="flex items-center space-x-2 w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors"
                   >
                     <UserIcon className="w-5 h-5" />
                     <span>Mon Portail</span>
                   </Link>
                   <Link 
                     href="/portal"
-                    className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+                    className="w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors"
                   >
                     Tableau de bord
                   </Link>
@@ -347,7 +347,7 @@ export default function Navigation() {
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      className="w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors font-medium"
+                      className="w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors font-medium"
                     >
                       Se connecter
                     </Link>
@@ -358,13 +358,13 @@ export default function Navigation() {
                 <div className="space-y-2">
                   <Link 
                     href="/login"
-                    className="w-full text-left px-3 py-2 text-night/70 hover:text-night transition-colors font-medium"
+                    className="w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors font-medium"
                   >
                     Se connecter
                   </Link>
                   <Link 
                     href="/register"
-                    className="w-full bg-gold-metallic text-night px-4 py-2 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+                    className="w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors"
                   >
                     Commencer
                   </Link>

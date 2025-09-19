@@ -1,23 +1,78 @@
 @import "tailwindcss";
 
 :root {
-  /* Sama Naffa Brand Colors - Metallic Gold Theme */
-  --white-smoke: #fafafa;
+  /* Sama Naffa Brand Colors - Official Brand System */
+  
+  /* Primary Brand Colors */
+  --sama-primary-green: #435933;
+  --sama-primary-green-light: #5a7344;
+  --sama-primary-green-dark: #364529;
+  
+  /* Secondary Brand Colors */
+  --sama-secondary-green: #30461f;
+  --sama-secondary-green-light: #243318;
+  
+  /* Accent Colors */
+  --sama-accent-gold: #C38D1C; 
+  --sama-accent-gold-dark: #BF8C35;
+  
+  /* Base Colors */
+  --sama-black: #000000;
+  --sama-white: #ffffff;
+  
+  /* Text Colors */
+  --sama-text-primary: #01081b;
+  --sama-text-secondary: #4d525f;
+  --sama-text-muted: #969696;
+  
+  /* Background Colors */
+  --sama-bg-light: #f7f6f6;
+  --sama-bg-card: #ffffff;
+  --sama-bg-overlay: rgba(255, 255, 255, 0.9);
+  
+  /* Light Green Backgrounds */
+  --sama-bg-light-green: #e8f5e8;
+  --sama-bg-light-green-alt: #f0f8f0;
+  --sama-bg-light-green-card: #F2F8F4;
+  
+  /* Semantic Colors */
+  --sama-success: #377e36;
+  --sama-warning: #fcbe1d;
+  
+  /* Border Colors */
+  --sama-border-light: rgba(67, 89, 51, 0.1);
+  --sama-border-medium: rgba(67, 89, 51, 0.2);
+  --sama-border-dark: rgba(67, 89, 51, 0.3);
+  
+  /* Shadow Colors */
+  --sama-shadow-light: rgba(67, 89, 51, 0.08);
+  --sama-shadow-medium: rgba(67, 89, 51, 0.12);
+  --sama-shadow-dark: rgba(67, 89, 51, 0.15);
+  
+  /* Gradient Definitions */
+  --sama-gradient-primary: linear-gradient(135deg, #30461f, #435933);
+  --sama-gradient-primary-hover: linear-gradient(135deg, #243318, #364529);
+  --sama-gradient-accent: linear-gradient(135deg, #C38D1C, #b3830f);
+  --sama-gradient-bg-light: linear-gradient(135deg, #F2F8F4, white);
+  --sama-gradient-bg-card: linear-gradient(135deg, #e8f5e8, #f0f8f0);
+  
+  /* Legacy support - mapping old variables to new ones */
+  --white-smoke: var(--sama-bg-light);
   --timberwolf: #e5e5e5;
-  --gold-metallic: #d4af37;
+  --gold-metallic: var(--sama-accent-gold);
   --gold-light: #f4e9c9;
-  --gold-dark: #b8941f;
-  --night: #1a1a1a;
-  --gray-light: #f8f9fa;
-  --gray-medium: #6b7280;
-  --gray-dark: #374151;
+  --gold-dark: var(--sama-accent-gold-dark);
+  --night: var(--sama-text-primary);
+  --gray-light: var(--sama-bg-light);
+  --gray-medium: var(--sama-text-secondary);
+  --gray-dark: var(--sama-text-primary);
   
   /* Theme Variables */
-  --background: white;
-  --foreground: var(--night);
-  --primary: var(--gold-metallic);
-  --secondary: var(--timberwolf);
-  --accent: var(--night);
+  --background: var(--sama-white);
+  --foreground: var(--sama-text-primary);
+  --primary: var(--sama-primary-green);
+  --secondary: var(--sama-secondary-green);
+  --accent: var(--sama-accent-gold);
 }
 
 @theme inline {
@@ -26,6 +81,24 @@
   --color-primary: var(--primary);
   --color-secondary: var(--secondary);
   --color-accent: var(--accent);
+  
+  /* Sama Naffa Brand Colors for Tailwind */
+  --color-sama-primary-green: var(--sama-primary-green);
+  --color-sama-primary-green-light: var(--sama-primary-green-light);
+  --color-sama-primary-green-dark: var(--sama-primary-green-dark);
+  --color-sama-secondary-green: var(--sama-secondary-green);
+  --color-sama-secondary-green-light: var(--sama-secondary-green-light);
+  --color-sama-accent-gold: var(--sama-accent-gold);
+  --color-sama-accent-gold-dark: var(--sama-accent-gold-dark);
+  --color-sama-text-primary: var(--sama-text-primary);
+  --color-sama-text-secondary: var(--sama-text-secondary);
+  --color-sama-text-muted: var(--sama-text-muted);
+  --color-sama-bg-light: var(--sama-bg-light);
+  --color-sama-bg-light-green: var(--sama-bg-light-green);
+  --color-sama-bg-light-green-alt: var(--sama-bg-light-green-alt);
+  --color-sama-bg-light-green-card: var(--sama-bg-light-green-card);
+  
+  /* Legacy color support */
   --color-white-smoke: var(--white-smoke);
   --color-timberwolf: var(--timberwolf);
   --color-gold-metallic: var(--gold-metallic);
@@ -35,7 +108,8 @@
   --color-gray-light: var(--gray-light);
   --color-gray-medium: var(--gray-medium);
   --color-gray-dark: var(--gray-dark);
-  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace;
 }
 
@@ -170,54 +244,60 @@ html {
 }
 
 .btn-primary {
-  background: var(--gold-metallic);
-  color: var(--night);
+  background: var(--sama-gradient-primary);
+  color: white;
+  box-shadow: 0 4px 12px var(--sama-shadow-light);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--gold-metallic) 90%, transparent);
-  transform: translateY(-1px);
+  background: var(--sama-gradient-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px var(--sama-shadow-medium);
 }
 
 .btn-secondary {
-  background: transparent;
-  color: var(--night);
-  border: 2px solid var(--night);
+  background: var(--sama-accent-gold);
+  color: white;
+  box-shadow: 0 4px 12px rgba(195, 141, 28, 0.2);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--night);
-  color: white;
+  background: var(--sama-accent-gold-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(195, 141, 28, 0.3);
 }
 
 /* Cards */
 .card {
-  background: white;
+  background: var(--sama-bg-card);
   border-radius: 1rem;
-  border: 1px solid color-mix(in srgb, var(--timberwolf) 30%, transparent);
-  transition: all 0.3s ease-in-out;
+  border: 1px solid var(--sama-border-light);
+  box-shadow: 0 6px 24px var(--sama-shadow-light);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card:hover {
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 36px var(--sama-shadow-medium);
 }
 
 /* Form Elements */
 .form-input {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1px solid var(--timberwolf);
-  border-radius: 0.5rem;
-  transition: all 0.2s ease-in-out;
+  background: var(--sama-bg-card);
+  border: 2px solid var(--sama-border-light);
+  border-radius: 0.75rem;
+  transition: all 0.3s ease;
   font-size: 1rem;
   line-height: 1.5;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: var(--gold-metallic);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold-metallic) 20%, transparent);
+  border-color: var(--sama-primary-green);
+  box-shadow: 0 0 0 3px rgba(67, 89, 51, 0.1);
+  transform: translateY(-1px);
 }
 
 /* Mobile-First Responsive Typography */
@@ -271,10 +351,136 @@ html {
   top: 1rem;
   width: auto;
   height: auto;
-  background: var(--gold-metallic);
-  color: var(--night);
+  background: var(--sama-primary-green);
+  color: white;
   padding: 0.5rem 1rem;
   border-radius: 0.5rem;
   z-index: 1000;
+}
+
+/* Sama Naffa Brand Utility Classes */
+.sama-text-primary { color: var(--sama-text-primary); }
+.sama-text-secondary { color: var(--sama-text-secondary); }
+.sama-text-muted { color: var(--sama-text-muted); }
+.sama-text-green { color: var(--sama-primary-green); }
+.sama-text-gold { color: var(--sama-accent-gold); }
+
+.sama-bg-primary { background-color: var(--sama-primary-green); }
+.sama-bg-secondary { background-color: var(--sama-secondary-green); }
+.sama-bg-accent { background-color: var(--sama-accent-gold); }
+.sama-bg-light { background-color: var(--sama-bg-light); }
+.sama-bg-light-green { background-color: var(--sama-bg-light-green); }
+.sama-bg-card { background-color: var(--sama-bg-card); }
+
+.sama-border-primary { border-color: var(--sama-primary-green); }
+.sama-border-light { border-color: var(--sama-border-light); }
+
+/* Gradient Utility Classes */
+.sama-gradient-primary { background: var(--sama-gradient-primary); }
+.sama-gradient-accent { background: var(--sama-gradient-accent); }
+.sama-gradient-bg-light { background: var(--sama-gradient-bg-light); }
+
+/* Hover States */
+.sama-hover-primary:hover { background: var(--sama-gradient-primary-hover); }
+.sama-hover-accent:hover { background: var(--sama-accent-gold-dark); }
+
+/* Typography Classes */
+.sama-heading-hero {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--sama-primary-green);
+}
+
+.sama-heading-section {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--sama-text-primary);
+}
+
+.sama-text-highlight {
+  background: linear-gradient(135deg, var(--sama-primary-green), var(--sama-accent-gold));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .sama-heading-hero {
+    font-size: 1.875rem;
+  }
+  
+  .sama-heading-section {
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .sama-heading-hero {
+    font-size: 3.75rem;
+  }
+  
+  .sama-heading-section {
+    font-size: 3rem;
+  }
+}
+
+/* Video Quality Optimizations */
+video {
+  /* Ensure highest quality rendering */
+  image-rendering: high-quality;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  
+  /* Hardware acceleration for better performance */
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  
+  /* Prevent video quality degradation */
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  
+  /* Optimize for high DPI displays */
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* High DPI display optimizations */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  video {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: optimize-contrast;
+  }
+}
+
+/* Ensure video maintains aspect ratio and quality on all devices */
+.hero-video {
+  object-fit: cover;
+  object-position: center;
+  width: 100%;
+  height: 100%;
+  min-width: 100%;
+  min-height: 100%;
+  transition: opacity 0.15s ease-out;
+}
+
+/* Instant smooth transition effects for video to image */
+.video-to-image-transition {
+  transition: opacity 0.15s ease-out;
+}
+
+/* Enhanced transition timing for instant smooth effect */
+.hero-video.fade-out {
+  opacity: 0;
+  transition: opacity 0.15s ease-out;
+}
+
+.hero-image.fade-in {
+  opacity: 1;
+  transition: opacity 0.15s ease-in;
 }
 

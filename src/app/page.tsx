@@ -1,6 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
 import { 
   ShieldCheckIcon, 
   DevicePhoneMobileIcon,
@@ -14,6 +15,31 @@ import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
+  const [showVideo, setShowVideo] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleVideoEnd = () => {
+    // Start transition immediately with minimal delay
+    setTimeout(() => {
+      setIsTransitioning(true);
+      // Quick fade transition
+      setTimeout(() => {
+        setShowVideo(false);
+        setIsTransitioning(false);
+      }, 10); // 150ms for quick fade
+    }, 10); // 100ms minimal delay for smoothness
+  };
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.addEventListener('ended', handleVideoEnd);
+      return () => {
+        video.removeEventListener('ended', handleVideoEnd);
+      };
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -23,15 +49,33 @@ export default function Home() {
       {/* Hero Section */}
       <main id="main">
         <section className="relative overflow-hidden bg-white h-screen -mt-20" aria-label="Hero">
-          {/* Background Image */}
+          {/* Background Video/Image */}
           <div className="absolute inset-0">
-            <Image
-              src="/sama-naffa_bg.jpg"
-              alt="Background"
-              fill
-              className="object-cover"
-              priority
-            />
+            {showVideo ? (
+              <video
+                ref={videoRef}
+                autoPlay
+                muted
+                playsInline
+                preload="auto"
+                className={`hero-video transition-opacity duration-150 ease-out ${
+                  isTransitioning ? 'opacity-0' : 'opacity-100'
+                }`}
+                aria-label="Background video"
+                poster="/sama-naffa_bg.jpg"
+              >
+                <source src="/sama-naffa-bg-vid.mp4" type="video/mp4" />
+              </video>
+            ) : (
+              <Image
+                src="/sama-naffa_bg.jpg"
+                alt="Background"
+                fill
+                className="object-cover transition-opacity duration-150 ease-in opacity-100"
+                priority
+                quality={100}
+              />
+            )}
           </div>
           
           <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
@@ -39,14 +83,14 @@ export default function Home() {
               
               {/* Main heading */}
               <div className="space-y-4">
-                <h1 className="text-6xl lg:text-8xl pb-4 text-night font-extralight tracking-tight leading-none">
+                <h1 className="text-6xl lg:text-8xl pb-4 sama-text-primary font-extralight tracking-tight leading-none">
                   Votre épargne,
                   <br />
-                  <span className="bg-gradient-to-r from-gold-dark via-gold-metallic to-gold-dark bg-clip-text text-transparent font-light">
+                  <span className="sama-text-highlight font-light">
                     notre expertise
                   </span>
                 </h1>
-                <p className="text-xl lg:text-2xl text-night/80 max-w-xl mx-auto font-normal leading-relaxed">
+                <p className="text-xl lg:text-2xl sama-text-secondary max-w-xl mx-auto font-normal leading-relaxed">
                     La plateforme d'épargne et d'investissement de référence au Sénégal.
                 </p>
               </div>
@@ -55,9 +99,9 @@ export default function Home() {
               <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
                 <button 
                   onClick={() => router.push('/register')}
-                  className="group relative px-12 py-5 bg-gradient-to-r from-gold-dark to-gold-metallic text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-gold-metallic/40 hover:-translate-y-1 hover:scale-105"
+                  className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-gold-metallic to-gold-light opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 sama-gradient-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   <span className="relative">Ouvrir un compte</span>
                 </button>
               </div>
@@ -72,11 +116,11 @@ export default function Home() {
                 const servicesSection = document.querySelector('[aria-label="Nos services"]');
                 servicesSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              className="group flex flex-col items-center gap-2 text-night/70 hover:text-gold-metallic transition-all duration-300"
+              className="group flex flex-col items-center gap-2 sama-text-secondary hover:sama-text-gold transition-all duration-300"
               aria-label="Faire défiler vers le bas"
             >
               <span className="text-sm font-light tracking-wide">Découvrir</span>
-              <div className="w-8 h-8 border-2 border-night/30 rounded-full flex items-center justify-center group-hover:border-gold-metallic/60 transition-colors duration-300">
+              <div className="w-8 h-8 border-2 sama-border-light rounded-full flex items-center justify-center group-hover:border-sama-accent-gold/60 transition-colors duration-300">
                 <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
               </div>
             </button>
@@ -84,62 +128,62 @@ export default function Home() {
         </section>
 
         {/* Services Section */}
-        <section className="py-32 bg-gradient-to-br from-white via-white-smoke to-gold-light/30" aria-label="Nos services">
+        <section className="py-32 sama-gradient-bg-light" aria-label="Nos services">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
-              <h2 className="text-5xl lg:text-6xl text-night font-extralight mb-6 tracking-tight">
+              <h2 className="text-5xl lg:text-6xl sama-text-primary font-extralight mb-6 tracking-tight">
                 Deux solutions,
-                <span className="block bg-gradient-to-r from-gold-dark to-gold-metallic bg-clip-text text-transparent font-light">
+                <span className="block sama-text-highlight font-light">
                   un objectif
                 </span>
               </h2>
-              <p className="text-xl text-gray-medium font-light max-w-2xl mx-auto">
+              <p className="text-xl sama-text-secondary font-light max-w-2xl mx-auto">
                 Choisissez la solution qui correspond parfaitement à vos ambitions financières
               </p>
             </div>
 
             <div className="grid lg:grid-cols-2 gap-10">
               {/* Sama Naffa Card */}
-              <div className="group relative bg-white/70 backdrop-blur-sm rounded-3xl p-10 border border-gold-metallic/10 hover:border-gold-metallic/30 transition-all duration-700 hover:shadow-2xl hover:shadow-gold-metallic/10 hover:-translate-y-2">
-                {/* Subtle gold accent */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-primary-green/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-primary-green/10 hover:-translate-y-2">
+                {/* Subtle accent */}
+                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-primary rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 <div className="space-y-8">
                   <div className="flex items-start gap-6">
                     <div className="relative">
-                      <div className="w-16 h-16 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-3xl flex items-center justify-center group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
-                        <DevicePhoneMobileIcon className="w-8 h-8 text-gold-metallic" />
+                      <div className="w-16 h-16 sama-bg-light-green rounded-3xl flex items-center justify-center group-hover:bg-sama-primary-green/10 transition-all duration-300">
+                        <DevicePhoneMobileIcon className="w-8 h-8 sama-text-green" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light text-night mb-2">Sama Naffa</h3>
-                      <p className="text-gray-medium text-lg font-light">Épargne Inclusive Moderne</p>
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">Sama Naffa</h3>
+                      <p className="sama-text-secondary text-lg font-light">Épargne Inclusive Moderne</p>
                     </div>
                   </div>
                   
-                  <p className="text-gray-dark leading-relaxed text-lg font-light">
+                  <p className="sama-text-secondary leading-relaxed text-lg font-light">
                     Épargne intelligente avec objectifs personnalisés, comptes joints et défis d'épargne communautaires pour une gestion financière moderne.
                   </p>
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Objectifs d'épargne personnalisés</span>
+                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Objectifs d'épargne personnalisés</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Comptes joints et tontines digitales</span>
+                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Comptes joints et tontines digitales</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Défis d'épargne motivants</span>
+                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Défis d'épargne motivants</span>
                     </div>
                   </div>
                   
                   <Link 
                     href="/sama-naffa"
-                    className="inline-flex items-center gap-3 text-night font-medium hover:text-gold-metallic transition-all duration-300 group/link pt-4"
+                    className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
                     <span className="text-lg">Découvrir Sama Naffa</span>
                     <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
@@ -148,46 +192,46 @@ export default function Home() {
               </div>
 
               {/* APE Card */}
-              <div className="group relative bg-white/70 backdrop-blur-sm rounded-3xl p-10 border border-gold-metallic/10 hover:border-gold-metallic/30 transition-all duration-700 hover:shadow-2xl hover:shadow-gold-metallic/10 hover:-translate-y-2">
-                {/* Subtle gold accent */}
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-accent-gold/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-accent-gold/10 hover:-translate-y-2">
+                {/* Subtle accent */}
+                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-accent rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 <div className="space-y-8">
                   <div className="flex items-start gap-6">
                     <div className="relative">
-                      <div className="w-16 h-16 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-3xl flex items-center justify-center group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
-                        <BuildingLibraryIcon className="w-8 h-8 text-gold-metallic" />
+                      <div className="w-16 h-16 bg-sama-accent-gold/10 rounded-3xl flex items-center justify-center group-hover:bg-sama-accent-gold/20 transition-all duration-300">
+                        <BuildingLibraryIcon className="w-8 h-8 sama-text-gold" />
                       </div>
-                      <div className="absolute -top-1 -right-1 w-6 h-6 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light text-night mb-2">Emprunt Obligataire</h3>
-                      <p className="text-gray-medium text-lg font-light">Appel Public à l'Épargne</p>
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">Emprunt Obligataire</h3>
+                      <p className="sama-text-secondary text-lg font-light">Appel Public à l'Épargne</p>
                     </div>
                   </div>
                   
-                  <p className="text-gray-dark leading-relaxed text-lg font-light">
+                  <p className="sama-text-secondary leading-relaxed text-lg font-light">
                     Investissement sécurisé dans les obligations d'État avec rendement fixe garanti et échéances définies pour une croissance stable.
                   </p>
                   
                   <div className="space-y-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Rendement fixe garanti de 8%</span>
+                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Rendement fixe garanti de 8%</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Sécurisé par l'État du Sénégal</span>
+                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Sécurisé par l'État du Sénégal</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 bg-gradient-to-r from-gold-dark to-gold-metallic rounded-full"></div>
-                      <span className="text-gray-dark font-light">Calculateur de rendement intégré</span>
+                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
+                      <span className="sama-text-secondary font-light">Calculateur de rendement intégré</span>
                     </div>
                   </div>
                   
                   <Link 
                     href="/ape"
-                    className="inline-flex items-center gap-3 text-night font-medium hover:text-gold-metallic transition-all duration-300 group/link pt-4"
+                    className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
                     <span className="text-lg">Explorer l'APE</span>
                     <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
