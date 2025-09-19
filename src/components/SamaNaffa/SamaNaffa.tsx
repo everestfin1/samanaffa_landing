@@ -115,12 +115,10 @@ export default function SamaNaffa() {
 
   return (
     <div className="min-h-screen">
-      {/* Skip to content */}
-      <a href="#main" className="skip-link">Aller au contenu principal</a>
       
       {/* Hero Section */}
       <main id="main">
-        <section className="relative pt-32 pb-16 overflow-hidden h-[60vh]" aria-label="Sama Naffa Hero">
+        <section className="relative pt-32 pb-20 overflow-hidden max-h-[50vh] flex items-center" aria-label="Sama Naffa Hero">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
@@ -133,53 +131,66 @@ export default function SamaNaffa() {
             />
           </div>
 
-          {/* Enhanced dark overlay for better text contrast */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/80 to-white/30 "></div>
+          {/* Enhanced gradient overlay with brand colors */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-sama-accent-gold/20 to-sama-primary-green/20"></div>
           
-          <div className="relative max-w-6xl mx-auto px-6 h-full flex items-center">
-            <div className="text-center w-full">
-              <h1 className="text-4xl lg:text-6xl text-white font-bold tracking-tight mb-6 ">
+          <div className="relative max-w-7xl mx-auto px-6 w-full">
+            <div className="text-center max-w-5xl mx-auto">
+              <h1 className="sama-heading-hero text-white mb-6 tracking-tight">
                 Sama Naffa
-                <span className="block text-2xl lg:text-3xl text-white/95 font-medium mt-2">
+                <span className="block text-2xl lg:text-4xl max-w-[600px] mx-auto sama-text-gold font-medium mt-3">
                   Épargne Intelligente pour l'Afrique de l'Ouest
                 </span>
               </h1>
-
-              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto ">
-                Révolutionnez vos habitudes d'épargne avec des outils modernes
-                adaptés à la culture financière sénégalaise.
-              </p>
             </div>
           </div>
         </section>
-        {/* Features Grid - Horizontal Layout */}
-        <section className="py-16" aria-label="Fonctionnalités principales">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl lg:text-4xl text-[#01081b] font-bold mb-4 tracking-tight">
+        {/* Features Grid - Enhanced Layout */}
+        <section className="py-20 bg-gradient-to-b from-white to-[#F2F8F4]" aria-label="Fonctionnalités principales">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-16">
+              <h2 className="sama-heading-section mb-6">
                 Fonctionnalités Principales
               </h2>
-              <p className="text-lg text-gray-600 font-normal max-w-2xl mx-auto">
+              <p className="sama-body-large max-w-3xl mx-auto">
                 Des outils modernes pour une épargne intelligente et culturellement adaptée
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
               {features.map((feature, index) => (
-                <div key={index} className="bg-white rounded-2xl p-8 border border-[#435933]/20 hover:border-[#435933]/40 hover:shadow-xl transition-all duration-300">
+                <div key={index} className="sama-card-feature group">
                   <div className="flex items-start gap-6">
                     <div className="flex-shrink-0">
-                      <div className="w-14 h-14 bg-[#435933]/10 rounded-xl flex items-center justify-center">
-                        <feature.icon className="w-7 h-7 text-[#435933]" />
+                      <div className="w-16 h-16 bg-gradient-to-br from-[#435933] to-[#30461f] rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                        <feature.icon className="w-8 h-8 text-white" />
                       </div>
                     </div>
-                    <div>
-                      <h3 className="text-xl font-semibold text-[#01081b] mb-3">{feature.title}</h3>
-                      <p className="text-gray-600 leading-relaxed font-normal">{feature.description}</p>
+                    <div className="flex-1">
+                      <h3 className="sama-heading-card mb-4">{feature.title}</h3>
+                      <p className="sama-body-regular leading-relaxed">{feature.description}</p>
                     </div>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Additional Trust Indicators */}
+            <div className="mt-16 text-center">
+              <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+                <div className="flex items-center gap-2">
+                  <ShieldCheckIcon className="w-5 h-5 text-[#435933]" />
+                  <span className="sama-body-small">Sécurisé & Régulé</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <DevicePhoneMobileIcon className="w-5 h-5 text-[#435933]" />
+                  <span className="sama-body-small">Mobile First</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StarIcon className="w-5 h-5 text-[#C38D1C]" />
+                  <span className="sama-body-small">Taux Préférentiels</span>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -192,43 +203,71 @@ export default function SamaNaffa() {
 
         {/* Form Display Section */}
         {showForm && formData && (
-          <div ref={summaryRef} className="py-16 bg-white">
-            <div className="max-w-2xl mx-auto px-6">
-              <div className="bg-white rounded-2xl lg:rounded-[35px] p-8 border border-[#435933]/20 shadow-xl">
-                <h3 className="text-2xl font-bold text-[#01081b] mb-6 text-center">
-                  Récapitulatif de votre plan d'épargne
-                </h3>
-                <div className="space-y-4 mb-8">
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                    <span className="font-semibold text-[#01081b]">Objectif:</span>
-                    <span className="text-gray-600">{formData.objective}</span>
+          <div ref={summaryRef} className="py-20 bg-gradient-to-b from-[#F2F8F4] to-white">
+            <div className="max-w-3xl mx-auto px-6">
+              <div className="sama-card p-8 lg:p-12 relative overflow-hidden">
+                {/* Decorative background elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#435933]/5 to-[#C38D1C]/5 rounded-full -translate-y-16 translate-x-16"></div>
+                <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-[#C38D1C]/5 to-[#435933]/5 rounded-full translate-y-12 -translate-x-12"></div>
+                
+                <div className="relative">
+                  <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-[#435933] to-[#30461f] rounded-2xl mb-4">
+                      <CheckCircleIcon className="w-8 h-8 text-white" />
+                    </div>
+                    <h3 className="sama-heading-section mb-3">
+                      Récapitulatif de votre plan d'épargne
+                    </h3>
+                    <p className="sama-body-regular text-[#4d525f]">
+                      Votre plan personnalisé est prêt. Vous pouvez le modifier ou commencer immédiatement.
+                    </p>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                    <span className="font-semibold text-[#01081b]">Montant mensuel:</span>
-                    <span className="text-gray-600">{formData.monthlyAmount.toLocaleString()} FCFA</span>
+
+                  <div className="space-y-4 mb-10">
+                    <div className="sama-card-feature p-6">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-regular font-semibold">Objectif:</span>
+                        <span className="sama-body-regular text-[#435933] font-medium">{formData.objective}</span>
+                      </div>
+                    </div>
+                    <div className="sama-card-feature p-6">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-regular font-semibold">Montant mensuel:</span>
+                        <span className="sama-body-regular text-[#435933] font-medium">{formData.monthlyAmount.toLocaleString()} FCFA</span>
+                      </div>
+                    </div>
+                    <div className="sama-card-feature p-6">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-regular font-semibold">Durée:</span>
+                        <span className="sama-body-regular text-[#435933] font-medium">{formData.duration} ans</span>
+                      </div>
+                    </div>
+                    <div className="sama-card-feature p-6 border-2 border-[#435933]/20 bg-gradient-to-r from-[#435933]/5 to-[#C38D1C]/5">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-large font-bold">Capital final estimé:</span>
+                        <span className="sama-body-large font-bold text-[#435933]">{formData.projectedAmount.toLocaleString()} FCFA</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                    <span className="font-semibold text-[#01081b]">Durée:</span>
-                    <span className="text-gray-600">{formData.duration} ans</span>
+
+                  <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                    <button
+                      onClick={handleModifyPlan}
+                      className="group relative px-8 py-4 bg-transparent text-[#435933] font-semibold text-lg rounded-2xl border-2 border-[#435933] overflow-hidden transition-all duration-300 hover:bg-[#435933] hover:text-white hover:shadow-xl hover:-translate-y-1"
+                    >
+                      <span className="relative">Modifier le plan</span>
+                    </button>
+                    <button 
+                      onClick={handleStartNow}
+                      className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      <span className="relative flex items-center gap-2">
+                        Commencer maintenant
+                        <ArrowRightIcon className="w-5 h-5" />
+                      </span>
+                    </button>
                   </div>
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                    <span className="font-bold text-[#01081b]">Capital final estimé:</span>
-                    <span className="font-bold text-[#435933] text-lg">{formData.projectedAmount.toLocaleString()} FCFA</span>
-                  </div>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <button
-                    onClick={handleModifyPlan}
-                    className="px-6 py-3 bg-gray-100 text-[#01081b] font-semibold rounded-xl hover:bg-gray-200 transition-colors"
-                  >
-                    Modifier le plan
-                  </button>
-                  <button 
-                    onClick={handleStartNow}
-                    className="px-8 py-3 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-xl hover:shadow-xl transition-all duration-300"
-                  >
-                    Commencer maintenant
-                  </button>
                 </div>
               </div>
             </div>

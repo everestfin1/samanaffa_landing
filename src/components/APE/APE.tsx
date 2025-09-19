@@ -100,189 +100,238 @@ export default function APE() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Skip to content */}
-      <a href="#main" className="skip-link">Aller au contenu principal</a>
-      
+    <div className="min-h-screen">    
       {/* Hero Section */}
       <main id="main">
-        <section className="relative overflow-hidden bg-white h-[60vh] -mt-20" aria-label="APE Hero">
+        <section className="relative pt-32 pb-20 overflow-hidden max-h-[50vh] flex items-center" aria-label="APE Hero">
           {/* Background Image */}
-          <div className="absolute inset-0">
+          {/* <div className="absolute inset-0">
             <Image
               src="/momar_bg.jpg"
-              alt="Background"
+              alt="APE - Emprunt Obligataire État du Sénégal"
               fill
-              className="object-cover"
+              className="object-cover object-center"
               priority
+              quality={90}
             />
-          </div>
+          </div> */}
           
           {/* Dark overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-br from-night/60 via-night/90 to-night/70"></div>
+          <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-sama-accent-gold/50 to-sama-primary-green/50"></div>
           
           {/* Subtle metallic accent overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-gold-metallic/5 via-transparent to-gold-metallic/10"></div>
+          {/* <div className="absolute inset-0 bg-gradient-to-br from-sama-accent-gold/40 via-transparent to-sama-primary-green/40"></div> */}
+          {/* <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-sama-accent-gold/20 to-sama-primary-green/20"></div> */}
+
           
-          <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
-            <div className="text-center w-full">
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gold-metallic/10 backdrop-blur-sm border border-gold-metallic/20 rounded-full text-sm font-medium mb-8">
-                <ShieldCheckIcon className="w-5 h-5 text-gold-metallic" />
-                <span className="bg-gradient-to-r from-gold-dark to-gold-metallic bg-clip-text text-transparent font-semibold">
+          <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center">
+            <div className="text-center w-full max-w-5xl mx-auto">
+              {/* <div className="inline-flex items-center gap-3 px-6 py-3 bg-sama-accent-gold/10 backdrop-blur-sm border border-sama-accent-gold/30 rounded-full text-sm font-medium mb-4">
+                <ShieldCheckIcon className="w-5 h-5" />
+                <span className="text-white font-semibold">
                   Garantie État du Sénégal
                 </span>
-              </div>
+              </div> */}
 
-              <h1 className="text-4xl lg:text-6xl text-white font-light tracking-tight mb-6 ">
+              <h1 className="sama-heading-hero sama-text-primary mb-6 tracking-tight">
                 Emprunt Obligataire
-                <span className="block text-2xl lg:text-3xl text-white/95 font-light mt-2">
+                <span className="block text-2xl lg:text-4xl sama-text-gold font-medium mt-3">
                   Appel Public à l'Épargne
                 </span>
               </h1>
 
-              <p className="text-lg lg:text-xl text-white/95 font-light max-w-3xl mx-auto ">
+              {/* <p className="sama-body-large text-white/95 max-w-4xl mx-auto mb-8 leading-relaxed">
                 Investissement sécurisé dans les obligations d'État avec rendements fixes garantis.
-                <br className="hidden lg:block" />
                 Participez au financement des projets stratégiques du Sénégal.
-              </p>
+              </p> */}
             </div>
           </div>
         </section>
 
-        {/* Key Stats Section - Moved down from hero */}
-        <section className="py-16 bg-gradient-to-br from-white via-gold-light/30 to-gold-metallic/10" aria-label="Statistiques clés">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="flex justify-center items-center gap-8 lg:gap-12 text-center">
-              <div className="group">
-                <div className="text-3xl lg:text-4xl font-light text-gold-metallic mb-2">300 Milliards FCFA</div>
-                <div className="text-sm text-gray-medium uppercase tracking-wider font-medium">Programme</div>
+        {/* Key Stats Section - Enhanced */}
+        <section className="py-20 bg-gradient-to-b from-white to-[#F2F8F4]" aria-label="Statistiques clés">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="sama-heading-section mb-4">
+                Programme d'Émission
+              </h2>
+              <p className="sama-body-large max-w-2xl mx-auto">
+                Un investissement d'État sécurisé avec des rendements attractifs
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-sama-accent-gold rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <BanknotesIcon className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl lg:text-4xl font-bold text-sama-accent-gold mb-2">300 Milliards</div>
+                <div className="sama-body-small uppercase tracking-wider font-medium">Programme Total FCFA</div>
               </div>
-              <div className="w-px h-16 bg-gold-metallic/20"></div>
-              <div className="group">
-                <div className="text-3xl lg:text-4xl font-light text-gold-metallic mb-2">7.07%</div>
-                <div className="text-sm text-gray-medium uppercase tracking-wider font-medium">Rendement Max</div>
+              
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#435933] to-[#30461f] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <ArrowTrendingUpIcon className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl lg:text-4xl font-bold text-[#435933] mb-2">7.07%</div>
+                <div className="sama-body-small uppercase tracking-wider font-medium">Rendement Maximum</div>
               </div>
-              <div className="w-px h-16 bg-gold-metallic/20"></div>
-              <div className="group">
-                <div className="text-3xl lg:text-4xl font-light text-gold-metallic mb-2">10,000 FCFA</div>
-                <div className="text-sm text-gray-medium uppercase tracking-wider font-medium">Minimum</div>
+              
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-sama-accent-gold rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <CheckCircleIcon className="w-8 h-8 text-white" />
+                </div>
+                <div className="text-3xl lg:text-4xl font-bold text-sama-accent-gold mb-2">10,000</div>
+                <div className="sama-body-small uppercase tracking-wider font-medium">Minimum FCFA</div>
               </div>
             </div>
           </div>
         </section>
 
         {/* Investment Tranches - Main Content */}
-        <section className="py-20 bg-white" aria-label="Tranches d'investissement APE">
-          <div className="max-w-6xl mx-auto px-6">
+        <section className="py-20 bg-gradient-to-b from-[#F2F8F4] to-white" aria-label="Tranches d'investissement APE">
+          <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-16">
-              <h2 className="text-3xl lg:text-4xl text-night font-light mb-4 tracking-tight">
+              <h2 className="sama-heading-section mb-6">
                 Choisissez Votre Tranche d'Investissement
               </h2>
-              <p className="text-lg text-gray-medium font-light max-w-2xl mx-auto">
-                4 options d'investissement adaptées à vos objectifs financiers
+              <p className="sama-body-large max-w-3xl mx-auto">
+                4 options d'investissement adaptées à vos objectifs financiers avec des rendements garantis par l'État
               </p>
             </div>
 
             {/* Tranches Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12 mb-16">
               {investmentTranches.map((tranche, index) => (
                 <div
                   key={tranche.id}
-                  className="group relative bg-white rounded-3xl p-8 border border-gold-metallic/10 hover:border-gold-metallic/30 transition-all duration-500 hover:shadow-2xl hover:shadow-gold-metallic/10 hover:-translate-y-2"
+                  className="sama-card group relative p-8 lg:p-10 bg-white rounded-2xl border-2 border-[#435933]/10 hover:border-[#C38D1C]/30 shadow-xl hover:shadow-2xl hover:shadow-[#C38D1C]/10 transition-all duration-500 hover:-translate-y-2 overflow-hidden"
                 >
+                  {/* Accent border */}
+                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#C38D1C] to-[#435933] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                  
                   {/* Card Header */}
                   <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-gold-metallic/10 to-gold-metallic/5 rounded-2xl mb-6 group-hover:from-gold-metallic/20 group-hover:to-gold-metallic/10 transition-all duration-300">
-                      <span className="text-2xl font-bold text-gold-metallic">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#C38D1C] to-[#b3830f] rounded-3xl mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                      <span className="text-3xl font-bold text-white">
                         {tranche.id}
                       </span>
                     </div>
                     
-                    <h3 className="text-2xl font-semibold text-night mb-2">
+                    <h3 className="sama-heading-card mb-4">
                       Tranche {tranche.id}
                     </h3>
                     
-                    <div className="text-6xl font-bold text-gold-metallic mb-2 leading-none">
+                    <div className="text-5xl lg:text-6xl font-bold text-[#C38D1C] mb-3 leading-none">
                       {tranche.rate.toFixed(2)}%
                     </div>
 
-                    <div className="text-lg text-gray-medium font-light">
+                    <div className="sama-body-regular text-[#4d525f]">
                       {tranche.duration} • {tranche.nominalValue}
                     </div>
                   </div>
 
                   {/* Card Details */}
                   <div className="space-y-4 mb-8">
-                    <div className="flex justify-between items-center py-3 px-4 bg-gold-metallic/5 rounded-xl">
-                      <span className="text-gray-600 font-medium">Montant du programme</span>
-                      <span className="font-bold text-night text-lg">{tranche.amount}</span>
+                    <div className="sama-card-feature p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-regular font-medium">Montant du programme</span>
+                        <span className="sama-body-regular font-bold text-[#435933]">{tranche.amount}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center py-3 px-4 bg-gold-metallic/5 rounded-xl">
-                      <span className="text-gray-600 font-medium">Valeur nominale</span>
-                      <span className="font-bold text-night text-lg">{tranche.nominalValue}</span>
+                    <div className="sama-card-feature p-4">
+                      <div className="flex justify-between items-center">
+                        <span className="sama-body-regular font-medium">Valeur nominale</span>
+                        <span className="sama-body-regular font-bold text-[#435933]">{tranche.nominalValue}</span>
+                      </div>
                     </div>
                   </div>
                   
-                  <hr className="my-6 border-gold-metallic/20" />
+                  <hr className="my-6 border-[#435933]/20" />
 
                   {/* Additional Info */}
-                  <div className="space-y-3 mb-8">
+                  <div className="space-y-4 mb-8">
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Coupon:</span>
-                      <span className="font-bold text-gold-metallic text-lg">{tranche.coupon}%</span>
+                      <span className="sama-body-regular font-semibold">Coupon:</span>
+                      <span className="sama-body-regular font-bold text-[#C38D1C]">{tranche.coupon}%</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Maturité:</span>
-                      <span className="font-medium text-gray-700">{tranche.additionalInfo.maturite}</span>
+                      <span className="sama-body-regular font-semibold">Maturité:</span>
+                      <span className="sama-body-regular text-[#4d525f]">{tranche.additionalInfo.maturite}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Différé:</span>
-                      <span className="font-medium text-gray-700">{tranche.additionalInfo.differe}</span>
+                      <span className="sama-body-regular font-semibold">Différé:</span>
+                      <span className="sama-body-regular text-[#4d525f]">{tranche.additionalInfo.differe}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <span className="font-semibold text-gray-700">Remboursement:</span>
-                      <span className="font-medium text-gray-700">{tranche.additionalInfo.remboursement}</span>
+                      <span className="sama-body-regular font-semibold">Remboursement:</span>
+                      <span className="sama-body-regular text-[#4d525f]">{tranche.additionalInfo.remboursement}</span>
                     </div>
                   </div>
 
                   {/* CTA Button */}
                   <button
                     onClick={() => handleTrancheSelection(tranche.id)}
-                    className="w-full px-6 py-4 bg-gradient-to-r from-gold-dark to-gold-metallic text-night font-bold text-lg rounded-2xl hover:shadow-xl hover:shadow-gold-metallic/30 transition-all duration-300 hover:-translate-y-1 group/btn"
+                    className="group/btn relative w-full px-8 py-5 bg-gradient-to-r from-[#C38D1C] to-[#b3830f] text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-[#C38D1C]/40 hover:-translate-y-2 hover:scale-105"
                   >
-                    <span className="flex items-center justify-center">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700"></div>
+                    <span className="relative flex items-center justify-center gap-2">
                       Je souscris
-                      <ArrowRightIcon className="w-5 h-5 ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />
+                      <ArrowRightIcon className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform duration-300" />
                     </span>
                   </button>
                 </div>
               ))}
             </div>
             
-            {/* Key Benefits - Replaced with enhanced stats */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center p-8 bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-3xl border border-gold-metallic/10 hover:border-gold-metallic/20 transition-all duration-300">
-                <ShieldCheckIcon className="w-16 h-16 text-gold-metallic mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-night mb-4">Garantie d'État</h3>
-                <p className="text-gray-medium font-light text-lg leading-relaxed">
-                  Investissement 100% sécurisé par l'État du Sénégal
+            {/* Key Benefits - Enhanced */}
+            <div className="grid md:grid-cols-3 gap-8 lg:gap-12 mt-8">
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#435933] to-[#30461f] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <ShieldCheckIcon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="sama-heading-card mb-4">Garantie d'État</h3>
+                <p className="sama-body-regular leading-relaxed">
+                  Investissement 100% sécurisé par l'État du Sénégal avec protection totale du capital
                 </p>
               </div>
               
-              <div className="text-center p-8 bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-3xl border border-gold-metallic/10 hover:border-gold-metallic/20 transition-all duration-300">
-                <ArrowTrendingUpIcon className="w-16 h-16 text-gold-metallic mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-night mb-4">Rendements Fixes</h3>
-                <p className="text-gray-medium font-light text-lg leading-relaxed">
-                  Taux garantis de 6.40% à 7.07% selon la durée
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-gradient-to-br from-[#C38D1C] to-[#b3830f] rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <ArrowTrendingUpIcon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="sama-heading-card mb-4">Rendements Fixes</h3>
+                <p className="sama-body-regular leading-relaxed">
+                  Taux garantis de 6.40% à 7.07% selon la durée d'investissement choisie
                 </p>
               </div>
               
-              <div className="text-center p-8 bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-3xl border border-gold-metallic/10 hover:border-gold-metallic/20 transition-all duration-300">
-                <CalendarDaysIcon className="w-16 h-16 text-gold-metallic mx-auto mb-6" />
-                <h3 className="text-2xl font-semibold text-night mb-4">Paiements Réguliers</h3>
-                <p className="text-gray-medium font-light text-lg leading-relaxed">
-                  Intérêts versés tous les 6 mois
+              <div className="sama-card-feature text-center p-8 group">
+                <div className="w-16 h-16 bg-sama-primary-green rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                  <CalendarDaysIcon className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="sama-heading-card mb-4">Paiements Réguliers</h3>
+                <p className="sama-body-regular leading-relaxed">
+                  Intérêts versés tous les 6 mois directement sur votre compte
                 </p>
+              </div>
+            </div>
+            
+            {/* Additional Trust Indicators */}
+            <div className="mt-16 text-center">
+              <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+                <div className="flex items-center gap-2">
+                  <ShieldCheckIcon className="w-5 h-5 text-[#435933]" />
+                  <span className="sama-body-small">Régulé par l'État</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <BuildingLibraryIcon className="w-5 h-5 text-[#C38D1C]" />
+                  <span className="sama-body-small">Obligations Souveraines</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StarIcon className="w-5 h-5 text-[#C38D1C]" />
+                  <span className="sama-body-small">Rendements Garantis</span>
+                </div>
               </div>
             </div>
           </div>
