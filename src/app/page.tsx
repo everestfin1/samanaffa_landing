@@ -78,20 +78,20 @@ export default function Home() {
             )}
           </div>
           
-          <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center pt-20">
-            <div className="text-center space-y-16 w-full">
+          <div className="relative max-w-[500px] mx-auto px-6 h-full flex items-center pt-20">
+            <div className="text-center space-y-8 w-full">
               
               {/* Main heading */}
               <div className="space-y-4">
-                <h1 className="text-6xl lg:text-8xl pb-4 sama-text-primary font-extralight tracking-tight leading-none">
-                  Votre épargne,
+                <h1 className="text-6xl lg:text-8xl pb-4 font-extralight tracking-tight leading-none">
+                  <span className="sama-text-green">Épargne</span>
                   <br />
-                  <span className="sama-text-highlight font-light">
-                    notre expertise
-                  </span>
+                  <span className="sama-text-gold font-light">intelligemment</span>
+                  <br />
+                  <span className="sama-text-green">pour réaliser tes projets</span>
                 </h1>
-                <p className="text-xl lg:text-2xl sama-text-secondary max-w-xl mx-auto font-normal leading-relaxed">
-                    La plateforme d'épargne et d'investissement de référence au Sénégal.
+                <p className="text-xl lg:text-2xl sama-text-primary max-w-[300px] mx-auto font-normal leading-relaxed">
+                    Rejoignez la révolution de l'épargne digitale en Afrique de l'Ouest avec <span className="sama-text-green">Sama Naffa</span>.
                 </p>
               </div>
 
@@ -101,7 +101,7 @@ export default function Home() {
                   onClick={() => router.push('/register')}
                   className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
                 >
-                  <div className="absolute inset-0 sama-gradient-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   <span className="relative">Ouvrir un compte</span>
                 </button>
               </div>
@@ -110,7 +110,7 @@ export default function Home() {
           </div>
           
           {/* Scroll Down Indicator */}
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 animate-bounce">
             <button 
               onClick={() => {
                 const servicesSection = document.querySelector('[aria-label="Nos services"]');
@@ -128,7 +128,7 @@ export default function Home() {
         </section>
 
         {/* Services Section */}
-        <section className="py-32 sama-gradient-bg-light" aria-label="Nos services">
+        <section className="py-32 " aria-label="Nos services">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-5xl lg:text-6xl sama-text-primary font-extralight mb-6 tracking-tight">

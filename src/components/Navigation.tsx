@@ -107,11 +107,11 @@ export default function Navigation() {
     <header
       className={`${
         isOverLightBackground
-          ? 'sama-bg-card/95 border-b sama-border-light shadow-lg'
+          ? 'bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg'
           : isHomePage
             ? ''
-            : 'sama-bg-card/95 border-b sama-border-light shadow-lg'
-      } sticky top-0 z-50  transition-all duration-300`}
+            : 'bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg'
+      } sticky top-0 z-50 transition-all duration-300`}
       role="banner"
       suppressHydrationWarning
     >
@@ -174,7 +174,7 @@ export default function Navigation() {
                   alt="Sama Naffa"
                   width={160}
                   height={53}
-                  className="h-14 w-auto"
+                  className="h-16 w-auto"
                   priority
                 />
               </Link>
@@ -201,26 +201,30 @@ export default function Navigation() {
                 </Link>
                 <Link 
                   href="/portal"
-                  className="sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1"
+                  className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
-                  Tableau de bord
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <span className="relative">Tableau de bord</span>
                 </Link>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
                 <Link 
                   href="/login"
-                    className={`transition-colors text-sm font-medium  ${
-                      isOverLightBackground
-                        ? 'sama-text-secondary hover:sama-text-primary'
-                        : isHomePage
-                          ? 'sama-text-primary/80 hover:sama-text-primary'
-                          : 'sama-text-secondary hover:sama-text-primary'
-                    }`}
+                  className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <span className="relative">Se connecter</span>
+                </Link>
+                {!isHomePage && (
+                  <Link 
+                    href="/register"
+                    className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                   >
-                    Se connecter
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    <span className="relative">Ouvrir mon compte</span>
                   </Link>
-
+                )}
                 </div>
               )
             ) : (
@@ -228,14 +232,20 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
-                  className={`transition-colors text-sm font-medium  ${
-                    isOverLightBackground
-                      ? 'sama-text-secondary hover:sama-text-primary'
-                      : 'sama-text-primary/80 hover:sama-text-primary'
-                  }`}
+                  className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                 >
-                  Se connecter
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                  <span className="relative">Se connecter</span>
                 </Link>
+                {!isHomePage && (
+                  <Link 
+                    href="/register"
+                    className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    <span className="relative">Ouvrir mon compte</span>
+                  </Link>
+                )}
               </div>
             )}
           </div>
@@ -286,13 +296,7 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className={`md:hidden border-t backdrop-blur-md ${
-            isOverLightBackground
-              ? 'sama-bg-card/95 sama-border-light'
-              : isHomePage
-                ? 'border-white/20 sama-bg-card/95'
-                : 'sama-bg-card/95 sama-border-light'
-          }`}>
+          <div className={`md:hidden border-t border-white/20 bg-white/80 backdrop-blur-md`}>
             <div className="px-2 pt-2 pb-3 space-y-1">
               <Link
                 href="/"
@@ -338,19 +342,30 @@ export default function Navigation() {
                   </Link>
                   <Link 
                     href="/portal"
-                    className="w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors"
+                    className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors overflow-hidden"
                   >
-                    Tableau de bord
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    <span className="relative">Tableau de bord</span>
                   </Link>
                 </div>
               ) : (
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      className="w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors font-medium"
+                      className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors text-center overflow-hidden"
                     >
-                      Se connecter
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                      <span className="relative">Se connecter</span>
                     </Link>
+                    {!isHomePage && (
+                      <Link
+                        href="/register"
+                        className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors text-center overflow-hidden"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                        <span className="relative">Ouvrir mon compte</span>
+                      </Link>
+                    )}
                   </div>
                 )
               ) : (
@@ -364,9 +379,10 @@ export default function Navigation() {
                   </Link>
                   <Link 
                     href="/register"
-                    className="w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors"
+                    className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors overflow-hidden"
                   >
-                    Commencer
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                    <span className="relative">Commencer</span>
                   </Link>
                 </div>
               )}

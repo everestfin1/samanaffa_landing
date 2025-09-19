@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent } from "../ui/card";
-import { formatCurrency } from "../../lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatCurrency } from "@/lib/utils";
 import { personas, objectives } from "../data";
+import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from "next/image";
 
 // --- HELPER FUNCTIONS ---
@@ -112,9 +114,9 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
         monthlyAmount: mensualite,
         duration: Math.round((duree / 12) * 10) / 10, // in years
         projectedAmount: Math.round(capitalFinal),
-        simulationMode: simulationMode || 'objective',
-        selectedPersona: selectedPersona || undefined,
-        selectedObjective: selectedObjective || undefined,
+        simulationMode: simulationMode!,
+        selectedPersona: simulationMode === 'persona' ? selectedPersona : undefined,
+        selectedObjective: simulationMode === 'objective' ? selectedObjective || undefined : undefined,
     });
   }
 
@@ -123,7 +125,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
   // Initial choice prompt
   if (!simulationMode) {
     return (
-      <section className="text-center py-12 lg:py-20 px-4 rounded-2xl p-8 bg-[#435933]/10">
+      <section className="text-center py-12 lg:py-20 px-4 bg-white">
         <h2 className="font-bold text-[#01081b] text-2xl lg:text-[38px] leading-tight mb-4">
           Comment veux-tu commencer ?
         </h2>
@@ -133,17 +135,17 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
         <div className="flex flex-col sm:flex-row justify-center gap-4 lg:gap-8">
           <button
             onClick={() => handleModeSelect("objective")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] rounded-2xl text-[#435933] font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent hover:border-[#435933]/50"
+            className="group flex-1 max-w-sm px-8 py-6 bg-gradient-to-r from-[#30461f] to-[#435933] hover:from-[#243318] hover:to-[#364529] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Choisir un objectif
-            <span className="block text-sm font-normal text-gray-600 mt-1">Idéal si tu as un but précis en tête.</span>
+            <span className="block text-sm font-normal text-white/80 mt-1">Idéal si tu as un but précis en tête.</span>
           </button>
           <button
             onClick={() => handleModeSelect("persona")}
-            className="group flex-1 max-w-sm px-8 py-6 bg-white rounded-2xl text-[#01081b] font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-gray-200 hover:border-[#435933]/50"
+            className="group flex-1 max-w-sm px-8 py-6 bg-[#C38D1C] hover:bg-[#b3830f] text-white rounded-2xl font-bold text-lg transition-all duration-300 hover:shadow-xl hover:scale-105 border-2 border-transparent"
           >
             Trouver mon profil
-             <span className="block text-sm font-normal text-gray-600 mt-1">Laisse-nous te suggérer un point de départ.</span>
+             <span className="block text-sm font-normal text-white/80 mt-1">Laisse-nous te suggérer un point de départ.</span>
           </button>
         </div>
       </section>
@@ -152,10 +154,14 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
 
   // Main planner UI
   return (
-    <section id="savings-planner" className="relative w-full pt-12 lg:pt-[76px] px-4 lg:px-[148px] rounded-2xl p-8 bg-white mb-16">
+    <section id="savings-planner" className="relative w-full pt-12 lg:pt-[76px] px-4 lg:px-[148px] bg-white">
       {/* Back to choice button */}
       <div className="text-center mb-8">
-        <button onClick={() => setSimulationMode(null)} className="text-sm text-gray-600 hover:text-[#435933] underline">
+        <button
+          onClick={() => setSimulationMode(null)}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8f5e8] text-[#30461f] font-semibold text-sm shadow hover:bg-[#cbead0] hover:text-[#243318] transition-all duration-200 border border-[#bfe2c2]"
+        >
+          <RefreshCw className="w-4 h-4" />
             Changer ma méthode de simulation
         </button>
       </div>
@@ -193,11 +199,11 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                     }`}
                             >
                                 <Image
+                                    width={86}
+                                    height={86}
                                     className="absolute w-[64px] h-[64px] lg:w-[86px] lg:h-[86px] top-[28px] lg:top-[38px] left-[28px] lg:left-[38px] object-cover transition-transform duration-500 group-hover:scale-110"
                                     alt={objective.name}
                                     src={objective.icon}
-                                    width={86}
-                                    height={86}
                                 />
                                 {selectedObjective === objective.id && (
                                     <div className="absolute inset-0 rounded-full bg-[#435933]/10 animate-subtle-pulse"></div>
@@ -242,20 +248,71 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                 <label className="block text-base lg:text-lg font-medium text-[#060606]">
                                     Je me reconnais dans ce profil :
                                 </label>
-                                <select
-                                    value={selectedPersona}
-                                    onChange={(e) => handlePersonaChange(e.target.value)}
-                                    className="w-full p-3 lg:p-4 border-2 border-[#435933]/20 rounded-xl text-sm lg:text-base focus:border-[#435933] focus:outline-none transition-colors bg-[#e9f0e9] text-[#116237]"
-                                >
-                                    <option value="">
-                                        -- Choisissez votre profil --
-                                    </option>
-                                    {personas.map((persona) => (
-                                        <option key={persona.id} value={persona.id}>
-                                            {persona.emoji} {persona.shortName}
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="w-full flex items-center">
+                                    <button
+                                        type="button"
+                                        aria-label="Précédent"
+                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        onClick={() => {
+                                            const container = document.getElementById('personas-scroll');
+                                            if (container) container.scrollBy({ left: -120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronLeft className="w-6 h-6 text-[#435933]" />
+                                    </button>
+                                    <div id="personas-scroll" className="flex items-center py-2 gap-4 lg:gap-6 px-2 overflow-x-auto scrollbar-hide w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                        {personas.map((persona) => (
+                                            <button
+                                                key={persona.id}
+                                                type="button"
+                                                onClick={() => handlePersonaChange(persona.id)}
+                                                className={`group flex flex-col items-center cursor-pointer transition-all duration-300 ${selectedPersona === persona.id ? 'opacity-100' : 'opacity-80'} flex-shrink-0`}
+                                                aria-pressed={selectedPersona === persona.id}
+                                                style={{ minWidth: '80px' }}
+                                            >
+                                                <Image
+                                                    width={100}
+                                                    height={100}
+                                                    src={persona.icon}
+                                                    alt={persona.name}
+                                                    className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full mb-2 lg:mb-3 transition-all duration-300 border border-solid ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
+                                                    style={{objectFit: 'contain'}}
+                                                />
+                                                {(() => {
+                                                    let [prenom, qualification] = persona.shortName.split(",");
+                                                    // Cas spécial pour 'Profil personnalisé'
+                                                    if (persona.id === 'custom') {
+                                                        prenom = 'Profil';
+                                                        qualification = 'personnalisé';
+                                                    }
+                                                    return (
+                                                        <>
+                                                            <span className={`font-medium text-xs lg:text-base transition-all duration-300 text-center mb-0 lg:mb-1 w-full block ${selectedPersona === persona.id ? 'text-[#435933] font-bold' : 'text-[#060606] group-hover:text-[#435933]'}`}>
+                                                                {prenom}
+                                                            </span>
+                                                            {qualification && (
+                                                                <span className="block text-[10px] lg:text-xs text-gray-500 text-center w-full mt-0.5 lg:mt-1 leading-tight">
+                                                                    {qualification.trim()}
+                                                                </span>
+                                                            )}
+                                                        </>
+                                                    );
+                                                })()}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        type="button"
+                                        aria-label="Suivant"
+                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        onClick={() => {
+                                            const container = document.getElementById('personas-scroll');
+                                            if (container) container.scrollBy({ left: 120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronRight className="w-6 h-6 text-[#435933]" />
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -404,4 +461,4 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
       </div>
     </section>
   );
-};
+}; 

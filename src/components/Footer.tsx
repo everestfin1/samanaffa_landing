@@ -17,7 +17,7 @@ export default function Footer() {
   return (
     <footer className="relative sama-bg-secondary text-white py-24">
     {/* Subtle gradient overlay */}
-    <div className="absolute inset-0 bg-gradient-to-t from-sama-secondary-green via-sama-secondary-green to-sama-secondary-green/95"></div>
+    {/* <div className="absolute inset-0 bg-gradient-to-t from-sama-secondary-green via-sama-secondary-green to-sama-secondary-green/95"></div> */}
     
     <div className="relative max-w-6xl mx-auto px-6">
       <div className="grid lg:grid-cols-3 gap-16 items-start">
@@ -111,7 +111,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/10 mt-16 pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
-          <p>&copy; {currentYear} Sama Naffa. Tous droits réservés.</p>
+          <p>&copy; {currentYear} Everest Finance. Tous droits réservés.</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</a>
             <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Conditions d'utilisation</a>

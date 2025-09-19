@@ -10,7 +10,7 @@
   
   /* Secondary Brand Colors */
   --sama-secondary-green: #30461f;
-  --sama-secondary-green-light: #243318;
+  --sama-secondary-green-dark: #243318;
   
   /* Accent Colors */
   --sama-accent-gold: #C38D1C; 
@@ -87,7 +87,7 @@
   --color-sama-primary-green-light: var(--sama-primary-green-light);
   --color-sama-primary-green-dark: var(--sama-primary-green-dark);
   --color-sama-secondary-green: var(--sama-secondary-green);
-  --color-sama-secondary-green-light: var(--sama-secondary-green-light);
+  --color-sama-secondary-green-dark: var(--sama-secondary-green-dark);
   --color-sama-accent-gold: var(--sama-accent-gold);
   --color-sama-accent-gold-dark: var(--sama-accent-gold-dark);
   --color-sama-text-primary: var(--sama-text-primary);
@@ -365,8 +365,29 @@ html {
 .sama-text-green { color: var(--sama-primary-green); }
 .sama-text-gold { color: var(--sama-accent-gold); }
 
+/* Button Reflection Animation */
+.sama-button-reflection {
+  position: relative;
+  overflow: hidden;
+}
+
+.sama-button-reflection::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.7s ease;
+}
+
+.sama-button-reflection:hover::before {
+  left: 100%;
+}
+
 .sama-bg-primary { background-color: var(--sama-primary-green); }
-.sama-bg-secondary { background-color: var(--sama-secondary-green); }
+.sama-bg-secondary { background-color: var(--sama-secondary-green-dark); }
 .sama-bg-accent { background-color: var(--sama-accent-gold); }
 .sama-bg-light { background-color: var(--sama-bg-light); }
 .sama-bg-light-green { background-color: var(--sama-bg-light-green); }
