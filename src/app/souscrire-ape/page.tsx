@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
 import Button from "../../components/common/Button";
 import { ArrowLeft, CheckCircle, Upload, CreditCard, Building, FileText, Shield, TrendingUp } from "lucide-react";
 import Link from "next/link";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 
 export default function SouscrireAPEPage() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -104,8 +104,7 @@ export default function SouscrireAPEPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
-
+      <Navigation />
       <main>
         {/* Hero Section */}
         <section className="py-12 bg-card">

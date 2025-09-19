@@ -1,5 +1,5 @@
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import Simulator from "../../components/simulator/Simulator";
 import { ArrowLeft, Calculator, TrendingUp, Shield, Zap } from "lucide-react";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Button from "../../components/common/Button";
 export default function SimulatorPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+        <Navigation />
 
       <main>
         {/* Hero Section */}

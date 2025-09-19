@@ -1,5 +1,5 @@
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import Button from "../../components/common/Button";
 import { CheckCircle, Download, Share2, MessageCircle, Mail, Phone, ArrowRight, TrendingUp, Shield } from "lucide-react";
 import Link from "next/link";
@@ -7,7 +7,7 @@ import Link from "next/link";
 export default function SuccessPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Navigation />
 
       <main>
         {/* Success Hero */}

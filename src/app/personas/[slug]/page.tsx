@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import Header from "../../../components/common/Header";
-import Footer from "../../../components/common/Footer";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import Button from "../../../components/common/Button";
 import { personas, getPersonaBySlug } from "../../../content/personas";
 import { project, getFormattedRate, getRateDescription } from "../../../lib/rates";
@@ -34,7 +34,7 @@ export default function PersonaDetailPage({ params }: PersonaDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Navigation />
 
       <main>
         {/* Hero Section */}

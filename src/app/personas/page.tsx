@@ -1,5 +1,5 @@
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+import Navigation from "@/components/Navigation";
+import Footer from "@/components/Footer";
 import PersonaCard from "../../components/cards/PersonaCard";
 import { personas } from "../../content/personas";
 import { ArrowLeft } from "lucide-react";
@@ -9,7 +9,7 @@ import Button from "../../components/common/Button";
 export default function PersonasPage() {
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Navigation />
 
       <main>
         {/* Hero Section */}

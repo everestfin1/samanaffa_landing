@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, Suspense } from "react";
-import Header from "../../components/common/Header";
-import Footer from "../../components/common/Footer";
+import Footer from "@/components/Footer";
+import Navigation from "@/components/Navigation";
 import Button from "../../components/common/Button";
 import { ArrowLeft, CheckCircle, Upload, CreditCard, User, Target, Shield } from "lucide-react";
 import Link from "next/link";
@@ -106,7 +106,7 @@ function OuvrirCompteContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <Navigation />
 
       <main>
         {/* Hero Section */}
