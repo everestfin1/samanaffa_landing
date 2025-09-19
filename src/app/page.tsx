@@ -26,56 +26,82 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.3
+        staggerChildren: 0.2,
+        delayChildren: 0.4
       }
     }
   };
 
-  const lineVariants = {
+  // Main title line animations
+  const titleLineVariants = {
     hidden: { 
       opacity: 0, 
-      y: 50,
-      scale: 0.8
+      y: 80,
+      scale: 0.7,
+      rotateX: -15
     },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1
+      scale: 1,
+      rotateX: 0
     }
   };
 
+  // Individual word animations for more dynamic effect
   const wordVariants = {
     hidden: { 
       opacity: 0, 
-      y: 30,
-      scale: 0.9
+      y: 60,
+      scale: 0.8,
+      rotateY: -20
     },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1
+      scale: 1,
+      rotateY: 0
     }
   };
 
+  // Subtitle with slide and fade effect
   const subtitleVariants = {
     hidden: { 
       opacity: 0, 
-      y: 40,
-      scale: 0.95
+      y: 50,
+      scale: 0.9,
+      filter: "blur(10px)"
     },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1
+      scale: 1,
+      filter: "blur(0px)"
     }
   };
 
+  // Button with bounce and scale effect
   const buttonVariants = {
     hidden: { 
       opacity: 0, 
-      y: 30,
-      scale: 0.9
+      y: 40,
+      scale: 0.8,
+      rotateX: -10
+    },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      rotateX: 0
+    }
+  };
+
+  // Character-level animation for dramatic effect
+  const characterVariants = {
+    hidden: { 
+      opacity: 0, 
+      y: 20,
+      scale: 0.5
     },
     visible: {
       opacity: 1,
@@ -143,7 +169,7 @@ export default function Home() {
             )}
           </div>
           
-          <div className="relative max-w-[500px] mx-auto px-6 h-full flex items-center pt-20">
+          <div className="relative max-w-[600px] mx-auto px-6 h-full flex items-center pt-20">
             <motion.div 
               className="text-center space-y-8 w-full"
               variants={containerVariants}
@@ -152,60 +178,78 @@ export default function Home() {
             >
               
               {/* Main heading */}
-              <div className="space-y-4">
+              <div className="space-y-8">
                 <motion.h1 
-                  className="text-6xl lg:text-8xl pb-4 font-extralight tracking-tight leading-none"
+                  className="text-6xl lg:text-8xl sama-text-green font-extralight tracking-tight leading-none drop-shadow-2xl"
                   variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
                 >
                   <motion.div 
-                    variants={lineVariants} 
                     className="inline-block"
+                    variants={titleLineVariants}
                     transition={{ duration: 0.8, ease: "easeOut" }}
                   >
-                    <motion.span 
-                      className="sama-text-green"
+                    <motion.span
+                      className="inline-block"
                       variants={wordVariants}
                       transition={{ duration: 0.6, ease: "easeOut" }}
                     >
-                      Épargne
+                      Votre
+                    </motion.span>
+                    <motion.span
+                      className="inline-block ml-2"
+                      variants={wordVariants}
+                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.1 }}
+                    >
+                      épargne,
                     </motion.span>
                   </motion.div>
                   <br />
                   <motion.div 
-                    variants={lineVariants} 
                     className="inline-block"
-                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    variants={titleLineVariants}
+                    transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
                   >
                     <motion.span 
-                      className="sama-text-gold font-light"
+                      className="sama-text-gold font-light inline-block"
                       variants={wordVariants}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+                      whileHover={{ 
+                        scale: 1.05, 
+                        textShadow: "0 0 20px rgba(212, 175, 55, 0.5)",
+                        transition: { duration: 0.3 }
+                      }}
                     >
-                      intelligemment
+                      notre
                     </motion.span>
-                  </motion.div>
-                  <br />
-                  <motion.div 
-                    variants={lineVariants} 
-                    className="inline-block"
-                    transition={{ duration: 0.8, ease: "easeOut" }}
-                  >
                     <motion.span 
-                      className="sama-text-green"
+                      className="sama-text-gold font-light inline-block ml-2"
                       variants={wordVariants}
-                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      transition={{ duration: 0.6, ease: "easeOut", delay: 0.4 }}
+                      whileHover={{ 
+                        scale: 1.05, 
+                        textShadow: "0 0 20px rgba(212, 175, 55, 0.5)",
+                        transition: { duration: 0.3 }
+                      }}
                     >
-                      pour réaliser tes projets
+                      expertise
                     </motion.span>
                   </motion.div>
                 </motion.h1>
                 
                 <motion.p 
-                  className="text-xl lg:text-2xl sama-text-primary max-w-[300px] mx-auto font-normal leading-relaxed"
+                  className="text-xl lg:text-2xl sama-text-primary max-w-4xl mx-auto leading-relaxed drop-shadow-lg"
                   variants={subtitleVariants}
-                  transition={{ duration: 0.8, delay: 1.2, ease: "easeOut" }}
+                  initial="hidden"
+                  animate="visible"
+                  transition={{ duration: 0.7, delay: 0.8, ease: "easeOut" }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    transition: { duration: 0.3 }
+                  }}
                 >
-                    Rejoignez la révolution de l'épargne digitale en Afrique de l'Ouest avec <span className="sama-text-green">Sama Naffa</span>.
+                  La plateforme d'épargne et d'investissement de référence au Sénégal.
                 </motion.p>
               </div>
 
@@ -213,15 +257,46 @@ export default function Home() {
               <motion.div 
                 className="flex flex-col sm:flex-row gap-6 justify-center items-center"
                 variants={buttonVariants}
-                transition={{ duration: 0.7, delay: 1.8, ease: "easeOut" }}
+                initial="hidden"
+                animate="visible"
+                transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
               >
-                <button 
+                <motion.button 
                   onClick={() => router.push('/register')}
                   className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
+                  whileHover={{ 
+                    scale: 1.05,
+                    y: -5,
+                    boxShadow: "0 20px 40px rgba(34, 197, 94, 0.3)",
+                    transition: { duration: 0.3 }
+                  }}
+                  whileTap={{ 
+                    scale: 0.95,
+                    transition: { duration: 0.1 }
+                  }}
+                  initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ 
+                    duration: 0.6, 
+                    delay: 1.2, 
+                    ease: "easeOut" 
+                  }}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                  <span className="relative">Ouvrir un compte</span>
-                </button>
+                  <motion.div 
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"
+                    initial={{ x: "-100%" }}
+                    whileHover={{ x: "100%" }}
+                    transition={{ duration: 0.7 }}
+                  />
+                  <motion.span 
+                    className="relative"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.4, duration: 0.3 }}
+                  >
+                    Ouvrir un compte
+                  </motion.span>
+                </motion.button>
               </motion.div>
 
             </motion.div>
@@ -230,9 +305,13 @@ export default function Home() {
           {/* Scroll Down Indicator */}
           <motion.div 
             className="absolute bottom-4 left-1/2 transform -translate-x-1/2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2.5, duration: 0.8 }}
+            initial={{ opacity: 0, y: 30, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ 
+              delay: 2.5, 
+              duration: 0.8,
+              ease: "easeOut"
+            }}
           >
             <motion.button 
               onClick={() => {
@@ -241,16 +320,54 @@ export default function Home() {
               }}
               className="group flex flex-col items-center gap-2 sama-text-secondary hover:sama-text-gold transition-all duration-300"
               aria-label="Faire défiler vers le bas"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ 
+                scale: 1.1,
+                y: -2,
+                transition: { duration: 0.3 }
+              }}
+              whileTap={{ 
+                scale: 0.95,
+                transition: { duration: 0.1 }
+              }}
             >
-              <span className="text-sm font-light tracking-wide">Découvrir</span>
+              <motion.span 
+                className="text-sm font-light tracking-wide"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 2.8, duration: 0.5 }}
+              >
+                Découvrir
+              </motion.span>
               <motion.div 
                 className="w-8 h-8 border-2 sama-border-light rounded-full flex items-center justify-center group-hover:border-sama-accent-gold/60 transition-colors duration-300"
-                animate={{ y: [0, 4, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                animate={{ 
+                  y: [0, 6, 0],
+                  scale: [1, 1.05, 1]
+                }}
+                transition={{ 
+                  duration: 2.5, 
+                  repeat: Infinity, 
+                  ease: "easeInOut" 
+                }}
+                whileHover={{
+                  scale: 1.1,
+                  borderColor: "rgba(212, 175, 55, 0.6)",
+                  transition: { duration: 0.3 }
+                }}
               >
-                <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
+                <motion.div
+                  animate={{ 
+                    y: [0, 2, 0],
+                    opacity: [0.7, 1, 0.7]
+                  }}
+                  transition={{ 
+                    duration: 1.5, 
+                    repeat: Infinity, 
+                    ease: "easeInOut" 
+                  }}
+                >
+                  <ChevronDownIcon className="w-4 h-4 group-hover:translate-y-0.5 transition-transform duration-300" />
+                </motion.div>
               </motion.div>
             </motion.button>
           </motion.div>
