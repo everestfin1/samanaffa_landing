@@ -218,7 +218,7 @@ export default function PortalHeader({
                     aria-expanded={isUserDropdownOpen}
                     aria-haspopup="true"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-r from-gold-metallic to-amber-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0">
                       <span className="text-white font-semibold text-sm">
                         {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
                       </span>

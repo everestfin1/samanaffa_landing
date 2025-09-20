@@ -533,6 +533,40 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleRecalculateBalances = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('admin_token')
+      if (!token) {
+        router.push('/admin/login')
+        return
+      }
+
+      const response = await fetch('/api/admin/accounts/recalculate-balances', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const result = await response.json()
+
+      if (result.success) {
+        alert(`Balances recalculated successfully!\n\nUpdated ${result.updatedAccounts} out of ${result.totalAccounts} accounts.\n\nCheck the console for detailed results.`)
+        console.log('Balance recalculation results:', result.results)
+        await fetchDashboardData() // Refresh dashboard data
+      } else {
+        alert('Error recalculating balances: ' + result.error)
+      }
+    } catch (error) {
+      console.error('Error recalculating balances:', error)
+      alert('Error recalculating balances')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem('admin_token')
@@ -712,6 +746,30 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Admin Tools */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <Shield className="h-5 w-5" />
+                  <span>Admin Tools</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex space-x-4">
+                  <Button
+                    onClick={handleRecalculateBalances}
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    {loading ? 'Recalculating...' : 'Recalculate All Balances'}
+                  </Button>
+                  <p className="text-sm text-gray-600 flex items-center">
+                    Use this tool to ensure all account balances match their completed transactions
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 

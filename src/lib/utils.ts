@@ -62,3 +62,23 @@ export function generateRandomString(length: number): string {
   }
   return result
 }
+
+export function calculateAccountBalance(
+  completedTransactions: Array<{
+    intentType: string
+    amount: number
+  }>
+): number {
+  let balance = 0
+  
+  for (const transaction of completedTransactions) {
+    if (transaction.intentType === 'DEPOSIT') {
+      balance += Number(transaction.amount)
+    } else if (transaction.intentType === 'WITHDRAWAL') {
+      balance -= Number(transaction.amount)
+    }
+    // INVESTMENT transactions don't affect the main account balance
+  }
+  
+  return balance
+}

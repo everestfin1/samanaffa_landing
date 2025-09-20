@@ -13,7 +13,7 @@ export async function PUT(
     return createErrorResponse('Unauthorized', 401)
   }
   try {
-    const { id } = params
+    const { id } = await params
     const { status, adminNotes } = await request.json()
 
     if (!status) {
@@ -32,6 +32,103 @@ export async function PUT(
       )
     }
 
+    // First, get the current transaction intent to check if we need to update balance
+    const currentIntent = await prisma.transactionIntent.findUnique({
+      where: { id },
+      include: {
+        account: true
+      }
+    })
+
+    if (!currentIntent) {
+      return NextResponse.json(
+        { error: 'Transaction intent not found' },
+        { status: 404 }
+      )
+    }
+
+    // Handle balance updates based on status changes
+    if (status.toUpperCase() === 'COMPLETED' && currentIntent.status !== 'COMPLETED') {
+      // Transaction is being completed - add/subtract from balance
+      const account = currentIntent.account
+      const currentBalance = Number(account.balance)
+      const transactionAmount = Number(currentIntent.amount)
+      let newBalance = currentBalance
+
+      console.log(`Processing transaction completion:`, {
+        transactionId: currentIntent.id,
+        accountId: account.id,
+        intentType: currentIntent.intentType,
+        amount: transactionAmount,
+        currentBalance,
+      })
+
+      // Calculate new balance based on transaction type
+      if (currentIntent.intentType === 'DEPOSIT') {
+        newBalance = currentBalance + transactionAmount
+        console.log(`Deposit: ${currentBalance} + ${transactionAmount} = ${newBalance}`)
+      } else if (currentIntent.intentType === 'WITHDRAWAL') {
+        newBalance = currentBalance - transactionAmount
+        console.log(`Withdrawal: ${currentBalance} - ${transactionAmount} = ${newBalance}`)
+        // Ensure balance doesn't go negative
+        if (newBalance < 0) {
+          return NextResponse.json(
+            { error: 'Insufficient funds for withdrawal' },
+            { status: 400 }
+          )
+        }
+      }
+      // For INVESTMENT type, we don't change the balance as it's a separate investment account
+
+      // Update the account balance
+      await prisma.userAccount.update({
+        where: { id: account.id },
+        data: { balance: newBalance }
+      })
+
+      console.log(`Account balance updated: ${account.accountNumber} = ${newBalance}`)
+    } else if (currentIntent.status === 'COMPLETED' && status.toUpperCase() !== 'COMPLETED') {
+      // Transaction is being reverted from completed - reverse the balance change
+      const account = currentIntent.account
+      const currentBalance = Number(account.balance)
+      const transactionAmount = Number(currentIntent.amount)
+      let newBalance = currentBalance
+
+      console.log(`Reverting transaction completion:`, {
+        transactionId: currentIntent.id,
+        accountId: account.id,
+        intentType: currentIntent.intentType,
+        amount: transactionAmount,
+        currentBalance,
+      })
+
+      // Reverse the balance change
+      if (currentIntent.intentType === 'DEPOSIT') {
+        newBalance = currentBalance - transactionAmount
+        console.log(`Reverting deposit: ${currentBalance} - ${transactionAmount} = ${newBalance}`)
+        // Ensure balance doesn't go negative
+        if (newBalance < 0) {
+          return NextResponse.json(
+            { error: 'Cannot revert deposit - insufficient funds' },
+            { status: 400 }
+          )
+        }
+      } else if (currentIntent.intentType === 'WITHDRAWAL') {
+        newBalance = currentBalance + transactionAmount
+        console.log(`Reverting withdrawal: ${currentBalance} + ${transactionAmount} = ${newBalance}`)
+      }
+      // For INVESTMENT type, we don't change the balance as it's a separate investment account
+
+      // Update the account balance
+      await prisma.userAccount.update({
+        where: { id: account.id },
+        data: { balance: newBalance }
+      })
+
+      console.log(`Account balance reverted: ${account.accountNumber} = ${newBalance}`)
+    }
+
+    // Update the transaction intent
     const updatedIntent = await prisma.transactionIntent.update({
       where: { id },
       data: {
@@ -53,6 +150,7 @@ export async function PUT(
           select: {
             accountNumber: true,
             accountType: true,
+            balance: true,
           }
         }
       }
@@ -73,6 +171,7 @@ export async function PUT(
         account: {
           accountNumber: updatedIntent.account.accountNumber,
           accountType: updatedIntent.account.accountType,
+          balance: updatedIntent.account.balance,
         },
         intentType: updatedIntent.intentType,
         amount: updatedIntent.amount,
@@ -106,7 +205,7 @@ export async function GET(
     return createErrorResponse('Unauthorized', 401)
   }
   try {
-    const { id } = params
+    const { id } = await params
 
     const transactionIntent = await prisma.transactionIntent.findUnique({
       where: { id },

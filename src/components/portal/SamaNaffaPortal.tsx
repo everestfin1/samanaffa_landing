@@ -255,7 +255,7 @@ export default function SamaNaffaPortal() {
       {/* Primary Naffa Account */}
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">Mon Compte Naffa Principal</h3>
+          <h3 className="text-xl font-bold text-night">Mon Naffa</h3>
         </div>
 
         {/* Account Balance Card */}
@@ -281,7 +281,6 @@ export default function SamaNaffaPortal() {
                   className="h-12 w-auto"
                   width={100}
                   height={100}
-                  quality={100}
                 />
             </div>
 
@@ -291,7 +290,7 @@ export default function SamaNaffaPortal() {
                 <h4 className="text-lg font-medium text-white/90 mb-2">Solde Naffa</h4>
                 <div className="flex items-center space-x-3">
                   <div className="text-2xl font-bold tracking-wider">
-                    {showBalance ? `${samaNaffaAccount.balance.toLocaleString()} FCFA` : '••••••••••••'}
+                    {showBalance ? `${Number(samaNaffaAccount.balance).toLocaleString()} FCFA` : '••••••••••••'}
                   </div>
                   <button 
                     onClick={() => setShowBalance(!showBalance)}
@@ -426,6 +425,7 @@ export default function SamaNaffaPortal() {
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
+        currentBalance={samaNaffaAccount.balance}
         type={transferType}
         accountName="Mon Compte Naffa Principal"
         onConfirm={handleTransferConfirm}

@@ -74,6 +74,7 @@ export default function DashboardPage() {
   const [recentTransactions, setRecentTransactions] = useState<TransactionIntent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [apeInvestmentTotal, setApeInvestmentTotal] = useState(0);
 
   // Fetch user data and recent transactions
   useEffect(() => {
@@ -109,6 +110,13 @@ export default function DashboardPage() {
 
           if (transactionsData.success) {
             setRecentTransactions(transactionsData.transactionIntents.slice(0, 5)); // Get last 5 transactions
+            
+            // Calculate APE investment total from completed investments
+            const apeTransactions = transactionsData.transactionIntents.filter(
+              (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT' && tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED'
+            );
+            const totalInvestment = apeTransactions.reduce((sum: number, tx: TransactionIntent) => sum + tx.amount, 0);
+            setApeInvestmentTotal(totalInvestment);
           }
         } else {
           setError('Erreur lors du chargement des données');
@@ -186,34 +194,39 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
-          {userData.accounts.map((account) => (
-            <div key={account.id} className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-sm text-night/60 font-medium">
-                    {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 
-                     account.accountType === 'APE_INVESTMENT' ? 'Investissement APE' : 
-                     account.accountType}
-                  </p>
-                  <p className="text-2xl font-bold text-night">
-                    {account.balance.toLocaleString('fr-FR')} FCFA
-                  </p>
+          {userData.accounts.map((account) => {
+            // For APE investment accounts, show calculated total instead of account balance
+            const displayAmount = account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance;
+            
+            return (
+              <div key={account.id} className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-sm text-night/60 font-medium">
+                      {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 
+                       account.accountType === 'APE_INVESTMENT' ? 'Investissement APE' : 
+                       account.accountType}
+                    </p>
+                    <p className="text-2xl font-bold text-night">
+                      {Number(displayAmount).toLocaleString('fr-FR')} FCFA
+                    </p>
+                  </div>
+                  <div className="bg-gold-metallic/10 p-2 rounded-lg">
+                    {account.accountType === 'SAMA_NAFFA' ? (
+                      <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
+                    ) : account.accountType === 'APE_INVESTMENT' ? (
+                      <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
+                    ) : (
+                      <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
+                    )}
+                  </div>
                 </div>
-                <div className="bg-gold-metallic/10 p-2 rounded-lg">
-                  {account.accountType === 'SAMA_NAFFA' ? (
-                    <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
-                  ) : account.accountType === 'APE_INVESTMENT' ? (
-                    <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
-                  ) : (
-                    <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
-                  )}
+                <div className="text-sm text-gold-dark font-medium">
+                  Compte: {account.accountNumber}
                 </div>
               </div>
-              <div className="text-sm text-gold-dark font-medium">
-                Compte: {account.accountNumber}
-              </div>
-            </div>
-          ))}
+            );
+          })}
           
           {/* Total Balance Card */}
           <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
@@ -221,7 +234,11 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-night/60 font-medium">Solde total</p>
                 <p className="text-2xl font-bold text-night">
-                  {userData.accounts.reduce((total, account) => total + account.balance, 0).toLocaleString('fr-FR')} FCFA
+                  {userData.accounts.reduce((total, account) => {
+                    // Use calculated investment total for APE accounts, balance for others
+                    const accountValue = Number(account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance);
+                    return total + accountValue;
+                  }, 0).toLocaleString('fr-FR')} FCFA
                 </p>
               </div>
               <div className="bg-gold-metallic/10 p-2 rounded-lg">

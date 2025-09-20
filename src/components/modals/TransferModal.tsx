@@ -8,6 +8,7 @@ interface TransferModalProps {
   onClose: () => void;
   type: 'deposit' | 'withdraw';
   accountName?: string;
+  currentBalance?: number;
   onConfirm: (data: TransferData) => void;
 }
 
@@ -22,25 +23,61 @@ export default function TransferModal({
   onClose, 
   type, 
   accountName,
+  currentBalance = 0,
   onConfirm 
 }: TransferModalProps) {
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<string>('orange-money');
   const [note, setNote] = useState<string>('');
+  const [error, setError] = useState<string>('');
+
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
+    setError(''); // Clear error when user types
+    
+    // Validate withdrawal amount
+    if (type === 'withdraw' && value) {
+      const requestedAmount = parseFloat(value);
+      if (requestedAmount > currentBalance) {
+        setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount && parseFloat(amount) > 0) {
-      onConfirm({
-        amount: parseFloat(amount),
-        method,
-        note: note.trim() || undefined
-      });
-      // Reset form
-      setAmount('');
-      setMethod('orange-money');
-      setNote('');
+    setError('');
+    
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Veuillez entrer un montant valide');
+      return;
     }
+
+    const requestedAmount = parseFloat(amount);
+    
+    // Additional validation for withdrawals
+    if (type === 'withdraw' && requestedAmount > currentBalance) {
+      setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
+      return;
+    }
+
+    // Minimum amount validation
+    if (requestedAmount < 1000) {
+      setError('Le montant minimum est de 1,000 FCFA');
+      return;
+    }
+
+    onConfirm({
+      amount: requestedAmount,
+      method,
+      note: note.trim() || undefined
+    });
+    
+    // Reset form
+    setAmount('');
+    setMethod('orange-money');
+    setNote('');
+    setError('');
   };
 
   if (!isOpen) return null;
@@ -61,6 +98,18 @@ export default function TransferModal({
           </button>
         </div>
 
+        {/* Balance Display for Withdrawals */}
+        {type === 'withdraw' && (
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-blue-800">Solde disponible:</span>
+              <span className="text-lg font-bold text-blue-900">
+                {currentBalance.toLocaleString()} FCFA
+              </span>
+            </div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -68,13 +117,19 @@ export default function TransferModal({
               <input 
                 type="number" 
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                placeholder="50000"
+                onChange={(e) => handleAmountChange(e.target.value)}
+                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : "50000"}
                 min="1000"
+                max={type === 'withdraw' ? currentBalance : undefined}
                 step="1000"
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
+                  error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
+                }`}
                 required
               />
+              {error && (
+                <p className="mt-1 text-sm text-red-600">{error}</p>
+              )}
             </div>
             
             <PaymentMethodSelect
@@ -105,10 +160,11 @@ export default function TransferModal({
             </button>
             <button 
               type="submit"
+              disabled={!!error || (type === 'withdraw' && parseFloat(amount) > currentBalance)}
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors text-white ${
                 type === 'deposit' 
-                  ? 'bg-gold-metallic hover:bg-gold-dark' 
-                  : 'bg-red-600 hover:bg-red-700'
+                  ? 'bg-gold-metallic hover:bg-gold-dark disabled:bg-gray-400' 
+                  : 'bg-red-600 hover:bg-red-700 disabled:bg-gray-400'
               }`}
             >
               {type === 'deposit' ? 'Déposer' : 'Retirer'}

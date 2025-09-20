@@ -98,8 +98,8 @@ export default function APEPortal() {
           
           // Convert transaction intents to investment format for display
           const investmentData = apeTransactions
-            .filter(tx => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
-            .map(tx => ({
+            .filter((tx: TransactionIntent) => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
+            .map((tx: TransactionIntent) => ({
               id: tx.id,
               tranche: tx.investmentTranche as 'A' | 'B' | 'C' | 'D',
               amount: tx.amount,
@@ -120,6 +120,7 @@ export default function APEPortal() {
     };
 
     fetchAccountData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   // Helper functions
@@ -192,8 +193,8 @@ export default function APEPortal() {
           
           // Update investments
           const investmentData = apeTransactions
-            .filter(tx => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
-            .map(tx => ({
+            .filter((tx: TransactionIntent) => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
+            .map((tx: TransactionIntent) => ({
               id: tx.id,
               tranche: tx.investmentTranche as 'A' | 'B' | 'C' | 'D',
               amount: tx.amount,
@@ -335,7 +336,7 @@ export default function APEPortal() {
               <div className="mb-6">
                 <h4 className="text-lg font-medium text-white/90 mb-2">Investissement Total</h4>
                 <div className="text-3xl font-bold tracking-wider">
-                  {totalInvestment.toLocaleString()} FCFA
+                  {Number(totalInvestment).toLocaleString()} FCFA
                 </div>
               </div>
 
