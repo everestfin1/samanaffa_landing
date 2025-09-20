@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { isValidSenegalPhone } from '@/lib/utils';
 import {
   UserIcon,
   IdentificationIcon,
@@ -158,9 +159,8 @@ export default function RegisterPage() {
 
       case 'phone':
         if (!value || typeof value !== 'string') return 'Numéro de téléphone est requis';
-        const phoneRegex = /^(\+221\s?)?[0-9]{2}\s?[0-9]{3}\s?[0-9]{2}\s?[0-9]{2}$/;
-        if (!phoneRegex.test(value.replace(/\s/g, ''))) {
-          return 'Format de téléphone invalide (ex: 77 123 45 67)';
+        if (!isValidSenegalPhone(value)) {
+          return 'Numéro de téléphone sénégalais invalide (ex: +221771234567 ou 77 123 45 67)';
         }
         return '';
 

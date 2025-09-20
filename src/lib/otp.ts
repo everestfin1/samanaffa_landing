@@ -51,15 +51,40 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       return { success: false, message: 'Email ou numéro de téléphone requis' }
     }
 
-    // Find user
-    let user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          ...(email ? [{ email }] : []),
-          ...(phone ? [{ phone }] : [])
-        ]
+    // Find user - try multiple phone formats for better compatibility
+    let user = null
+
+    if (email) {
+      // First try email lookup
+      user = await prisma.user.findFirst({
+        where: { email }
+      })
+      console.log('🔍 Email lookup result:', { email, found: !!user })
+    }
+
+    if (!user && phone) {
+      // Try multiple phone number formats for lookup
+      const phoneFormats = [
+        phone, // normalized format (should be +221XXXXXXXXX)
+        phone.replace('+221', ''), // without country code
+        phone.replace('+', ''), // without + sign
+        `+221${phone.replace('+221', '')}`, // ensure +221 prefix
+      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+
+      console.log('🔍 Phone lookup formats to try:', phoneFormats)
+
+      for (const phoneFormat of phoneFormats) {
+        user = await prisma.user.findFirst({
+          where: { phone: phoneFormat }
+        })
+        console.log('🔍 Phone lookup attempt:', { format: phoneFormat, found: !!user })
+
+        if (user) {
+          console.log('✅ User found with phone format:', phoneFormat)
+          break
+        }
       }
-    })
+    }
 
     if (!user) {
       // For login: user must exist
@@ -89,19 +114,44 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       return { success: false, message: 'Échec du traitement de l\'utilisateur' }
     }
 
-    // Generate OTP
-    const otp = await generateOTP(user.id, email ? 'email' : 'sms')
+    // Determine OTP delivery method based on input format
+    const isEmail = email && email.includes('@')
+    const isPhone = phone && phone.startsWith('+')
 
-    // Send OTP
-    if (email) {
-      await sendEmailOTP(email, otp)
-    } else if (phone) {
-      await sendSMSOTP(phone, otp)
+    let otpType: 'email' | 'sms'
+    let deliveryMethod: string
+    let deliveryValue: string
+
+    if (isEmail && isPhone) {
+      // Both email and phone provided - prioritize SMS for better mobile UX
+      otpType = 'sms'
+      deliveryMethod = 'SMS'
+      deliveryValue = phone
+    } else if (isEmail) {
+      otpType = 'email'
+      deliveryMethod = 'email'
+      deliveryValue = email
+    } else if (isPhone) {
+      otpType = 'sms'
+      deliveryMethod = 'SMS'
+      deliveryValue = phone
+    } else {
+      return { success: false, message: 'Format d\'email ou numéro de téléphone invalide' }
     }
 
-    return { 
-      success: true, 
-      message: `Code OTP envoyé par ${email ? 'email' : 'SMS'}` 
+    // Generate OTP
+    const otp = await generateOTP(user.id, otpType)
+
+    // Send OTP
+    if (otpType === 'email') {
+      await sendEmailOTP(deliveryValue, otp)
+    } else {
+      await sendSMSOTP(deliveryValue, otp)
+    }
+
+    return {
+      success: true,
+      message: `Code OTP envoyé par ${deliveryMethod}`
     }
   } catch (error) {
     console.error('Erreur lors de l\'envoi du code OTP:', error)

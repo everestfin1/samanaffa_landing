@@ -10,7 +10,9 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "bunx prisma db seed",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "db:normalize-phones": "tsx scripts/normalize-phone-numbers.ts",
+    "db:check-phones": "tsx scripts/check-phone-numbers.ts"
   },
   "prisma": {
     "seed": "bunx tsx prisma/seed.ts"

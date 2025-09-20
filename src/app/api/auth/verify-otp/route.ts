@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
+import { normalizeSenegalPhone } from '@/lib/utils'
 import { generateAccountNumber } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
@@ -21,15 +22,45 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find user
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email },
-          { phone }
-        ]
+    // Normalize phone number for user lookup if provided
+    const normalizedPhone = phone ? normalizeSenegalPhone(phone) : null
+    console.log('🔍 Verify OTP Request:', { email, phone, otp, type })
+    console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
+
+    // Find user - try multiple phone formats for better compatibility
+    let user = null
+
+    if (email) {
+      // First try email lookup
+      user = await prisma.user.findFirst({
+        where: { email }
+      })
+      console.log('🔍 Email lookup result:', { email, found: !!user })
+    }
+
+    if (!user && normalizedPhone) {
+      // Try multiple phone number formats for lookup
+      const phoneFormats = [
+        normalizedPhone, // normalized format (should be +221XXXXXXXXX)
+        normalizedPhone.replace('+221', ''), // without country code
+        normalizedPhone.replace('+', ''), // without + sign
+        `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
+      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+
+      console.log('🔍 Phone lookup formats to try:', phoneFormats)
+
+      for (const phoneFormat of phoneFormats) {
+        user = await prisma.user.findFirst({
+          where: { phone: phoneFormat }
+        })
+        console.log('🔍 Phone lookup attempt:', { format: phoneFormat, found: !!user })
+
+        if (user) {
+          console.log('✅ User found with phone format:', phoneFormat)
+          break
+        }
       }
-    })
+    }
 
     if (!user) {
       return NextResponse.json(
@@ -54,6 +85,7 @@ export async function POST(request: NextRequest) {
         data: {
           firstName: userData.firstName,
           lastName: userData.lastName,
+          phone: normalizedPhone || user.phone, // Ensure phone is normalized
           dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null,
           nationality: userData.nationality,
           address: userData.address,

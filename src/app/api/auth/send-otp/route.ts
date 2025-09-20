@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
+import { normalizeSenegalPhone } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, phone, type } = await request.json()
+
+    console.log('🔍 Send OTP Request:', { email, phone, type })
 
     if (!email && !phone) {
       return NextResponse.json(
@@ -19,7 +22,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await sendOTP(email, phone, type)
+    // Normalize phone number if provided
+    const normalizedPhone = phone ? normalizeSenegalPhone(phone) : null
+    console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
+
+    if (phone && !normalizedPhone) {
+      return NextResponse.json(
+        { error: 'Format de numéro de téléphone invalide' },
+        { status: 400 }
+      )
+    }
+
+    const result = await sendOTP(email, normalizedPhone || undefined, type)
 
     if (!result.success) {
       return NextResponse.json(

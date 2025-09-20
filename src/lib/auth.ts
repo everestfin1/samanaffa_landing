@@ -3,6 +3,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
+import { normalizeSenegalPhone } from './utils'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -24,15 +25,44 @@ export const authOptions: NextAuthOptions = {
           throw new Error('OTP code is required')
         }
 
-        // Find user by email or phone
-        const user = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: credentials.email },
-              { phone: credentials.phone }
-            ]
+        // Normalize phone number if provided
+        const normalizedPhone = credentials.phone ? normalizeSenegalPhone(credentials.phone) : null
+        // console.log('🔍 NextAuth authorize:', { email: credentials.email, phone: credentials.phone, normalizedPhone })
+
+        // Find user - try multiple phone formats for better compatibility
+        let user = null
+
+        if (credentials.email) {
+          // First try email lookup
+          user = await prisma.user.findFirst({
+            where: { email: credentials.email }
+          })
+          // console.log('🔍 NextAuth email lookup result:', { email: credentials.email, found: !!user })
+        }
+
+        if (!user && normalizedPhone) {
+          // Try multiple phone number formats for lookup
+          const phoneFormats = [
+            normalizedPhone, // normalized format (should be +221XXXXXXXXX)
+            normalizedPhone.replace('+221', ''), // without country code
+            normalizedPhone.replace('+', ''), // without + sign
+            `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
+          ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+
+          // console.log('🔍 NextAuth phone lookup formats to try:', phoneFormats)
+
+          for (const phoneFormat of phoneFormats) {
+            user = await prisma.user.findFirst({
+              where: { phone: phoneFormat }
+            })
+            // console.log('🔍 NextAuth phone lookup attempt:', { format: phoneFormat, found: !!user })
+
+            if (user) {
+              // console.log('✅ NextAuth user found with phone format:', phoneFormat)
+              break
+            }
           }
-        })
+        }
 
         if (!user) {
           throw new Error('User not found')

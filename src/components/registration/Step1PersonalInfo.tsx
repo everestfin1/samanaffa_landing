@@ -1,6 +1,7 @@
 'use client';
 
 import { UserIcon } from '@heroicons/react/24/outline';
+import { normalizeSenegalPhone, formatPhoneForDisplay, isValidSenegalPhone } from '@/lib/utils';
 
 interface FormData {
   civilite: 'mr' | 'mme' | 'mlle';
@@ -37,15 +38,29 @@ export default function Step1PersonalInfo({
     return touched[fieldName] && !!errors[fieldName];
   };
 
-  const formatPhoneNumber = (value: string) => {
-    const cleaned = value.replace(/\D/g, '');
-    if (cleaned.startsWith('221')) {
-      return cleaned.replace(/(\d{3})(\d{2})(\d{3})(\d{2})(\d{2})/, '+$1 $2 $3 $4 $5');
-    } else if (cleaned.startsWith('77') || cleaned.startsWith('78') || cleaned.startsWith('70') || cleaned.startsWith('76')) {
-      return cleaned.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+  // Format phone number for display while keeping normalized value internally
+  const handlePhoneChange = (inputValue: string) => {
+    // Normalize the phone number for storage
+    const normalized = normalizeSenegalPhone(inputValue)
+    if (normalized) {
+      // Pass the normalized value to the parent component
+      onPhoneChange(normalized)
+    } else {
+      // If normalization fails, pass the original value
+      onPhoneChange(inputValue)
     }
-    return value;
-  };
+  }
+
+  // Get display value for the input field
+  const getDisplayValue = (phoneValue: string) => {
+    if (!phoneValue) return ''
+    // If it's already normalized, format it for display
+    if (phoneValue.startsWith('+221')) {
+      return formatPhoneForDisplay(phoneValue)
+    }
+    // Otherwise return as-is (user is still typing)
+    return phoneValue
+  }
 
   return (
     <div className="space-y-6">
@@ -126,11 +141,8 @@ export default function Step1PersonalInfo({
         <input
           type="tel"
           name="phone"
-          value={formData.phone}
-          onChange={(e) => {
-            const formatted = formatPhoneNumber(e.target.value);
-            onPhoneChange(formatted);
-          }}
+          value={getDisplayValue(formData.phone)}
+          onChange={(e) => handlePhoneChange(e.target.value)}
           onBlur={onBlur}
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
             hasFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
