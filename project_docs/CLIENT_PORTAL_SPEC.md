@@ -45,9 +45,11 @@ Mobile: bottom tab bar with up to 5 items; secondary items in a drawer.
 
 - Overview dashboard widgets (SN context)
   - Welcome card with name and last activity
-  - Registration/KYC status indicator
+  - Enhanced KYC status indicator with detailed status tracking
+  - KYC document status overview (pending, under review, approved, rejected)
   - Quick actions: Create savings goal, Start challenge, Open tontine calculator
   - Notifications center preview (latest 3)
+  - KYC correction workflow for rejected documents
 
 - Profile management (shared)
   - Name, phone, email; verification states
@@ -88,9 +90,43 @@ Mobile: bottom tab bar with up to 5 items; secondary items in a drawer.
 - Leaderboards and stories: anonymized rankings, success story sharing
 - Portfolio simulator: risk tolerance, allocation suggestions, local opportunities
 
-## 5. Features — APE Senegal (Client Portal)
+## 5. KYC Notification & Correction System
 
-### 5.1 MVP (Phase 2)
+### 5.1 KYC Status Notifications
+- **Email Notifications**
+  - KYC status changes (under review, approved, rejected)
+  - Document rejection with detailed reasons
+  - Instructions for document resubmission
+  - Direct links to correction workflow
+
+- **In-App Notifications**
+  - Real-time KYC status updates
+  - Document rejection alerts
+  - Progress tracking for corrections
+  - Admin contact information
+
+### 5.2 KYC Correction Workflow
+- **Document Status Display**
+  - Individual document status (pending, approved, rejected)
+  - Rejection reasons and admin notes
+  - Upload date and last review date
+  - Visual status indicators
+
+- **Document Resubmission**
+  - Easy document replacement interface
+  - Progress tracking for corrections
+  - Admin notification when documents are resubmitted
+  - Support contact for assistance
+
+- **Status Tracking**
+  - Overall KYC status (pending, under review, approved, rejected)
+  - Document completion progress
+  - Estimated review timeline
+  - Next steps guidance
+
+## 6. Features — APE Senegal (Client Portal)
+
+### 6.1 MVP (Phase 2)
 
 - APE dashboard
   - Highlight card (current terms), saved scenarios, next steps panel

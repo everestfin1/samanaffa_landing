@@ -95,11 +95,13 @@ This document tracks the **streamlined backend development** for rapid market en
 **Estimated Time:** 1-2 days  
 **Dependencies:** User system  
 
-### 5. Admin Dashboard (Simplified)
-- [x] **User Management**
-  - [x] View registered users
-  - [x] KYC status management
+### 5. Enhanced Admin Dashboard & KYC Review System
+- [x] **Advanced User Management**
+  - [x] View registered users with comprehensive actions dropdown
+  - [x] User actions: Edit, Activate, Suspend, Archive, Delete
+  - [x] KYC status management with real-time updates
   - [x] User search and filtering
+  - [x] User KYC status tracking (PENDING, UNDER_REVIEW, APPROVED, REJECTED)
   
 - [x] **Transaction Intent Management**
   - [x] View all transaction requests
@@ -107,11 +109,56 @@ This document tracks the **streamlined backend development** for rapid market en
   - [x] Add admin notes
   - [x] Contact tracking
 
-**Priority:** 🟡 High  
-**Estimated Time:** 2-3 days  
-**Dependencies:** Core systems  
+- [x] **Advanced KYC Document Review System**
+  - [x] Dedicated KYC Review tab with user-grouped document view
+  - [x] Document preview system (images + PDFs with Next.js Image optimization)
+  - [x] Individual document validation (approve/reject with notes)
+  - [x] Bulk document validation (approve all pending documents)
+  - [x] Document status management (reset approved/rejected to pending)
+  - [x] Admin notes system with audit trail
+  - [x] Real-time KYC status calculation and updates
+  - [x] Document statistics (total, pending, approved, rejected counts)
 
-### 6. API Routes Structure (OTP-Based)
+- [x] **Dashboard Analytics & Statistics**
+  - [x] Real-time KYC counts (Pending, Under Review, Approved)
+  - [x] Transaction statistics and financial summaries
+  - [x] User activity monitoring
+  - [x] Visual status indicators and progress tracking
+
+**Priority:** 🟡 High  
+**Estimated Time:** 3-4 days  
+**Dependencies:** Core systems, KYC document system  
+
+### 6. Client Notification System for KYC Corrections (Next Phase)
+- [ ] **KYC Status Notifications**
+  - [ ] Email notifications for KYC status changes
+  - [ ] SMS notifications for critical status updates
+  - [ ] In-app notification system
+  - [ ] Push notifications for mobile app (future)
+
+- [ ] **Document Rejection Notifications**
+  - [ ] Detailed rejection reasons in notifications
+  - [ ] Instructions for document resubmission
+  - [ ] Direct links to document upload page
+  - [ ] Admin contact information for support
+
+- [ ] **KYC Correction Workflow**
+  - [ ] Client portal KYC status display
+  - [ ] Document resubmission interface
+  - [ ] Progress tracking for corrections
+  - [ ] Admin notification when documents are resubmitted
+
+- [ ] **Notification Templates**
+  - [ ] KYC under review notification
+  - [ ] Document rejection with reasons
+  - [ ] KYC approval confirmation
+  - [ ] Document resubmission reminders
+
+**Priority:** 🟡 Medium  
+**Estimated Time:** 2-3 days  
+**Dependencies:** Admin dashboard, Client portal, Email system  
+
+### 7. API Routes Structure (OTP-Based)
 - [x] **Authentication Endpoints**
   - [x] `POST /api/auth/send-otp` - Send OTP (email/SMS)
   - [x] `POST /api/auth/verify-otp` - Verify OTP and create session

@@ -25,8 +25,9 @@ import {
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import KYCStatusHandler from '../../../components/kyc/KYCStatusHandler';
 
-type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected';
+type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 interface KYCStep {
   id: string;
@@ -342,6 +343,22 @@ export default function DashboardPage() {
       </div>
     </div>
   );
+
+  // Show KYC status handler for non-approved users
+  if (userData.kycStatus !== 'APPROVED') {
+    return (
+      <KYCStatusHandler
+        kycStatus={userData.kycStatus}
+        userData={{
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          phone: userData.phone
+        }}
+        onLogout={handleLogout}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-light">

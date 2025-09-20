@@ -4,6 +4,7 @@ import "./globals.css";
 import Navigation from '../components/Navigation';
 import Footer from "@/components/Footer";
 import { SelectionProvider } from '../lib/selection-context';
+import SessionProvider from '@/components/providers/SessionProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -38,11 +39,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SelectionProvider>
-          <Navigation />
-          {children}
-          <Footer />
-        </SelectionProvider>
+        <SessionProvider>
+          <SelectionProvider>
+            <Navigation />
+            {children}
+            <Footer />
+          </SelectionProvider>
+        </SessionProvider>
       </body>
     </html>
   );

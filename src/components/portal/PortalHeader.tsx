@@ -14,7 +14,7 @@ import {
   ScaleIcon,
 } from '@heroicons/react/24/outline';
 
-type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected';
+type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 type ActiveTab = 'dashboard' | 'sama-naffa' | 'ape' | 'compare' | 'profile' | 'notifications';
 
 interface UserData {
@@ -53,26 +53,34 @@ export default function PortalHeader({
       label: 'Tableau de bord',
       icon: HomeIcon,
       ariaLabel: 'Aller au tableau de bord',
-      href: '/portal/dashboard'
+      href: '/portal/dashboard',
+      requiresKYC: false // Dashboard is always accessible
     },
     {
       id: 'sama-naffa' as ActiveTab,
       label: 'Sama Naffa',
       icon: DevicePhoneMobileIcon,
       ariaLabel: 'Accéder à Sama Naffa',
-      href: '/portal/sama-naffa'
+      href: '/portal/sama-naffa',
+      requiresKYC: true // Requires KYC approval
     },
     {
       id: 'ape' as ActiveTab,
       label: 'Emprunt Obligataire',
       icon: BuildingLibraryIcon,
       ariaLabel: 'Accéder à Emprunt Obligataire',
-      href: '/portal/ape'
+      href: '/portal/ape',
+      requiresKYC: true // Requires KYC approval
     }
     // Removed comparison page as per simplification requirements
   ];
 
-  const handleTabChange = (tab: ActiveTab, href: string) => {
+  const handleTabChange = (tab: ActiveTab, href: string, requiresKYC: boolean = false) => {
+    // Check if KYC is required and user is not approved
+    if (requiresKYC && kycStatus !== 'APPROVED') {
+      // Don't navigate, just show a message or do nothing
+      return;
+    }
     router.push(href);
     setIsMobileMenuOpen(false);
   };
@@ -152,21 +160,33 @@ export default function PortalHeader({
               {navigationItems.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = currentTab === item.id;
+                const isDisabled = item.requiresKYC && kycStatus !== 'APPROVED';
                 
                 return (
                   <button
                     key={item.id}
-                    onClick={() => handleTabChange(item.id, item.href)}
+                    onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
+                    disabled={isDisabled}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                       isActive
                         ? 'bg-gold-metallic text-white shadow-sm'
+                        : isDisabled
+                        ? 'text-night/30 cursor-not-allowed'
                         : 'text-night/70 hover:text-night hover:bg-timberwolf/10'
                     }`}
                     aria-label={item.ariaLabel}
                     aria-current={isActive ? 'page' : undefined}
+                    title={isDisabled ? 'KYC requis - En attente de validation' : item.ariaLabel}
                   >
-                    <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-night/70'}`} />
+                    <IconComponent className={`w-4 h-4 flex-shrink-0 ${
+                      isActive ? 'text-white' : 
+                      isDisabled ? 'text-night/30' : 
+                      'text-night/70'
+                    }`} />
                     <span>{item.label}</span>
+                    {isDisabled && (
+                      <span className="text-xs text-night/40">(KYC requis)</span>
+                    )}
                   </button>
                 );
               })}
@@ -301,21 +321,33 @@ export default function PortalHeader({
                 {navigationItems.map((item) => {
                   const IconComponent = item.icon;
                   const isActive = currentTab === item.id;
+                  const isDisabled = item.requiresKYC && kycStatus !== 'APPROVED';
                   
                   return (
                     <button
                       key={item.id}
-                      onClick={() => handleTabChange(item.id, item.href)}
+                      onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
+                      disabled={isDisabled}
                       className={`flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                         isActive
                           ? 'bg-gold-metallic text-white shadow-sm'
+                          : isDisabled
+                          ? 'text-night/30 cursor-not-allowed'
                           : 'text-night/80 hover:text-night hover:bg-timberwolf/10'
                       }`}
                       aria-label={item.ariaLabel}
                       aria-current={isActive ? 'page' : undefined}
+                      title={isDisabled ? 'KYC requis - En attente de validation' : item.ariaLabel}
                     >
-                      <IconComponent className={`w-4 h-4 flex-shrink-0 ${isActive ? 'text-white' : 'text-night/70'}`} />
+                      <IconComponent className={`w-4 h-4 flex-shrink-0 ${
+                        isActive ? 'text-white' : 
+                        isDisabled ? 'text-night/30' : 
+                        'text-night/70'
+                      }`} />
                       <span className="flex-1">{item.label}</span>
+                      {isDisabled && (
+                        <span className="text-xs text-night/40">(KYC requis)</span>
+                      )}
                       {isActive && (
                         <div className="w-1 h-4 bg-white rounded-sm"></div>
                       )}
