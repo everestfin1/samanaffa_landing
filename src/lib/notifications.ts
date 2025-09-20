@@ -1,6 +1,6 @@
 import * as nodemailer from 'nodemailer'
-// @ts-expect-error Twilio types not available
-import * as twilio from 'twilio'
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const twilio = require('twilio')
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -15,13 +15,13 @@ const emailTransporter = nodemailer.createTransport({
 
 // Twilio configuration
 const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN
+  process.env.TWILIO_ACCOUNT_SID!,
+  process.env.TWILIO_AUTH_TOKEN!
 )
 
 export async function sendEmailOTP(email: string, otp: string): Promise<void> {
   const mailOptions = {
-    from: process.env.EMAIL_USER,
+    from: process.env.EMAIL_SENDER,
     to: email,
     subject: 'Votre code de vérification Sama Naffa',
     html: `

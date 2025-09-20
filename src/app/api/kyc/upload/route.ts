@@ -50,7 +50,9 @@ export async function POST(request: NextRequest) {
     // Validate document type
     const allowedDocumentTypes = [
       'national_id',
+      'national_id_back',
       'passport',
+      'selfie',
       'drivers_license',
       'utility_bill',
       'bank_statement',

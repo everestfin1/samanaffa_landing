@@ -9,14 +9,14 @@ export async function POST(request: NextRequest) {
 
     if (!email && !phone) {
       return NextResponse.json(
-        { error: 'Email or phone is required' },
+        { error: 'Email ou numéro de téléphone requis' },
         { status: 400 }
       )
     }
 
     if (!otp) {
       return NextResponse.json(
-        { error: 'OTP code is required' },
+        { error: 'Code OTP requis' },
         { status: 400 }
       )
     }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       return NextResponse.json(
-        { error: 'User not found' },
+        { error: 'Utilisateur non trouvé' },
         { status: 404 }
       )
     }
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const isValidOTP = await verifyOTP(user.id, otp)
     if (!isValidOTP) {
       return NextResponse.json(
-        { error: 'Invalid or expired OTP code' },
+        { error: 'Code OTP invalide ou expiré' },
         { status: 400 }
       )
     }
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json({
         success: true,
-        message: 'Registration completed successfully',
+        message: 'Inscription terminée avec succès',
         user: {
           id: updatedUser.id,
           email: updatedUser.email,
@@ -107,7 +107,7 @@ export async function POST(request: NextRequest) {
     // For login, just return user data
     return NextResponse.json({
       success: true,
-      message: 'Login successful',
+      message: 'Connexion réussie',
       user: {
         id: user.id,
         email: user.email,
@@ -117,9 +117,9 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Error verifying OTP:', error)
+    console.error('Erreur lors de la vérification du code OTP:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Erreur interne du serveur' },
       { status: 500 }
     )
   }

@@ -45,37 +45,48 @@ export async function verifyOTP(userId: string, code: string): Promise<boolean> 
   return true
 }
 
-export async function sendOTP(email?: string, phone?: string): Promise<{ success: boolean; message: string }> {
+export async function sendOTP(email?: string, phone?: string, type: 'login' | 'register' = 'login'): Promise<{ success: boolean; message: string }> {
   try {
     if (!email && !phone) {
-      return { success: false, message: 'Email or phone is required' }
+      return { success: false, message: 'Email ou numéro de téléphone requis' }
     }
 
-    // Find or create user
+    // Find user
     let user = await prisma.user.findFirst({
       where: {
         OR: [
-          { email },
-          { phone }
+          ...(email ? [{ email }] : []),
+          ...(phone ? [{ phone }] : [])
         ]
       }
     })
 
     if (!user) {
-      // For registration, we'll create a minimal user record
-      // The full profile will be created after OTP verification
-      if (!email || !phone) {
-        return { success: false, message: 'Both email and phone are required for registration' }
+      // For login: user must exist
+      if (type === 'login') {
+        return { success: false, message: 'Utilisateur non trouvé. Veuillez vous inscrire d\'abord.' }
       }
-
-      user = await prisma.user.create({
-        data: {
-          email,
-          phone,
-          firstName: 'Temporary', // Will be updated after OTP verification
-          lastName: 'User',
+      
+      // For registration: create user if both email and phone provided
+      if (type === 'register') {
+        if (!email || !phone) {
+          return { success: false, message: 'Email et numéro de téléphone requis pour l\'inscription' }
         }
-      })
+
+        user = await prisma.user.create({
+          data: {
+            email,
+            phone,
+            firstName: 'Temporary', // Will be updated after OTP verification
+            lastName: 'User',
+          }
+        })
+      }
+    }
+
+    // At this point, user should exist (either found or created)
+    if (!user) {
+      return { success: false, message: 'Échec du traitement de l\'utilisateur' }
     }
 
     // Generate OTP
@@ -90,13 +101,13 @@ export async function sendOTP(email?: string, phone?: string): Promise<{ success
 
     return { 
       success: true, 
-      message: `OTP sent to ${email ? 'email' : 'phone'}` 
+      message: `Code OTP envoyé par ${email ? 'email' : 'SMS'}` 
     }
   } catch (error) {
-    console.error('Error sending OTP:', error)
+    console.error('Erreur lors de l\'envoi du code OTP:', error)
     return { 
       success: false, 
-      message: 'Failed to send OTP. Please try again.' 
+      message: 'Échec de l\'envoi du code OTP. Veuillez réessayer.' 
     }
   }
 }

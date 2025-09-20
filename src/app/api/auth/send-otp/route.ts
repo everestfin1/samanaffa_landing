@@ -7,19 +7,19 @@ export async function POST(request: NextRequest) {
 
     if (!email && !phone) {
       return NextResponse.json(
-        { error: 'Email or phone is required' },
+        { error: 'Email ou numéro de téléphone requis' },
         { status: 400 }
       )
     }
 
     if (!type || !['login', 'register'].includes(type)) {
       return NextResponse.json(
-        { error: 'Type must be either "login" or "register"' },
+        { error: 'Le type doit être "login" ou "register"' },
         { status: 400 }
       )
     }
 
-    const result = await sendOTP(email, phone)
+    const result = await sendOTP(email, phone, type)
 
     if (!result.success) {
       return NextResponse.json(
@@ -33,9 +33,9 @@ export async function POST(request: NextRequest) {
       message: result.message
     })
   } catch (error) {
-    console.error('Error sending OTP:', error)
+    console.error('Erreur lors de l\'envoi du code OTP:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Erreur interne du serveur' },
       { status: 500 }
     )
   }

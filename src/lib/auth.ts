@@ -38,7 +38,25 @@ export const authOptions: NextAuthOptions = {
           throw new Error('User not found')
         }
 
-        // Verify OTP
+        // For registration type, skip OTP verification since it was already verified
+        if (credentials.type === 'register') {
+          // Just verify the user exists and is properly registered
+          const accounts = await prisma.userAccount.findMany({
+            where: { userId: user.id }
+          })
+
+          if (accounts.length < 2) {
+            throw new Error('Registration incomplete')
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+          }
+        }
+
+        // For login type, verify OTP
         const isValidOTP = await verifyOTP(user.id, credentials.otp)
         if (!isValidOTP) {
           throw new Error('Invalid OTP code')

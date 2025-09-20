@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -11,6 +12,8 @@ import {
   ClockIcon,
   EyeIcon,
   ArrowRightIcon,
+  ArrowDownTrayIcon,
+  ArrowUpTrayIcon,
   BanknotesIcon,
   ChartBarIcon,
   DevicePhoneMobileIcon,
@@ -34,68 +37,124 @@ interface KYCStep {
 }
 
 interface UserData {
+  id: string;
+  userId: string;
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  userId: string;
-  isNewUser: boolean;
   kycStatus: KYCStatus;
+  isNewUser: boolean;
+  accounts: Array<{
+    id: string;
+    accountType: string;
+    accountNumber: string;
+    balance: number;
+    status: string;
+  }>;
+}
+
+interface TransactionIntent {
+  id: string;
+  accountType: string;
+  intentType: string;
+  type: 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
+  amount: number;
+  paymentMethod: string;
+  status: string;
+  referenceNumber: string;
+  createdAt: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [userData] = useState<UserData>({
-    firstName: 'Amadou',
-    lastName: 'Diallo',
-    email: 'amadou.diallo@email.com',
-    phone: '+221 77 123 45 67',
-    userId: 'USR_2024_001',
-    isNewUser: false,
-    kycStatus: 'approved' 
-  });
+  const { data: session, status } = useSession();
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [recentTransactions, setRecentTransactions] = useState<TransactionIntent[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const [kycSteps] = useState<KYCStep[]>([
-    {
-      id: 'personal_info',
-      title: 'Informations personnelles',
-      description: 'Nom, prénom, date de naissance, nationalité',
-      status: 'completed',
-      required: true
-    },
-    {
-      id: 'identity_document',
-      title: 'Pièce d\'identité',
-      description: 'CNI, passeport ou permis de conduire',
-      status: 'completed',
-      required: true
-    },
-    {
-      id: 'proof_of_address',
-      title: 'Justificatif de domicile',
-      description: 'Facture récente ou attestation de domicile',
-      status: 'completed',
-      required: true
-    },
-    {
-      id: 'income_proof',
-      title: 'Justificatif de revenus',
-      description: 'Bulletins de salaire ou attestation d\'employeur',
-      status: 'completed',
-      required: true
-    },
-    {
-      id: 'bank_account',
-      title: 'Compte bancaire',
-      description: 'RIB ou relevé bancaire récent',
-      status: 'completed',
-      required: false
-    }
-  ]);
+  // Fetch user data and recent transactions
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      if (status === 'loading') return;
+      
+      if (!session) {
+        router.push('/login');
+        return;
+      }
 
-  const handleLogout = () => {
-    router.push('/login');
+      try {
+        // Fetch user profile
+        const profileResponse = await fetch('/api/users/profile');
+        const profileData = await profileResponse.json();
+
+        if (profileData.success) {
+          setUserData({
+            id: profileData.user.id,
+            userId: profileData.user.id,
+            firstName: profileData.user.firstName,
+            lastName: profileData.user.lastName,
+            email: profileData.user.email,
+            phone: profileData.user.phone,
+            kycStatus: profileData.user.kycStatus,
+            isNewUser: profileData.user.isNewUser || false,
+            accounts: profileData.user.accounts
+          });
+
+          // Fetch recent transactions
+          const transactionsResponse = await fetch(`/api/transactions/intent?userId=${profileData.user.id}`);
+          const transactionsData = await transactionsResponse.json();
+
+          if (transactionsData.success) {
+            setRecentTransactions(transactionsData.transactionIntents.slice(0, 5)); // Get last 5 transactions
+          }
+        } else {
+          setError('Erreur lors du chargement des données');
+        }
+      } catch (error) {
+        setError('Erreur de connexion');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [session, status, router]);
+
+  const handleLogout = async () => {
+    await signOut({ callbackUrl: '/login' });
   };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-night/70">Chargement de votre tableau de bord...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (!userData) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-night/70 mb-4">Erreur lors du chargement de votre tableau de bord</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const renderApprovedDashboard = () => (
     <div className="space-y-8">
@@ -126,43 +185,48 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
-        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60 font-medium">Épargne totale</p>
-              <p className="text-2xl font-bold text-night">2 200 000 FCFA</p>
+          {userData.accounts.map((account) => (
+            <div key={account.id} className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p className="text-sm text-night/60 font-medium">
+                    {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 'Investissement APE'}
+                  </p>
+                  <p className="text-2xl font-bold text-night">
+                    {account.balance.toLocaleString('fr-FR')} FCFA
+                  </p>
+                </div>
+                <div className="bg-gold-metallic/10 p-2 rounded-lg">
+                  {account.accountType === 'SAMA_NAFFA' ? (
+                    <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
+                  ) : (
+                    <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
+                  )}
+                </div>
+              </div>
+              <div className="text-sm text-gold-dark font-medium">
+                Compte: {account.accountNumber}
+              </div>
             </div>
-            <div className="bg-gold-metallic/10 p-2 rounded-lg">
-              <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
+          ))}
+          
+          {/* Total Balance Card */}
+          <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="text-sm text-night/60 font-medium">Solde total</p>
+                <p className="text-2xl font-bold text-night">
+                  {userData.accounts.reduce((total, account) => total + account.balance, 0).toLocaleString('fr-FR')} FCFA
+                </p>
+              </div>
+              <div className="bg-gold-metallic/10 p-2 rounded-lg">
+                <ChartBarIcon className="w-6 h-6 text-gold-metallic" />
+              </div>
+            </div>
+            <div className="text-sm text-gold-dark font-medium">
+              {userData.accounts.length} compte{userData.accounts.length > 1 ? 's' : ''}
             </div>
           </div>
-          <div className="text-sm text-gold-dark font-medium">+12% ce mois</div>
-        </div>
-
-        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60 font-medium">Investissements APE</p>
-              <p className="text-2xl font-bold text-night">1 500 000 FCFA</p>
-            </div>
-            <div className="bg-gold-metallic/10 p-2 rounded-lg">
-              <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
-            </div>
-          </div>
-          <div className="text-sm text-gold-dark font-medium">Rendement 6.85%</div>
-        </div>
-        <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <p className="text-sm text-night/60 font-medium">Prochains intérêts</p>
-              <p className="text-2xl font-bold text-night">51 625 FCFA</p>
-            </div>
-            <div className="bg-gold-metallic/10 p-2 rounded-lg">
-              <ClockIcon className="w-6 h-6 text-gold-metallic" />
-            </div>
-          </div>
-          <div className="text-sm text-gold-dark font-medium">Dans 45 jours</div>
-        </div>
         </div>
       </div>
 
@@ -226,38 +290,54 @@ export default function DashboardPage() {
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <h2 className="text-xl font-bold text-night mb-6">Activité récente</h2>
         <div className="space-y-4">
-          <div className="flex items-center space-x-4 p-4 border border-timberwolf/20 rounded-lg">
-            <div className="w-10 h-10 bg-gold-metallic/10 rounded-full flex items-center justify-center">
-              <BanknotesIcon className="w-5 h-5 text-gold-metallic" />
+          {recentTransactions.length > 0 ? (
+            recentTransactions.map((transaction) => (
+              <div key={transaction.id} className="flex items-center space-x-4 p-4 border border-timberwolf/20 rounded-lg">
+                <div className="w-10 h-10 bg-gold-metallic/10 rounded-full flex items-center justify-center">
+                  {transaction.type === 'DEPOSIT' ? (
+                    <ArrowDownTrayIcon className="w-5 h-5 text-gold-metallic" />
+                  ) : transaction.type === 'WITHDRAWAL' ? (
+                    <ArrowUpTrayIcon className="w-5 h-5 text-gold-metallic" />
+                  ) : (
+                    <BuildingLibraryIcon className="w-5 h-5 text-gold-metallic" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium text-night">
+                    {transaction.type === 'DEPOSIT' ? 'Dépôt' : 
+                     transaction.type === 'WITHDRAWAL' ? 'Retrait' : 
+                     'Investissement APE'}
+                  </h3>
+                  <p className="text-sm text-night/70">
+                    {transaction.type === 'WITHDRAWAL' ? '-' : '+'}{transaction.amount.toLocaleString('fr-FR')} FCFA
+                    {transaction.accountType && ` - ${transaction.accountType === 'SAMA_NAFFA' ? 'Sama Naffa' : 'APE'}`}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="text-sm text-night/60">
+                    {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
+                  </span>
+                  <div className={`text-xs mt-1 ${
+                    transaction.status === 'COMPLETED' ? 'text-green-600' :
+                    transaction.status === 'PENDING' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {transaction.status === 'COMPLETED' ? 'Complété' :
+                     transaction.status === 'PENDING' ? 'En attente' :
+                     'Échoué'}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8">
+              <div className="bg-gold-metallic/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                <ClockIcon className="w-8 h-8 text-gold-metallic" />
+              </div>
+              <p className="text-night/60">Aucune transaction récente</p>
+              <p className="text-sm text-night/40">Vos transactions apparaîtront ici</p>
             </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-night">Épargne automatique</h3>
-              <p className="text-sm text-night/70">Versement de 75 000 FCFA sur votre objectif "Achat maison"</p>
-            </div>
-            <span className="text-sm text-night/60">Il y a 2 jours</span>
-          </div>
-          
-          <div className="flex items-center space-x-4 p-4 border border-timberwolf/20 rounded-lg">
-            <div className="w-10 h-10 bg-gold-dark/10 rounded-full flex items-center justify-center">
-              <BuildingLibraryIcon className="w-5 h-5 text-gold-dark" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-night">Intérêts APE reçus</h3>
-              <p className="text-sm text-night/70">Paiement semestriel de 34 750 FCFA</p>
-            </div>
-            <span className="text-sm text-night/60">Il y a 5 jours</span>
-          </div>
-          
-          <div className="flex items-center space-x-4 p-4 border border-timberwolf/20 rounded-lg">
-            <div className="w-10 h-10 bg-night/10 rounded-full flex items-center justify-center">
-              <StarIcon className="w-5 h-5 text-night" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-medium text-night">Défi complété</h3>
-              <p className="text-sm text-night/70">Félicitations ! Vous avez terminé le défi "52 semaines"</p>
-            </div>
-            <span className="text-sm text-night/60">Il y a 1 semaine</span>
-          </div>
+          )}
         </div>
       </div>
     </div>
