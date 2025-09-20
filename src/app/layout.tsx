@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   description: "Plateforme mobile-first pour l'épargne digitale et l'Appel Public à l'Épargne de l'État du Sénégal. Banque moderne, tontines digitales, investissements sécurisés. Conforme BCEAO.",
   keywords: "épargne, Épargne Inclusive, Emprunt Obligataire, tontine, investissement, BCEAO, mobile banking",
   authors: [{ name: "Everest Finance SGI" }],
+  icons: {
+    icon: '/sama_naffa_logo.png',
+    shortcut: '/sama_naffa_logo.png',
+    apple: '/sama_naffa_logo.png',
+  },
 };
 
 export const viewport: Viewport = {
