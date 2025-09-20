@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
-import { useUserProfile, useUpdateUserProfile } from '../../../hooks/useUserProfile';
+import { useUserProfile, useUpdateUserProfile, useInvalidateUserProfile } from '../../../hooks/useUserProfile';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -76,6 +76,7 @@ export default function ProfilePage() {
   // Use Tanstack Query hooks
   const { data: userData, isLoading, error: profileError } = useUserProfile();
   const updateProfileMutation = useUpdateUserProfile();
+  const invalidateUserProfile = useInvalidateUserProfile();
 
   const [isEditing, setIsEditing] = useState(false);
   const [success, setSuccess] = useState('');
@@ -173,7 +174,8 @@ export default function ProfilePage() {
 
       if (data.success) {
         setSuccess('Document téléchargé avec succès');
-        // Tanstack Query will automatically refetch user profile data
+        // Invalidate and refetch user profile data to show updated KYC document status
+        invalidateUserProfile();
       } else {
         // Error handling is done by setting error state
         console.error('Upload failed:', data.error);
@@ -187,12 +189,14 @@ export default function ProfilePage() {
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'verified':
+      case 'APPROVED':
         return <CheckCircleIcon className="w-5 h-5 text-gold-metallic" />;
-      case 'pending':
+      case 'PENDING':
         return <ClockIcon className="w-5 h-5 text-gold-dark" />;
-      case 'rejected':
+      case 'REJECTED':
         return <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />;
+      case 'UNDER_REVIEW':
+        return <ClockIcon className="w-5 h-5 text-blue-500" />;
       default:
         return <DocumentTextIcon className="w-5 h-5 text-night/50" />;
     }
@@ -200,12 +204,14 @@ export default function ProfilePage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'verified':
-        return 'Vérifié';
-      case 'pending':
-        return 'En cours';
-      case 'rejected':
+      case 'APPROVED':
+        return 'Approuvé';
+      case 'PENDING':
+        return 'En attente';
+      case 'REJECTED':
         return 'Rejeté';
+      case 'UNDER_REVIEW':
+        return 'En révision';
       default:
         return 'En attente';
     }
@@ -213,12 +219,14 @@ export default function ProfilePage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'verified':
-        return 'bg-gold-light/20 text-gold-dark';
-      case 'pending':
+      case 'APPROVED':
+        return 'bg-green-100 text-green-800';
+      case 'PENDING':
         return 'bg-yellow-100 text-yellow-800';
-      case 'rejected':
+      case 'REJECTED':
         return 'bg-red-100 text-red-800';
+      case 'UNDER_REVIEW':
+        return 'bg-blue-100 text-blue-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -247,7 +255,7 @@ export default function ProfilePage() {
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+            className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
           >
             Réessayer
           </button>
@@ -305,7 +313,7 @@ export default function ProfilePage() {
               {!isEditing && (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center space-x-2 bg-gold-metallic text-night px-4 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+                  className="flex items-center space-x-2 bg-gold-metallic text-white px-4 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
                 >
                   <PencilIcon className="w-4 h-4" />
                   <span>Modifier</span>
@@ -397,7 +405,7 @@ export default function ProfilePage() {
                         className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition-colors ${
                           updateProfileMutation.isPending
                             ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                            : 'bg-gold-metallic text-night hover:bg-gold-dark'
+                            : 'bg-gold-metallic text-white hover:bg-gold-dark'
                         }`}
                       >
                         {updateProfileMutation.isPending && <div className="w-4 h-4 border-2 border-night/30 border-t-night rounded-full animate-spin" />}
@@ -452,13 +460,45 @@ export default function ProfilePage() {
           <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-night">Statut de vérification</h2>
-              <div className="flex items-center space-x-2 bg-gold-light/20 text-gold-dark px-3 py-1 rounded-full">
-                <CheckCircleIcon className="w-5 h-5" />
-                <span className="font-medium">Vérifié</span>
+              <div className={`flex items-center space-x-2 px-3 py-1 rounded-full ${
+                userData?.kycStatus === 'APPROVED'
+                  ? 'bg-green-100 text-green-800'
+                  : userData?.kycStatus === 'UNDER_REVIEW'
+                  ? 'bg-blue-100 text-blue-800'
+                  : userData?.kycStatus === 'REJECTED'
+                  ? 'bg-red-100 text-red-800'
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {userData?.kycStatus === 'APPROVED' ? (
+                  <CheckCircleIcon className="w-5 h-5" />
+                ) : userData?.kycStatus === 'UNDER_REVIEW' ? (
+                  <ClockIcon className="w-5 h-5" />
+                ) : userData?.kycStatus === 'REJECTED' ? (
+                  <ExclamationTriangleIcon className="w-5 h-5" />
+                ) : (
+                  <ClockIcon className="w-5 h-5" />
+                )}
+                <span className="font-medium">
+                  {userData?.kycStatus === 'APPROVED'
+                    ? 'Approuvé'
+                    : userData?.kycStatus === 'UNDER_REVIEW'
+                    ? 'En révision'
+                    : userData?.kycStatus === 'REJECTED'
+                    ? 'Rejeté'
+                    : 'En attente'
+                  }
+                </span>
               </div>
             </div>
             <p className="text-night/70">
-              Votre compte est entièrement vérifié. Vous avez accès à tous nos services.
+              {userData?.kycStatus === 'APPROVED'
+                ? 'Votre compte est entièrement vérifié. Vous avez accès à tous nos services.'
+                : userData?.kycStatus === 'UNDER_REVIEW'
+                ? 'Votre vérification KYC est en cours de révision par notre équipe.'
+                : userData?.kycStatus === 'REJECTED'
+                ? 'Votre vérification KYC a été rejetée. Veuillez contacter le support.'
+                : 'Votre vérification KYC est en attente. Veuillez soumettre vos documents.'
+              }
             </p>
           </div>
 
@@ -472,7 +512,7 @@ export default function ProfilePage() {
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                   uploadingFile
                     ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                    : 'bg-gold-metallic text-night hover:bg-gold-dark'
+                    : 'bg-gold-metallic text-white hover:bg-gold-dark'
                 }`}
               >
                 {uploadingFile ? (

@@ -52,10 +52,16 @@ export default function SamaNaffaPortal() {
   const [showBalance, setShowBalance] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Real data from backend
   const [samaNaffaAccount, setSamaNaffaAccount] = useState<UserAccount | null>(null);
   const [transactionHistory, setTransactionHistory] = useState<TransactionIntent[]>([]);
+
+  // Pagination state
+  const [loadedTransactions, setLoadedTransactions] = useState<TransactionIntent[]>([]);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch user's Sama Naffa account data
   useEffect(() => {
@@ -74,16 +80,8 @@ export default function SamaNaffaPortal() {
           setSamaNaffaAccount(samaNaffaAcc || null);
         }
 
-        // Fetch transaction history
-        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
-        const transactionsData = await transactionsResponse.json();
-
-        if (transactionsData.success) {
-          const samaNaffaTransactions = transactionsData.transactionIntents.filter(
-            (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
-          );
-          setTransactionHistory(samaNaffaTransactions);
-        }
+        // Fetch initial transaction history (5 items)
+        await fetchTransactions(5, 0);
       } catch (error) {
         console.error('Error fetching account data:', error);
         setError('Erreur lors du chargement des données');
@@ -93,7 +91,62 @@ export default function SamaNaffaPortal() {
     };
 
     fetchAccountData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  // Function to fetch transactions with pagination
+  const fetchTransactions = async (limit: number = 5, offset: number = 0) => {
+    if (!session) return;
+
+    try {
+      const transactionsResponse = await fetch(
+        `/api/transactions/intent?userId=${(session.user as any).id}&limit=${limit}&offset=${offset}`
+      );
+      const transactionsData = await transactionsResponse.json();
+
+      if (transactionsData.success) {
+        const samaNaffaTransactions = transactionsData.transactionIntents.filter(
+          (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
+        );
+
+        if (offset === 0) {
+          // First load
+          setLoadedTransactions(samaNaffaTransactions);
+          setTotalTransactions(transactionsData.pagination.total);
+          setHasMoreTransactions(transactionsData.pagination.hasMore);
+        } else {
+          // Load more - append to existing
+          setLoadedTransactions(prev => [...prev, ...samaNaffaTransactions]);
+          setHasMoreTransactions(transactionsData.pagination.hasMore);
+        }
+
+        // Update full transaction history for other operations
+        const allTransactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
+        const allTransactionsData = await allTransactionsResponse.json();
+
+        if (allTransactionsData.success) {
+          const allSamaNaffaTransactions = allTransactionsData.transactionIntents.filter(
+            (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
+          );
+          setTransactionHistory(allSamaNaffaTransactions);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
+
+  // Load more transactions
+  const loadMoreTransactions = async () => {
+    if (!session || isLoadingMore || !hasMoreTransactions) return;
+
+    setIsLoadingMore(true);
+    try {
+      await fetchTransactions(5, loadedTransactions.length);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleTransferConfirm = async (data: { amount: number; method: string; note?: string }) => {
     if (!session || !samaNaffaAccount) return;
@@ -128,16 +181,8 @@ export default function SamaNaffaPortal() {
           setSamaNaffaAccount(updatedAccount || null);
         }
 
-        // Refresh transaction history
-        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
-        const transactionsData = await transactionsResponse.json();
-        
-        if (transactionsData.success) {
-          const samaNaffaTransactions = transactionsData.transactionIntents.filter(
-            (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
-          );
-          setTransactionHistory(samaNaffaTransactions);
-        }
+        // Refresh transaction history and paginated data
+        await fetchTransactions(loadedTransactions.length > 0 ? loadedTransactions.length : 5, 0);
 
         setShowTransferModal(false);
         alert(`Transaction ${transferType === 'deposit' ? 'de dépôt' : 'de retrait'} soumise avec succès! Référence: ${result.transactionIntent.referenceNumber}`);
@@ -345,7 +390,7 @@ export default function SamaNaffaPortal() {
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <h3 className="text-xl font-bold text-night mb-6">Historique des transactions</h3>
         
-        {transactionHistory.length > 0 ? (
+        {loadedTransactions.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -359,7 +404,7 @@ export default function SamaNaffaPortal() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-timberwolf/10">
-                {transactionHistory.map((transaction) => (
+                {loadedTransactions.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
                     <td className="py-4 px-2 text-sm text-night">
                       {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
@@ -412,10 +457,26 @@ export default function SamaNaffaPortal() {
           </div>
         )}
 
-        {transactionHistory.length > 0 && (
+        {/* Load More Button - only show if there are more than 5 transactions total and more to load */}
+        {totalTransactions > 5 && hasMoreTransactions && (
           <div className="mt-6 flex justify-center">
-            <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
-              Charger plus de transactions
+            <button
+              onClick={loadMoreTransactions}
+              disabled={isLoadingMore}
+              className={`flex items-center space-x-2 py-2 px-6 rounded-lg font-medium text-sm transition-colors ${
+                isLoadingMore
+                  ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
+                  : 'bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20'
+              }`}
+            >
+              {isLoadingMore ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>Chargement...</span>
+                </>
+              ) : (
+                <span>Charger plus de transactions</span>
+              )}
             </button>
           </div>
         )}

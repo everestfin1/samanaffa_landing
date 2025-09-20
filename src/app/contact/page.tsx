@@ -127,7 +127,7 @@ export default function ContactPage() {
                 Besoin d'aide immédiate ?
               </h3>
               <div className="space-y-3">
-                <button className="w-full bg-gold-metallic text-night py-3 px-4 rounded-lg font-medium hover:bg-gold-metallic/90 transition-colors">
+                <button className="w-full bg-gold-metallic text-white py-3 px-4 rounded-lg font-medium hover:bg-gold-metallic/90 transition-colors">
                   Chat en direct
                 </button>
                 <button className="w-full bg-white text-night py-3 px-4 rounded-lg font-medium border border-timberwolf/20 hover:bg-timberwolf/10 transition-colors">
@@ -245,7 +245,7 @@ export default function ContactPage() {
                 className={`w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
                   isSubmitting
                     ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                    : 'bg-gold-metallic text-night hover:bg-gold-metallic/90'
+                    : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
                 }`}
               >
                 {isSubmitting ? (

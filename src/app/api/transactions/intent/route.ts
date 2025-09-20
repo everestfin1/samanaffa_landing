@@ -165,6 +165,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const limit = parseInt(searchParams.get('limit') || '10')
+    const offset = parseInt(searchParams.get('offset') || '0')
 
     if (!userId) {
       return NextResponse.json(
@@ -173,17 +175,30 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Get total count for pagination
+    const totalCount = await prisma.transactionIntent.count({
+      where: { userId }
+    })
+
     const transactionIntents = await prisma.transactionIntent.findMany({
       where: { userId },
       include: {
         account: true
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip: offset
     })
 
     return NextResponse.json({
       success: true,
-      transactionIntents
+      transactionIntents,
+      pagination: {
+        total: totalCount,
+        limit,
+        offset,
+        hasMore: offset + limit < totalCount
+      }
     })
   } catch (error) {
     console.error('Error fetching transaction intents:', error)

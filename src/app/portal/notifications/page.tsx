@@ -108,7 +108,7 @@ export default function NotificationsPage() {
           <p className="text-night/70 mb-4">Erreur lors du chargement des notifications</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+            className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
           >
             Réessayer
           </button>

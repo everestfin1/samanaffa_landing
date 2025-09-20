@@ -67,7 +67,7 @@ export default function SamaNaffaPage() {
           <p className="text-night/70">Erreur lors du chargement des données</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors mt-4"
+            className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors mt-4"
           >
             Réessayer
           </button>

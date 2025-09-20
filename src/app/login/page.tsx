@@ -268,7 +268,7 @@ function LoginForm() {
                 className={`w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
                   isLoading || (!formData.email && !formData.phone)
                     ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                    : 'bg-gold-metallic text-night hover:bg-gold-metallic/90'
+                    : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
                 }`}
               >
                 {isLoading ? (
@@ -344,7 +344,7 @@ function LoginForm() {
                   className={`flex-1 flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
                     isLoading || !formData.otp || formData.otp.length !== 6
                       ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                      : 'bg-gold-metallic text-night hover:bg-gold-metallic/90'
+                      : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
                   }`}
                 >
                   {isLoading ? (

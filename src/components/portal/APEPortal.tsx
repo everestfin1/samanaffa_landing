@@ -10,7 +10,9 @@ import {
   InformationCircleIcon,
   CheckCircleIcon,
   PlusIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  EyeIcon,
+  EyeSlashIcon
 } from '@heroicons/react/24/outline';
 import InvestmentModal from '../modals/InvestmentModal';
 import { ArrowRightIcon } from 'lucide-react';
@@ -61,13 +63,20 @@ export default function APEPortal() {
   const { data: session } = useSession();
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
   const [selectedTranche, setSelectedTranche] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
+  const [showBalance, setShowBalance] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
-  
+
   // Real data from backend
   const [apeAccount, setApeAccount] = useState<UserAccount | null>(null);
   const [transactionHistory, setTransactionHistory] = useState<TransactionIntent[]>([]);
   const [investments, setInvestments] = useState<Investment[]>([]);
+
+  // Pagination state
+  const [loadedTransactions, setLoadedTransactions] = useState<TransactionIntent[]>([]);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   // Fetch user's APE account data
   useEffect(() => {
@@ -86,18 +95,58 @@ export default function APEPortal() {
           setApeAccount(apeAcc || null);
         }
 
-        // Fetch transaction history
-        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
-        const transactionsData = await transactionsResponse.json();
+        // Fetch initial transaction history (5 items)
+        await fetchTransactions(5, 0);
+      } catch (error) {
+        console.error('Error fetching account data:', error);
+        setError('Erreur lors du chargement des données');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        if (transactionsData.success) {
-          const apeTransactions = transactionsData.transactionIntents.filter(
+    fetchAccountData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  // Function to fetch transactions with pagination
+  const fetchTransactions = async (limit: number = 5, offset: number = 0) => {
+    if (!session) return;
+
+    try {
+      const transactionsResponse = await fetch(
+        `/api/transactions/intent?userId=${(session.user as any).id}&limit=${limit}&offset=${offset}`
+      );
+      const transactionsData = await transactionsResponse.json();
+
+      if (transactionsData.success) {
+        const apeTransactions = transactionsData.transactionIntents.filter(
+          (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT'
+        );
+
+        if (offset === 0) {
+          // First load
+          setLoadedTransactions(apeTransactions);
+          setTotalTransactions(transactionsData.pagination.total);
+          setHasMoreTransactions(transactionsData.pagination.hasMore);
+        } else {
+          // Load more - append to existing
+          setLoadedTransactions(prev => [...prev, ...apeTransactions]);
+          setHasMoreTransactions(transactionsData.pagination.hasMore);
+        }
+
+        // Update full transaction history for other operations
+        const allTransactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
+        const allTransactionsData = await allTransactionsResponse.json();
+
+        if (allTransactionsData.success) {
+          const allApeTransactions = allTransactionsData.transactionIntents.filter(
             (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT'
           );
-          setTransactionHistory(apeTransactions);
-          
+          setTransactionHistory(allApeTransactions);
+
           // Convert transaction intents to investment format for display
-          const investmentData = apeTransactions
+          const investmentData = allApeTransactions
             .filter((tx: TransactionIntent) => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
             .map((tx: TransactionIntent) => ({
               id: tx.id,
@@ -111,17 +160,23 @@ export default function APEPortal() {
             }));
           setInvestments(investmentData);
         }
-      } catch (error) {
-        console.error('Error fetching account data:', error);
-        setError('Erreur lors du chargement des données');
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error fetching transactions:', error);
+    }
+  };
 
-    fetchAccountData();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  // Load more transactions
+  const loadMoreTransactions = async () => {
+    if (!session || isLoadingMore || !hasMoreTransactions) return;
+
+    setIsLoadingMore(true);
+    try {
+      await fetchTransactions(5, loadedTransactions.length);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   // Helper functions
   const getInterestRateForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): number => {
@@ -181,31 +236,8 @@ export default function APEPortal() {
           setApeAccount(updatedAccount || null);
         }
 
-        // Refresh transaction history
-        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
-        const transactionsData = await transactionsResponse.json();
-        
-        if (transactionsData.success) {
-          const apeTransactions = transactionsData.transactionIntents.filter(
-            (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT'
-          );
-          setTransactionHistory(apeTransactions);
-          
-          // Update investments
-          const investmentData = apeTransactions
-            .filter((tx: TransactionIntent) => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
-            .map((tx: TransactionIntent) => ({
-              id: tx.id,
-              tranche: tx.investmentTranche as 'A' | 'B' | 'C' | 'D',
-              amount: tx.amount,
-              term: tx.investmentTerm as 3 | 5 | 7 | 10,
-              interestRate: getInterestRateForTranche(tx.investmentTranche as 'A' | 'B' | 'C' | 'D'),
-              purchaseDate: tx.createdAt,
-              nextPayment: calculateNextPayment(tx.createdAt, tx.investmentTerm as number),
-              totalValue: calculateTotalValue(tx.amount, tx.investmentTranche as 'A' | 'B' | 'C' | 'D', tx.investmentTerm as number)
-            }));
-          setInvestments(investmentData);
-        }
+        // Refresh transaction history and paginated data
+        await fetchTransactions(loadedTransactions.length > 0 ? loadedTransactions.length : 5, 0);
 
         setShowInvestmentModal(false);
         setSelectedTranche(null);
@@ -249,6 +281,73 @@ export default function APEPortal() {
             </div>
           </div>
         </div>
+
+        {/* Portfolio Overview Skeleton */}
+        <div className="grid grid-cols-1 gap-6">
+          <div>
+            <div className="relative bg-black/90 rounded-2xl p-8 text-white overflow-hidden">
+              {/* Grainy texture overlay */}
+              <div className="absolute inset-0 opacity-30 z-10" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                mixBlendMode: 'overlay'
+              }}></div>
+
+              {/* Decorative circles */}
+              <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full"></div>
+              <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full"></div>
+              <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full"></div>
+
+              {/* Logo */}
+              <div className="absolute top-6 right-6 z-50">
+                <div className="bg-white/20 px-3 py-1 rounded-lg backdrop-blur-sm">
+                  <span className="text-xs font-bold text-white">APE</span>
+                </div>
+              </div>
+
+              {/* Card Content Skeleton */}
+              <div className="relative z-10 h-full flex flex-col">
+                {/* Header Section */}
+                <div className="mb-6">
+                  <h4 className="text-lg font-medium text-white/90 mb-2">Investissement Total</h4>
+                  <div className="flex items-center space-x-3">
+                    <div className="text-3xl font-bold tracking-wider">••••••••••••</div>
+                    <EyeIcon className="w-6 h-6 text-white/80" />
+                  </div>
+                </div>
+
+                {/* Main Content Grid */}
+                <div className="flex-1 grid grid-cols-2 gap-6">
+                  {/* Left Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-white/70 text-sm mb-1">Compte N°</p>
+                      <div className="h-5 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+
+                    <div>
+                      <p className="text-white/70 text-sm mb-1">Investissements actifs</p>
+                      <div className="h-8 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+
+                  {/* Right Column */}
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-white/70 text-sm mb-1">Rendement moyen</p>
+                      <div className="h-8 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+
+                    <div>
+                      <p className="text-white/70 text-sm mb-1">Valeur projetée</p>
+                      <div className="h-6 bg-white/20 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin"></div>
@@ -335,8 +434,16 @@ export default function APEPortal() {
               {/* Header Section */}
               <div className="mb-6">
                 <h4 className="text-lg font-medium text-white/90 mb-2">Investissement Total</h4>
-                <div className="text-3xl font-bold tracking-wider">
-                  {Number(totalInvestment).toLocaleString()} FCFA
+                <div className="flex items-center space-x-3">
+                  <div className="text-3xl font-bold tracking-wider">
+                    {showBalance ? `${Number(totalInvestment).toLocaleString()} FCFA` : '••••••••••••'}
+                  </div>
+                  <button
+                    onClick={() => setShowBalance(!showBalance)}
+                    className="text-white/80 hover:text-white transition-colors"
+                  >
+                    {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
+                  </button>
                 </div>
               </div>
 
@@ -370,10 +477,12 @@ export default function APEPortal() {
                   <div>
                     <p className="text-white/70 text-sm mb-1">Valeur projetée</p>
                     <div className="flex items-baseline gap-2">
-                      <p className="text-xl font-bold">{totalProjectedValue.toLocaleString()} FCFA</p>
-                      <p className="text-sm text-sama-primary-green-light font-medium">
-                        (+{(totalProjectedValue - totalInvestment).toLocaleString()})
-                      </p>
+                      <p className="text-xl font-bold">{showBalance ? `${totalProjectedValue.toLocaleString()} FCFA` : '••••••••••••'}</p>
+                      {showBalance && (
+                        <p className="text-sm text-sama-primary-green-light font-medium">
+                          (+{(totalProjectedValue - totalInvestment).toLocaleString()})
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -452,8 +561,8 @@ export default function APEPortal() {
       {/* Investment History */}
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <h3 className="text-xl font-bold text-night mb-6">Historique des investissements</h3>
-        
-        {transactionHistory.length > 0 ? (
+
+        {loadedTransactions.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -468,7 +577,7 @@ export default function APEPortal() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-timberwolf/10">
-                {transactionHistory.map((transaction) => (
+                {loadedTransactions.map((transaction) => (
                   <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
                     <td className="py-4 px-2 text-sm text-night">
                       {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
@@ -522,10 +631,26 @@ export default function APEPortal() {
           </div>
         )}
 
-        {transactionHistory.length > 0 && (
+        {/* Load More Button - only show if there are more than 5 transactions total and more to load */}
+        {totalTransactions > 5 && hasMoreTransactions && (
           <div className="mt-6 flex justify-center">
-            <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
-              Charger plus d'investissements
+            <button
+              onClick={loadMoreTransactions}
+              disabled={isLoadingMore}
+              className={`flex items-center space-x-2 py-2 px-6 rounded-lg font-medium text-sm transition-colors ${
+                isLoadingMore
+                  ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
+                  : 'bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20'
+              }`}
+            >
+              {isLoadingMore ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>Chargement...</span>
+                </>
+              ) : (
+                <span>Charger plus d'investissements</span>
+              )}
             </button>
           </div>
         )}
