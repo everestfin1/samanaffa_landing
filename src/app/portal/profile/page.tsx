@@ -23,7 +23,7 @@ import {
 } from '@heroicons/react/24/outline';
 import PortalHeader from '../../../components/portal/PortalHeader';
 
-type KYCStatus = 'pending' | 'in_progress' | 'documents_required' | 'under_review' | 'approved' | 'rejected';
+type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 interface UserData {
   id: string;
@@ -285,7 +285,7 @@ export default function ProfilePage() {
           phone: userData.phone,
           userId: userData.id,
           isNewUser: false,
-          kycStatus: userData.kycStatus
+          kycStatus: userData.kycStatus as KYCStatus
         }}
         kycStatus={userData.kycStatus}
         activeTab="profile"

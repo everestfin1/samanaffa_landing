@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   BuildingLibraryIcon,
   BanknotesIcon,
@@ -14,6 +15,37 @@ import {
 import InvestmentModal from '../modals/InvestmentModal';
 import { ArrowRightIcon } from 'lucide-react';
 
+interface UserAccount {
+  id: string;
+  accountType: string;
+  accountNumber: string;
+  balance: number;
+  status: string;
+  createdAt: string;
+  recentTransactions: Array<{
+    id: string;
+    intentType: string;
+    amount: number;
+    status: string;
+    referenceNumber: string;
+    createdAt: string;
+  }>;
+}
+
+interface TransactionIntent {
+  id: string;
+  accountType: string;
+  intentType: string;
+  amount: number;
+  paymentMethod: string;
+  status: string;
+  referenceNumber: string;
+  createdAt: string;
+  userNotes?: string;
+  investmentTranche?: string;
+  investmentTerm?: number;
+}
+
 interface Investment {
   id: string;
   tranche: 'A' | 'B' | 'C' | 'D';
@@ -26,32 +58,86 @@ interface Investment {
 }
 
 export default function APEPortal() {
+  const { data: session } = useSession();
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
   const [selectedTranche, setSelectedTranche] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
   
-  // Current investments
-  const [investments] = useState<Investment[]>([
-    {
-      id: '1',
-      tranche: 'D',
-      amount: 1000000,
-      term: 10,
-      interestRate: 6.95,
-      purchaseDate: '2025-08-15',
-      nextPayment: '2026-02-15',
-      totalValue: 1695000
-    },
-    {
-      id: '2',
-      tranche: 'B',
-      amount: 500000,
-      term: 5,
-      interestRate: 6.60,
-      purchaseDate: '2025-09-01',
-      nextPayment: '2026-03-01',
-      totalValue: 665000
-    }
-  ]);
+  // Real data from backend
+  const [apeAccount, setApeAccount] = useState<UserAccount | null>(null);
+  const [transactionHistory, setTransactionHistory] = useState<TransactionIntent[]>([]);
+  const [investments, setInvestments] = useState<Investment[]>([]);
+
+  // Fetch user's APE account data
+  useEffect(() => {
+    const fetchAccountData = async () => {
+      if (!session) return;
+
+      try {
+        // Fetch user accounts
+        const accountsResponse = await fetch('/api/accounts');
+        const accountsData = await accountsResponse.json();
+
+        if (accountsData.success) {
+          const apeAcc = accountsData.accounts.find(
+            (acc: UserAccount) => acc.accountType === 'APE_INVESTMENT'
+          );
+          setApeAccount(apeAcc || null);
+        }
+
+        // Fetch transaction history
+        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
+        const transactionsData = await transactionsResponse.json();
+
+        if (transactionsData.success) {
+          const apeTransactions = transactionsData.transactionIntents.filter(
+            (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT'
+          );
+          setTransactionHistory(apeTransactions);
+          
+          // Convert transaction intents to investment format for display
+          const investmentData = apeTransactions
+            .filter(tx => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
+            .map(tx => ({
+              id: tx.id,
+              tranche: tx.investmentTranche as 'A' | 'B' | 'C' | 'D',
+              amount: tx.amount,
+              term: tx.investmentTerm as 3 | 5 | 7 | 10,
+              interestRate: getInterestRateForTranche(tx.investmentTranche as 'A' | 'B' | 'C' | 'D'),
+              purchaseDate: tx.createdAt,
+              nextPayment: calculateNextPayment(tx.createdAt, tx.investmentTerm as number),
+              totalValue: calculateTotalValue(tx.amount, tx.investmentTranche as 'A' | 'B' | 'C' | 'D', tx.investmentTerm as number)
+            }));
+          setInvestments(investmentData);
+        }
+      } catch (error) {
+        console.error('Error fetching account data:', error);
+        setError('Erreur lors du chargement des données');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchAccountData();
+  }, [session]);
+
+  // Helper functions
+  const getInterestRateForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): number => {
+    const rates = { A: 6.40, B: 6.60, C: 6.75, D: 6.95 };
+    return rates[tranche];
+  };
+
+  const calculateNextPayment = (purchaseDate: string, term: number): string => {
+    const date = new Date(purchaseDate);
+    date.setMonth(date.getMonth() + 6); // Semi-annual payments
+    return date.toISOString().split('T')[0];
+  };
+
+  const calculateTotalValue = (amount: number, tranche: 'A' | 'B' | 'C' | 'D', term: number): number => {
+    const rate = getInterestRateForTranche(tranche);
+    return Math.round(amount * (1 + rate / 100 * term));
+  };
 
   const trancheOptions = [
     { value: 'A' as const, label: 'Tranche A', term: 3, rate: 6.40, description: 'Court terme - 3 ans' },
@@ -60,11 +146,81 @@ export default function APEPortal() {
     { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans' }
   ];
 
-  const handleInvestmentConfirm = (data: { amount: number; tranche: 'A' | 'B' | 'C' | 'D'; method: string }) => {
-    console.log('Investment data:', data);
-    setShowInvestmentModal(false);
-    setSelectedTranche(null);
-    // Here you would handle the actual investment
+  const handleInvestmentConfirm = async (data: { amount: number; tranche: 'A' | 'B' | 'C' | 'D'; method: string }) => {
+    if (!session || !apeAccount) return;
+
+    try {
+      const response = await fetch('/api/transactions/intent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: (session.user as any).id,
+          accountType: 'ape_investment',
+          intentType: 'investment',
+          amount: data.amount,
+          paymentMethod: data.method,
+          investmentTranche: data.tranche,
+          investmentTerm: getTermForTranche(data.tranche)
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Refresh account data
+        const accountsResponse = await fetch('/api/accounts');
+        const accountsData = await accountsResponse.json();
+        
+        if (accountsData.success) {
+          const updatedAccount = accountsData.accounts.find(
+            (acc: UserAccount) => acc.accountType === 'APE_INVESTMENT'
+          );
+          setApeAccount(updatedAccount || null);
+        }
+
+        // Refresh transaction history
+        const transactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
+        const transactionsData = await transactionsResponse.json();
+        
+        if (transactionsData.success) {
+          const apeTransactions = transactionsData.transactionIntents.filter(
+            (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT'
+          );
+          setTransactionHistory(apeTransactions);
+          
+          // Update investments
+          const investmentData = apeTransactions
+            .filter(tx => tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
+            .map(tx => ({
+              id: tx.id,
+              tranche: tx.investmentTranche as 'A' | 'B' | 'C' | 'D',
+              amount: tx.amount,
+              term: tx.investmentTerm as 3 | 5 | 7 | 10,
+              interestRate: getInterestRateForTranche(tx.investmentTranche as 'A' | 'B' | 'C' | 'D'),
+              purchaseDate: tx.createdAt,
+              nextPayment: calculateNextPayment(tx.createdAt, tx.investmentTerm as number),
+              totalValue: calculateTotalValue(tx.amount, tx.investmentTranche as 'A' | 'B' | 'C' | 'D', tx.investmentTerm as number)
+            }));
+          setInvestments(investmentData);
+        }
+
+        setShowInvestmentModal(false);
+        setSelectedTranche(null);
+        alert(`Investissement APE soumis avec succès! Référence: ${result.transactionIntent.referenceNumber}`);
+      } else {
+        alert('Erreur lors de la soumission de l\'investissement');
+      }
+    } catch (error) {
+      console.error('Error submitting investment:', error);
+      alert('Erreur lors de la soumission de l\'investissement');
+    }
+  };
+
+  const getTermForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): number => {
+    const terms = { A: 3, B: 5, C: 7, D: 10 };
+    return terms[tranche];
   };
 
   const handleTrancheClick = (tranche: 'A' | 'B' | 'C' | 'D') => {
@@ -74,6 +230,64 @@ export default function APEPortal() {
 
   const totalInvestment = investments.reduce((sum, inv) => sum + inv.amount, 0);
   const totalProjectedValue = investments.reduce((sum, inv) => sum + inv.totalValue, 0);
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold text-night mb-2">Emprunt Obligataire</h2>
+              <p className="text-night/70 text-lg">Chargement de votre portefeuille...</p>
+            </div>
+            <div className="hidden md:block">
+              <div className="bg-gold-metallic/10 p-4 rounded-full">
+                <BuildingLibraryIcon className="w-12 h-12 text-gold-metallic" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <div className="space-y-8">
+        <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-3xl font-bold text-night mb-2">Emprunt Obligataire</h2>
+              <p className="text-night/70 text-lg">Erreur lors du chargement</p>
+            </div>
+            <div className="hidden md:block">
+              <div className="bg-gold-metallic/10 p-4 rounded-full">
+                <BuildingLibraryIcon className="w-12 h-12 text-gold-metallic" />
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+          <div className="text-center py-12">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+            >
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -127,18 +341,18 @@ export default function APEPortal() {
 
               {/* Main Content Grid */}
               <div className="flex-1 grid grid-cols-2 gap-6">
-                {/* Left Column */}
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-white/70 text-sm mb-1">Compte N°</p>
-                    <p className="text-lg font-mono tracking-wider">APE-2025-001</p>
-                  </div>
-                  
-                  <div>
-                    <p className="text-white/70 text-sm mb-1">Investissements actifs</p>
-                    <p className="text-2xl font-bold">{investments.length}</p>
-                  </div>
+              {/* Left Column */}
+              <div className="space-y-4">
+                <div>
+                  <p className="text-white/70 text-sm mb-1">Compte N°</p>
+                  <p className="text-lg font-mono tracking-wider">{apeAccount?.accountNumber || 'APE-2025-001'}</p>
                 </div>
+                
+                <div>
+                  <p className="text-white/70 text-sm mb-1">Investissements actifs</p>
+                  <p className="text-2xl font-bold">{investments.length}</p>
+                </div>
+              </div>
 
                 {/* Right Column */}
                 <div className="space-y-4">
@@ -238,112 +452,82 @@ export default function APEPortal() {
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <h3 className="text-xl font-bold text-night mb-6">Historique des investissements</h3>
         
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-timberwolf/20">
-                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Date</th>
-                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Type</th>
-                <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Tranche</th>
-                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Montant</th>
-                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Taux</th>
-                <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Échéance</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-timberwolf/10">
-              {[
-                {
-                  date: '2025-09-15',
-                  type: 'Investissement',
-                  tranche: 'D',
-                  amount: 1000000,
-                  rate: 6.95,
-                  maturity: '2035-08-15',
-                  isInvestment: true
-                },
-                {
-                  date: '2025-09-01',
-                  type: 'Investissement',
-                  tranche: 'B',
-                  amount: 500000,
-                  rate: 6.60,
-                  maturity: '2030-09-01',
-                  isInvestment: true
-                },
-                {
-                  date: '2025-08-15',
-                  type: 'Intérêts',
-                  tranche: 'D',
-                  amount: 17375,
-                  rate: 6.95,
-                  maturity: '2035-08-15',
-                  isInvestment: false
-                },
-                {
-                  date: '2025-08-01',
-                  type: 'Intérêts',
-                  tranche: 'B',
-                  amount: 8250,
-                  rate: 6.60,
-                  maturity: '2030-09-01',
-                  isInvestment: false
-                },
-                {
-                  date: '2025-07-15',
-                  type: 'Intérêts',
-                  tranche: 'D',
-                  amount: 17375,
-                  rate: 6.95,
-                  maturity: '2035-08-15',
-                  isInvestment: false
-                },
-                {
-                  date: '2025-07-01',
-                  type: 'Intérêts',
-                  tranche: 'B',
-                  amount: 8250,
-                  rate: 6.60,
-                  maturity: '2030-09-01',
-                  isInvestment: false
-                }
-              ].map((transaction, index) => (
-                <tr key={index} className="hover:bg-timberwolf/5 transition-colors">
-                  <td className="py-4 px-2 text-sm text-night">
-                    {new Date(transaction.date).toLocaleDateString('fr-FR')}
-                  </td>
-                  <td className="py-4 px-2">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      transaction.type === 'Investissement' ? 'bg-blue-100 text-blue-800' :
-                      'bg-green-100 text-green-800'
-                    }`}>
-                      {transaction.type}
-                    </span>
-                  </td>
-                  <td className="py-4 px-2 text-sm text-night/70">
-                    Tranche {transaction.tranche}
-                  </td>
-                  <td className={`py-4 px-2 text-sm font-semibold text-right ${
-                    transaction.isInvestment ? 'text-blue-600' : 'text-green-600'
-                  }`}>
-                    {transaction.isInvestment ? '+' : '+'}{transaction.amount.toLocaleString()} FCFA
-                  </td>
-                  <td className="py-4 px-2 text-sm font-medium text-right text-night">
-                    {transaction.rate}%
-                  </td>
-                  <td className="py-4 px-2 text-sm font-medium text-right text-night">
-                    {new Date(transaction.maturity).toLocaleDateString('fr-FR')}
-                  </td>
+        {transactionHistory.length > 0 ? (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-timberwolf/20">
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Date</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Type</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Tranche</th>
+                  <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Montant</th>
+                  <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Taux</th>
+                  <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Statut</th>
+                  <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Référence</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-timberwolf/10">
+                {transactionHistory.map((transaction) => (
+                  <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
+                    <td className="py-4 px-2 text-sm text-night">
+                      {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
+                    </td>
+                    <td className="py-4 px-2">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        transaction.intentType === 'INVESTMENT' ? 'bg-blue-100 text-blue-800' :
+                        'bg-green-100 text-green-800'
+                      }`}>
+                        {transaction.intentType === 'INVESTMENT' ? 'Investissement' : 'Intérêts'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-2 text-sm text-night/70">
+                      {transaction.investmentTranche ? `Tranche ${transaction.investmentTranche}` : '-'}
+                    </td>
+                    <td className={`py-4 px-2 text-sm font-semibold text-right ${
+                      transaction.intentType === 'INVESTMENT' ? 'text-blue-600' : 'text-green-600'
+                    }`}>
+                      +{transaction.amount.toLocaleString()} FCFA
+                    </td>
+                    <td className="py-4 px-2 text-sm font-medium text-right text-night">
+                      {transaction.investmentTranche ? getInterestRateForTranche(transaction.investmentTranche as 'A' | 'B' | 'C' | 'D') : '-'}%
+                    </td>
+                    <td className="py-4 px-2 text-sm font-medium text-right">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        transaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                        transaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                        transaction.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {transaction.status === 'COMPLETED' ? 'Complété' :
+                         transaction.status === 'PENDING' ? 'En attente' :
+                         transaction.status === 'REJECTED' ? 'Rejeté' : 'En cours'}
+                      </span>
+                    </td>
+                    <td className="py-4 px-2 text-sm font-medium text-right text-night">
+                      {transaction.referenceNumber}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="text-center py-8">
+            <div className="bg-gold-metallic/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+              <BuildingLibraryIcon className="w-8 h-8 text-gold-metallic" />
+            </div>
+            <p className="text-night/60">Aucun investissement récent</p>
+            <p className="text-sm text-night/40">Vos investissements APE apparaîtront ici</p>
+          </div>
+        )}
 
-        <div className="mt-6 flex justify-center">
-          <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
-            Charger plus d'investissements
-          </button>
-        </div>
+        {transactionHistory.length > 0 && (
+          <div className="mt-6 flex justify-center">
+            <button className="bg-gold-metallic/10 text-gold-metallic hover:bg-gold-metallic hover:text-white border border-gold-metallic/20 py-2 px-6 rounded-lg font-medium text-sm transition-colors">
+              Charger plus d'investissements
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Investment Modal */}

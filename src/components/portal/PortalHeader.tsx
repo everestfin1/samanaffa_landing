@@ -143,7 +143,7 @@ export default function PortalHeader({
                 src="/sama_naffa_logo.png"
                 alt="Sama Naffa"
                 width={100}
-                height={32}
+                height={100}
                 className="h-8 w-auto"
                 priority
               />

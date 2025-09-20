@@ -191,7 +191,9 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <p className="text-sm text-night/60 font-medium">
-                    {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 'Investissement APE'}
+                    {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 
+                     account.accountType === 'APE_INVESTMENT' ? 'Investissement APE' : 
+                     account.accountType}
                   </p>
                   <p className="text-2xl font-bold text-night">
                     {account.balance.toLocaleString('fr-FR')} FCFA
@@ -200,8 +202,10 @@ export default function DashboardPage() {
                 <div className="bg-gold-metallic/10 p-2 rounded-lg">
                   {account.accountType === 'SAMA_NAFFA' ? (
                     <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
-                  ) : (
+                  ) : account.accountType === 'APE_INVESTMENT' ? (
                     <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
+                  ) : (
+                    <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
                   )}
                 </div>
               </div>
@@ -311,7 +315,8 @@ export default function DashboardPage() {
                   </h3>
                   <p className="text-sm text-night/70">
                     {transaction.type === 'WITHDRAWAL' ? '-' : '+'}{transaction.amount.toLocaleString('fr-FR')} FCFA
-                    {transaction.accountType && ` - ${transaction.accountType === 'SAMA_NAFFA' ? 'Sama Naffa' : 'APE'}`}
+                    {transaction.accountType && ` - ${transaction.accountType === 'SAMA_NAFFA' ? 'Sama Naffa' : 
+                      transaction.accountType === 'APE_INVESTMENT' ? 'APE' : transaction.accountType}`}
                   </p>
                 </div>
                 <div className="text-right">
