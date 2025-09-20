@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
+import { useUserProfile, useUpdateUserProfile } from '../../../hooks/useUserProfile';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -71,11 +72,12 @@ interface KYCDocument {
 export default function ProfilePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+
+  // Use Tanstack Query hooks
+  const { data: userData, isLoading, error: profileError } = useUserProfile();
+  const updateProfileMutation = useUpdateUserProfile();
+
   const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [editForm, setEditForm] = useState({
     firstName: '',
@@ -87,74 +89,54 @@ export default function ProfilePage() {
   });
   const [uploadingFile, setUploadingFile] = useState(false);
 
-  // Fetch user data on component mount
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (status === 'loading') return;
-      
-      if (!session) {
-        router.push('/login');
-        return;
-      }
+  // Combined error state
+  const error = profileError?.message || updateProfileMutation.error?.message || '';
 
-      try {
-        const response = await fetch('/api/users/profile');
-        const data = await response.json();
+  // Initialize edit form when user data is loaded
+  React.useEffect(() => {
+    if (userData) {
+      setEditForm({
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        phone: userData.phone,
+        address: userData.address || '',
+        city: userData.city || '',
+        preferredLanguage: userData.preferredLanguage || 'fr'
+      });
+    }
+  }, [userData]);
 
-        if (data.success) {
-          setUserData(data.user);
-          setEditForm({
-            firstName: data.user.firstName,
-            lastName: data.user.lastName,
-            phone: data.user.phone,
-            address: data.user.address || '',
-            city: data.user.city || '',
-            preferredLanguage: data.user.preferredLanguage || 'fr'
-          });
-        } else {
-          setError('Erreur lors du chargement des données');
-        }
-      } catch (error) {
-        setError('Erreur de connexion');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  // Redirect to login if not authenticated
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-night/70">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
 
-    fetchUserData();
-  }, [session, status, router]);
+  if (!session) {
+    router.push('/login');
+    return null;
+  }
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
   };
 
   const handleSaveProfile = async () => {
-    setIsSaving(true);
-    setError('');
     setSuccess('');
 
     try {
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(editForm),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setUserData(prev => prev ? { ...prev, ...data.user } : null);
-        setSuccess('Profil mis à jour avec succès');
-        setIsEditing(false);
-      } else {
-        setError(data.error || 'Erreur lors de la mise à jour');
-      }
+      await updateProfileMutation.mutateAsync(editForm);
+      setSuccess('Profil mis à jour avec succès');
+      setIsEditing(false);
     } catch (error) {
-      setError('Erreur de connexion');
-    } finally {
-      setIsSaving(false);
+      // Error is handled by the mutation hook
+      console.error('Profile update failed:', error);
     }
   };
 
@@ -170,11 +152,12 @@ export default function ProfilePage() {
       });
     }
     setIsEditing(false);
+    setSuccess(''); // Clear success message when canceling
   };
 
   const handleFileUpload = async (file: File, documentType: string) => {
     setUploadingFile(true);
-    setError('');
+    setSuccess('');
 
     try {
       const formData = new FormData();
@@ -190,17 +173,13 @@ export default function ProfilePage() {
 
       if (data.success) {
         setSuccess('Document téléchargé avec succès');
-        // Refresh user data to get updated documents
-        const profileResponse = await fetch('/api/users/profile');
-        const profileData = await profileResponse.json();
-        if (profileData.success) {
-          setUserData(profileData.user);
-        }
+        // Tanstack Query will automatically refetch user profile data
       } else {
-        setError(data.error || 'Erreur lors du téléchargement');
+        // Error handling is done by setting error state
+        console.error('Upload failed:', data.error);
       }
     } catch (error) {
-      setError('Erreur de connexion');
+      console.error('Upload error:', error);
     } finally {
       setUploadingFile(false);
     }
@@ -258,12 +237,14 @@ export default function ProfilePage() {
   }
 
   // Show error state
-  if (!userData) {
+  if (error || (!isLoading && !userData)) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">
           <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-night/70 mb-4">Erreur lors du chargement de votre profil</p>
+          <p className="text-night/70 mb-4">
+            {error || 'Erreur lors du chargement de votre profil'}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
@@ -279,15 +260,15 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gray-light">
       <PortalHeader
         userData={{
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          phone: userData.phone,
-          userId: userData.id,
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          userId: userData?.id || '',
           isNewUser: false,
-          kycStatus: userData.kycStatus as KYCStatus
+          kycStatus: userData?.kycStatus as KYCStatus
         }}
-        kycStatus={userData.kycStatus}
+        kycStatus={userData?.kycStatus as KYCStatus}
         activeTab="profile"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}
@@ -307,6 +288,13 @@ export default function ProfilePage() {
             <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
               <CheckCircleIcon className="w-5 h-5 text-green-500" />
               <p className="text-green-800 text-sm">{success}</p>
+            </div>
+          )}
+
+          {updateProfileMutation.isPending && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center space-x-2">
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              <p className="text-blue-800 text-sm">Sauvegarde en cours...</p>
             </div>
           )}
 
@@ -330,7 +318,7 @@ export default function ProfilePage() {
               <div className="relative">
                 <div className="w-24 h-24 bg-gradient-to-r from-gold-metallic to-gold-dark rounded-full flex items-center justify-center">
                   <span className="text-3xl font-bold text-white">
-                    {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
+                    {userData?.firstName?.charAt(0)}{userData?.lastName?.charAt(0)}
                   </span>
                 </div>
                 <button className="absolute -bottom-2 -right-2 w-8 h-8 bg-white border-2 border-gold-metallic rounded-full flex items-center justify-center hover:bg-gold-light/20 transition-colors">
@@ -405,19 +393,19 @@ export default function ProfilePage() {
                     <div className="flex space-x-3">
                       <button
                         onClick={handleSaveProfile}
-                        disabled={isSaving}
+                        disabled={updateProfileMutation.isPending}
                         className={`flex items-center space-x-2 px-6 py-2 rounded-lg font-medium transition-colors ${
-                          isSaving
+                          updateProfileMutation.isPending
                             ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
                             : 'bg-gold-metallic text-night hover:bg-gold-dark'
                         }`}
                       >
-                        {isSaving && <div className="w-4 h-4 border-2 border-night/30 border-t-night rounded-full animate-spin" />}
-                        <span>{isSaving ? 'Sauvegarde...' : 'Sauvegarder'}</span>
+                        {updateProfileMutation.isPending && <div className="w-4 h-4 border-2 border-night/30 border-t-night rounded-full animate-spin" />}
+                        <span>{updateProfileMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}</span>
                       </button>
                       <button
                         onClick={handleCancelEdit}
-                        disabled={isSaving}
+                        disabled={updateProfileMutation.isPending}
                         className="border border-timberwolf/30 text-night px-6 py-2 rounded-lg font-medium hover:bg-timberwolf/10 transition-colors disabled:opacity-50"
                       >
                         Annuler
@@ -429,30 +417,30 @@ export default function ProfilePage() {
                     <div className="flex items-center space-x-3">
                       <UserIcon className="w-5 h-5 text-night/70" />
                       <span className="text-xl font-semibold text-night">
-                        {userData.firstName} {userData.lastName}
+                        {userData?.firstName} {userData?.lastName}
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <EnvelopeIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">{userData.email}</span>
-                      {userData.emailVerified && (
+                      <span className="text-night/70">{userData?.email}</span>
+                      {userData?.emailVerified && (
                         <CheckCircleIcon className="w-4 h-4 text-green-500" />
                       )}
                     </div>
                     <div className="flex items-center space-x-3">
                       <PhoneIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">{userData.phone}</span>
-                      {userData.phoneVerified && (
+                      <span className="text-night/70">{userData?.phone}</span>
+                      {userData?.phoneVerified && (
                         <CheckCircleIcon className="w-4 h-4 text-green-500" />
                       )}
                     </div>
                     <div className="flex items-center space-x-3">
                       <MapPinIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">{userData.address || 'Non renseignée'}</span>
+                      <span className="text-night/70">{userData?.address || 'Non renseignée'}</span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <IdentificationIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">ID: {userData.id}</span>
+                      <span className="text-night/70">ID: {userData?.id}</span>
                     </div>
                   </div>
                 )}
@@ -508,7 +496,7 @@ export default function ProfilePage() {
               />
             </div>
             <div className="space-y-4">
-              {userData.kycDocuments && userData.kycDocuments.length > 0 ? (
+              {userData?.kycDocuments && userData.kycDocuments.length > 0 ? (
                 userData.kycDocuments.map((doc) => (
                   <div key={doc.id} className="flex items-center justify-between p-4 border border-timberwolf/20 rounded-lg">
                     <div className="flex items-center space-x-4">

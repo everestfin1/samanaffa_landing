@@ -43,33 +43,51 @@ const SelectionContext = createContext<SelectionContextType | undefined>(undefin
 
 export function SelectionProvider({ children }: { children: ReactNode }) {
   const [selectionData, setSelectionDataState] = useState<SelectionData>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
 
-  // Load selection data from localStorage on mount
+  // Load selection data from localStorage on mount - client-side only
   useEffect(() => {
-    const stored = localStorage.getItem('userSelection');
-    if (stored) {
-      try {
+    try {
+      const stored = localStorage.getItem('userSelection');
+      if (stored) {
         const parsed = JSON.parse(stored);
         setSelectionDataState(parsed);
-      } catch (error) {
-        console.error('Error parsing stored selection data:', error);
+      }
+    } catch (error) {
+      console.error('Error parsing stored selection data:', error);
+      try {
         localStorage.removeItem('userSelection');
+      } catch (storageError) {
+        console.error('Error removing corrupted data:', storageError);
       }
     }
+    setIsHydrated(true);
   }, []);
 
   const setSelectionData = (data: SelectionData) => {
     setSelectionDataState(data);
-    if (data) {
-      localStorage.setItem('userSelection', JSON.stringify(data));
-    } else {
-      localStorage.removeItem('userSelection');
+    if (isHydrated) {
+      try {
+        if (data) {
+          localStorage.setItem('userSelection', JSON.stringify(data));
+        } else {
+          localStorage.removeItem('userSelection');
+        }
+      } catch (error) {
+        console.error('Error saving selection data:', error);
+      }
     }
   };
 
   const clearSelection = () => {
     setSelectionDataState(null);
-    localStorage.removeItem('userSelection');
+    if (isHydrated) {
+      try {
+        localStorage.removeItem('userSelection');
+      } catch (error) {
+        console.error('Error clearing selection data:', error);
+      }
+    }
   };
 
   const hasSelection = selectionData !== null;

@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import Button from "../../components/common/Button";
 import { CheckCircle, Download, Share2, MessageCircle, Mail, Phone, ArrowRight, TrendingUp, Shield } from "lucide-react";
 import Link from "next/link";
+import ClientDateDisplay from "./ClientDateDisplay";
 
 export default function SuccessPage() {
   return (
@@ -92,7 +93,7 @@ export default function SuccessPage() {
                   </div>
                   <div className="flex justify-between py-3 border-b border-border">
                     <span className="text-muted-foreground">Date d&apos;ouverture</span>
-                    <span className="font-semibold text-card-foreground" suppressHydrationWarning>{new Date().toLocaleDateString('fr-FR')}</span>
+                    <ClientDateDisplay type="current" />
                   </div>
                   <div className="flex justify-between py-3">
                     <span className="text-muted-foreground">Statut</span>
@@ -121,7 +122,7 @@ export default function SuccessPage() {
                   </div>
                   <div className="flex justify-between py-3">
                     <span className="text-muted-foreground">Prochaine échéance</span>
-                    <span className="font-semibold text-card-foreground" suppressHydrationWarning>1er {new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { month: 'long' })}</span>
+                    <ClientDateDisplay type="next-month" />
                   </div>
                 </div>
               </div>

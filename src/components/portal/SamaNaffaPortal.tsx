@@ -275,12 +275,12 @@ export default function SamaNaffaPortal() {
             
             {/* Logo */}
             <div className="absolute top-6 right-6 z-30">
-                <Image 
-                  src="/sama_naffa_logo.png" 
-                  alt="Sama Naffa Logo" 
+                <Image
+                  src="/sama_naffa_logo.png"
+                  alt="Sama Naffa Logo"
                   className="h-12 w-auto"
                   width={100}
-                  height={100}
+                  height={48}
                 />
             </div>
 

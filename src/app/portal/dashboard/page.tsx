@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { useUserProfile } from '../../../hooks/useUserProfile';
+import { useRecentTransactions } from '../../../hooks/useTransactions';
 import {
   UserIcon,
   ShieldCheckIcon,
@@ -70,66 +71,36 @@ interface TransactionIntent {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [userData, setUserData] = useState<UserData | null>(null);
-  const [recentTransactions, setRecentTransactions] = useState<TransactionIntent[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [apeInvestmentTotal, setApeInvestmentTotal] = useState(0);
 
-  // Fetch user data and recent transactions
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      if (status === 'loading') return;
-      
-      if (!session) {
-        router.push('/login');
-        return;
-      }
+  // Use Tanstack Query hooks for data fetching
+  const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
+  const { data: recentTransactions = [], isLoading: isLoadingTransactions, error: transactionsError } = useRecentTransactions(userData?.id || '', 5);
 
-      try {
-        // Fetch user profile
-        const profileResponse = await fetch('/api/users/profile');
-        const profileData = await profileResponse.json();
+  // Calculate APE investment total from completed transactions
+  const apeInvestmentTotal = recentTransactions
+    .filter(tx => tx.accountType === 'APE_INVESTMENT' && tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
+    .reduce((sum, tx) => sum + tx.amount, 0);
 
-        if (profileData.success) {
-          setUserData({
-            id: profileData.user.id,
-            userId: profileData.user.id,
-            firstName: profileData.user.firstName,
-            lastName: profileData.user.lastName,
-            email: profileData.user.email,
-            phone: profileData.user.phone,
-            kycStatus: profileData.user.kycStatus,
-            isNewUser: profileData.user.isNewUser || false,
-            accounts: profileData.user.accounts
-          });
+  // Combined loading and error states
+  const isLoading = isLoadingProfile || isLoadingTransactions;
+  const error = profileError?.message || transactionsError?.message || '';
 
-          // Fetch recent transactions
-          const transactionsResponse = await fetch(`/api/transactions/intent?userId=${profileData.user.id}`);
-          const transactionsData = await transactionsResponse.json();
+  // Redirect to login if not authenticated
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-night/70">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
 
-          if (transactionsData.success) {
-            setRecentTransactions(transactionsData.transactionIntents.slice(0, 5)); // Get last 5 transactions
-            
-            // Calculate APE investment total from completed investments
-            const apeTransactions = transactionsData.transactionIntents.filter(
-              (tx: TransactionIntent) => tx.accountType === 'APE_INVESTMENT' && tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED'
-            );
-            const totalInvestment = apeTransactions.reduce((sum: number, tx: TransactionIntent) => sum + tx.amount, 0);
-            setApeInvestmentTotal(totalInvestment);
-          }
-        } else {
-          setError('Erreur lors du chargement des données');
-        }
-      } catch (error) {
-        setError('Erreur de connexion');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [session, status, router]);
+  if (!session) {
+    router.push('/login');
+    return null;
+  }
 
   const handleLogout = async () => {
     await signOut({ callbackUrl: '/login' });
@@ -148,12 +119,14 @@ export default function DashboardPage() {
   }
 
   // Show error state
-  if (!userData) {
+  if (error || (!isLoading && !userData)) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">
           <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-night/70 mb-4">Erreur lors du chargement de votre tableau de bord</p>
+          <p className="text-night/70 mb-4">
+            {error || 'Erreur lors du chargement de votre tableau de bord'}
+          </p>
           <button
             onClick={() => window.location.reload()}
             className="bg-gold-metallic text-night px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
@@ -172,7 +145,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-night mb-2">
-              Bienvenue, {userData.firstName} !
+              Bienvenue, {userData?.firstName} !
             </h1>
             <p className="text-night/70 text-lg">
               Votre tableau de bord financier personnel
@@ -194,7 +167,7 @@ export default function DashboardPage() {
         </div>
         
         <div className="grid md:grid-cols-3 gap-6">
-          {userData.accounts.map((account) => {
+          {userData?.accounts?.map((account) => {
             // For APE investment accounts, show calculated total instead of account balance
             const displayAmount = account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance;
             
@@ -234,7 +207,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-night/60 font-medium">Solde total</p>
                 <p className="text-2xl font-bold text-night">
-                  {userData.accounts.reduce((total, account) => {
+                  {userData?.accounts?.reduce((total, account) => {
                     // Use calculated investment total for APE accounts, balance for others
                     const accountValue = Number(account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance);
                     return total + accountValue;
@@ -246,7 +219,7 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-sm text-gold-dark font-medium">
-              {userData.accounts.length} compte{userData.accounts.length > 1 ? 's' : ''}
+              {userData?.accounts?.length || 0} compte{(userData?.accounts?.length || 0) > 1 ? 's' : ''}
             </div>
           </div>
         </div>
@@ -367,15 +340,15 @@ export default function DashboardPage() {
   );
 
   // Show KYC status handler for non-approved users
-  if (userData.kycStatus !== 'APPROVED') {
+  if (userData?.kycStatus !== 'APPROVED') {
     return (
       <KYCStatusHandler
-        kycStatus={userData.kycStatus}
+        kycStatus={userData?.kycStatus as KYCStatus}
         userData={{
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          phone: userData.phone
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || ''
         }}
         onLogout={handleLogout}
       />
@@ -385,13 +358,21 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-light">
       <PortalHeader
-        userData={userData}
-        kycStatus={userData.kycStatus}
+        userData={{
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          userId: userData?.id || '',
+          isNewUser: false,
+          kycStatus: userData?.kycStatus as any
+        }}
+        kycStatus={userData?.kycStatus}
         activeTab="dashboard"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}
       />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderApprovedDashboard()}
       </main>

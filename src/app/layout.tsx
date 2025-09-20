@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { SelectionProvider } from '../lib/selection-context';
 import SessionProvider from '@/components/providers/SessionProvider';
 import { WhatsAppButton } from "@/components/WhatsAppButton";
+import QueryProvider from '@/components/providers/QueryProvider';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,18 +37,20 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
+    <html lang="fr" data-scroll-behavior="smooth">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionProvider>
-          <SelectionProvider>
-            <Navigation />
-            <WhatsAppButton />
-            {children}
-            <Footer />
-          </SelectionProvider>
-        </SessionProvider>
+        <QueryProvider>
+          <SessionProvider>
+            <SelectionProvider>
+              <Navigation />
+              <WhatsAppButton />
+              {children}
+              <Footer />
+            </SelectionProvider>
+          </SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   );

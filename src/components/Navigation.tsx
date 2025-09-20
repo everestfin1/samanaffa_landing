@@ -26,23 +26,28 @@ export default function Navigation() {
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
 
-  // Check authentication status on mount
+  // Check authentication status on mount - client-side only
   useEffect(() => {
-    // Check if user is authenticated (you can implement your own logic here)
+    // Only run on client side to prevent hydration mismatch
     const checkAuth = () => {
-      // For demo purposes, check localStorage or session storage
-      const authStatus = localStorage.getItem('isAuthenticated');
-      setIsAuthenticated(authStatus === 'true');
+      try {
+        const authStatus = localStorage.getItem('isAuthenticated');
+        setIsAuthenticated(authStatus === 'true');
+      } catch (error) {
+        // Handle cases where localStorage is not available
+        setIsAuthenticated(false);
+      }
     };
-    
+
     checkAuth();
     setIsHydrated(true);
-    
+
     // Listen for auth changes
-    window.addEventListener('storage', checkAuth);
+    const handleStorageChange = () => checkAuth();
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', checkAuth);
+      window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
@@ -136,7 +141,7 @@ export default function Navigation() {
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="hidden md:flex md:items-center md:justify-between h-20">
+        <div className="hidden md:flex md:items-center md:justify-between h-24">
           {/* Desktop Navigation - Left Side */}
           <div className="flex items-center">
             <div className="flex items-center space-x-8">
@@ -187,14 +192,13 @@ export default function Navigation() {
             <div className="flex-shrink-0">
               <Link 
                 href="/"
-                className="transition-opacity hover:opacity-80 "
+                className="transition-opacity hover:opacity-80"
               >
                 <Image
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
                   width={160}
-                  height={53}
-                  className="h-16 w-auto"
+                  height={64}
                   priority
                 />
               </Link>
@@ -286,7 +290,6 @@ export default function Navigation() {
                   alt="Sama Naffa"
                   width={120}
                   height={40}
-                  className="h-10 w-auto"
                   priority
                 />
               </Link>

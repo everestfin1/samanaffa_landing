@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
+import { usePrefetchTransactions } from '../../hooks/useTransactions';
 import {
   UserIcon,
   HomeIcon,
@@ -46,6 +47,16 @@ export default function PortalHeader({
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
+
+  // Prefetch utilities for navigation performance
+  const { prefetchUserProfile, prefetchRecentTransactions } = usePrefetchTransactions();
+
+  const handlePrefetchOnHover = () => {
+    // Prefetch user profile data on navigation hover
+    prefetchUserProfile();
+    // Prefetch recent transactions for dashboard
+    prefetchRecentTransactions(userData?.userId, 10);
+  };
 
   const navigationItems = [
     {
@@ -143,8 +154,7 @@ export default function PortalHeader({
                 src="/sama_naffa_logo.png"
                 alt="Sama Naffa"
                 width={100}
-                height={100}
-                className="h-8 w-auto"
+                height={32}
                 priority
               />
             </button>
@@ -166,6 +176,7 @@ export default function PortalHeader({
                   <button
                     key={item.id}
                     onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
+                    onMouseEnter={handlePrefetchOnHover}
                     disabled={isDisabled}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                       isActive

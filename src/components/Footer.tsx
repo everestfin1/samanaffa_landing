@@ -30,7 +30,6 @@ export default function Footer() {
                 alt="Sama Naffa Logo"
                 width={250}
                 height={80}
-                className="h-20 w-auto"
               />
             </div>
             <p className="text-white/70 text-xl font-light leading-relaxed max-w-2xl">
