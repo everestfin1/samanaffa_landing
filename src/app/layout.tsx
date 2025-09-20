@@ -5,6 +5,7 @@ import Navigation from '../components/Navigation';
 import Footer from "@/components/Footer";
 import { SelectionProvider } from '../lib/selection-context';
 import SessionProvider from '@/components/providers/SessionProvider';
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -42,6 +43,7 @@ export default function RootLayout({
         <SessionProvider>
           <SelectionProvider>
             <Navigation />
+            <WhatsAppButton />
             {children}
             <Footer />
           </SelectionProvider>

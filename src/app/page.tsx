@@ -1,24 +1,51 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useRef, useEffect } from 'react';
-import { 
-  ShieldCheckIcon, 
+import { useRef, useEffect, useState } from 'react';
+import {
+  ShieldCheckIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
   ArrowRightIcon,
   CheckIcon,
-  ChevronDownIcon
+  ChevronDownIcon,
+  SpeakerXMarkIcon,
+  SpeakerWaveIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
-import Image from 'next/image';
 import { motion } from 'framer-motion';
 
 export default function Home() {
   const router = useRouter();
-  const [showVideo, setShowVideo] = useState(true);
-  const [isTransitioning, setIsTransitioning] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+
+  // Toggle video audio
+  const toggleAudio = async () => {
+    const video = videoRef.current;
+    if (video) {
+      try {
+        if (isAudioEnabled) {
+          video.muted = true;
+          setIsAudioEnabled(false);
+        } else {
+          video.muted = false;
+          setIsAudioEnabled(true);
+        }
+      } catch (error) {
+        // Handle browsers that require user interaction for unmute
+        console.log('Audio toggle requires user interaction');
+      }
+    }
+  };
+
+  // Initialize video as muted on mount
+  useEffect(() => {
+    const video = videoRef.current;
+    if (video) {
+      video.muted = true; // Start muted for better UX
+    }
+  }, []);
 
   // Animation variants
   const containerVariants = {
@@ -110,27 +137,6 @@ export default function Home() {
     }
   };
 
-  const handleVideoEnd = () => {
-    // Start transition immediately with minimal delay
-    setTimeout(() => {
-      setIsTransitioning(true);
-      // Quick fade transition
-      setTimeout(() => {
-        setShowVideo(false);
-        setIsTransitioning(false);
-      }, 10); // 150ms for quick fade
-    }, 10); // 100ms minimal delay for smoothness
-  };
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.addEventListener('ended', handleVideoEnd);
-      return () => {
-        video.removeEventListener('ended', handleVideoEnd);
-      };
-    }
-  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -140,35 +146,60 @@ export default function Home() {
       {/* Hero Section */}
       <main id="main">
         <section className="relative overflow-hidden bg-white h-screen -mt-20" aria-label="Hero">
-          {/* Background Video/Image */}
+          {/* Background Video */}
           <div className="absolute inset-0">
-            {showVideo ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                playsInline
-                preload="auto"
-                className={`hero-video transition-opacity duration-150 ease-out ${
-                  isTransitioning ? 'opacity-0' : 'opacity-100'
-                }`}
-                aria-label="Background video"
-                poster="/sama-naffa_bg.jpg"
-              >
-                <source src="/sama-naffa-bg-vid.mp4" type="video/mp4" />
-              </video>
-            ) : (
-              <Image
-                src="/sama-naffa_bg.jpg"
-                alt="Background"
-                fill
-                className="object-cover transition-opacity duration-150 ease-in opacity-100"
-                priority
-                quality={100}
-              />
-            )}
+            <video
+              ref={videoRef}
+              autoPlay
+              loop
+              playsInline
+              preload="auto"
+              className="hero-video w-full h-full object-cover"
+              aria-label="Background video"
+              poster="/sama-naffa_bg.jpg"
+            >
+              <source src="/sama-naffa-bg-vid.mp4" type="video/mp4" />
+            </video>
           </div>
-          
+
+          {/* Audio Control Button */}
+          <motion.div
+            className="absolute bottom-6.5 right-22 z-20"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 1, duration: 0.5 }}
+          >
+            <motion.button
+              onClick={toggleAudio}
+              className="group relative bg-gold-metallic hover:bg-gold-metallic/50 rounded-full p-3 border border-gold-metallic/30 hover:border-white/40 transition-all duration-300 hover:scale-110"
+              whileHover={{
+                scale: 1.1,
+                boxShadow: "0 10px 25px rgba(0, 0, 0, 0.3)"
+              }}
+              whileTap={{ scale: 0.95 }}
+              aria-label={isAudioEnabled ? "Désactiver le son" : "Activer le son"}
+            >
+              <motion.div
+                initial={{ scale: 0.8 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {isAudioEnabled ? (
+                  <SpeakerWaveIcon className="w-6 h-6 text-white" />
+                ) : (
+                  <SpeakerXMarkIcon className="w-6 h-6 text-white" />
+                )}
+              </motion.div>
+
+              {/* Tooltip */}
+              <div className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
+                <div className="bg-black/70 backdrop-blur-sm text-white text-sm px-3 py-1 rounded-lg whitespace-nowrap border border-white/20">
+                  {isAudioEnabled ? "Désactiver le son" : "Activer le son"}
+                </div>
+              </div>
+            </motion.button>
+          </motion.div>
+
           <div className="relative max-w-[600px] mx-auto px-6 h-full flex items-center pt-20">
             <motion.div 
               className="text-center space-y-8 w-full"

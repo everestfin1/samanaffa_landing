@@ -229,17 +229,17 @@ export default function Navigation() {
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link 
+                <Link
                   href="/login"
-                  className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
+                  className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   <span className="relative">Se connecter</span>
                 </Link>
                 {!isHomePage && (
-                  <Link 
+                  <Link
                     href="/register"
-                    className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
+                    className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                     <span className="relative">Ouvrir mon compte</span>
@@ -252,15 +252,15 @@ export default function Navigation() {
               <div className="flex items-center space-x-3">
                 <Link
                   href="/login"
-                  className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
+                  className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                   <span className="relative">Se connecter</span>
                 </Link>
                 {!isHomePage && (
-                  <Link 
+                  <Link
                     href="/register"
-                    className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
+                    className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                     <span className="relative">Ouvrir mon compte</span>
@@ -372,7 +372,7 @@ export default function Navigation() {
                   <div className="space-y-2">
                     <Link
                       href="/login"
-                      className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors text-center overflow-hidden"
+                      className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors text-center overflow-hidden"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                       <span className="relative">Se connecter</span>
@@ -380,7 +380,7 @@ export default function Navigation() {
                     {!isHomePage && (
                       <Link
                         href="/register"
-                        className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors text-center overflow-hidden"
+                        className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors text-center overflow-hidden"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                         <span className="relative">Ouvrir mon compte</span>
