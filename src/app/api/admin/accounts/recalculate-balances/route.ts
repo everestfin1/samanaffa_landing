@@ -42,7 +42,12 @@ export async function POST(request: NextRequest) {
       })
 
       // Calculate the correct balance
-      const correctBalance = calculateAccountBalance(completedTransactions)
+      const correctBalance = calculateAccountBalance(
+        completedTransactions.map(t => ({
+          intentType: t.intentType.toString(),
+          amount: Number(t.amount)
+        }))
+      )
 
       // Update the account balance if it's different
       if (Number(account.balance) !== correctBalance) {

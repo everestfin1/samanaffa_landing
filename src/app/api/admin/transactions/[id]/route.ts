@@ -4,7 +4,7 @@ import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Verify admin authentication
   const { error, user } = await verifyAdminAuth(request)
@@ -196,7 +196,7 @@ export async function PUT(
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Verify admin authentication
   const { error, user } = await verifyAdminAuth(request)

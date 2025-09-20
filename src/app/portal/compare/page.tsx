@@ -41,7 +41,6 @@ export default function ComparePage() {
 
         if (profileData.success) {
           setUserData({
-            id: profileData.user.id,
             userId: profileData.user.id,
             firstName: profileData.user.firstName,
             lastName: profileData.user.lastName,

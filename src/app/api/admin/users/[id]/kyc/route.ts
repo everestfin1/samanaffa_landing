@@ -4,7 +4,7 @@ import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Verify admin authentication
   const { error, user } = await verifyAdminAuth(request)
@@ -13,7 +13,7 @@ export async function PUT(
     return createErrorResponse('Unauthorized', 401)
   }
   try {
-    const { id } = params
+    const { id } = await params
     const { kycStatus, adminNotes } = await request.json()
 
     if (!kycStatus) {
