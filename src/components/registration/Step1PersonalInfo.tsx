@@ -189,15 +189,20 @@ export default function Step1PersonalInfo({
             required
           >
             <option value="">Sélectionnez votre profession</option>
-            <option value="Salarié">Employé/Salarié</option>
-            <option value="Fonctionnaire">Fonctionnaire</option>
-            <option value="Commerçant">Commerçant</option>
+            <option value="Agriculteurs exploitants">Agriculteurs exploitants</option>
+            <option value="Artisans, commerçants, chefs d'entreprise">Artisans, commerçants, chefs d'entreprise</option>
+            <option value="Cadres et professions intellectuelles supérieures">Cadres et professions intellectuelles supérieures</option>
+            <option value="Professions intermédiaires">Professions intermédiaires</option>
+            <option value="Employés">Employés</option>
+            <option value="Ouvriers">Ouvriers</option>
+            <option value="Retraités">Retraités</option>
+            <option value="Autres personnes sans activité professionnelle">Autres personnes sans activité professionnelle</option>
+            <option value="Salarié">Salarié</option>
             <option value="Entrepreneur">Entrepreneur</option>
+            <option value="Profession libérale">Profession libérale</option>
+            <option value="Travailleur autonome">Travailleur autonome</option>
             <option value="Étudiant">Étudiant</option>
-            <option value="Artisan">Artisan</option>
-            <option value="Agriculteur">Agriculteur</option>
-            <option value="Retraité">Retraité</option>
-            <option value="Autre">Autre</option>
+            <option value="Stagiaire non rémunéré">Stagiaire non rémunéré</option>
           </select>
           {getFieldError('profession') && (
             <p className="text-red-500 text-sm mt-1">{getFieldError('profession')}</p>

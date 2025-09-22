@@ -92,7 +92,7 @@ export default function Step3Address({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">District / Commune *</label>
+        <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
         <input
           type="text"
           name="district"

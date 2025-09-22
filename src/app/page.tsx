@@ -14,11 +14,13 @@ import {
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import Image from 'next/image';
 
 export default function Home() {
   const router = useRouter();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [isVideoPaused, setIsVideoPaused] = useState(false);
 
   // Toggle video audio
   const toggleAudio = async () => {
@@ -45,6 +47,28 @@ export default function Home() {
     if (video) {
       video.muted = true; // Start muted for better UX
     }
+  }, []);
+
+  // Video pause functionality - pause for 2 seconds every 1 minute
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const pauseVideo = () => {
+      if (!video.paused) {
+        video.pause();
+        setIsVideoPaused(true);
+        setTimeout(() => {
+          video.play();
+          setIsVideoPaused(false);
+        }, 2000); // Pause for 2 seconds
+      }
+    };
+
+    // Set up interval to pause video every 1 minute
+    const interval = setInterval(pauseVideo, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
   }, []);
 
   // Animation variants
@@ -294,11 +318,11 @@ export default function Home() {
               >
                 <motion.button 
                   onClick={() => router.push('/register')}
-                  className="group relative px-12 py-5 sama-gradient-primary text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-primary-green/40 hover:-translate-y-2 hover:scale-105"
+                  className="group relative px-12 py-5 sama-gradient-accent text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-accent-gold/40 hover:-translate-y-2 hover:scale-105"
                   whileHover={{ 
                     scale: 1.05,
                     y: -5,
-                    boxShadow: "0 20px 40px rgba(34, 197, 94, 0.3)",
+                    boxShadow: "0 20px 40px rgba(212, 175, 55, 0.3)",
                     transition: { duration: 0.3 }
                   }}
                   whileTap={{ 
@@ -404,13 +428,28 @@ export default function Home() {
           </motion.div>
         </section>
 
+        {/* Diaspora Bond Banner */}
+        <section className="pt-16" aria-label="Diaspora Bond Banner">
+          <div className="max-w-6xl mx-auto px-6">
+            <Link href="/register">
+              <Image
+                src="/Banner-Créa-Diaspora-Bond.png"
+                alt="Diaspora Bonds - Appel Public à l'Épargne du Sénégal"
+                className="w-full h-auto hover:opacity-80 transition-all duration-300"
+                width={1000}
+                height={1000}
+              />
+            </Link>
+          </div>
+        </section>
+
         {/* Services Section */}
-        <section className="py-32 " aria-label="Nos services">
+        <section className="pt-16 pb-32 " aria-label="Nos services">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-5xl lg:text-6xl sama-text-primary font-extralight mb-6 tracking-tight">
                 Deux solutions,
-                <span className="block sama-text-highlight font-light">
+                <span className="block sama-text-gold font-light">
                   un objectif
                 </span>
               </h2>

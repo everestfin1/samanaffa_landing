@@ -38,12 +38,19 @@ export default function Footer() {
             </p>
           </div>
           
-          <div className="flex flex-wrap gap-6">
-            <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/10 backdrop-blur-lg border border-white/20 rounded-full text-sm font-medium shadow-xl">
-                <span className="bg-gradient-to-r from-sama-accent-gold via-sama-accent-gold-dark to-sama-accent-gold bg-clip-text text-transparent font-semibold tracking-wide">
-                  Agrément n° SGI /DA/2016/60
-                </span>
-              </div>
+          <div className="flex flex-wrap gap-6 items-center">
+            <div className="flex items-end gap-4">
+              <Image
+                src="/everestfin_logo.png"
+                alt="Everest Finance Logo"
+                width={120}
+                height={40}
+                className="opacity-90"
+              />
+              <span className="sama-text-gold text-sm pb-3">
+                Agrément n° SGI /DA/2016/60
+              </span>
+            </div>
           </div>
 
           {/* Solutions */}

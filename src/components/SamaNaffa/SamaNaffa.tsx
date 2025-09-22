@@ -50,7 +50,7 @@ export default function SamaNaffa() {
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
-              src="/sama-naffa_bg.jpg"
+              src="/sama-naffa-banner.png"
               alt="Sama Naffa - Épargne Intelligente pour l'Afrique de l'Ouest"
               fill
               className="object-cover object-center"
@@ -60,7 +60,7 @@ export default function SamaNaffa() {
           </div>
 
           {/* Enhanced gradient overlay with brand colors */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-sama-accent-gold/20 to-sama-primary-green/20"></div>
+          {/* <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-sama-accent-gold/20 to-sama-primary-green/20"></div> */}
           
           <div className="relative max-w-7xl mx-auto px-6 w-full">
             <div className="text-center max-w-5xl mx-auto">
