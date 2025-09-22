@@ -180,7 +180,9 @@ export default function PortalHeader({
                     disabled={isDisabled}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                       isActive
-                        ? 'bg-gold-metallic text-white shadow-sm'
+                        ? item.id === 'sama-naffa'
+                          ? 'bg-sama-primary-green text-white shadow-sm'
+                          : 'bg-gold-metallic text-white shadow-sm'
                         : isDisabled
                         ? 'text-night/30 cursor-not-allowed'
                         : 'text-night/70 hover:text-night hover:bg-timberwolf/10'
@@ -341,7 +343,9 @@ export default function PortalHeader({
                       disabled={isDisabled}
                       className={`flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                         isActive
-                          ? 'bg-gold-metallic text-white shadow-sm'
+                          ? item.id === 'sama-naffa'
+                            ? 'bg-sama-primary-green text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sama-primary-green focus:ring-offset-2'
+                            : 'bg-gold-metallic text-white shadow-sm'
                           : isDisabled
                           ? 'text-night/30 cursor-not-allowed'
                           : 'text-night/80 hover:text-night hover:bg-timberwolf/10'

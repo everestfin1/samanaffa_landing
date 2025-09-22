@@ -31,7 +31,7 @@ export default function InvestmentModal({
 }: InvestmentModalProps) {
   const [amount, setAmount] = useState<string>('100000');
   const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>(preselectedTranche || 'D');
-  const [method, setMethod] = useState<string>('orange-money');
+  const [method, setMethod] = useState<string>('intouch');
 
   // Update tranche when preselectedTranche changes
   useEffect(() => {
@@ -62,7 +62,7 @@ export default function InvestmentModal({
       // Reset form
       setAmount('100000');
       setTranche('D');
-      setMethod('orange-money');
+      setMethod('intouch');
     }
   };
 

@@ -27,7 +27,7 @@ export default function TransferModal({
   onConfirm 
 }: TransferModalProps) {
   const [amount, setAmount] = useState<string>('');
-  const [method, setMethod] = useState<string>('orange-money');
+  const [method, setMethod] = useState<string>('intouch');
   const [note, setNote] = useState<string>('');
   const [error, setError] = useState<string>('');
 
@@ -75,7 +75,7 @@ export default function TransferModal({
     
     // Reset form
     setAmount('');
-    setMethod('orange-money');
+    setMethod('intouch');
     setNote('');
     setError('');
   };

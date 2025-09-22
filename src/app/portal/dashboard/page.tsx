@@ -159,71 +159,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Quick Stats */}
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-night">Aperçu financier</h2>
-          <div className="h-px bg-gradient-to-r from-gold-metallic/20 to-transparent flex-1 ml-4"></div>
-        </div>
-        
-        <div className="grid md:grid-cols-3 gap-6">
-          {userData?.accounts?.map((account) => {
-            // For APE investment accounts, show calculated total instead of account balance
-            const displayAmount = account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance;
-            
-            return (
-              <div key={account.id} className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <p className="text-sm text-night/60 font-medium">
-                      {account.accountType === 'SAMA_NAFFA' ? 'Épargne Sama Naffa' : 
-                       account.accountType === 'APE_INVESTMENT' ? 'Investissement APE' : 
-                       account.accountType}
-                    </p>
-                    <p className="text-2xl font-bold text-night">
-                      {Number(displayAmount).toLocaleString('fr-FR')} FCFA
-                    </p>
-                  </div>
-                  <div className="bg-gold-metallic/10 p-2 rounded-lg">
-                    {account.accountType === 'SAMA_NAFFA' ? (
-                      <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
-                    ) : account.accountType === 'APE_INVESTMENT' ? (
-                      <BuildingLibraryIcon className="w-6 h-6 text-gold-metallic" />
-                    ) : (
-                      <BanknotesIcon className="w-6 h-6 text-gold-metallic" />
-                    )}
-                  </div>
-                </div>
-                <div className="text-sm text-gold-dark font-medium">
-                  Compte: {account.accountNumber}
-                </div>
-              </div>
-            );
-          })}
-          
-          {/* Total Balance Card */}
-          <div className="bg-gradient-to-br from-gold-light/5 to-gold-metallic/5 rounded-xl border border-gold-metallic/10 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="text-sm text-night/60 font-medium">Solde total</p>
-                <p className="text-2xl font-bold text-night">
-                  {userData?.accounts?.reduce((total, account) => {
-                    // Use calculated investment total for APE accounts, balance for others
-                    const accountValue = Number(account.accountType === 'APE_INVESTMENT' ? apeInvestmentTotal : account.balance);
-                    return total + accountValue;
-                  }, 0).toLocaleString('fr-FR')} FCFA
-                </p>
-              </div>
-              <div className="bg-gold-metallic/10 p-2 rounded-lg">
-                <ChartBarIcon className="w-6 h-6 text-gold-metallic" />
-              </div>
-            </div>
-            <div className="text-sm text-gold-dark font-medium">
-              {userData?.accounts?.length || 0} compte{(userData?.accounts?.length || 0) > 1 ? 's' : ''}
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* Quick Access Cards */}
       <div className="space-y-6">
@@ -235,21 +170,21 @@ export default function DashboardPage() {
         <div className="grid md:grid-cols-2 gap-6">
           <button 
             onClick={() => router.push('/portal/sama-naffa')}
-            className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
+            className="group bg-gradient-to-br from-sama-primary-green/5 to-sama-primary-green-light/10 rounded-2xl border-2 border-sama-primary-green/20 p-8 hover:shadow-xl hover:shadow-sama-primary-green/10 transition-all duration-300 text-left hover:border-sama-primary-green/40 hover:scale-[1.02]"
           >
             <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
+              <div className="bg-sama-primary-green p-4 rounded-2xl shadow-lg">
                 <DevicePhoneMobileIcon className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">Sama Naffa</h3>
+                <h3 className="font-bold text-xl text-night group-hover:text-sama-primary-green transition-colors">Sama Naffa</h3>
                 <p className="text-sm text-night/60 font-medium">Épargne intelligente</p>
               </div>
             </div>
             <div className="text-sm text-night/70 mb-6 leading-relaxed">
               Gérez vos objectifs d'épargne, participez aux défis et créez des comptes joints.
             </div>
-            <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
+            <div className="flex items-center text-sama-primary-green text-sm font-bold group-hover:text-sama-primary-green transition-colors">
               <span>Accéder au service</span>
               <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>

@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 interface PaymentMethodSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -13,68 +11,13 @@ export default function PaymentMethodSelect({
   type, 
   className = "" 
 }: PaymentMethodSelectProps) {
-  const getOptions = () => {
-    switch (type) {
-      case 'deposit':
-        return [
-          { 
-            value: 'orange-money', 
-            label: 'Orange Money',
-            logo: '/Orange-Money-logo.png',
-            alt: 'Orange Money Logo'
-          },
-          { 
-            value: 'wave', 
-            label: 'Wave',
-            logo: '/wave-money-logo.png',
-            alt: 'Wave Money Logo'
-          },
-          { 
-            value: 'card', 
-            label: 'Carte bancaire',
-            logo: null,
-            alt: null
-          }
-        ];
-      case 'withdraw':
-        return [
-          { 
-            value: 'orange-money', 
-            label: 'Orange Money',
-            logo: '/Orange-Money-logo.png',
-            alt: 'Orange Money Logo'
-          },
-          { 
-            value: 'wave', 
-            label: 'Wave',
-            logo: '/wave-money-logo.png',
-            alt: 'Wave Money Logo'
-          }
-        ];
-      case 'payment':
-        return [
-          { 
-            value: 'orange-money', 
-            label: 'Orange Money',
-            logo: '/Orange-Money-logo.png',
-            alt: 'Orange Money Logo'
-          },
-          { 
-            value: 'wave', 
-            label: 'Wave',
-            logo: '/wave-money-logo.png',
-            alt: 'Wave Money Logo'
-          },
-          { 
-            value: 'card', 
-            label: 'Carte bancaire',
-            logo: null,
-            alt: null
-          }
-        ];
-      default:
-        return [];
-    }
+  const handleIntouchClick = () => {
+    // WhatsApp redirect for payment processing
+    const message = encodeURIComponent(
+      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : type === 'withdraw' ? 'retrait' : 'paiement'} via Intouch. Pouvez-vous m'aider avec le traitement du paiement ?`
+    );
+    const whatsappUrl = `https://wa.me/221771234567?text=${message}`;
+    window.open(whatsappUrl, '_blank');
   };
 
   const getLabel = () => {
@@ -95,40 +38,22 @@ export default function PaymentMethodSelect({
       <label className="block text-sm font-medium text-night mb-3">
         {getLabel()}
       </label>
-      <div className="grid grid-cols-2 gap-3">
-        {getOptions().map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            onClick={() => onChange(option.value)}
-            className={`p-4 border-2 rounded-lg transition-all text-left ${
-              value === option.value
-                ? 'border-gold-metallic bg-gold-light/20 text-gold-dark'
-                : 'border-timberwolf/30 hover:border-gold-metallic/40 hover:bg-gold-metallic/5'
-            }`}
-          >
-            <div className="flex items-center space-x-3">
-              {option.logo ? (
-                <div className="flex-shrink-0">
-                  <Image
-                    src={option.logo}
-                    alt={option.alt || option.label}
-                    width={40}
-                    height={40}
-                    className="w-10 h-10 object-contain"
-                  />
-                </div>
-              ) : (
-                <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <span className="text-gray-600 text-xs font-bold">💳</span>
-                </div>
-              )}
-              <div>
-                <div className="font-semibold text-sm">{option.label}</div>
-              </div>
+      <div className="w-full">
+        <button
+          type="button"
+          onClick={handleIntouchClick}
+          className="w-full p-6 border-2 border-gold-metallic bg-gold-light/20 text-gold-dark rounded-lg transition-all hover:bg-gold-metallic hover:text-white hover:border-gold-dark"
+        >
+          <div className="flex items-center justify-center space-x-3">
+            <div className="w-12 h-12 bg-gold-metallic rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-white text-lg font-bold">I</span>
             </div>
-          </button>
-        ))}
+            <div className="text-center">
+              <div className="font-bold text-lg">Continuer avec Intouch</div>
+              <div className="text-sm opacity-80">Paiement sécurisé via WhatsApp</div>
+            </div>
+          </div>
+        </button>
       </div>
     </div>
   );

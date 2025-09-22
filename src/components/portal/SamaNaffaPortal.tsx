@@ -199,7 +199,7 @@ export default function SamaNaffaPortal() {
   if (isLoading) {
     return (
       <div className="space-y-8">
-        <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
@@ -211,7 +211,7 @@ export default function SamaNaffaPortal() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="flex items-center justify-center py-12">
             <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin"></div>
@@ -225,7 +225,7 @@ export default function SamaNaffaPortal() {
   if (error) {
     return (
       <div className="space-y-8">
-        <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
@@ -237,7 +237,7 @@ export default function SamaNaffaPortal() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="text-center py-12">
             <p className="text-red-600 mb-4">{error}</p>
@@ -257,7 +257,7 @@ export default function SamaNaffaPortal() {
   if (!samaNaffaAccount) {
     return (
       <div className="space-y-8">
-        <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
@@ -269,7 +269,7 @@ export default function SamaNaffaPortal() {
               </div>
             </div>
           </div>
-        </div>
+        </div> */}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="text-center py-12">
             <p className="text-night/70 mb-4">Votre compte Sama Naffa n'a pas été trouvé.</p>
@@ -283,7 +283,7 @@ export default function SamaNaffaPortal() {
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
+      {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
@@ -295,7 +295,7 @@ export default function SamaNaffaPortal() {
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
 
       {/* Primary Naffa Account */}
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
