@@ -45,7 +45,7 @@ export default function AssistancePage() {
                   Réponse immédiate 24h/24
                 </p>
                 <a
-                  href="https://wa.me/221XXXXXXXXX"
+                  href="https://wa.me/221770993382"
                   className="inline-flex items-center px-6 py-3 bg-foreground text-background rounded-xl font-medium hover:bg-accent hover:text-accent-foreground transition-colors duration-300"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
@@ -358,7 +358,7 @@ export default function AssistancePage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                href="https://wa.me/221XXXXXXXXX"
+                href="https://wa.me/221770993382"
                 size="lg"
                 className="bg-background text-foreground hover:bg-background/90"
               >

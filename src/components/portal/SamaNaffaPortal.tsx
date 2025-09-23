@@ -149,50 +149,9 @@ export default function SamaNaffaPortal() {
   };
 
   const handleTransferConfirm = async (data: { amount: number; method: string; note?: string }) => {
-    if (!session || !samaNaffaAccount) return;
-
-    try {
-      const response = await fetch('/api/transactions/intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: (session.user as any).id,
-          accountType: 'sama_naffa',
-          intentType: transferType,
-          amount: data.amount,
-          paymentMethod: data.method,
-          userNotes: data.note
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Refresh account data
-        const accountsResponse = await fetch('/api/accounts');
-        const accountsData = await accountsResponse.json();
-        
-        if (accountsData.success) {
-          const updatedAccount = accountsData.accounts.find(
-            (acc: UserAccount) => acc.accountType === 'SAMA_NAFFA'
-          );
-          setSamaNaffaAccount(updatedAccount || null);
-        }
-
-        // Refresh transaction history and paginated data
-        await fetchTransactions(loadedTransactions.length > 0 ? loadedTransactions.length : 5, 0);
-
-        setShowTransferModal(false);
-        alert(`Transaction ${transferType === 'deposit' ? 'de dépôt' : 'de retrait'} soumise avec succès! Référence: ${result.transactionIntent.referenceNumber}`);
-      } else {
-        alert('Erreur lors de la soumission de la transaction');
-      }
-    } catch (error) {
-      console.error('Error submitting transaction:', error);
-      alert('Erreur lors de la soumission de la transaction');
-    }
+    // This function is no longer used since we redirect to WhatsApp directly
+    // The modal now handles the WhatsApp redirect internally
+    setShowTransferModal(false);
   };
 
   // Loading state

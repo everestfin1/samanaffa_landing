@@ -67,17 +67,15 @@ export default function TransferModal({
       return;
     }
 
-    onConfirm({
-      amount: requestedAmount,
-      method,
-      note: note.trim() || undefined
-    });
+    // Redirect to WhatsApp instead of creating intent
+    const message = encodeURIComponent(
+      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA${note.trim() ? ` - ${note.trim()}` : ''}. Pouvez-vous m'aider avec le traitement du paiement ?`
+    );
+    const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
+    window.open(whatsappUrl, '_blank');
     
-    // Reset form
-    setAmount('');
-    setMethod('intouch');
-    setNote('');
-    setError('');
+    // Close modal after redirect
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -118,7 +116,7 @@ export default function TransferModal({
                 type="number" 
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : "50000"}
+                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : "50 000"}
                 min="1000"
                 max={type === 'withdraw' ? currentBalance : undefined}
                 step="1000"
@@ -139,7 +137,7 @@ export default function TransferModal({
             />
 
             <div>
-              <label className="block text-sm font-medium text-night mb-2">Note (optionnel)</label>
+              <label className="block text-sm font-medium text-night mb-2">Note (optionnelle)</label>
               <textarea 
                 value={note}
                 onChange={(e) => setNote(e.target.value)}

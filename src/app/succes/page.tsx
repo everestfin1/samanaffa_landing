@@ -215,7 +215,7 @@ export default function SuccessPage() {
                   Support instantané
                 </p>
                 <a
-                  href="https://wa.me/221XXXXXXXXX"
+                  href="https://wa.me/221770993382"
                   className="text-foreground hover:text-accent transition-colors duration-300 font-medium"
                 >
                   +221 XX XX XX XX XX

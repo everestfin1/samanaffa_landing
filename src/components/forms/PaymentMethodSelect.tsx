@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface PaymentMethodSelectProps {
   value: string;
   onChange: (value: string) => void;
@@ -11,15 +13,6 @@ export default function PaymentMethodSelect({
   type, 
   className = "" 
 }: PaymentMethodSelectProps) {
-  const handleIntouchClick = () => {
-    // WhatsApp redirect for payment processing
-    const message = encodeURIComponent(
-      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : type === 'withdraw' ? 'retrait' : 'paiement'} via Intouch. Pouvez-vous m'aider avec le traitement du paiement ?`
-    );
-    const whatsappUrl = `https://wa.me/221771234567?text=${message}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
   const getLabel = () => {
     switch (type) {
       case 'deposit':
@@ -39,21 +32,22 @@ export default function PaymentMethodSelect({
         {getLabel()}
       </label>
       <div className="w-full">
-        <button
-          type="button"
-          onClick={handleIntouchClick}
-          className="w-full p-6 border-2 border-gold-metallic bg-gold-light/20 text-gold-dark rounded-lg transition-all hover:bg-gold-metallic hover:text-white hover:border-gold-dark"
-        >
+        <div className="w-full p-6 border-2 border-gold-metallic bg-gold-light/20 text-gold-dark rounded-lg">
           <div className="flex items-center justify-center space-x-3">
-            <div className="w-12 h-12 bg-gold-metallic rounded-lg flex items-center justify-center flex-shrink-0">
-              <span className="text-white text-lg font-bold">I</span>
+            <div className="flex-shrink-0">
+              <Image
+                src="/intouch_logo.png"
+                alt="Intouch Logo"
+                width={48}
+                height={48}
+                className="w-12 h-12 object-contain"
+              />
             </div>
             <div className="text-center">
               <div className="font-bold text-lg">Continuer avec Intouch</div>
-              <div className="text-sm opacity-80">Paiement sécurisé via WhatsApp</div>
             </div>
           </div>
-        </button>
+        </div>
       </div>
     </div>
   );

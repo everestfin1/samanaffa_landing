@@ -203,52 +203,10 @@ export default function APEPortal() {
   ];
 
   const handleInvestmentConfirm = async (data: { amount: number; tranche: 'A' | 'B' | 'C' | 'D'; method: string }) => {
-    if (!session || !apeAccount) return;
-
-    try {
-      const response = await fetch('/api/transactions/intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: (session.user as any).id,
-          accountType: 'ape_investment',
-          intentType: 'investment',
-          amount: data.amount,
-          paymentMethod: data.method,
-          investmentTranche: data.tranche,
-          investmentTerm: getTermForTranche(data.tranche)
-        })
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Refresh account data
-        const accountsResponse = await fetch('/api/accounts');
-        const accountsData = await accountsResponse.json();
-        
-        if (accountsData.success) {
-          const updatedAccount = accountsData.accounts.find(
-            (acc: UserAccount) => acc.accountType === 'APE_INVESTMENT'
-          );
-          setApeAccount(updatedAccount || null);
-        }
-
-        // Refresh transaction history and paginated data
-        await fetchTransactions(loadedTransactions.length > 0 ? loadedTransactions.length : 5, 0);
-
-        setShowInvestmentModal(false);
-        setSelectedTranche(null);
-        alert(`Investissement APE soumis avec succès! Référence: ${result.transactionIntent.referenceNumber}`);
-      } else {
-        alert('Erreur lors de la soumission de l\'investissement');
-      }
-    } catch (error) {
-      console.error('Error submitting investment:', error);
-      alert('Erreur lors de la soumission de l\'investissement');
-    }
+    // This function is no longer used since we redirect to WhatsApp directly
+    // The modal now handles the WhatsApp redirect internally
+    setShowInvestmentModal(false);
+    setSelectedTranche(null);
   };
 
   const getTermForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): number => {

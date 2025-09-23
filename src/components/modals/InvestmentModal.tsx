@@ -32,6 +32,7 @@ export default function InvestmentModal({
   const [amount, setAmount] = useState<string>('100000');
   const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>(preselectedTranche || 'D');
   const [method, setMethod] = useState<string>('intouch');
+  const [error, setError] = useState<string>('');
 
   // Update tranche when preselectedTranche changes
   useEffect(() => {
@@ -51,19 +52,39 @@ export default function InvestmentModal({
     return amount + totalInterest;
   };
 
+  const handleAmountChange = (value: string) => {
+    setAmount(value);
+    setError(''); // Clear error when user types
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (amount && parseFloat(amount) >= 10000) {
-      onConfirm({
-        amount: parseFloat(amount),
-        tranche,
-        method
-      });
-      // Reset form
-      setAmount('100000');
-      setTranche('D');
-      setMethod('intouch');
+    setError('');
+    
+    if (!amount || parseFloat(amount) <= 0) {
+      setError('Veuillez entrer un montant valide');
+      return;
     }
+
+    const investmentAmount = parseFloat(amount);
+    
+    // Minimum amount validation
+    if (investmentAmount < 10000) {
+      setError('Le montant minimum d\'investissement est de 10,000 FCFA');
+      return;
+    }
+
+    const selectedOption = trancheOptions.find(t => t.value === tranche);
+    
+    // Redirect to WhatsApp instead of creating intent
+    const message = encodeURIComponent(
+      `Bonjour, je souhaite investir ${investmentAmount.toLocaleString()} FCFA dans la ${selectedOption?.label} (${selectedOption?.rate}% sur ${selectedOption?.term} ans). Pouvez-vous m'aider avec le traitement du paiement ?`
+    );
+    const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
+    window.open(whatsappUrl, '_blank');
+    
+    // Close modal after redirect
+    onClose();
   };
 
   if (!isOpen) return null;
@@ -105,13 +126,18 @@ export default function InvestmentModal({
               <input 
                 type="number" 
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={(e) => handleAmountChange(e.target.value)}
                 min="10000"
                 step="10000"
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
-                placeholder="Minimum 10,000 FCFA"
+                className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
+                  error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
+                }`}
+                placeholder="Minimum 10 000 FCFA"
                 required
               />
+              {error && (
+                <p className="mt-1 text-sm text-red-600">{error}</p>
+              )}
             </div>
 
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
@@ -155,7 +181,8 @@ export default function InvestmentModal({
             </button>
             <button 
               type="submit"
-              className="flex-1 bg-gold-metallic text-white py-3 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors"
+              disabled={!!error || (amount ? parseFloat(amount) < 10000 : true)}
+              className="flex-1 bg-gold-metallic text-white py-3 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors disabled:bg-gray-400"
             >
               Confirmer l'investissement
             </button>
