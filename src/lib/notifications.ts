@@ -1,6 +1,4 @@
 import * as nodemailer from 'nodemailer'
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const twilio = require('twilio')
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -13,11 +11,11 @@ const emailTransporter = nodemailer.createTransport({
   },
 })
 
-// Twilio configuration
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID!,
-  process.env.TWILIO_AUTH_TOKEN!
-)
+// BulkSMS.com configuration
+const BULKSMS_TOKEN = process.env.BULKSMS_TOKEN
+const BULKSMS_USERNAME = process.env.BULKSMS_USERNAME
+const BULKSMS_PASSWORD = process.env.BULKSMS_PASSWORD
+const BULKSMS_API_URL = 'https://api.bulksms.com/v1/messages'
 
 export async function sendEmailOTP(email: string, otp: string): Promise<void> {
   const mailOptions = {
@@ -44,11 +42,64 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
 }
 
 export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
-  await twilioClient.messages.create({
-    body: `Votre code Sama Naffa: ${otp}. Expire dans 5min.`,
-    from: process.env.TWILIO_PHONE_NUMBER,
-    to: phone,
-  })
+  try {
+    console.log('🔍 BulkSMS Debug Info:')
+    console.log('- Token:', BULKSMS_TOKEN ? 'Set' : 'Missing')
+    console.log('- Username:', BULKSMS_USERNAME ? 'Set' : 'Missing')
+    console.log('- Password:', BULKSMS_PASSWORD ? 'Set' : 'Missing')
+    console.log('- Phone:', phone)
+    console.log('- API URL:', BULKSMS_API_URL)
+    
+    // Determine authentication method
+    let authHeader = ''
+    if (BULKSMS_USERNAME && BULKSMS_PASSWORD) {
+      // Username/Password authentication
+      const credentials = Buffer.from(`${BULKSMS_USERNAME}:${BULKSMS_PASSWORD}`).toString('base64')
+      authHeader = `${credentials}`
+      console.log('- Using Username/Password authentication')
+    } else {
+      throw new Error('No BulkSMS authentication credentials provided. Set either BULKSMS_TOKEN or BULKSMS_USERNAME/BULKSMS_PASSWORD')
+    }
+    
+    const requestBody = {
+      to: phone,
+      body: `Votre code Sama Naffa: ${otp}. Expire dans 5min.`,
+    }
+    
+    console.log('- Request body:', JSON.stringify(requestBody, null, 2))
+    
+    const response = await fetch(BULKSMS_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + authHeader,
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    console.log('- Response status:', response.status)
+    console.log('- Response headers:', Object.fromEntries(response.headers.entries()))
+
+    if (!response.ok) {
+      let errorData
+      try {
+        errorData = await response.json()
+        console.log('- Error response body:', JSON.stringify(errorData, null, 2))
+      } catch (parseError) {
+        const textResponse = await response.text()
+        console.log('- Error response text:', textResponse)
+        errorData = { message: textResponse || 'Unknown error' }
+      }
+      
+      throw new Error(`BulkSMS API error (${response.status}): ${JSON.stringify(errorData)}`)
+    }
+
+    const result = await response.json()
+    console.log('✅ SMS sent successfully via BulkSMS:', result)
+  } catch (error) {
+    console.error('❌ Error sending SMS via BulkSMS:', error)
+    throw error
+  }
 }
 
 export async function sendTransactionIntentEmail(
