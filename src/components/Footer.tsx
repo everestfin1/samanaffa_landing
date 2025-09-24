@@ -47,7 +47,7 @@ export default function Footer() {
                 height={40}
                 className="opacity-90"
               />
-              <span className="sama-text-gold text-sm pb-3">
+              <span className="text-sm pb-3">
                 Agrément n° SGI /DA/2016/60
               </span>
             </div>
@@ -62,13 +62,13 @@ export default function Footer() {
                   onClick={() => router.push('/sama-naffa')} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  Sama Naffa • Épargne Inclusive
+                  SAMA NAFFA • Épargne Inclusive
                 </button>
                 <button 
                   onClick={() => router.push('/ape')} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  Emprunt Obligataire • Investissement d'État
+                  Emprunt Obligataire • Appel Public à l’Epargne
                 </button>
               </div>
             </div>
@@ -96,7 +96,7 @@ export default function Footer() {
         {/* Contact Section */}
         <div className="space-y-8">
           <div>
-            <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
+            <h4 className="font-light mb-6 text-white/90 text-lg"><Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Nous Contacter</Link></h4>
             <div className="space-y-4 text-white/60 font-light">
               <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
                 <p className="text-lg">+221 33 822 87 00</p>
@@ -117,7 +117,7 @@ export default function Footer() {
       {/* Bottom Bar */}
       <div className="border-t border-white/10 mt-16 pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
-          <p>&copy; {currentYear} Everest Finance. Tous droits réservés.</p>
+          <p>&copy; {currentYear} Copyright - EVERESY FINANCE</p>
           <div className="flex gap-8">
             <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</a>
             <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Conditions d'utilisation</a>
