@@ -169,7 +169,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main id="main">
-        <section className="relative overflow-hidden bg-white h-screen -mt-24" aria-label="Hero">
+        <section className="relative overflow-hidden bg-white h-screen -mt-32" aria-label="Hero">
           {/* Background Video */}
           <div className="absolute inset-0">
             <video

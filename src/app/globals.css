@@ -365,6 +365,16 @@ html {
 .sama-text-green { color: var(--sama-primary-green); }
 .sama-text-gold { color: var(--sama-accent-gold); }
 
+/* Enhanced contrast utility classes for navigation */
+.sama-nav-text-primary {
+  color: var(--sama-text-primary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+.sama-nav-text-secondary {
+  color: var(--sama-text-secondary);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
 /* Button Reflection Animation */
 .sama-button-reflection {
   position: relative;

@@ -141,18 +141,18 @@ export default function Navigation() {
       suppressHydrationWarning
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="hidden md:flex md:items-center md:justify-between h-24">
+        <div className="hidden md:flex md:items-center md:justify-between h-32">
           {/* Desktop Navigation - Left Side */}
           <div className="flex items-center">
-            <div className="flex items-center space-x-8">
+            <div className="flex items-center space-x-10">
               <Link
                 href="/"
-                className={`transition-colors font-medium  ${
+                className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
-                    ? 'sama-text-secondary hover:sama-text-primary'
+                    ? 'sama-nav-text-secondary hover:sama-text-primary hover:drop-shadow-md'
                     : isHomePage
-                      ? 'sama-text-primary/80 hover:sama-text-primary'
-                      : 'sama-text-secondary hover:sama-text-primary'
+                      ? 'sama-text-primary/80 hover:sama-text-primary hover:drop-shadow-md'
+                      : 'sama-nav-text-secondary hover:sama-text-primary hover:drop-shadow-md'
                 }`}
               >
                 Accueil
@@ -160,12 +160,12 @@ export default function Navigation() {
 
               <Link
                 href="/sama-naffa"
-                className={`transition-colors font-medium  ${
+                className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
-                    ? 'sama-text-secondary hover:sama-text-green'
+                    ? 'sama-nav-text-secondary hover:sama-text-green hover:drop-shadow-md'
                     : isHomePage
-                      ? 'sama-text-primary/80 hover:sama-text-green'
-                      : 'sama-text-secondary hover:sama-text-green'
+                      ? 'sama-text-primary/80 hover:sama-text-green hover:drop-shadow-md'
+                      : 'sama-nav-text-secondary hover:sama-text-green hover:drop-shadow-md'
                 }`}
               >
                 Sama Naffa
@@ -173,12 +173,12 @@ export default function Navigation() {
 
               <Link
                 href="/ape"
-                className={`transition-colors font-medium  ${
+                className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
-                    ? 'sama-text-secondary hover:sama-text-gold'
+                    ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
                     : isHomePage
-                      ? 'sama-text-primary/80 hover:sama-text-gold'
-                      : 'sama-text-secondary hover:sama-text-gold'
+                      ? 'sama-text-primary/80 hover:sama-text-gold hover:drop-shadow-md'
+                      : 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
                 }`}
               >
                 Emprunt Obligataire
@@ -197,8 +197,8 @@ export default function Navigation() {
                 <Image
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
-                  width={160}
-                  height={64}
+                  width={200}
+                  height={80}
                   priority
                 />
               </Link>
@@ -288,8 +288,8 @@ export default function Navigation() {
                 <Image
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
-                  width={120}
-                  height={40}
+                  width={150}
+                  height={50}
                   priority
                 />
               </Link>
@@ -319,29 +319,29 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className={`md:hidden border-t border-white/20 bg-white/80 backdrop-blur-md`}>
-            <div className="px-2 pt-2 pb-3 space-y-1">
+          <div className={`md:hidden border-t border-white/20 bg-white/95 backdrop-blur-md shadow-lg`}>
+            <div className="px-3 pt-3 pb-4 space-y-2">
               <Link
                 href="/"
-                className="block w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-primary hover:sama-bg-light-green transition-colors"
+                className="flex items-center w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-primary hover:sama-bg-light-green transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
               >
-                Accueil
+                <span className="tracking-wide">Accueil</span>
               </Link>
 
               <Link
                 href="/sama-naffa"
-                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-green hover:sama-bg-light-green transition-colors"
+                className="flex items-center space-x-4 w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-green hover:sama-bg-light-green transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
               >
-                <DevicePhoneMobileIcon className="w-5 h-5" />
-                <span>Sama Naffa</span>
+                <DevicePhoneMobileIcon className="w-6 h-6 flex-shrink-0" />
+                <span className="tracking-wide">Sama Naffa</span>
               </Link>
 
               <Link
                 href="/ape"
-                className="flex items-center space-x-3 w-full text-left px-3 py-2 rounded-md text-base font-medium sama-text-secondary hover:sama-text-gold hover:bg-sama-accent-gold/10 transition-colors"
+                className="flex items-center space-x-4 w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-gold hover:bg-sama-accent-gold/10 transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
               >
-                <BuildingLibraryIcon className="w-5 h-5" />
-                <span>Emprunt Obligataire</span>
+                <BuildingLibraryIcon className="w-6 h-6 flex-shrink-0" />
+                <span className="tracking-wide">Emprunt Obligataire</span>
               </Link>
 
             </div>

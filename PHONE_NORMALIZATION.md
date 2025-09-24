@@ -5,7 +5,7 @@ This document explains the phone number normalization system implemented to ensu
 ## 🎯 Problem Solved
 
 Previously, phone numbers were stored inconsistently in the database:
-- User entered: `777228845`
+- User entered: `77XXXXXXX`
 - Stored as: `77 722 88 45` (with spaces)
 - Login failed because formats didn't match
 
@@ -22,12 +22,12 @@ The system accepts various input formats and converts them to the standard forma
 
 | Input Format | Example | Normalized Output |
 |-------------|---------|-------------------|
-| 9 digits | `777228845` | `+221777228845` |
-| 10 digits (with 0) | `0777228845` | `+221777228845` |
-| 10 digits (without 0) | `7772288450` | `+221777228845` |
-| 12 digits (with +221) | `+221777228845` | `+221777228845` |
-| 12 digits (without +) | `221777228845` | `+221777228845` |
-| With spaces | `77 722 88 45` | `+221777228845` |
+| 9 digits | `77XXXXXXX` | `+22177XXXXXXX` |
+| 10 digits (with 0) | `077XXXXXXX` | `+22177XXXXXXX` |
+| 10 digits (without 0) | `77XXXXXXX0` | `+22177XXXXXXX` |
+| 12 digits (with +221) | `+22177XXXXXXX` | `+22177XXXXXXX` |
+| 12 digits (without +) | `22177XXXXXXX` | `+22177XXXXXXX` |
+| With spaces | `77 722 88 45` | `+22177XXXXXXX` |
 
 ### 3. Validation Rules
 Phone numbers must:
@@ -69,11 +69,11 @@ isValidSenegalPhone(phone: string): boolean
 
 ### For New Registrations
 Users can enter phone numbers in any supported format:
-- `777228845` ✅
+- `77XXXXXXX` ✅
 - `77 722 88 45` ✅
 - `+221 77 722 88 45` ✅
 
-All will be stored as `+221777228845`
+All will be stored as `+22177XXXXXXX`
 
 ### For Login
 Users can login with any phone format:
@@ -94,15 +94,15 @@ bun run db:normalize-phones
 ```sql
 -- Mixed formats in database
 phone: "77 722 88 45"
-phone: "777228845"
+phone: "77XXXXXXX"
 phone: "+221771234567"
 ```
 
 ### After Migration
 ```sql
 -- Consistent format
-phone: "+221777228845"
-phone: "+221777228845"
+phone: "+22177XXXXXXX"
+phone: "+22177XXXXXXX"
 phone: "+221771234567"
 ```
 
@@ -110,16 +110,16 @@ phone: "+221771234567"
 
 ### Test Cases
 ```typescript
-// These should all normalize to "+221777228845"
-normalizeSenegalPhone("777228845")        // ✅ +221777228845
-normalizeSenegalPhone("77 722 88 45")     // ✅ +221777228845
-normalizeSenegalPhone("+221777228845")    // ✅ +221777228845
-normalizeSenegalPhone("0777228845")       // ✅ +221777228845
+// These should all normalize to "+22177XXXXXXX"
+normalizeSenegalPhone("77XXXXXXX")        // ✅ +22177XXXXXXX
+normalizeSenegalPhone("77 722 88 45")     // ✅ +22177XXXXXXX
+normalizeSenegalPhone("+22177XXXXXXX")    // ✅ +22177XXXXXXX
+normalizeSenegalPhone("077XXXXXXX")       // ✅ +22177XXXXXXX
 ```
 
 ### Validation Tests
 ```typescript
-isValidSenegalPhone("+221777228845")      // ✅ true
+isValidSenegalPhone("+22177XXXXXXX")      // ✅ true
 isValidSenegalPhone("+221999999999")      // ❌ false (invalid prefix)
 isValidSenegalPhone("123456789")          // ❌ false (invalid format)
 ```

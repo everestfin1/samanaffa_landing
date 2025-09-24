@@ -16,7 +16,7 @@ export const WhatsAppButton: React.FC = () => {
 
   const handleClick = () => {
     // Replace with actual WhatsApp number
-    const phoneNumber = '+221000000000';
+    const phoneNumber = '+221770993382';
     const message = encodeURIComponent('Bonjour, je souhaite en savoir plus sur vos services d\'investissement.');
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
     window.open(whatsappUrl, '_blank');
