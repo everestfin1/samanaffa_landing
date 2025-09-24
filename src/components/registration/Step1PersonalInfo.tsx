@@ -11,6 +11,7 @@ interface FormData {
   email: string;
   profession: string;
   domaineActivite: string;
+  otpMethod: 'email' | 'sms';
 }
 
 interface Step1PersonalInfoProps {
