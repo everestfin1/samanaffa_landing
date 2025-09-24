@@ -21,6 +21,8 @@ export default function Home() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isVideoPaused, setIsVideoPaused] = useState(false);
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false);
+  const pauseTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Toggle video audio
   const toggleAudio = async () => {
@@ -41,35 +43,104 @@ export default function Home() {
     }
   };
 
-  // Initialize video as muted on mount
-  useEffect(() => {
-    const video = videoRef.current;
-    if (video) {
-      video.muted = true; // Start muted for better UX
-    }
-  }, []);
-
-  // Video pause functionality - pause for 2 seconds every 1 minute
+  // Initialize video and handle autoplay
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    const pauseVideo = () => {
-      if (!video.paused) {
-        video.pause();
+    // Set video properties
+    video.muted = true; // Must be muted for autoplay to work
+    video.loop = false; // Disable loop initially to trigger 'ended' event
+    video.playsInline = true;
+    video.autoplay = true; // Set autoplay attribute programmatically
+
+    // Handle video ended event
+    const handleVideoEnded = () => {
+      if (!hasPlayedOnce) {
+        // First play completed - pause for 1 minute
+        console.log('First play completed, pausing for 1 minute');
+        setHasPlayedOnce(true);
         setIsVideoPaused(true);
-        setTimeout(() => {
-          video.play();
-          setIsVideoPaused(false);
-        }, 2000); // Pause for 2 seconds
+        
+        // Clear any existing timeout
+        if (pauseTimeoutRef.current) {
+          clearTimeout(pauseTimeoutRef.current);
+        }
+        
+        // After 1 minute, enable loop and restart
+        pauseTimeoutRef.current = setTimeout(() => {
+          video.currentTime = 0; // Reset to beginning
+          video.loop = true; // Enable loop for continuous play
+          video.play().then(() => {
+            setIsVideoPaused(false);
+            console.log('Video resumed after 1 minute pause - now looping continuously');
+          }).catch((error) => {
+            console.log('Failed to resume video:', error);
+          });
+        }, 60000); // 60000ms = 1 minute
+      }
+      // If hasPlayedOnce is true and loop is false, we shouldn't reach here
+      // because loop should be enabled after first play
+    };
+
+    // Ensure video starts playing
+    const startVideo = () => {
+      if (video.readyState >= 2) { // HAVE_CURRENT_DATA or higher
+        video.play().then(() => {
+          console.log('Video started successfully');
+        }).catch((error) => {
+          console.log('Autoplay blocked, will start on user interaction:', error);
+        });
       }
     };
 
-    // Set up interval to pause video every 1 minute
-    const interval = setInterval(pauseVideo, 60000); // 60 seconds
+    // Add event listeners
+    video.addEventListener('ended', handleVideoEnded);
+    video.addEventListener('loadeddata', startVideo);
+    video.addEventListener('canplay', startVideo);
 
-    return () => clearInterval(interval);
-  }, []);
+    // Also try to play immediately if video is already ready
+    if (video.readyState >= 2) {
+      startVideo();
+    }
+
+    // Cleanup
+    return () => {
+      video.removeEventListener('ended', handleVideoEnded);
+      video.removeEventListener('loadeddata', startVideo);
+      video.removeEventListener('canplay', startVideo);
+      if (pauseTimeoutRef.current) {
+        clearTimeout(pauseTimeoutRef.current);
+      }
+    };
+  }, []); // Empty dependency array - only run once on mount
+
+  // Fallback: Start video on user interaction if autoplay failed
+  useEffect(() => {
+    const handleUserInteraction = async () => {
+      const video = videoRef.current;
+      if (video && video.paused && !isVideoPaused) {
+        try {
+          await video.play();
+          console.log('Video started on user interaction');
+        } catch (error) {
+          console.log('Video play failed:', error);
+        }
+      }
+    };
+
+    // Add event listeners for user interaction
+    const events = ['click', 'touchstart', 'keydown', 'scroll'];
+    events.forEach(event => {
+      document.addEventListener(event, handleUserInteraction, { once: true });
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleUserInteraction);
+      });
+    };
+  }, [isVideoPaused]);
 
   // Animation variants
   const containerVariants = {
@@ -175,15 +246,26 @@ export default function Home() {
             <video
               ref={videoRef}
               autoPlay
-              loop
               playsInline
               preload="auto"
-              className="hero-video w-full h-full object-cover"
+              className={`hero-video w-full h-full object-cover transition-opacity duration-1000 ${isVideoPaused ? 'opacity-0' : 'opacity-100'}`}
               aria-label="Background video"
               poster="/sama-naffa_bg.jpg"
             >
               <source src="/sama-naffa-bg-vid.mp4" type="video/mp4" />
             </video>
+            {/* Hero image that shows when video is paused */}
+            <div className={`absolute inset-0 transition-opacity duration-1000 ${isVideoPaused ? 'opacity-100' : 'opacity-0'}`}>
+              <Image
+                src="/sama-naffa_bg.jpg"
+                alt="Hero background"
+                fill
+                className="object-cover"
+                priority
+                sizes="100vw"
+                style={{ objectFit: 'cover' }}
+              />
+            </div>
           </div>
 
           {/* Audio Control Button */}
