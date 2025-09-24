@@ -233,7 +233,7 @@ export default function Simulator() {
               {/* CTA */}
               <div className="pt-6">
                 <Button href="/personas" size="lg" className="w-full">
-                  Ouvrir mon compte d&apos;épargne
+                  Ouvrir mon Naffa d&apos;épargne
                 </Button>
                 <p className="text-sm text-muted-foreground text-center mt-4">
                   Ou <Link href="/simulateur" className="text-foreground hover:text-accent transition-colors duration-300 font-medium">continuez à simuler</Link>

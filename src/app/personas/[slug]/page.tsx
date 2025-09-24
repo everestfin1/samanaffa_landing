@@ -72,7 +72,7 @@ export default function PersonaDetailPage({ params }: PersonaDetailPageProps) {
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button href="/ouvrir-compte" size="lg">
-                    Ouvrir mon compte
+                    Ouvrir mon Naffa
                   </Button>
                   <Button href="/simulateur" variant="outline" size="lg">
                     Simuler mes gains
@@ -213,7 +213,7 @@ export default function PersonaDetailPage({ params }: PersonaDetailPageProps) {
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button href="/ouvrir-compte" size="lg" className="bg-background text-foreground hover:bg-background/90">
-                Ouvrir mon compte maintenant
+                Ouvrir mon Naffa maintenant
               </Button>
               <Button href="/assistance" variant="outline" size="lg" className="border-background text-background hover:bg-background hover:text-foreground">
                 Poser une question

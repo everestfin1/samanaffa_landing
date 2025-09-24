@@ -246,7 +246,7 @@ export default function Navigation() {
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    <span className="relative">Ouvrir mon compte</span>
+                    <span className="relative">Ouvrir mon Naffa</span>
                   </Link>
                 )}
                 </div>
@@ -267,7 +267,7 @@ export default function Navigation() {
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    <span className="relative">Ouvrir mon compte</span>
+                    <span className="relative">Ouvrir mon Naffa</span>
                   </Link>
                 )}
               </div>
@@ -386,7 +386,7 @@ export default function Navigation() {
                         className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors text-center overflow-hidden"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                        <span className="relative">Ouvrir mon compte</span>
+                        <span className="relative">Ouvrir mon Naffa</span>
                       </Link>
                     )}
                   </div>

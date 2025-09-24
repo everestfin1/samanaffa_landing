@@ -222,7 +222,7 @@ export default function RegisterPage() {
         const actualAge = monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate()) ? age - 1 : age;
         
         if (actualAge < 18) {
-          return 'Vous devez avoir au moins 18 ans pour créer un compte';
+          return 'Vous devez avoir au moins 18 ans pour créer un Naffa';
         }
         if (birthDate > today) {
           return 'Date de naissance invalide';

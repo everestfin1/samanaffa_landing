@@ -865,7 +865,7 @@ export default function RegisterPage() {
                   </>
                 ) : (
                   <>
-                    <span>Créer mon compte</span>
+                    <span>Créer mon Naffa</span>
                     <CheckCircleIcon className="w-6 h-6" />
                   </>
                 )}
@@ -877,7 +877,7 @@ export default function RegisterPage() {
         {/* Sign In Link */}
         <div className="mt-8 text-center">
           <p className="text-night/70 text-sm">
-            Déjà un compte ?{' '}
+            Déjà un Naffa?{' '}
             <button
               onClick={() => router.push('/login')}
               className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"

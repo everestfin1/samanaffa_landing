@@ -430,7 +430,7 @@ function LoginForm() {
                 onClick={() => router.push('/register')}
                 className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
               >
-                Créer un compte
+                Créer un Naffa
               </button>
             </p>
           </div>

@@ -18,7 +18,7 @@ export default function Hero() {
 
           {/* Subheadline */}
           <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
-            Ouvrez un compte d&apos;épargne ou souscrivez à un APE en 3 clics maximum.
+            Ouvrez un Naffa ou souscrivez à un APE en 3 clics maximum.
             Confirmation immédiate avec preuve de confiance BCEAO.
           </p>
 

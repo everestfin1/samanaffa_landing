@@ -122,7 +122,7 @@ function OuvrirCompteContent() {
               </Link>
               
               <h1 className="text-4xl font-bold text-card-foreground mb-4">
-                Ouvrir mon compte d&apos;épargne
+                Ouvrir mon Naffa d&apos;épargne
               </h1>
               <p className="text-lg text-muted-foreground">
                 {persona 
@@ -484,7 +484,7 @@ function OuvrirCompteContent() {
                 ) : (
                   <Button href="/succes" size="lg">
                     <Shield className="w-4 h-4 mr-2" />
-                    Ouvrir mon compte
+                    Ouvrir mon Naffa
                   </Button>
                 )}
               </div>
