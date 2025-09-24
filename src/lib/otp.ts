@@ -45,7 +45,7 @@ export async function verifyOTP(userId: string, code: string): Promise<boolean> 
   return true
 }
 
-export async function sendOTP(email?: string, phone?: string, type: 'login' | 'register' = 'login'): Promise<{ success: boolean; message: string }> {
+export async function sendOTP(email?: string, phone?: string, type: 'login' | 'register' = 'login', preferredMethod?: 'email' | 'sms'): Promise<{ success: boolean; message: string }> {
   try {
     if (!email && !phone) {
       return { success: false, message: 'Email ou numéro de téléphone requis' }
@@ -142,7 +142,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       return { success: false, message: 'Échec du traitement de l\'utilisateur' }
     }
 
-    // Determine OTP delivery method based on input format
+    // Determine OTP delivery method based on user preference or available options
     const isEmail = email && email.includes('@')
     const isPhone = phone && phone.startsWith('+')
 
@@ -150,21 +150,41 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
     let deliveryMethod: string
     let deliveryValue: string
 
-    if (isEmail && isPhone) {
-      // Both email and phone provided - prioritize SMS for better mobile UX
-      otpType = 'sms'
-      deliveryMethod = 'SMS'
-      deliveryValue = phone
-    } else if (isEmail) {
-      otpType = 'email'
-      deliveryMethod = 'email'
-      deliveryValue = email
-    } else if (isPhone) {
-      otpType = 'sms'
-      deliveryMethod = 'SMS'
-      deliveryValue = phone
+    // If user has a preferred method, try to use it
+    if (preferredMethod) {
+      if (preferredMethod === 'email' && isEmail) {
+        otpType = 'email'
+        deliveryMethod = 'email'
+        deliveryValue = email
+      } else if (preferredMethod === 'sms' && isPhone) {
+        otpType = 'sms'
+        deliveryMethod = 'SMS'
+        deliveryValue = phone
+      } else if (preferredMethod === 'email' && !isEmail) {
+        return { success: false, message: 'Email requis pour l\'envoi du code par email' }
+      } else if (preferredMethod === 'sms' && !isPhone) {
+        return { success: false, message: 'Numéro de téléphone requis pour l\'envoi du code par SMS' }
+      } else {
+        return { success: false, message: 'Méthode d\'envoi non disponible' }
+      }
     } else {
-      return { success: false, message: 'Format d\'email ou numéro de téléphone invalide' }
+      // Fallback to original logic if no preferred method specified
+      if (isEmail && isPhone) {
+        // Both email and phone provided - prioritize SMS for better mobile UX
+        otpType = 'sms'
+        deliveryMethod = 'SMS'
+        deliveryValue = phone
+      } else if (isEmail) {
+        otpType = 'email'
+        deliveryMethod = 'email'
+        deliveryValue = email
+      } else if (isPhone) {
+        otpType = 'sms'
+        deliveryMethod = 'SMS'
+        deliveryValue = phone
+      } else {
+        return { success: false, message: 'Format d\'email ou numéro de téléphone invalide' }
+      }
     }
 
     // Generate OTP

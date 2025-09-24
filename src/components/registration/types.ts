@@ -28,6 +28,7 @@ export interface FormData {
   selfieImage: File | null;
   idFrontImage: File | null;
   idBackImage: File | null;
+  otpMethod: 'email' | 'sms';
   otp: string;
 
   // Step 5: Terms and Security

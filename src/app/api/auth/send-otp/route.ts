@@ -4,9 +4,9 @@ import { normalizeSenegalPhone } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, type } = await request.json()
+    const { email, phone, type, method } = await request.json()
 
-    console.log('🔍 Send OTP Request:', { email, phone, type })
+    console.log('🔍 Send OTP Request:', { email, phone, type, method })
 
     if (!email && !phone) {
       return NextResponse.json(
@@ -22,6 +22,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    if (method && !['email', 'sms'].includes(method)) {
+      return NextResponse.json(
+        { error: 'La méthode doit être "email" ou "sms"' },
+        { status: 400 }
+      )
+    }
+
     // Normalize phone number if provided
     const normalizedPhone = phone ? normalizeSenegalPhone(phone) : null
     console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
@@ -33,7 +40,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const result = await sendOTP(email, normalizedPhone || undefined, type)
+    const result = await sendOTP(email, normalizedPhone || undefined, type, method)
 
     if (!result.success) {
       return NextResponse.json(

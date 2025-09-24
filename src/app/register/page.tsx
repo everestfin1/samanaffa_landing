@@ -68,6 +68,7 @@ export default function RegisterPage() {
     selfieImage: null,
     idFrontImage: null,
     idBackImage: null,
+    otpMethod: 'email',
     otp: '',
 
     // Step 5
@@ -105,7 +106,7 @@ export default function RegisterPage() {
 
   const getStepValidationStatus = (step: number) => {
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession'],
+      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
@@ -326,7 +327,7 @@ export default function RegisterPage() {
 
   const validateStep = (step: number): boolean => {
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite'],
+      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
@@ -380,7 +381,8 @@ export default function RegisterPage() {
         body: JSON.stringify({
           email: formData.email,
           phone: formData.phone,
-          type: 'register'
+          type: 'register',
+          method: formData.otpMethod
         }),
       });
 
@@ -414,7 +416,7 @@ export default function RegisterPage() {
   const handleNext = async () => {
     // Mark all fields in current step as touched to show validation errors
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite'],
+      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],

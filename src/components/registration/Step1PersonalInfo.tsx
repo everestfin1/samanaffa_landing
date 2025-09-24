@@ -1,6 +1,6 @@
 'use client';
 
-import { UserIcon } from '@heroicons/react/24/outline';
+import { UserIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { normalizeSenegalPhone, formatPhoneForDisplay, isValidSenegalPhone } from '@/lib/utils';
 
 interface FormData {
@@ -173,6 +173,89 @@ export default function Step1PersonalInfo({
         {getFieldError('email') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('email')}</p>
         )}
+      </div>
+
+      {/* Verification Method Selection */}
+      <div>
+        <label className="block text-sm font-semibold text-night mb-2">Méthode de vérification préférée *</label>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Email Option */}
+          <div className="relative">
+            <input
+              type="radio"
+              id="otpMethod-email"
+              name="otpMethod"
+              value="email"
+              checked={formData.otpMethod === 'email'}
+              onChange={onInputChange}
+              className="sr-only peer"
+            />
+            <label
+              htmlFor="otpMethod-email"
+              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                formData.otpMethod === 'email'
+                  ? 'border-blue-500 bg-blue-50 text-blue-900'
+                  : 'border-timberwolf/30 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+              }`}
+            >
+              <div className={`flex-shrink-0 p-2 rounded-lg ${
+                formData.otpMethod === 'email' ? 'bg-blue-500 text-white' : 'bg-timberwolf/20 text-night/60'
+              }`}>
+                <EnvelopeIcon className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h5 className="font-semibold text-sm mb-1">Par email</h5>
+                <p className="text-xs opacity-70 truncate">{formData.email || 'Adresse email'}</p>
+                <p className="text-xs mt-1">Réception instantanée dans votre boîte mail</p>
+              </div>
+              {formData.otpMethod === 'email' && (
+                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+              )}
+            </label>
+          </div>
+
+          {/* SMS Option */}
+          <div className="relative">
+            <input
+              type="radio"
+              id="otpMethod-sms"
+              name="otpMethod"
+              value="sms"
+              checked={formData.otpMethod === 'sms'}
+              onChange={onInputChange}
+              className="sr-only peer"
+            />
+            <label
+              htmlFor="otpMethod-sms"
+              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
+                formData.otpMethod === 'sms'
+                  ? 'border-green-500 bg-green-50 text-green-900'
+                  : 'border-timberwolf/30 bg-white hover:border-green-300 hover:bg-green-50/50'
+              }`}
+            >
+              <div className={`flex-shrink-0 p-2 rounded-lg ${
+                formData.otpMethod === 'sms' ? 'bg-green-500 text-white' : 'bg-timberwolf/20 text-night/60'
+              }`}>
+                <DevicePhoneMobileIcon className="w-5 h-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h5 className="font-semibold text-sm mb-1">Par SMS</h5>
+                <p className="text-xs opacity-70 truncate">{formData.phone || 'Numéro de téléphone'}</p>
+                <p className="text-xs mt-1">Message texte sur votre téléphone</p>
+              </div>
+              {formData.otpMethod === 'sms' && (
+                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-2 h-2 bg-white rounded-full"></div>
+                </div>
+              )}
+            </label>
+          </div>
+        </div>
+        <p className="text-xs text-night/60 mt-2">
+          Vous recevrez un code de vérification par cette méthode lors de l'étape suivante
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
