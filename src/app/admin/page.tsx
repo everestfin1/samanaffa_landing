@@ -120,6 +120,8 @@ export default function AdminDashboard() {
   const [documentToChange, setDocumentToChange] = useState<KycDocument | null>(null)
   const [newStatus, setNewStatus] = useState<string | null>(null)
   const [statusChangeNotes, setStatusChangeNotes] = useState('')
+  const [updatingDocuments, setUpdatingDocuments] = useState<Set<string>>(new Set())
+  const [bulkOperationProgress, setBulkOperationProgress] = useState<{ current: number; total: number } | null>(null)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -280,6 +282,18 @@ export default function AdminDashboard() {
         return
       }
 
+      // Add to updating documents set
+      setUpdatingDocuments(prev => new Set(prev).add(documentId))
+
+      // Optimistic update - update UI immediately
+      setUserKycDocuments(prev =>
+        prev.map(doc =>
+          doc.id === documentId
+            ? { ...doc, verificationStatus: status, adminNotes }
+            : doc
+        )
+      )
+
       const response = await fetch(`/api/admin/kyc/${documentId}`, {
         method: 'PUT',
         headers: {
@@ -290,15 +304,50 @@ export default function AdminDashboard() {
       })
 
       if (response.ok) {
-        await fetchDashboardData() // Refresh data
-        if (selectedUser) {
-          await fetchUserKycDocuments(selectedUser.id)
-          // Check if all documents are now approved and update user KYC status accordingly
-          await checkAndUpdateUserKycStatus(selectedUser.id)
+        const result = await response.json()
+        // Update with server response to ensure consistency
+        setUserKycDocuments(prev =>
+          prev.map(doc =>
+            doc.id === documentId
+              ? {
+                  ...doc,
+                  verificationStatus: result.document.verificationStatus,
+                  adminNotes: result.document.adminNotes
+                }
+              : doc
+          )
+        )
+
+        // Update user stats in the users list if KYC status changed
+        if (selectedUser && result.document.user.kycStatus !== selectedUser.kycStatus) {
+          setUsers(prev =>
+            prev.map(user =>
+              user.id === selectedUser.id
+                ? { ...user, kycStatus: result.document.user.kycStatus }
+                : user
+            )
+          )
+          setSelectedUser(prev => prev ? { ...prev, kycStatus: result.document.user.kycStatus } : null)
         }
+      } else {
+        // Revert optimistic update on error
+        await fetchUserKycDocuments(selectedUser!.id)
+        alert('Failed to update document status. Please try again.')
       }
     } catch (error) {
       console.error('Error updating KYC document status:', error)
+      // Revert optimistic update on error
+      if (selectedUser) {
+        await fetchUserKycDocuments(selectedUser.id)
+      }
+      alert('Error updating document status. Please try again.')
+    } finally {
+      // Remove from updating documents set
+      setUpdatingDocuments(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(documentId)
+        return newSet
+      })
     }
   }
 
@@ -385,18 +434,71 @@ export default function AdminDashboard() {
       }
 
       const pendingDocs = userKycDocuments.filter(doc => doc.verificationStatus === 'PENDING')
-      
-      for (const doc of pendingDocs) {
-        await updateKycDocumentStatus(doc.id, status, adminNotes)
+
+      if (pendingDocs.length === 0) {
+        alert('No pending documents to validate.')
+        setBulkValidating(false)
+        return
       }
 
-      // The checkAndUpdateUserKycStatus will be called automatically by updateKycDocumentStatus
-      // No need to manually update user KYC status here
+      // Optimistic update - update UI immediately
+      setUserKycDocuments(prev =>
+        prev.map(doc =>
+          doc.verificationStatus === 'PENDING'
+            ? { ...doc, verificationStatus: status, adminNotes }
+            : doc
+        )
+      )
+
+      // Use batch API for efficient processing
+      const updates = pendingDocs.map(doc => ({
+        documentId: doc.id,
+        verificationStatus: status,
+        adminNotes
+      }))
+
+      const response = await fetch('/api/admin/kyc/batch', {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ updates, userId }),
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        // Update with server response to ensure consistency
+        setUserKycDocuments(result.data.updatedDocuments)
+
+        // Update user stats in the users list
+        if (result.data.userKycStatusUpdated) {
+          setUsers(prev =>
+            prev.map(user =>
+              user.id === userId
+                ? { ...user, kycStatus: result.data.newUserKycStatus }
+                : user
+            )
+          )
+        }
+
+        // Show success message
+        alert(`Successfully ${status.toLowerCase()}ed ${pendingDocs.length} document(s).`)
+      } else {
+        // Revert optimistic update on error
+        await fetchUserKycDocuments(userId)
+        alert('Failed to bulk validate documents. Please try again.')
+      }
 
       setAdminNotes('')
       setBulkValidating(false)
     } catch (error) {
       console.error('Error bulk validating documents:', error)
+      // Revert optimistic update on error
+      if (selectedUser) {
+        await fetchUserKycDocuments(selectedUser.id)
+      }
+      alert('Error during bulk validation. Please try again.')
       setBulkValidating(false)
     }
   }
@@ -1023,7 +1125,19 @@ export default function AdminDashboard() {
                           disabled={bulkValidating}
                           className="bg-green-600 hover:bg-green-700"
                         >
-                          {bulkValidating ? 'Validating...' : 'Validate All'}
+                          {bulkValidating ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                              <span>
+                                {bulkOperationProgress
+                                  ? `Validating... (${bulkOperationProgress.current}/${bulkOperationProgress.total})`
+                                  : 'Validating...'
+                                }
+                              </span>
+                            </div>
+                          ) : (
+                            'Validate All'
+                          )}
                         </Button>
                       )}
                     </div>
@@ -1129,56 +1243,69 @@ export default function AdminDashboard() {
 
                         {/* Actions */}
                         <div className="flex space-x-2">
-                          {doc.verificationStatus === 'PENDING' && (
+                          {updatingDocuments.has(doc.id) ? (
+                            <div className="flex items-center justify-center flex-1 text-blue-600 text-sm">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                              Updating...
+                            </div>
+                          ) : (
                             <>
-                              <Button
-                                size="sm"
-                                onClick={() => handleApproveDocument(doc)}
-                                className="bg-green-600 hover:bg-green-700 flex-1"
-                              >
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Approve
-                              </Button>
-                              <Button
-                                size="sm"
-                                onClick={() => handleRejectDocument(doc)}
-                                className="bg-red-600 hover:bg-red-700 flex-1"
-                              >
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Reject
-                              </Button>
-                            </>
-                          )}
-                          {doc.verificationStatus === 'APPROVED' && (
-                            <>
-                              <div className="flex items-center justify-center flex-1 text-green-600 text-sm">
-                                <CheckCircle2 className="h-4 w-4 mr-1" />
-                                Approved
-                              </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleResetDocument(doc)}
-                                className="bg-gray-600 hover:bg-gray-700 flex-1"
-                              >
-                                <RotateCcw className="h-4 w-4 mr-1" />
-                                Reset
-                              </Button>
-                            </>
-                          )}
-                          {doc.verificationStatus === 'REJECTED' && (
-                            <>
-                              <div className="flex items-center justify-center flex-1 text-red-600 text-sm">
-                                <XCircle className="h-4 w-4 mr-1" />
-                                Rejected
-                              </div>
-                              <Button
-                                size="sm"
-                                onClick={() => handleResetDocument(doc)}
-                                className="bg-gray-600 hover:bg-gray-700 flex-1"
-                              >
-                                <RotateCcw className="h-4 w-4 mr-1" />
-                                Reset
-                              </Button>
+                              {doc.verificationStatus === 'PENDING' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleApproveDocument(doc)}
+                                    className="bg-green-600 hover:bg-green-700 flex-1"
+                                    disabled={updatingDocuments.has(doc.id)}
+                                  >
+                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                    Approve
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleRejectDocument(doc)}
+                                    className="bg-red-600 hover:bg-red-700 flex-1"
+                                    disabled={updatingDocuments.has(doc.id)}
+                                  >
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Reject
+                                  </Button>
+                                </>
+                              )}
+                              {doc.verificationStatus === 'APPROVED' && (
+                                <>
+                                  <div className="flex items-center justify-center flex-1 text-green-600 text-sm">
+                                    <CheckCircle2 className="h-4 w-4 mr-1" />
+                                    Approved
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleResetDocument(doc)}
+                                    className="bg-gray-600 hover:bg-gray-700 flex-1"
+                                    disabled={updatingDocuments.has(doc.id)}
+                                  >
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Reset
+                                  </Button>
+                                </>
+                              )}
+                              {doc.verificationStatus === 'REJECTED' && (
+                                <>
+                                  <div className="flex items-center justify-center flex-1 text-red-600 text-sm">
+                                    <XCircle className="h-4 w-4 mr-1" />
+                                    Rejected
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    onClick={() => handleResetDocument(doc)}
+                                    className="bg-gray-600 hover:bg-gray-700 flex-1"
+                                    disabled={updatingDocuments.has(doc.id)}
+                                  >
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Reset
+                                  </Button>
+                                </>
+                              )}
                             </>
                           )}
                         </div>

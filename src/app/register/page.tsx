@@ -49,7 +49,7 @@ export default function RegisterPage() {
     domaineActivite: '',
 
     // Step 2
-    nationality: 'Sénégal',
+    nationality: 'Senegal',
     idType: 'cni',
     idNumber: '',
     idIssueDate: '',
@@ -58,7 +58,7 @@ export default function RegisterPage() {
     placeOfBirth: '',
 
     // Step 3
-    country: 'Sénégal',
+    country: 'Senegal',
     region: 'Dakar',
     district: '',
     address: '',

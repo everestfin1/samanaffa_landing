@@ -8,7 +8,6 @@ interface FormData {
   region: string;
   district: string;
   address: string;
-  city: string;
 }
 
 interface Step3AddressProps {
@@ -54,6 +53,7 @@ export default function Step3Address({
             className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none" 
             required
           >
+            <option value="">Sélectionner un pays</option>
             {countries.map((country) => (
               <option key={country.code} value={country.name}>
                 {country.flag} {country.name}
@@ -104,21 +104,6 @@ export default function Step3Address({
         {getFieldError('district') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('district')}</p>
         )}
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-semibold text-night mb-2">Ville *</label>
-          <input
-            type="text"
-            name="city"
-            value={formData.city}
-            onChange={onInputChange}
-            className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
-            placeholder="Dakar"
-            required
-          />
-        </div>
       </div>
 
       <div>
