@@ -212,7 +212,9 @@ export default function ContactPage() {
                     required
                     className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
                   >
-                    <option value="">Sélectionner un sujet</option>
+                    {formData.subject === '' && (
+                      <option value="">Sélectionner un sujet</option>
+                    )}
                     <option value="general">Question générale</option>
                     <option value="account">Ouverture de compte</option>
                     <option value="sama-naffa">Sama Naffa - Épargne</option>
@@ -281,4 +283,3 @@ export default function ContactPage() {
     </div>
   );
 }
-

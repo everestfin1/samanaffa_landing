@@ -2,6 +2,7 @@
 
 import { UserIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
 import { normalizeSenegalPhone, formatPhoneForDisplay, isValidSenegalPhone } from '@/lib/utils';
+import { countries } from '@/components/data/countries';
 
 interface FormData {
   civilite: 'mr' | 'mme' | 'mlle';
@@ -41,26 +42,61 @@ export default function Step1PersonalInfo({
 
   // Format phone number for display while keeping normalized value internally
   const handlePhoneChange = (inputValue: string) => {
-    // Normalize the phone number for storage
-    const normalized = normalizeSenegalPhone(inputValue)
-    if (normalized) {
-      // Pass the normalized value to the parent component
-      onPhoneChange(normalized)
+    // Get current country from phone number
+    const currentPhoneCode = formData.phone?.startsWith('+') 
+      ? formData.phone.substring(0, formData.phone.indexOf(' ') || formData.phone.length)
+      : '+221';
+    
+    const selectedCountry = countries.find(c => c.phoneCode === currentPhoneCode);
+    
+    if (selectedCountry) {
+      // Remove country code and any non-digit characters
+      const localNumber = inputValue.replace(/[^\d]/g, '');
+      
+      // For Senegal, use existing normalization logic
+      if (selectedCountry.phoneCode === '+221') {
+        const normalized = normalizeSenegalPhone(inputValue);
+        if (normalized) {
+          onPhoneChange(normalized);
+        } else {
+          onPhoneChange(inputValue);
+        }
+      } else {
+        // For other countries, just store with country code
+        const formattedPhone = `${selectedCountry.phoneCode} ${localNumber}`;
+        onPhoneChange(formattedPhone);
+      }
     } else {
-      // If normalization fails, pass the original value
-      onPhoneChange(inputValue)
+      // Default to Senegal if no country found
+      const normalized = normalizeSenegalPhone(inputValue);
+      if (normalized) {
+        onPhoneChange(normalized);
+      } else {
+        onPhoneChange(inputValue);
+      }
     }
   }
 
   // Get display value for the input field
   const getDisplayValue = (phoneValue: string) => {
     if (!phoneValue) return ''
-    // If it's already normalized, format it for display
-    if (phoneValue.startsWith('+221')) {
+    
+    // Extract country code
+    const phoneCodeMatch = phoneValue.match(/^(\+\d+)/);
+    const phoneCode = phoneCodeMatch ? phoneCodeMatch[1] : '+221';
+    
+    const selectedCountry = countries.find(c => c.phoneCode === phoneCode);
+    
+    if (selectedCountry && selectedCountry.phoneCode === '+221') {
       return formatPhoneForDisplay(phoneValue)
+    } else if (selectedCountry) {
+      // For other countries, extract local number and format
+      const localNumber = phoneValue.replace(phoneCode, '').trim();
+      return localNumber;
     }
-    // Otherwise return as-is (user is still typing)
-    return phoneValue
+    
+    // Default case
+    return phoneValue;
   }
 
   return (
@@ -139,19 +175,48 @@ export default function Step1PersonalInfo({
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Numéro de téléphone *</label>
-        <input
-          type="tel"
-          name="phone"
-          value={getDisplayValue(formData.phone)}
-          onChange={(e) => handlePhoneChange(e.target.value)}
-          onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-            hasFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-          }`}
-          placeholder="77 123 45 67"
-          required
-        />
-        <p className="text-xs text-night/60 mt-1">Format: 77 XXX XX XX ou +221 XX XXX XX XX</p>
+        <div className="relative">
+          <select
+            name="phoneCountry"
+            value={formData.phone?.startsWith('+') ? formData.phone.substring(0, formData.phone.indexOf(' ') || formData.phone.length) : '+221'}
+            onChange={(e) => {
+              const selectedCountry = countries.find(c => c.phoneCode === e.target.value);
+              if (selectedCountry && formData.phone) {
+                // Extract local number from current phone value
+                const currentPhone = formData.phone;
+                const localNumber = currentPhone.replace(/^(\+221|\s+)/, '').trim();
+                const newPhone = `${selectedCountry.phoneCode} ${localNumber}`;
+                onInputChange({ target: { name: 'phone', value: newPhone } } as any);
+              }
+            }}
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10 bg-transparent border-0 focus:ring-0 text-sm"
+            style={{ width: '60px' }}
+          >
+            {countries.map((country) => (
+              <option key={country.code} value={country.phoneCode}>
+                {country.flag}
+              </option>
+            ))}
+          </select>
+          <input
+            type="tel"
+            name="phone"
+            value={getDisplayValue(formData.phone)}
+            onChange={(e) => handlePhoneChange(e.target.value)}
+            onBlur={onBlur}
+            className={`w-full pl-16 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+            }`}
+            placeholder="77 123 45 67"
+            required
+          />
+        </div>
+        <p className="text-xs text-night/60 mt-1">
+          {formData.phone?.startsWith('+') 
+            ? `Format: ${formData.phone} ( numéro local)` 
+            : 'Format: 77 XXX XX XX ou +221 XX XXX XX XX'
+          }
+        </p>
         {getFieldError('phone') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('phone')}</p>
         )}
@@ -195,12 +260,12 @@ export default function Step1PersonalInfo({
               htmlFor="otpMethod-email"
               className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 formData.otpMethod === 'email'
-                  ? 'border-blue-500 bg-blue-50 text-blue-900'
-                  : 'border-timberwolf/30 bg-white hover:border-blue-300 hover:bg-blue-50/50'
+                  ? 'border-gold-metallic bg-gold-metallic/10 text-gold-metallic'
+                  : 'border-timberwolf/30 bg-white hover:bg-gold-metallic/10 hover:border-gold-metallic/50'
               }`}
             >
               <div className={`flex-shrink-0 p-2 rounded-lg ${
-                formData.otpMethod === 'email' ? 'bg-blue-500 text-white' : 'bg-timberwolf/20 text-night/60'
+                formData.otpMethod === 'email' ? 'bg-gold-metallic text-white' : 'bg-timberwolf/20 text-night/60'
               }`}>
                 <EnvelopeIcon className="w-5 h-5" />
               </div>
@@ -210,7 +275,7 @@ export default function Step1PersonalInfo({
                 <p className="text-xs mt-1">Réception instantanée dans votre boîte mail</p>
               </div>
               {formData.otpMethod === 'email' && (
-                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-4 h-4 bg-gold-metallic rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-2 h-2 bg-white rounded-full"></div>
                 </div>
               )}
@@ -232,12 +297,12 @@ export default function Step1PersonalInfo({
               htmlFor="otpMethod-sms"
               className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 formData.otpMethod === 'sms'
-                  ? 'border-green-500 bg-green-50 text-green-900'
-                  : 'border-timberwolf/30 bg-white hover:border-green-300 hover:bg-green-50/50'
+                  ? 'border-sama-primary-green bg-sama-primary-green/10 text-sama-primary-green'
+                  : 'border-timberwolf/30 bg-white hover:bg-sama-primary-green/10 hover:border-sama-primary-green/50'
               }`}
             >
               <div className={`flex-shrink-0 p-2 rounded-lg ${
-                formData.otpMethod === 'sms' ? 'bg-green-500 text-white' : 'bg-timberwolf/20 text-night/60'
+                formData.otpMethod === 'sms' ? 'bg-sama-primary-green text-white' : 'bg-timberwolf/20 text-night/60'
               }`}>
                 <DevicePhoneMobileIcon className="w-5 h-5" />
               </div>
@@ -247,7 +312,7 @@ export default function Step1PersonalInfo({
                 <p className="text-xs mt-1">Message texte sur votre téléphone</p>
               </div>
               {formData.otpMethod === 'sms' && (
-                <div className="w-4 h-4 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+                <div className="w-4 h-4 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0">
                   <div className="w-2 h-2 bg-white rounded-full"></div>
                 </div>
               )}

@@ -1,6 +1,7 @@
 'use client';
 
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
+import { countries } from '@/components/data/countries';
 
 interface FormData {
   country: string;
@@ -45,23 +46,26 @@ export default function Step3Address({
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Pays de résidence *</label>
-        <select 
-          name="country" 
-          value={formData.country} 
-          onChange={onInputChange} 
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200" 
-          required
-        >
-          <option value="Sénégal">Sénégal</option>
-          <option value="Mali">Mali</option>
-          <option value="Burkina Faso">Burkina Faso</option>
-          <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-          <option value="Niger">Niger</option>
-          <option value="Guinée">Guinée</option>
-          <option value="Bénin">Bénin</option>
-          <option value="Togo">Togo</option>
-          <option value="Autre">Autre</option>
-        </select>
+        <div className="relative">
+          <select 
+            name="country" 
+            value={formData.country} 
+            onChange={onInputChange} 
+            className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none" 
+            required
+          >
+            {countries.map((country) => (
+              <option key={country.code} value={country.name}>
+                {country.flag} {country.name}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
       </div>
 
       <div>

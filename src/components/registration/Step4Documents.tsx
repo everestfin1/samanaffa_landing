@@ -440,8 +440,8 @@ export default function Step4Documents({
               className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
                 !isLoading
                   ? formData.otpMethod === 'email'
-                    ? 'bg-blue-500 hover:bg-blue-600 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-green-500 hover:bg-green-600 text-white shadow-lg hover:shadow-xl'
+                    ? 'bg-gold-metallic hover:bg-gold-metallic/90 text-white shadow-lg hover:shadow-xl'
+                    : 'bg-sama-primary-green hover:bg-sama-primary-green/90 text-white shadow-lg hover:shadow-xl'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
