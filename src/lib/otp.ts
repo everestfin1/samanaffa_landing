@@ -91,13 +91,41 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       if (type === 'login') {
         return { success: false, message: 'Utilisateur non trouvé. Veuillez vous inscrire d\'abord.' }
       }
-      
-      // For registration: create user if both email and phone provided
+
+      // For registration: check for duplicates before creating user
       if (type === 'register') {
         if (!email || !phone) {
           return { success: false, message: 'Email et numéro de téléphone requis pour l\'inscription' }
         }
 
+        // Check if email is already taken
+        const existingEmailUser = await prisma.user.findFirst({
+          where: { email }
+        })
+
+        if (existingEmailUser) {
+          return { success: false, message: 'Cet email est déjà associé à un compte existant. Veuillez utiliser un autre email ou vous connecter.' }
+        }
+
+        // Check if phone is already taken (try multiple formats)
+        const phoneFormats = [
+          phone, // normalized format (should be +221XXXXXXXXX)
+          phone.replace('+221', ''), // without country code
+          phone.replace('+', ''), // without + sign
+          `+221${phone.replace('+221', '')}`, // ensure +221 prefix
+        ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+
+        for (const phoneFormat of phoneFormats) {
+          const existingPhoneUser = await prisma.user.findFirst({
+            where: { phone: phoneFormat }
+          })
+
+          if (existingPhoneUser) {
+            return { success: false, message: 'Ce numéro de téléphone est déjà associé à un compte existant. Veuillez utiliser un autre numéro ou vous connecter.' }
+          }
+        }
+
+        // Create new user since no duplicates found
         user = await prisma.user.create({
           data: {
             email,
