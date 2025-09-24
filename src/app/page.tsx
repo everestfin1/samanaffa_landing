@@ -431,7 +431,7 @@ export default function Home() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.4, duration: 0.3 }}
                   >
-                    Ouvrir un compte
+                    Ouvrir mon naffa
                   </motion.span>
                 </motion.button>
               </motion.div>

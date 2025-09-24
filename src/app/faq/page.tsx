@@ -27,7 +27,7 @@ const faqData: FAQItem[] = [
   },
   {
     id: 2,
-    question: "Comment puis-je ouvrir un compte ?",
+    question: "Comment puis-je Ouvrir mon naffa ?",
     answer: "L'ouverture d'un compte est simple et rapide. Cliquez sur 'Commencer' dans la navigation, remplissez le formulaire d'inscription en quelques étapes, et votre compte sera activé immédiatement après vérification de vos informations.",
     category: 'general'
   },
