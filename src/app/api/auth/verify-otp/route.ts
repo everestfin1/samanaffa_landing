@@ -80,12 +80,60 @@ export async function POST(request: NextRequest) {
 
     // If this is registration, update user data
     if (type === 'register' && userData) {
+      // Final safety check: Ensure email and phone are still unique before finalizing
+      const finalNormalizedPhone = normalizedPhone || user.phone;
+      
+      // Check if another user was created with same email (race condition protection)
+      const duplicateEmailUser = await prisma.user.findFirst({
+        where: { 
+          email: user.email,
+          id: { not: user.id }
+        }
+      });
+
+      if (duplicateEmailUser) {
+        // Delete the current user and return error
+        await prisma.user.delete({ where: { id: user.id } });
+        return NextResponse.json(
+          { error: 'Cet email est déjà associé à un autre compte. Veuillez réessayer avec un autre email.' },
+          { status: 409 }
+        );
+      }
+
+      // Check if another user was created with same phone (race condition protection)
+      const phoneFormats = [
+        finalNormalizedPhone,
+        finalNormalizedPhone.replace('+221', ''),
+        finalNormalizedPhone.replace('+', ''),
+        `+221${finalNormalizedPhone.replace('+221', '')}`
+      ].filter((format, index, arr) => arr.indexOf(format) === index);
+
+      let duplicatePhoneUser = null;
+      for (const phoneFormat of phoneFormats) {
+        duplicatePhoneUser = await prisma.user.findFirst({
+          where: { 
+            phone: phoneFormat,
+            id: { not: user.id }
+          }
+        });
+        if (duplicatePhoneUser) break;
+      }
+
+      if (duplicatePhoneUser) {
+        // Delete the current user and return error
+        await prisma.user.delete({ where: { id: user.id } });
+        return NextResponse.json(
+          { error: 'Ce numéro de téléphone est déjà associé à un autre compte. Veuillez réessayer avec un autre numéro.' },
+          { status: 409 }
+        );
+      }
+
       const updatedUser = await prisma.user.update({
         where: { id: user.id },
         data: {
           firstName: userData.firstName,
           lastName: userData.lastName,
-          phone: normalizedPhone || user.phone, // Ensure phone is normalized
+          phone: finalNormalizedPhone, // Ensure phone is normalized
           dateOfBirth: userData.dateOfBirth ? new Date(userData.dateOfBirth) : null,
           nationality: userData.nationality,
           address: userData.address,

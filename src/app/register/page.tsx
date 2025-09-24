@@ -411,7 +411,7 @@ export default function RegisterPage() {
     await handleSendOTP();
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // Mark all fields in current step as touched to show validation errors
     const stepFields = {
       1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite'],
@@ -435,7 +435,48 @@ export default function RegisterPage() {
     setTouched(newTouched);
 
     if (validateStep(currentStep)) {
-      if (currentStep === 3) {
+      // Special handling for step 1: Check email/phone availability before proceeding
+      if (currentStep === 1) {
+        setIsLoading(true);
+        try {
+          const response = await fetch('/api/auth/check-availability', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              email: formData.email,
+              phone: formData.phone
+            }),
+          });
+
+          const data = await response.json();
+
+          if (!data.available) {
+            // Set errors for unavailable email/phone
+            const newErrors = { ...errors };
+            if (!data.emailAvailable) {
+              newErrors.email = 'Cet email est déjà associé à un compte existant. Veuillez vous connecter ou utiliser un autre email.';
+            }
+            if (!data.phoneAvailable) {
+              newErrors.phone = 'Ce numéro de téléphone est déjà associé à un compte existant. Veuillez vous connecter ou utiliser un autre numéro.';
+            }
+            setErrors(newErrors);
+            return; // Don't proceed to next step
+          }
+
+          // If available, proceed to step 2
+          setCurrentStep(2);
+        } catch (error) {
+          console.error('Error checking availability:', error);
+          setErrors(prev => ({
+            ...prev,
+            general: 'Erreur de connexion. Veuillez réessayer.'
+          }));
+        } finally {
+          setIsLoading(false);
+        }
+      } else if (currentStep === 3) {
         // Send OTP before moving to step 4
         handleSendOTP().then(() => {
           setCurrentStep(4);
@@ -771,9 +812,9 @@ export default function RegisterPage() {
             {currentStep < 5 ? (
               <button
                 onClick={handleNext}
-                disabled={uploadingFiles || !validateStep(currentStep)}
+                disabled={uploadingFiles || !validateStep(currentStep) || isLoading}
                 className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  validateStep(currentStep) && !uploadingFiles
+                  validateStep(currentStep) && !uploadingFiles && !isLoading
                     ? 'bg-gradient-to-r from-gold-dark to-gold-metallic text-white hover:shadow-lg hover:-translate-y-0.5'
                     : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
                 }`}
@@ -782,6 +823,16 @@ export default function RegisterPage() {
                   <>
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>Envoi en cours...</span>
+                  </>
+                ) : isLoading && currentStep === 1 ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Vérification de la disponibilité...</span>
+                  </>
+                ) : isLoading && currentStep === 3 ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Envoi du code OTP...</span>
                   </>
                 ) : (
                   <>
