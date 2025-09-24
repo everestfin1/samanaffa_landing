@@ -70,29 +70,21 @@ export default function Step3Address({
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Région *</label>
-        <select 
-          name="region" 
-          value={formData.region} 
-          onChange={onInputChange} 
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200" 
+        <input
+          type="text"
+          name="region"
+          value={formData.region}
+          onChange={onInputChange}
+          onBlur={onBlur}
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+          }`}
+          placeholder="Ex: Dakar, Thiès, Paris, New York..."
           required
-        >
-          <option value="">Sélectionnez votre région</option>
-          <option value="Dakar">Dakar</option>
-          <option value="Thiès">Thiès</option>
-          <option value="Saint-Louis">Saint-Louis</option>
-          <option value="Kaolack">Kaolack</option>
-          <option value="Ziguinchor">Ziguinchor</option>
-          <option value="Diourbel">Diourbel</option>
-          <option value="Tambacounda">Tambacounda</option>
-          <option value="Louga">Louga</option>
-          <option value="Kolda">Kolda</option>
-          <option value="Kédougou">Kédougou</option>
-          <option value="Sédhiou">Sédhiou</option>
-          <option value="Matam">Matam</option>
-          <option value="Kaffrine">Kaffrine</option>
-          <option value="Fatick">Fatick</option>
-        </select>
+        />
+        {getFieldError('region') && (
+          <p className="text-red-500 text-sm mt-1">{getFieldError('region')}</p>
+        )}
       </div>
 
       <div>

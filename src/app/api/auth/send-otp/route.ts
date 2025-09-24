@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
-import { normalizeSenegalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Normalize phone number if provided
-    const normalizedPhone = phone ? normalizeSenegalPhone(phone) : null
+    const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
     console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
 
     if (phone && !normalizedPhone) {

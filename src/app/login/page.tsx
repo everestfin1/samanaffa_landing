@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
-import { normalizeSenegalPhone, formatPhoneForDisplay, isValidSenegalPhone } from '@/lib/utils';
+import PhoneInput from '@/components/ui/PhoneInput';
 import {
   DevicePhoneMobileIcon,
   ShieldCheckIcon,
@@ -19,6 +19,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
     contact: '', // Unified field for email or phone
+    phone: '', // Separate phone field for react-phone-input-2
     otp: '',
     rememberMe: false
   });
@@ -28,6 +29,7 @@ function LoginForm() {
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [phoneValidation, setPhoneValidation] = useState({ isValid: true, error: '' });
 
   // Utility functions for input validation and detection
   const isValidEmail = (value: string): boolean => {
@@ -35,12 +37,18 @@ function LoginForm() {
     return emailRegex.test(value)
   }
 
-
-  const detectInputType = (value: string): 'email' | 'phone' | null => {
+  const detectInputType = (value: string, phoneValue?: string): 'email' | 'phone' | null => {
     if (isValidEmail(value)) return 'email'
-    if (isValidSenegalPhone(value)) return 'phone'
+    if (phoneValue && phoneValue.length > 5) return 'phone' // Phone input validation
     return null
   }
+
+  // Handle phone validation changes from PhoneInput component
+  const handlePhoneValidationChange = (isValid: boolean, error?: string) => {
+    setPhoneValidation({ isValid, error: error || '' });
+    // Clear general error when phone validation changes
+    if (error) setError('');
+  };
 
   // Check for success message from registration
   useEffect(() => {
@@ -52,10 +60,47 @@ function LoginForm() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+
+    // Clear the other field when user starts typing in one field
+    if (name === 'contact' && value && formData.phone) {
+      // User is typing email, clear phone field
+      setFormData(prev => ({
+        ...prev,
+        contact: value,
+        phone: '' // Clear phone when email is being filled
+      }));
+      setPhoneValidation({ isValid: true, error: '' }); // Reset phone validation
+    } else {
+      // Handle both text inputs and checkboxes
+      const fieldValue = type === 'checkbox' ? checked : value;
+      setFormData(prev => ({
+        ...prev,
+        [name]: fieldValue
+      }));
+    }
+
+    // Clear error when user starts typing
+    if (error) setError('');
+  };
+
+  const handlePhoneChange = (value: string | undefined) => {
+    const phoneValue = value || '';
+
+    // Clear email field when user starts typing phone
+    if (phoneValue && formData.contact) {
+      // User is typing phone, clear email field
+      setFormData(prev => ({
+        ...prev,
+        phone: phoneValue,
+        contact: '' // Clear email when phone is being filled
+      }));
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        phone: phoneValue
+      }));
+    }
+
     // Clear error when user starts typing
     if (error) setError('');
   };
@@ -86,15 +131,29 @@ function LoginForm() {
     setError('');
     setSuccess('');
 
-    if (!formData.contact) {
+    // Check if both fields are filled (should not happen due to input handlers, but safety check)
+    if (formData.contact && formData.phone) {
+      setError('Veuillez choisir soit l\'email soit le numéro de téléphone, pas les deux');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.contact && !formData.phone) {
       setError('Veuillez saisir votre email ou numéro de téléphone');
       setIsLoading(false);
       return;
     }
 
-    const inputType = detectInputType(formData.contact);
+    const inputType = detectInputType(formData.contact, formData.phone);
     if (!inputType) {
-      setError('Veuillez saisir un email valide ou un numéro de téléphone sénégalais (+221771234567 ou 77 123 45 67)');
+      setError('Veuillez saisir un email valide ou un numéro de téléphone valide');
+      setIsLoading(false);
+      return;
+    }
+
+    // Additional phone validation check
+    if (inputType === 'phone' && !phoneValidation.isValid) {
+      setError(phoneValidation.error || 'Numéro de téléphone invalide');
       setIsLoading(false);
       return;
     }
@@ -104,14 +163,8 @@ function LoginForm() {
       if (inputType === 'email') {
         requestBody = { email: formData.contact, phone: null, type: 'login' };
       } else {
-        // Normalize phone number before sending to API
-        const normalizedPhone = normalizeSenegalPhone(formData.contact);
-        if (!normalizedPhone) {
-          setError('Format de numéro de téléphone invalide');
-          setIsLoading(false);
-          return;
-        }
-        requestBody = { email: null, phone: normalizedPhone, type: 'login' };
+        // Use the phone value from react-phone-input-2 (already validated)
+        requestBody = { email: null, phone: formData.phone, type: 'login' };
       }
 
       const response = await fetch('/api/auth/send-otp', {
@@ -152,19 +205,13 @@ function LoginForm() {
     }
 
     try {
-      const inputType = detectInputType(formData.contact);
+      const inputType = detectInputType(formData.contact, formData.phone);
       let signInData;
       if (inputType === 'email') {
         signInData = { email: formData.contact, phone: null, otp: formData.otp, type: 'login', redirect: false };
       } else {
-        // Normalize phone number before sign in
-        const normalizedPhone = normalizeSenegalPhone(formData.contact);
-        if (!normalizedPhone) {
-          setError('Format de numéro de téléphone invalide');
-          setIsLoading(false);
-          return;
-        }
-        signInData = { email: null, phone: normalizedPhone, otp: formData.otp, type: 'login', redirect: false };
+        // Use the phone value from react-phone-input-2 (already validated)
+        signInData = { email: null, phone: formData.phone, otp: formData.otp, type: 'login', redirect: false };
       }
 
       const result = await signIn('credentials', signInData);
@@ -184,25 +231,39 @@ function LoginForm() {
 
   const handleResendOTP = async () => {
     if (otpTimer > 0) return;
-    
+
     setIsLoading(true);
     setError('');
     setSuccess('');
 
+    // Check if both fields are filled (should not happen due to input handlers, but safety check)
+    if (formData.contact && formData.phone) {
+      setError('Veuillez choisir soit l\'email soit le numéro de téléphone, pas les deux');
+      setIsLoading(false);
+      return;
+    }
+
+    const inputType = detectInputType(formData.contact, formData.phone);
+    if (!inputType) {
+      setError('Veuillez saisir un email valide ou un numéro de téléphone valide');
+      setIsLoading(false);
+      return;
+    }
+
+    // Additional phone validation check
+    if (inputType === 'phone' && !phoneValidation.isValid) {
+      setError(phoneValidation.error || 'Numéro de téléphone invalide');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      const inputType = detectInputType(formData.contact);
       let requestBody;
       if (inputType === 'email') {
         requestBody = { email: formData.contact, phone: null, type: 'login' };
       } else {
-        // Normalize phone number before resending OTP
-        const normalizedPhone = normalizeSenegalPhone(formData.contact);
-        if (!normalizedPhone) {
-          setError('Format de numéro de téléphone invalide');
-          setIsLoading(false);
-          return;
-        }
-        requestBody = { email: null, phone: normalizedPhone, type: 'login' };
+        // Use the phone value from react-phone-input-2 (already validated)
+        requestBody = { email: null, phone: formData.phone, type: 'login' };
       }
 
       const response = await fetch('/api/auth/send-otp', {
@@ -262,31 +323,43 @@ function LoginForm() {
                 </div>
               )}
 
-              <div>
-                <label htmlFor="contact" className="block text-sm font-medium text-night mb-2">
-                  Email ou numéro de téléphone
-                </label>
-                <div className="relative">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-night mb-2">
+                    Email
+                  </label>
                   <input
-                    type="text"
-                    id="contact"
+                    type="email"
                     name="contact"
                     value={formData.contact}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 pl-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
-                    placeholder="votre@email.com ou +221771234567"
+                    className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
+                    placeholder="votre@email.com"
                   />
-                  {detectInputType(formData.contact) === 'email' ? (
-                    <EnvelopeIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-night/50" />
-                  ) : detectInputType(formData.contact) === 'phone' ? (
-                    <DevicePhoneMobileIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-night/50" />
-                  ) : (
-                    <EnvelopeIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-night/50" />
-                  )}
+                  <p className="text-xs text-night/60 mt-1">
+                    Format: email@domain.com
+                  </p>
                 </div>
-                <p className="text-xs text-night/60 mt-1">
-                  Format: email@domain.com ou +221771234567
-                </p>
+
+                <div className="text-center text-night/70 text-sm font-medium py-2">
+                  <span className="bg-night/10 px-3 py-1 rounded-full">OU</span>
+                </div>
+
+                <PhoneInput
+                  label="Numéro de téléphone *"
+                  value={formData.phone}
+                  onChange={handlePhoneChange}
+                  onValidationChange={handlePhoneValidationChange}
+                  error={phoneValidation.error}
+                  placeholder="77 123 45 67"
+                  required
+                />
+
+                <div className="text-center text-sm text-night/60 mt-3">
+                  <p className="bg-gold-metallic/5 px-3 py-2 rounded-lg">
+                    💡 Choisissez <strong>soit l'email</strong> soit <strong>le numéro de téléphone</strong> pour vous connecter
+                  </p>
+                </div>
               </div>
 
               <div className="flex items-center">
@@ -305,9 +378,9 @@ function LoginForm() {
 
               <button
                 type="submit"
-                disabled={isLoading || !formData.contact}
+                disabled={isLoading || (!formData.contact && !formData.phone) || (!!formData.contact && !!formData.phone)}
                 className={`w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
-                  isLoading || !formData.contact
+                  isLoading || (!formData.contact && !formData.phone) || (!!formData.contact && !!formData.phone)
                     ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
                     : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
                 }`}
@@ -343,7 +416,7 @@ function LoginForm() {
 
               <div className="text-center">
                 <p className="text-night/70 mb-4">
-                  Code envoyé à {formData.contact}
+                  Code envoyé à {detectInputType(formData.contact, formData.phone) === 'email' ? formData.contact : formData.phone}
                 </p>
                 {otpTimer > 0 && (
                   <div className="flex items-center justify-center space-x-2 text-gold-metallic">

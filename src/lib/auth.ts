@@ -3,7 +3,7 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
-import { normalizeSenegalPhone } from './utils'
+import { normalizeInternationalPhone } from './utils'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -26,7 +26,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Normalize phone number if provided
-        const normalizedPhone = credentials.phone ? normalizeSenegalPhone(credentials.phone) : null
+        const normalizedPhone = credentials.phone ? normalizeInternationalPhone(credentials.phone) : null
         // console.log('🔍 NextAuth authorize:', { email: credentials.email, phone: credentials.phone, normalizedPhone })
 
         // Find user - try multiple phone formats for better compatibility

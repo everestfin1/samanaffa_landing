@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { parsePhoneNumber, isValidPhoneNumber, isPossiblePhoneNumber } from 'libphonenumber-js'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -7,91 +8,69 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Normalizes Senegalese phone numbers to a consistent format
- * Converts various formats to +221XXXXXXXXX (no spaces, no special chars)
+ * Uses libphonenumber-js for reliable parsing and formatting
  * @param phone - Phone number in any format
  * @returns Normalized phone number or null if invalid
  */
 export function normalizeSenegalPhone(phone: string): string | null {
   if (!phone) return null
 
-  // Remove all non-digit characters
-  const cleaned = phone.replace(/\D/g, '')
+  try {
+    // Try to parse with Senegal as default country
+    const phoneNumber = parsePhoneNumber(phone, 'SN')
+    if (phoneNumber && phoneNumber.isValid()) {
+      return phoneNumber.number
+    }
 
-  console.log('🧹 Phone cleaning:', { original: phone, cleaned, length: cleaned.length })
+    // If that fails, try parsing as international number
+    const internationalNumber = parsePhoneNumber(phone)
+    if (internationalNumber && internationalNumber.country === 'SN' && internationalNumber.isValid()) {
+      return internationalNumber.number
+    }
 
-  // Handle different input formats in order of specificity:
-  // 1. Already normalized: +221XXXXXXXXX (12 digits starting with 221)
-  if (cleaned.startsWith('221') && cleaned.length === 12) {
-    const result = `+${cleaned}`
-    console.log('✅ Already normalized:', result)
-    return result
+    return null
+  } catch (error) {
+    console.log('❌ Invalid phone format:', { original: phone, error })
+    return null
   }
-
-  // 2. With country code but no +: 221XXXXXXXXX (12 digits)
-  if (cleaned.length === 12 && cleaned.startsWith('221')) {
-    const result = `+${cleaned}`
-    console.log('✅ Added + to 12-digit number:', result)
-    return result
-  }
-
-  // 3. With leading zero: 0XXXXXXXXX (10 digits starting with 0) - remove leading 0
-  if (cleaned.length === 10 && cleaned.startsWith('0')) {
-    const result = `+221${cleaned.slice(1)}`
-    console.log('✅ Removed leading 0 from 10-digit number:', result)
-    return result
-  }
-
-  // 4. Without country code: XXXXXXXXX (9 digits) - add +221 prefix
-  if (cleaned.length === 9) {
-    const result = `+221${cleaned}`
-    console.log('✅ Added +221 to 9-digit number:', result)
-    return result
-  }
-
-  // 5. Without country code: XXXXXXXXXX (10 digits without leading 0) - add +221 prefix
-  if (cleaned.length === 10 && !cleaned.startsWith('0')) {
-    const result = `+221${cleaned}`
-    console.log('✅ Added +221 to 10-digit number:', result)
-    return result
-  }
-
-  // Invalid format
-  console.log('❌ Invalid phone format:', { original: phone, cleaned, length: cleaned.length })
-  return null
 }
 
 /**
  * Formats phone number for display (human-readable format)
- * @param phone - Normalized phone number (+221XXXXXXXXX)
+ * Uses libphonenumber-js for consistent formatting
+ * @param phone - Phone number in any format
  * @returns Formatted phone number for display
  */
 export function formatPhoneForDisplay(phone: string): string {
-  const normalized = normalizeSenegalPhone(phone)
-  if (!normalized) return phone // Return original if can't normalize
+  if (!phone) return ''
 
-  // Remove +221 prefix and format as XX XXX XX XX
-  const digits = normalized.replace('+221', '')
-  if (digits.length === 9) {
-    return digits.replace(/(\d{2})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4')
+  try {
+    const phoneNumber = parsePhoneNumber(phone)
+    if (phoneNumber) {
+      // Return in national format for better readability
+      return phoneNumber.formatNational()
+    }
+    return phone // Return original if can't parse
+  } catch (error) {
+    return phone // Return original if parsing fails
   }
-
-  return normalized // Return normalized if can't format for display
 }
 
 /**
  * Validates if a phone number is a valid Senegalese number
+ * Uses libphonenumber-js for accurate validation
  * @param phone - Phone number to validate
  * @returns true if valid, false otherwise
  */
 export function isValidSenegalPhone(phone: string): boolean {
-  const normalized = normalizeSenegalPhone(phone)
-  if (!normalized) return false
+  if (!phone) return false
 
-  // Check if it matches Senegal mobile operators pattern
-  const digits = normalized.replace('+221', '')
-  const validPrefixes = ['77', '78', '76', '70', '75', '33', '32', '31']
-
-  return digits.length === 9 && validPrefixes.some(prefix => digits.startsWith(prefix))
+  try {
+    const phoneNumber = parsePhoneNumber(phone, 'SN')
+    return phoneNumber ? phoneNumber.country === 'SN' && phoneNumber.isValid() : false
+  } catch (error) {
+    return false
+  }
 }
 
 export function generateAccountNumber(prefix: string): string {
@@ -133,10 +112,122 @@ export function validateEmail(email: string): boolean {
   return emailRegex.test(email)
 }
 
+/**
+ * Basic phone validation for legacy compatibility
+ * @deprecated Use isValidPhoneNumber from libphonenumber-js instead
+ */
 export function validatePhone(phone: string): boolean {
-  // Basic phone validation for Senegalese numbers
-  const phoneRegex = /^(\+221|221)?[0-9]{9}$/
-  return phoneRegex.test(phone.replace(/\s/g, ''))
+  try {
+    return isValidPhoneNumber(phone, 'SN')
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Validates international phone numbers using libphonenumber-js
+ * @param phone - Phone number with or without country code
+ * @param countryCode - ISO country code (optional, for default country)
+ * @returns true if valid, false otherwise
+ */
+export function validateInternationalPhone(phone: string, countryCode?: string): boolean {
+  try {
+    if (countryCode) {
+      return isValidPhoneNumber(phone, countryCode.toUpperCase() as any)
+    }
+    return isValidPhoneNumber(phone)
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Formats phone number for international display
+ * @param phone - Phone number with country code
+ * @returns Formatted phone number
+ */
+export function formatInternationalPhoneForDisplay(phone: string): string {
+  if (!phone) return ''
+
+  // If already in good format, return as is
+  if (phone.includes(' ') && phone.startsWith('+')) return phone
+
+  // Try to format based on country code
+  const cleaned = phone.replace(/[^\d+]/g, '')
+  if (!cleaned.startsWith('+')) return phone
+
+  // Extract parts
+  const match = cleaned.match(/^(\+\d{1,4})(\d+)$/)
+  if (!match) return phone
+
+  const countryCode = match[1]
+  const localNumber = match[2]
+
+  // Format based on country
+  switch (countryCode) {
+    case '+221': // Senegal
+      if (localNumber.length === 9) {
+        return `${countryCode} ${localNumber.slice(0, 2)} ${localNumber.slice(2, 5)} ${localNumber.slice(5, 7)} ${localNumber.slice(7)}`
+      }
+      break
+    case '+33': // France
+      if (localNumber.length === 9) {
+        return `${countryCode} ${localNumber.slice(0, 1)} ${localNumber.slice(1, 3)} ${localNumber.slice(3, 5)} ${localNumber.slice(5, 7)} ${localNumber.slice(7)}`
+      }
+      break
+    case '+1': // USA/Canada
+      if (localNumber.length === 10) {
+        return `${countryCode} (${localNumber.slice(0, 3)}) ${localNumber.slice(3, 6)}-${localNumber.slice(6)}`
+      }
+      break
+    case '+44': // UK
+      if (localNumber.length === 10) {
+        return `${countryCode} ${localNumber.slice(0, 4)} ${localNumber.slice(4, 7)} ${localNumber.slice(7)}`
+      }
+      break
+  }
+
+  // Default formatting
+  return `${countryCode} ${localNumber}`
+}
+
+/**
+ * Normalizes international phone numbers to a consistent format
+ * Accepts any country code and formats as +XXXXXXXXXXXX
+ * @param phone - Phone number in any international format
+ * @returns Normalized phone number or null if invalid
+ */
+export function normalizeInternationalPhone(phone: string): string | null {
+  if (!phone) return null
+
+  // Remove all non-digit characters except +
+  const cleaned = phone.replace(/[^\d+]/g, '')
+
+  // Must start with + and have at least country code + local number
+  if (!cleaned.startsWith('+') || cleaned.length < 5) {
+    return null
+  }
+
+  // Extract country code and local number
+  const parts = cleaned.substring(1).split(/(\d{1,4})/).filter(p => p.length > 0)
+  if (parts.length < 2) {
+    return null
+  }
+
+  const countryCodeNum = parts[0]
+  const localNumber = parts.slice(1).join('')
+
+  // Validate minimum lengths based on country code
+  const countryCode = `+${countryCodeNum}`
+  if (countryCode === '+221' && localNumber.length !== 9) return null // Senegal
+  if ((countryCode === '+33' || countryCode === '+49') && localNumber.length < 9) return null // France, Germany
+  if (countryCode === '+1' && localNumber.length !== 10) return null // USA/Canada
+  if (countryCode === '+44' && (localNumber.length < 10 || localNumber.length > 11)) return null // UK
+
+  // Generic validation for other countries
+  if (localNumber.length < 6 || localNumber.length > 15) return null
+
+  return `${countryCode}${localNumber}`
 }
 
 export function sanitizeInput(input: string): string {

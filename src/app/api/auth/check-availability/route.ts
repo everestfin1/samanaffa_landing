@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { normalizeSenegalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
 
     // Check phone availability
     if (phone) {
-      const normalizedPhone = normalizeSenegalPhone(phone)
+      const normalizedPhone = normalizeInternationalPhone(phone)
       
       if (!normalizedPhone) {
         checks.phoneAvailable = false

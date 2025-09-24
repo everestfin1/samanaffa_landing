@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
-import { normalizeSenegalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone } from '@/lib/utils'
 import { generateAccountNumber } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Normalize phone number for user lookup if provided
-    const normalizedPhone = phone ? normalizeSenegalPhone(phone) : null
+    const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
     console.log('🔍 Verify OTP Request:', { email, phone, otp, type })
     console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
 

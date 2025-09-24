@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { isValidSenegalPhone } from '@/lib/utils';
+import { validateInternationalPhone } from '@/lib/utils';
 import {
   UserIcon,
   IdentificationIcon,
@@ -159,10 +159,8 @@ export default function RegisterPage() {
         return '';
 
       case 'phone':
-        if (!value || typeof value !== 'string') return 'Numéro de téléphone est requis';
-        if (!isValidSenegalPhone(value)) {
-          return 'Numéro de téléphone sénégalais invalide (ex: +221771234567 ou 77 123 45 67)';
-        }
+        // Don't validate phone here - let PhoneInput component handle it
+        // This will be controlled by onValidationChange callback
         return '';
 
       case 'profession':
@@ -493,6 +491,22 @@ export default function RegisterPage() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
+  // Memoized callback functions to prevent unnecessary re-renders
+  const handlePhoneChange = useCallback((value: string) => {
+    setFormData(prev => ({ ...prev, phone: value }));
+    // Don't call validateField here since PhoneInput handles its own validation
+  }, []);
+
+  const handlePhoneValidationChange = useCallback((isValid: boolean, error?: string) => {
+    // Update the error state based on PhoneInput's validation
+    setErrors(prev => ({
+      ...prev,
+      phone: isValid ? '' : (error || 'Numéro de téléphone invalide')
+    }));
+    // Mark the field as touched when validation changes
+    setTouched(prev => ({ ...prev, phone: true }));
+  }, []);
+
   const handleSubmit = async () => {
     if (!validateStep(5)) return;
 
@@ -723,11 +737,8 @@ export default function RegisterPage() {
               touched={touched}
               onInputChange={handleInputChange}
               onBlur={handleBlur}
-              onPhoneChange={(value: string) => {
-                setFormData(prev => ({ ...prev, phone: value }));
-                const error = validateField('phone', value);
-                setErrors(prev => ({ ...prev, phone: error }));
-              }}
+              onPhoneChange={handlePhoneChange}
+              onPhoneValidationChange={handlePhoneValidationChange}
             />
           )}
           {currentStep === 2 && (

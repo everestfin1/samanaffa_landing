@@ -1,8 +1,7 @@
 'use client';
 
 import { UserIcon, EnvelopeIcon, DevicePhoneMobileIcon } from '@heroicons/react/24/outline';
-import { normalizeSenegalPhone, formatPhoneForDisplay, isValidSenegalPhone } from '@/lib/utils';
-import { countries } from '@/components/data/countries';
+import PhoneInput from '@/components/ui/PhoneInput';
 
 interface FormData {
   civilite: 'mr' | 'mme' | 'mlle';
@@ -21,7 +20,8 @@ interface Step1PersonalInfoProps {
   touched: Record<string, boolean>;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
-  onPhoneChange: (value: string) => void;
+  onPhoneChange: (value: string, countryData?: any) => void;
+  onPhoneValidationChange?: (isValid: boolean, error?: string) => void;
 }
 
 export default function Step1PersonalInfo({
@@ -30,7 +30,8 @@ export default function Step1PersonalInfo({
   touched,
   onInputChange,
   onBlur,
-  onPhoneChange
+  onPhoneChange,
+  onPhoneValidationChange
 }: Step1PersonalInfoProps) {
   const getFieldError = (fieldName: string): string => {
     return touched[fieldName] ? errors[fieldName] || '' : '';
@@ -40,64 +41,10 @@ export default function Step1PersonalInfo({
     return touched[fieldName] && !!errors[fieldName];
   };
 
-  // Format phone number for display while keeping normalized value internally
-  const handlePhoneChange = (inputValue: string) => {
-    // Get current country from phone number
-    const currentPhoneCode = formData.phone?.startsWith('+') 
-      ? formData.phone.substring(0, formData.phone.indexOf(' ') || formData.phone.length)
-      : '+221';
-    
-    const selectedCountry = countries.find(c => c.phoneCode === currentPhoneCode);
-    
-    if (selectedCountry) {
-      // Remove country code and any non-digit characters
-      const localNumber = inputValue.replace(/[^\d]/g, '');
-      
-      // For Senegal, use existing normalization logic
-      if (selectedCountry.phoneCode === '+221') {
-        const normalized = normalizeSenegalPhone(inputValue);
-        if (normalized) {
-          onPhoneChange(normalized);
-        } else {
-          onPhoneChange(inputValue);
-        }
-      } else {
-        // For other countries, just store with country code
-        const formattedPhone = `${selectedCountry.phoneCode} ${localNumber}`;
-        onPhoneChange(formattedPhone);
-      }
-    } else {
-      // Default to Senegal if no country found
-      const normalized = normalizeSenegalPhone(inputValue);
-      if (normalized) {
-        onPhoneChange(normalized);
-      } else {
-        onPhoneChange(inputValue);
-      }
-    }
-  }
-
-  // Get display value for the input field
-  const getDisplayValue = (phoneValue: string) => {
-    if (!phoneValue) return ''
-    
-    // Extract country code
-    const phoneCodeMatch = phoneValue.match(/^(\+\d+)/);
-    const phoneCode = phoneCodeMatch ? phoneCodeMatch[1] : '+221';
-    
-    const selectedCountry = countries.find(c => c.phoneCode === phoneCode);
-    
-    if (selectedCountry && selectedCountry.phoneCode === '+221') {
-      return formatPhoneForDisplay(phoneValue)
-    } else if (selectedCountry) {
-      // For other countries, extract local number and format
-      const localNumber = phoneValue.replace(phoneCode, '').trim();
-      return localNumber;
-    }
-    
-    // Default case
-    return phoneValue;
-  }
+  // Handle phone change from PhoneInput component
+  const handlePhoneChange = (value: string | undefined) => {
+    onPhoneChange(value || '', undefined);
+  };
 
   return (
     <div className="space-y-6">
@@ -173,54 +120,16 @@ export default function Step1PersonalInfo({
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-night mb-2">Numéro de téléphone *</label>
-        <div className="relative">
-          <select
-            name="phoneCountry"
-            value={formData.phone?.startsWith('+') ? formData.phone.substring(0, formData.phone.indexOf(' ') || formData.phone.length) : '+221'}
-            onChange={(e) => {
-              const selectedCountry = countries.find(c => c.phoneCode === e.target.value);
-              if (selectedCountry && formData.phone) {
-                // Extract local number from current phone value
-                const currentPhone = formData.phone;
-                const localNumber = currentPhone.replace(/^(\+221|\s+)/, '').trim();
-                const newPhone = `${selectedCountry.phoneCode} ${localNumber}`;
-                onInputChange({ target: { name: 'phone', value: newPhone } } as any);
-              }
-            }}
-            className="absolute left-3 top-1/2 transform -translate-y-1/2 z-10 bg-transparent border-0 focus:ring-0 text-sm"
-            style={{ width: '60px' }}
-          >
-            {countries.map((country) => (
-              <option key={country.code} value={country.phoneCode}>
-                {country.flag}
-              </option>
-            ))}
-          </select>
-          <input
-            type="tel"
-            name="phone"
-            value={getDisplayValue(formData.phone)}
-            onChange={(e) => handlePhoneChange(e.target.value)}
-            onBlur={onBlur}
-            className={`w-full pl-16 pr-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-              hasFieldError('phone') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-            }`}
-            placeholder="77 123 45 67"
-            required
-          />
-        </div>
-        <p className="text-xs text-night/60 mt-1">
-          {formData.phone?.startsWith('+') 
-            ? `Format: ${formData.phone} ( numéro local)` 
-            : 'Format: 77 XXX XX XX ou +221 XX XXX XX XX'
-          }
-        </p>
-        {getFieldError('phone') && (
-          <p className="text-red-500 text-sm mt-1">{getFieldError('phone')}</p>
-        )}
-      </div>
+      <PhoneInput
+        label="Numéro de téléphone *"
+        value={formData.phone}
+        onChange={handlePhoneChange}
+        onBlur={() => onBlur({ target: { name: 'phone' } } as any)}
+        onValidationChange={onPhoneValidationChange}
+        error={getFieldError('phone')}
+        placeholder="77 123 45 67"
+        required
+      />
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Adresse email *</label>
