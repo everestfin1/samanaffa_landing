@@ -178,9 +178,9 @@ export default function RegisterPage() {
         // Specific validation for Senegalese IDs
         if (formData.nationality === 'Senegal') {
           if (formData.idType === 'cni') {
-            // National ID card: must be exactly 17 digits
-            if (!/^[0-9]{17}$/.test(value)) {
-              return 'La carte d\'identité nationale doit contenir exactement 17 chiffres';
+            // National ID card: must be exactly 13 digits
+            if (!/^[0-9]{13}$/.test(value)) {
+              return 'La carte d\'identité nationale doit contenir exactement 13 chiffres';
             }
           } else if (formData.idType === 'passport') {
             // Passport: must be exactly 9 alphanumeric characters
@@ -302,7 +302,6 @@ export default function RegisterPage() {
         [name]: type === 'checkbox' ? checked : value
       };
 
-
       // Clear region and district when country changes away from Senegal
       if (name === 'country' && value !== 'Senegal') {
         newData.region = '';
@@ -312,6 +311,21 @@ export default function RegisterPage() {
       // Clear district when region changes (in case user switches from Dakar to another region)
       if (name === 'region') {
         newData.district = '';
+      }
+
+      // Auto-calculate expiry date when ID type or issue date changes
+      if (name === 'idType' || name === 'idIssueDate') {
+        const currentIdType = name === 'idType' ? value : prev.idType;
+        const currentIssueDate = name === 'idIssueDate' ? value : prev.idIssueDate;
+        
+        if (currentIssueDate && currentIdType) {
+          const issueDate = new Date(currentIssueDate);
+          const validityYears = currentIdType === 'cni' ? 10 : 5; // 10 years for CNI, 5 years for passport
+          const expiryDate = new Date(issueDate);
+          expiryDate.setFullYear(expiryDate.getFullYear() + validityYears);
+          
+          newData.idExpiryDate = expiryDate.toISOString().split('T')[0];
+        }
       }
 
       return newData;
@@ -782,14 +796,7 @@ export default function RegisterPage() {
                       ) : (
                         <IconComponent className="w-4 h-4" />
                       )}
-                    </div>
-
-                    {/* Connecting line to next step */}
-                    {index < steps.length - 1 && (
-                      <div className={`absolute top-5 left-1/2 w-full h-1 rounded-full transition-all duration-500 ${
-                        isCompleted ? 'bg-green-500' : 'bg-timberwolf/20'
-                      }`} style={{ transform: 'translateX(50%)', zIndex: -1 }} />
-                    )}
+                    </div>                    
 
                     {/* Step Labels */}
                     <div className={`text-center mt-4 px-2 transition-all duration-300 ${

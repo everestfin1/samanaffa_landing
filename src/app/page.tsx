@@ -401,7 +401,7 @@ export default function Home() {
               >
                 <motion.button 
                   onClick={() => router.push('/register')}
-                  className="group relative px-12 py-5 sama-gradient-accent text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-accent-gold/40 hover:-translate-y-2 hover:scale-105"
+                  className="group relative px-12 py-5 sama-gradient-accent text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-accent-gold/40 hover:-translate-y-2 hover:scale-105 hover:cursor-pointer"
                   whileHover={{ 
                     scale: 1.05,
                     y: -5,

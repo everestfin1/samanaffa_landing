@@ -146,11 +146,15 @@ export default function Step2IdentityVerification({
             value={formData.idExpiryDate}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            readOnly
+            className={`w-full px-4 py-3 border rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed ${
               hasFieldError('idExpiryDate') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
             }`}
             required
           />
+          <p className="text-xs text-night/60 mt-1">
+            Calculée automatiquement ({formData.idType === 'cni' ? '10 ans' : '5 ans'} après la date d'émission)
+          </p>
           {getFieldError('idExpiryDate') && (
             <p className="text-red-500 text-sm mt-1">{getFieldError('idExpiryDate')}</p>
           )}
