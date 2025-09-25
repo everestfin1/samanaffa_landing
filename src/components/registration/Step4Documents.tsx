@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { 
   CameraIcon, 
   UserIcon, 
@@ -11,6 +12,7 @@ import {
   EyeIcon,
   DevicePhoneMobileIcon
 } from '@heroicons/react/24/outline';
+import WebcamCapture from '../common/WebcamCaptureFixed';
 
 interface FormData {
   selfieImage: File | null;
@@ -50,6 +52,58 @@ export default function Step4Documents({
   onSendOTP,
   onResendOTP
 }: Step4DocumentsProps) {
+  // Webcam modal states
+  const [webcamOpen, setWebcamOpen] = useState(false);
+  const [webcamType, setWebcamType] = useState<'selfie' | 'idFront' | 'idBack'>('selfie');
+  const [webcamTitle, setWebcamTitle] = useState('Prendre une photo');
+  const [webcamFacing, setWebcamFacing] = useState<'user' | 'environment'>('user');
+
+  // Check if device supports webcam
+  const isWebcamSupported = () => {
+    return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  };
+
+  // Open webcam modal
+  const openWebcam = (type: 'selfie' | 'idFront' | 'idBack') => {
+    setWebcamType(type);
+    
+    switch (type) {
+      case 'selfie':
+        setWebcamTitle('Prendre un selfie');
+        setWebcamFacing('user');
+        break;
+      case 'idFront':
+        setWebcamTitle(`Photo ${formData.idType === 'cni' ? 'recto CNI' : 'passeport'}`);
+        setWebcamFacing('environment');
+        break;
+      case 'idBack':
+        setWebcamTitle('Photo verso CNI');
+        setWebcamFacing('environment');
+        break;
+    }
+    
+    setWebcamOpen(true);
+  };
+
+  // Handle webcam capture
+  const handleWebcamCapture = (file: File) => {
+    const event = {
+      target: { files: [file] }
+    } as unknown as React.ChangeEvent<HTMLInputElement>;
+    
+    switch (webcamType) {
+      case 'selfie':
+        onFileChange(event, 'selfieImage');
+        break;
+      case 'idFront':
+        onFileChange(event, 'idFrontImage');
+        break;
+      case 'idBack':
+        onFileChange(event, 'idBackImage');
+        break;
+    }
+  };
+
   const getFieldError = (fieldName: string): string => {
     return touched[fieldName] ? errors[fieldName] || '' : '';
   };
@@ -145,8 +199,21 @@ export default function Step4Documents({
               </div>
             </div>
             
-            {/* Replace/Change button */}
-            <div className="text-center">
+            {/* Replace/Change buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              {/* Webcam button (desktop/supported devices) */}
+              {isWebcamSupported() && (
+                <button
+                  type="button"
+                  onClick={() => openWebcam('selfie')}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200"
+                >
+                  <CameraIcon className="w-4 h-4" />
+                  Webcam
+                </button>
+              )}
+              
+              {/* File upload button */}
               <input
                 type="file"
                 accept="image/*"
@@ -160,29 +227,48 @@ export default function Step4Documents({
                 className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 cursor-pointer transition-all duration-200"
               >
                 <CameraIcon className="w-4 h-4" />
-                Changer la photo
+                Galerie
               </label>
             </div>
           </div>
         ) : (
           // Show upload area when no image is selected
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              capture="user"
-              onChange={(e) => onFileChange(e, 'selfieImage')}
-              className="hidden"
-              id="selfie-upload"
-            />
-            <label
-              htmlFor="selfie-upload"
-              className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-blue-400/50 bg-white hover:bg-blue-100 text-night/70"
-            >
-              <UserIcon className="w-12 h-12 mb-3" />
-              <span className="text-base font-medium mb-1">Ajouter votre photo</span>
-              <span className="text-sm text-center">Prendre une photo ou télécharger depuis votre appareil</span>
-            </label>
+          <div className="space-y-4">
+            {/* Upload options */}
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              {/* Webcam button (desktop/supported devices) */}
+              {isWebcamSupported() && (
+                <button
+                  type="button"
+                  onClick={() => openWebcam('selfie')}
+                  className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-6 py-4 text-white bg-gold-metallic border-2 border-gold-metallic rounded-xl hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200 min-h-[120px]"
+                >
+                  <CameraIcon className="w-8 h-8 mb-2" />
+                  <span className="text-sm font-medium mb-1">Webcam</span>
+                  <span className="text-xs text-center opacity-90">Prendre une photo maintenant</span>
+                </button>
+              )}
+              
+              {/* File upload option */}
+              <div className="flex-1 sm:flex-initial">
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="user"
+                  onChange={(e) => onFileChange(e, 'selfieImage')}
+                  className="hidden"
+                  id="selfie-upload"
+                />
+                <label
+                  htmlFor="selfie-upload"
+                  className="flex flex-col items-center justify-center w-full px-6 py-4 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-blue-400/50 bg-white hover:bg-blue-100 text-night/70 min-h-[120px]"
+                >
+                  <UserIcon className="w-8 h-8 mb-2" />
+                  <span className="text-sm font-medium mb-1">Galerie</span>
+                  <span className="text-xs text-center">Télécharger depuis votre appareil</span>
+                </label>
+              </div>
+            </div>
           </div>
         )}
 
@@ -526,6 +612,15 @@ export default function Step4Documents({
           </button>
         </div>
       )}
+
+      {/* Webcam Capture Modal */}
+      <WebcamCapture
+        isOpen={webcamOpen}
+        onClose={() => setWebcamOpen(false)}
+        onCapture={handleWebcamCapture}
+        facingMode={webcamFacing}
+        title={webcamTitle}
+      />
     </div>
   );
 }
