@@ -1,6 +1,7 @@
 'use client';
 
 import { IdentificationIcon } from '@heroicons/react/24/outline';
+import { countries } from '@/components/data/countries';
 
 interface FormData {
   nationality: string;
@@ -54,22 +55,25 @@ export default function Step2IdentityVerification({
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Nationalité *</label>
-        <select 
-          name="nationality" 
-          value={formData.nationality} 
-          onChange={onInputChange} 
-          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200" 
+        <select
+          name="nationality"
+          value={formData.nationality}
+          onChange={onInputChange}
+          className="w-full px-4 py-3 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200"
           required
         >
-          <option value="Sénégal">Sénégal</option>
-          <option value="Mali">Mali</option>
-          <option value="Burkina Faso">Burkina Faso</option>
-          <option value="Côte d'Ivoire">Côte d'Ivoire</option>
-          <option value="Niger">Niger</option>
-          <option value="Guinée">Guinée</option>
-          <option value="Bénin">Bénin</option>
-          <option value="Togo">Togo</option>
-          <option value="Autre">Autre</option>
+          {countries
+            .map(country => ({ name: country.name, code: country.code }))
+            .sort((a, b) => {
+              if (a.name === 'Senegal') return -1;
+              if (b.name === 'Senegal') return 1;
+              return a.name.localeCompare(b.name);
+            })
+            .map(country => (
+              <option key={country.code} value={country.name}>
+                {country.name === 'Senegal' ? `🇸🇳 ${country.name}` : country.name}
+              </option>
+            ))}
         </select>
       </div>
 

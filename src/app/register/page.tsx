@@ -182,8 +182,25 @@ export default function RegisterPage() {
 
       case 'idNumber':
         if (!value || typeof value !== 'string') return 'Numéro de pièce est requis';
-        if (value.length < 5) {
-          return 'Numéro de pièce trop court';
+
+        // Specific validation for Senegalese IDs
+        if (formData.nationality === 'Senegal') {
+          if (formData.idType === 'cni') {
+            // National ID card: must be exactly 17 digits
+            if (!/^[0-9]{17}$/.test(value)) {
+              return 'La carte d\'identité nationale doit contenir exactement 17 chiffres';
+            }
+          } else if (formData.idType === 'passport') {
+            // Passport: must be exactly 9 alphanumeric characters
+            if (!/^[A-Za-z0-9]{9}$/.test(value)) {
+              return 'Le passeport doit contenir exactement 9 caractères alphanumériques';
+            }
+          }
+        } else {
+          // For other nationalities, keep basic validation
+          if (value.length < 5) {
+            return 'Numéro de pièce trop court';
+          }
         }
         return '';
 
@@ -193,6 +210,40 @@ export default function RegisterPage() {
 
       case 'idExpiryDate':
         if (!value || typeof value !== 'string') return 'Date d\'expiration est requise';
+
+        const expiryDate = new Date(value);
+        const now = new Date();
+
+        // Expiry date must be in the future to ensure document validity
+        if (expiryDate <= now) {
+          return 'La date d\'expiration doit être postérieure à la date actuelle (document non expiré)';
+        }
+
+        // Specific validity period checks for Senegalese IDs - calculate based on issue date
+        if (formData.nationality === 'Senegal') {
+          if (formData.idIssueDate) {
+            const issueDate = new Date(formData.idIssueDate);
+
+            if (formData.idType === 'cni') {
+              // National ID card: max 10 years from issue date
+              const maxExpiryDateCNI = new Date(issueDate);
+              maxExpiryDateCNI.setFullYear(issueDate.getFullYear() + 10);
+              if (expiryDate > maxExpiryDateCNI) {
+                return 'La carte d\'identité nationale ne peut pas être valide plus de 10 ans après sa date d\'émission';
+              }
+            } else if (formData.idType === 'passport') {
+              // Passport: max 5 years from issue date
+              const maxExpiryDatePassport = new Date(issueDate);
+              maxExpiryDatePassport.setFullYear(issueDate.getFullYear() + 5);
+              if (expiryDate > maxExpiryDatePassport) {
+                return 'Le passeport ne peut pas être valide plus de 5 ans après sa date d\'émission';
+              }
+            }
+          } else {
+            return 'Veuillez d\'abord saisir la date d\'émission';
+          }
+        }
+
         return '';
 
       case 'dateOfBirth':
@@ -562,6 +613,7 @@ export default function RegisterPage() {
         headers: {
           'Content-Type': 'application/json',
         },
+
         body: JSON.stringify({
           email: formData.email,
           phone: formData.phone,
@@ -574,11 +626,17 @@ export default function RegisterPage() {
             nationality: formData.nationality,
             address: formData.address,
             city: formData.city,
+            country: formData.country,
+            region: formData.region,
+            district: formData.district,
+            placeOfBirth: formData.placeOfBirth,
             statutEmploi: formData.statutEmploi,
             metiers: formData.metiers,
             domaineActivite: formData.domaineActivite,
             idType: formData.idType,
             idNumber: formData.idNumber,
+            idIssueDate: formData.idIssueDate ? new Date(formData.idIssueDate) : null,
+            idExpiryDate: formData.idExpiryDate ? new Date(formData.idExpiryDate) : null,
             civilite: formData.civilite,
             termsAccepted: formData.termsAccepted,
             privacyAccepted: formData.privacyAccepted,

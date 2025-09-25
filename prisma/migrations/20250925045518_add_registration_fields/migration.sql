@@ -1,0 +1,17 @@
+-- AlterTable
+ALTER TABLE "public"."users" ADD COLUMN     "civilite" TEXT,
+ADD COLUMN     "country" TEXT,
+ADD COLUMN     "district" TEXT,
+ADD COLUMN     "domaineActivite" TEXT,
+ADD COLUMN     "idExpiryDate" TIMESTAMP(3),
+ADD COLUMN     "idIssueDate" TIMESTAMP(3),
+ADD COLUMN     "idNumber" TEXT,
+ADD COLUMN     "idType" TEXT,
+ADD COLUMN     "marketingAccepted" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "metiers" TEXT,
+ADD COLUMN     "placeOfBirth" TEXT,
+ADD COLUMN     "privacyAccepted" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "region" TEXT,
+ADD COLUMN     "signature" TEXT,
+ADD COLUMN     "statutEmploi" TEXT,
+ADD COLUMN     "termsAccepted" BOOLEAN NOT NULL DEFAULT false;
