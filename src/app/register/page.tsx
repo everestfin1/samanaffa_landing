@@ -45,7 +45,8 @@ export default function RegisterPage() {
     lastName: '',
     phone: '',
     email: '',
-    profession: '',
+    statutEmploi: '',
+    metiers: '',
     domaineActivite: '',
 
     // Step 2
@@ -83,7 +84,7 @@ export default function RegisterPage() {
   });
 
   const steps = [
-    { id: 1, title: 'Informations personnelles', icon: UserIcon, description: 'Civilité, nom, téléphone, email, profession' },
+    { id: 1, title: 'Informations personnelles', icon: UserIcon, description: 'Civilité, nom, téléphone, email, statut d\'emploi' },
     { id: 2, title: 'Vérification d\'identité', icon: IdentificationIcon, description: 'Document d\'identité et dates' },
     { id: 3, title: 'Adresse', icon: DocumentTextIcon, description: 'Adresse complète' },
     { id: 4, title: 'Documents & vérification', icon: CameraIcon, description: 'Selfie, documents et code OTP' },
@@ -105,8 +106,15 @@ export default function RegisterPage() {
   };
 
   const getStepValidationStatus = (step: number) => {
+    // Build step 1 fields dynamically based on employment status
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    // Add domaineActivite only if employment status requires it
+    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
+      step1Fields.push('domaineActivite');
+    }
+
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
+      1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
@@ -163,12 +171,17 @@ export default function RegisterPage() {
         // This will be controlled by onValidationChange callback
         return '';
 
-      case 'profession':
-        if (!value || typeof value !== 'string' || value.trim() === '') return 'Profession est requise';
+      case 'statutEmploi':
+        if (!value || typeof value !== 'string' || value.trim() === '') return 'Statut d\'emploi est requis';
+        return '';
+
+      case 'metiers':
+        if (!value || typeof value !== 'string' || value.trim() === '') return 'Métier est requis';
         return '';
 
       case 'domaineActivite':
-        if (!value || typeof value !== 'string' || value.trim() === '') return 'Domaine d\'activité est requis';
+        // domaineActivite is only required when employment status requires it
+        // (handled by conditional rendering in the component)
         return '';
 
       case 'idNumber':
@@ -244,10 +257,30 @@ export default function RegisterPage() {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [name]: type === 'checkbox' ? checked : value
+      };
+
+      // Clear domaineActivite when employment status doesn't require it
+      if (name === 'statutEmploi' && (value === 'retraité' || value === 'ne-recherche-pas-emploi')) {
+        newData.domaineActivite = '';
+      }
+
+      // Clear region and district when country changes away from Senegal
+      if (name === 'country' && value !== 'Senegal') {
+        newData.region = '';
+        newData.district = '';
+      }
+
+      // Clear district when region changes (in case user switches from Dakar to another region)
+      if (name === 'region') {
+        newData.district = '';
+      }
+
+      return newData;
+    });
 
     // Validate field on change
     const error = validateField(name, type === 'checkbox' ? checked : value);
@@ -324,8 +357,15 @@ export default function RegisterPage() {
   };
 
   const validateStep = (step: number): boolean => {
+    // Build step 1 fields dynamically based on employment status
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    // Add domaineActivite only if employment status requires it
+    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
+      step1Fields.push('domaineActivite');
+    }
+
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
+      1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
@@ -413,8 +453,15 @@ export default function RegisterPage() {
 
   const handleNext = async () => {
     // Mark all fields in current step as touched to show validation errors
+    // Build step 1 fields dynamically based on employment status
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    // Add domaineActivite only if employment status requires it
+    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
+      step1Fields.push('domaineActivite');
+    }
+
     const stepFields = {
-      1: ['civilite', 'firstName', 'lastName', 'phone', 'email', 'profession', 'domaineActivite', 'otpMethod'],
+      1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
@@ -531,7 +578,8 @@ export default function RegisterPage() {
             nationality: formData.nationality,
             address: formData.address,
             city: formData.city,
-            profession: formData.profession,
+            statutEmploi: formData.statutEmploi,
+            metiers: formData.metiers,
             domaineActivite: formData.domaineActivite,
             idType: formData.idType,
             idNumber: formData.idNumber,

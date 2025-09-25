@@ -5,7 +5,8 @@ export interface FormData {
   lastName: string;
   phone: string;
   email: string;
-  profession: string;
+  statutEmploi: string;
+  metiers: string;
   domaineActivite: string;
 
   // Step 2: Identity Verification

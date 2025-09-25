@@ -3,6 +3,49 @@
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
 
+// Senegal regions
+const senegalRegions = [
+  'Dakar',
+  'Diourbel',
+  'Fatick',
+  'Kaffrine',
+  'Kédougou',
+  'Kaolack',
+  'Kolda',
+  'Louga',
+  'Matam',
+  'Saint-Louis',
+  'Sédhiou',
+  'Tambacounda',
+  'Thiès',
+  'Ziguinchor'
+];
+
+// Dakar communes (most detailed data available)
+const dakarCommunes = [
+  'Dakar-Plateau',
+  'Grand Dakar',
+  'Cambérène',
+  'Hann Bel-Air',
+  'HLM',
+  'Médina',
+  'Mermoz-Sacré-Cœur',
+  'Ngor',
+  'Ouakam',
+  'Parcelles Assainies',
+  'Patte d\'Oie',
+  'Sicap-Liberté',
+  'Yoff'
+];
+
+// Function to get communes based on region
+const getCommunesForRegion = (region: string): string[] => {
+  if (region === 'Dakar') {
+    return dakarCommunes;
+  }
+  return []; // Empty array means use text input
+};
+
 interface FormData {
   country: string;
   region: string;
@@ -70,37 +113,94 @@ export default function Step3Address({
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Région *</label>
-        <input
-          type="text"
-          name="region"
-          value={formData.region}
-          onChange={onInputChange}
-          onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-            hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-          }`}
-          placeholder="Ex: Dakar, Thiès, Paris, New York..."
-          required
-        />
+        {formData.country === 'Senegal' ? (
+          <div className="relative">
+            <select
+              name="region"
+              value={formData.region}
+              onChange={onInputChange}
+              onBlur={onBlur}
+              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
+                hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+              }`}
+              required
+            >
+              <option value="">Sélectionner une région</option>
+              {senegalRegions.map((region) => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        ) : (
+          <input
+            type="text"
+            name="region"
+            value={formData.region}
+            onChange={onInputChange}
+            onBlur={onBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+            }`}
+            placeholder="Ex: Dakar, Thiès, Paris, New York..."
+            required
+          />
+        )}
         {getFieldError('region') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('region')}</p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
-        <input
-          type="text"
-          name="district"
-          value={formData.district}
-          onChange={onInputChange}
-          onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-            hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-          }`}
-          placeholder="Ex: Grand-Dakar, Sicap Liberté, Plateau..."
-          required
-        />
+        <label className="block text-sm font-semibold text-night mb-2">Arrondissement / Commune *</label>
+        {formData.country === 'Senegal' && formData.region === 'Dakar' ? (
+          <div className="relative">
+            <select
+              name="district"
+              value={formData.district}
+              onChange={onInputChange}
+              onBlur={onBlur}
+              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
+                hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+              }`}
+              required
+            >
+              <option value="">Sélectionner une commune</option>
+              {dakarCommunes.map((commune) => (
+                <option key={commune} value={commune}>
+                  {commune}
+                </option>
+              ))}
+            </select>
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </div>
+          </div>
+        ) : (
+          <input
+            type="text"
+            name="district"
+            value={formData.district}
+            onChange={onInputChange}
+            onBlur={onBlur}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+              hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+            }`}
+            placeholder={formData.country === 'Senegal'
+              ? "Ex: Grand-Dakar, Sicap Liberté..."
+              : "Ex: Grand-Dakar, Sicap Liberté, Plateau..."
+            }
+            required
+          />
+        )}
         {getFieldError('district') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('district')}</p>
         )}
