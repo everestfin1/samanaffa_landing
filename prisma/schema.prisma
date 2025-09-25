@@ -12,21 +12,36 @@ datasource db {
 
 // Users (main authentication and profile - OTP-only)
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  phone             String   @unique
+  id                String     @id @default(cuid())
+  email             String     @unique
+  phone             String     @unique
   firstName         String
   lastName          String
+  civilite          String?
   dateOfBirth       DateTime?
+  placeOfBirth      String?
   nationality       String?
   address           String?
   city              String?
-  preferredLanguage String   @default("fr")
-  emailVerified     Boolean  @default(false)
-  phoneVerified     Boolean  @default(false)
-  kycStatus         KycStatus @default(PENDING)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  country           String?
+  region            String?
+  district          String?
+  statutEmploi      String?
+  metiers           String?
+  domaineActivite   String?
+  idType            String?
+  idNumber          String?
+  idIssueDate       DateTime?
+  idExpiryDate      DateTime?
+  termsAccepted     Boolean    @default(false)
+  privacyAccepted   Boolean    @default(false)
+  signature         String?
+  preferredLanguage String     @default("fr")
+  emailVerified     Boolean    @default(false)
+  phoneVerified     Boolean    @default(false)
+  kycStatus         KycStatus  @default(PENDING)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
 
   // Relations
   accounts          UserAccount[]

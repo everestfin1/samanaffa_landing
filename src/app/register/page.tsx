@@ -76,11 +76,7 @@ export default function RegisterPage() {
     termsAccepted: false,
     privacyAccepted: false,
     marketingAccepted: false,
-    signature: '',
-
-    // Account Configuration
-    initialDeposit: '',
-    monthlyGoal: ''
+    signature: ''
   });
 
   const steps = [

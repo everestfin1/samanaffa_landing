@@ -37,10 +37,6 @@ export interface FormData {
   privacyAccepted: boolean;
   marketingAccepted: boolean;
   signature: string;
-
-  // Account Configuration
-  initialDeposit: string;
-  monthlyGoal: string;
 }
 
 export interface Step {
