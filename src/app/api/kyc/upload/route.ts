@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       'national_id_back',
       'passport',
       'selfie',
+      'signature',
       'drivers_license',
       'utility_bill',
       'bank_statement',

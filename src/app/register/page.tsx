@@ -76,7 +76,8 @@ export default function RegisterPage() {
     termsAccepted: false,
     privacyAccepted: false,
     marketingAccepted: false,
-    signature: ''
+    signature: '',
+    signatureFile: null
   });
 
   const steps = [
@@ -659,7 +660,7 @@ export default function RegisterPage() {
       // We can proceed with document upload
 
       // After successful registration, upload documents if any exist
-      if (formData.selfieImage || formData.idFrontImage || formData.idBackImage) {
+      if (formData.selfieImage || formData.idFrontImage || formData.idBackImage || formData.signatureFile) {
         setUploadingFiles(true);
         
         // Get the user ID from the registration response
@@ -709,6 +710,20 @@ export default function RegisterPage() {
             fetch('/api/kyc/upload', {
               method: 'POST',
               body: idBackFormData,
+            })
+          );
+        }
+
+        if (formData.signatureFile) {
+          const signatureFormData = new FormData();
+          signatureFormData.append('file', formData.signatureFile);
+          signatureFormData.append('userId', userId);
+          signatureFormData.append('documentType', 'signature');
+          
+          uploadPromises.push(
+            fetch('/api/kyc/upload', {
+              method: 'POST',
+              body: signatureFormData,
             })
           );
         }
@@ -892,10 +907,17 @@ export default function RegisterPage() {
                   signature: ''
                 }));
               }}
+              onSignatureFileChange={(signatureFile: File | null) => {
+                setFormData(prev => ({
+                  ...prev,
+                  signatureFile: signatureFile
+                }));
+              }}
               onClearSignature={() => {
                 setFormData(prev => ({
                   ...prev,
-                  signature: ''
+                  signature: '',
+                  signatureFile: null
                 }));
               }}
             />

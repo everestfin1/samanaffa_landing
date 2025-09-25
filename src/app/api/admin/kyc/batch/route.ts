@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
+import { KycStatus, VerificationStatus } from '@prisma/client'
 
 interface BatchUpdateRequest {
   updates: {
@@ -55,7 +56,7 @@ export async function PUT(request: NextRequest) {
         const updatedDocument = await tx.kycDocument.update({
           where: { id: update.documentId },
           data: {
-            verificationStatus: update.verificationStatus.toUpperCase(),
+            verificationStatus: update.verificationStatus.toUpperCase() as VerificationStatus,
             adminNotes: update.adminNotes,
           },
           include: {
@@ -108,7 +109,7 @@ export async function PUT(request: NextRequest) {
         if (currentUser && currentUser.kycStatus !== newUserKycStatus) {
           await tx.user.update({
             where: { id: userId },
-            data: { kycStatus: newUserKycStatus }
+            data: { kycStatus: newUserKycStatus as KycStatus }
           })
           userKycStatusUpdated = true
         }

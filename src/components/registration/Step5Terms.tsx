@@ -13,6 +13,7 @@ interface FormData {
   privacyAccepted: boolean;
   marketingAccepted: boolean;
   signature: string;
+  signatureFile: File | null;
 }
 
 interface Step5TermsProps {
@@ -21,6 +22,7 @@ interface Step5TermsProps {
   touched: Record<string, boolean>;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onSignatureChange: (signatureData: string) => void;
+  onSignatureFileChange: (signatureFile: File | null) => void;
   onClearSignature: () => void;
 }
 
@@ -30,6 +32,7 @@ export default function Step5Terms({
   touched,
   onInputChange,
   onSignatureChange,
+  onSignatureFileChange,
   onClearSignature
 }: Step5TermsProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -81,6 +84,16 @@ export default function Step5Terms({
       if (canvas) {
         const signatureData = canvas.toDataURL();
         onSignatureChange(signatureData);
+        
+        // Convert canvas to File object for upload
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const signatureFile = new File([blob], 'signature.png', {
+              type: 'image/png'
+            });
+            onSignatureFileChange(signatureFile);
+          }
+        }, 'image/png');
       }
     }
   };
@@ -94,6 +107,7 @@ export default function Step5Terms({
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     onClearSignature();
+    onSignatureFileChange(null);
   };
 
   // Initialize canvas

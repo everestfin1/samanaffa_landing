@@ -113,6 +113,7 @@ export default function Home() {
         clearTimeout(pauseTimeoutRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array - only run once on mount
 
   // Fallback: Start video on user interaction if autoplay failed

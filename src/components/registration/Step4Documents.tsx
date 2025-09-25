@@ -13,6 +13,7 @@ import {
   DevicePhoneMobileIcon
 } from '@heroicons/react/24/outline';
 import WebcamCapture from '../common/WebcamCaptureFixed';
+import Image from 'next/image';
 
 interface FormData {
   selfieImage: File | null;
@@ -163,10 +164,12 @@ export default function Step4Documents({
             <div className="relative bg-white rounded-xl p-4 border-2 border-green-400">
               <div className="flex items-start gap-4">
                 <div className="relative w-24 h-24 flex-shrink-0">
-                  <img
+                  <Image
                     src={createImagePreview(formData.selfieImage)}
                     alt="Photo de profil"
                     className="w-full h-full object-cover rounded-lg border-2 border-green-300"
+                    width={100}
+                    height={100}
                   />
                   <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
                     <EyeIcon className="w-3 h-3" />
@@ -306,10 +309,12 @@ export default function Step4Documents({
               <div className="relative bg-white rounded-xl p-3 border-2 border-green-400">
                 <div className="flex items-start gap-3">
                   <div className="relative w-16 h-16 flex-shrink-0">
-                    <img
+                    <Image
                       src={createImagePreview(formData.idFrontImage)}
                       alt="Recto pièce d'identité"
                       className="w-full h-full object-cover rounded-lg border-2 border-green-300"
+                      width={100}
+                      height={100}
                     />
                     <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                       <EyeIcon className="w-2.5 h-2.5" />
@@ -397,10 +402,12 @@ export default function Step4Documents({
                 <div className="relative bg-white rounded-xl p-3 border-2 border-green-400">
                   <div className="flex items-start gap-3">
                     <div className="relative w-16 h-16 flex-shrink-0">
-                      <img
+                      <Image
                         src={createImagePreview(formData.idBackImage)}
                         alt="Verso pièce d'identité"
                         className="w-full h-full object-cover rounded-lg border-2 border-green-300"
+                        width={100}
+                        height={100}
                       />
                       <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                         <EyeIcon className="w-2.5 h-2.5" />

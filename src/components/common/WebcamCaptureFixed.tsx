@@ -8,6 +8,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
 
 interface WebcamCaptureProps {
   isOpen: boolean;
@@ -199,6 +200,7 @@ export default function WebcamCapture({
     } finally {
       isInitializingRef.current = false;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanupStream, facingMode, isWebcamSupported]);
 
   // Capture photo with simplified logic
@@ -465,10 +467,12 @@ export default function WebcamCapture({
       return (
         <div className="text-center space-y-4">
           <div className="relative">
-            <img
+            <Image
               src={capturedImage}
               alt="Photo capturée"
               className="w-full h-64 object-cover rounded-lg"
+              width={100}
+              height={100}
             />
             <div className="absolute top-4 right-4 bg-green-500 text-white rounded-full p-2">
               <CheckIcon className="w-4 h-4" />

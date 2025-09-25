@@ -37,6 +37,7 @@ export interface FormData {
   privacyAccepted: boolean;
   marketingAccepted: boolean;
   signature: string;
+  signatureFile: File | null;
 }
 
 export interface Step {
