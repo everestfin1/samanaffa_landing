@@ -7,7 +7,6 @@ export interface FormData {
   email: string;
   statutEmploi: string;
   metiers: string;
-  domaineActivite: string;
 
   // Step 2: Identity Verification
   nationality: string;

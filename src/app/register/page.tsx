@@ -47,7 +47,6 @@ export default function RegisterPage() {
     email: '',
     statutEmploi: '',
     metiers: '',
-    domaineActivite: '',
 
     // Step 2
     nationality: 'Senegal',
@@ -105,10 +104,6 @@ export default function RegisterPage() {
   const getStepValidationStatus = (step: number) => {
     // Build step 1 fields dynamically based on employment status
     const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
-    // Add domaineActivite only if employment status requires it
-    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
-      step1Fields.push('domaineActivite');
-    }
 
     const stepFields = {
       1: step1Fields,
@@ -176,10 +171,6 @@ export default function RegisterPage() {
         if (!value || typeof value !== 'string' || value.trim() === '') return 'Métier est requis';
         return '';
 
-      case 'domaineActivite':
-        // domaineActivite is only required when employment status requires it
-        // (handled by conditional rendering in the component)
-        return '';
 
       case 'idNumber':
         if (!value || typeof value !== 'string') return 'Numéro de pièce est requis';
@@ -311,10 +302,6 @@ export default function RegisterPage() {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      // Clear domaineActivite when employment status doesn't require it
-      if (name === 'statutEmploi' && (value === 'retraité' || value === 'ne-recherche-pas-emploi')) {
-        newData.domaineActivite = '';
-      }
 
       // Clear region and district when country changes away from Senegal
       if (name === 'country' && value !== 'Senegal') {
@@ -407,10 +394,6 @@ export default function RegisterPage() {
   const validateStep = (step: number): boolean => {
     // Build step 1 fields dynamically based on employment status
     const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
-    // Add domaineActivite only if employment status requires it
-    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
-      step1Fields.push('domaineActivite');
-    }
 
     const stepFields = {
       1: step1Fields,
@@ -503,10 +486,6 @@ export default function RegisterPage() {
     // Mark all fields in current step as touched to show validation errors
     // Build step 1 fields dynamically based on employment status
     const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
-    // Add domaineActivite only if employment status requires it
-    if (formData.statutEmploi && formData.statutEmploi !== 'retraité' && formData.statutEmploi !== 'ne-recherche-pas-emploi') {
-      step1Fields.push('domaineActivite');
-    }
 
     const stepFields = {
       1: step1Fields,
@@ -633,7 +612,6 @@ export default function RegisterPage() {
             placeOfBirth: formData.placeOfBirth,
             statutEmploi: formData.statutEmploi,
             metiers: formData.metiers,
-            domaineActivite: formData.domaineActivite,
             idType: formData.idType,
             idNumber: formData.idNumber,
             idIssueDate: formData.idIssueDate ? new Date(formData.idIssueDate) : null,

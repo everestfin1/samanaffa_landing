@@ -165,7 +165,6 @@ interface FormData {
   email: string;
   statutEmploi: string;
   metiers: string;
-  domaineActivite: string;
   otpMethod: "email" | "sms";
 }
 
@@ -475,34 +474,6 @@ export default function Step1PersonalInfo({
           </p>
         )}
       </div>
-      {formData.statutEmploi &&
-        formData.statutEmploi !== "retraité" &&
-        formData.statutEmploi !== "ne-recherche-pas-emploi" && (
-        <div>
-          <label className="block text-sm font-semibold text-night mb-2">
-            Domaine d'activité *
-          </label>
-          <input
-            type="text"
-            name="domaineActivite"
-            value={formData.domaineActivite}
-            onChange={onInputChange}
-            onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-              hasFieldError("domaineActivite")
-                ? "border-red-400 bg-red-50"
-                : "border-timberwolf/30"
-            }`}
-            placeholder="Ex: Informatique, Commerce..."
-            required
-          />
-          {getFieldError("domaineActivite") && (
-            <p className="text-red-500 text-sm mt-1">
-              {getFieldError("domaineActivite")}
-            </p>
-          )}
-        </div>
-      )}
       <div>
         <label className="block text-sm font-semibold text-night mb-2">
           Métier *
