@@ -1,7 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
+import IntouchPayment from '../payments/IntouchPayment';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -10,6 +12,7 @@ interface TransferModalProps {
   accountName?: string;
   currentBalance?: number;
   onConfirm: (data: TransferData) => void;
+  accountType?: 'sama_naffa' | 'ape_investment';
 }
 
 interface TransferData {
@@ -24,12 +27,16 @@ export default function TransferModal({
   type, 
   accountName,
   currentBalance = 0,
-  onConfirm 
+  onConfirm,
+  accountType = 'sama_naffa'
 }: TransferModalProps) {
+  const { data: session } = useSession();
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<string>('intouch');
   const [note, setNote] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const [showIntouchPayment, setShowIntouchPayment] = useState<boolean>(false);
+  const [referenceNumber, setReferenceNumber] = useState<string>('');
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -42,6 +49,12 @@ export default function TransferModal({
         setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
       }
     }
+  };
+
+  const generateReferenceNumber = () => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `${accountType.toUpperCase()}-${type.toUpperCase()}-${timestamp}-${random}`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -61,13 +74,21 @@ export default function TransferModal({
       return;
     }
 
-    // Minimum amount validation
-    if (requestedAmount < 1000) {
-      setError('Le montant minimum est de 1,000 FCFA');
+    // Minimum amount validation (temporarily disabled for testing)
+    // if (requestedAmount < 1000) {
+    //   setError('Le montant minimum est de 1,000 FCFA');
+    //   return;
+    // }
+
+    // Handle Intouch payment
+    if (method === 'intouch') {
+      const refNumber = generateReferenceNumber();
+      setReferenceNumber(refNumber);
+      setShowIntouchPayment(true);
       return;
     }
 
-    // Redirect to WhatsApp instead of creating intent
+    // Fallback to WhatsApp for other methods
     const message = encodeURIComponent(
       `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA${note.trim() ? ` - ${note.trim()}` : ''}. Pouvez-vous m'aider avec le traitement du paiement ?`
     );
@@ -78,7 +99,58 @@ export default function TransferModal({
     onClose();
   };
 
+  const handleIntouchSuccess = (transactionId: string) => {
+    console.log('Intouch payment successful:', transactionId);
+    onConfirm({
+      amount: parseFloat(amount),
+      method: 'intouch',
+      note: note
+    });
+    onClose();
+  };
+
+  const handleIntouchError = (error: string) => {
+    setError(error);
+    setShowIntouchPayment(false);
+  };
+
+  const handleIntouchCancel = () => {
+    setShowIntouchPayment(false);
+  };
+
   if (!isOpen) return null;
+
+  // Show Intouch payment component
+  if (showIntouchPayment && (session?.user as any)?.id) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-night">
+              Paiement via Intouch
+            </h3>
+            <button 
+              onClick={onClose}
+              className="text-night/60 hover:text-night"
+            >
+              ✕
+            </button>
+          </div>
+          
+          <IntouchPayment
+            amount={parseFloat(amount)}
+            userId={(session?.user as any)?.id}
+            accountType={accountType}
+            intentType={type as 'deposit' | 'investment' | 'withdrawal'}
+            referenceNumber={referenceNumber}
+            onSuccess={handleIntouchSuccess}
+            onError={handleIntouchError}
+            onCancel={handleIntouchCancel}
+          />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
@@ -117,9 +189,9 @@ export default function TransferModal({
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : "50 000"}
-                min="1000"
+                min="01"
                 max={type === 'withdraw' ? currentBalance : undefined}
-                step="1000"
+                step="1"
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}

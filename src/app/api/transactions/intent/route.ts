@@ -150,7 +150,8 @@ export async function POST(request: NextRequest) {
         amount: transactionIntent.amount,
         status: transactionIntent.status,
         createdAt: transactionIntent.createdAt,
-      }
+      },
+      transactionId: transactionIntent.id
     })
   } catch (error) {
     console.error('Error creating transaction intent:', error)
