@@ -448,6 +448,7 @@ export default function SamaNaffaPortal() {
         currentBalance={samaNaffaAccount.balance}
         type={transferType}
         accountName="Mon Compte Naffa Principal"
+        accountType="sama_naffa"
         onConfirm={handleTransferConfirm}
       />
     </div>
