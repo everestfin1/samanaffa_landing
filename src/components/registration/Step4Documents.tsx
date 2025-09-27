@@ -143,14 +143,6 @@ export default function Step4Documents({
 
   return (
     <div className="space-y-6">
-      <div className="bg-purple-50 rounded-xl p-4 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <CameraIcon className="w-5 h-5 text-purple-600" />
-          <h3 className="font-semibold text-night">Documents & vérification</h3>
-        </div>
-        <p className="text-sm text-night/70">Étape 4 sur 5 - Selfie, documents et code de vérification</p>
-      </div>
-
       {/* Selfie Upload */}
       <div className="border-2 border-dashed border-blue-400/30 rounded-xl p-6 bg-blue-50">
         <h4 className="font-semibold text-night mb-4 flex items-center gap-2">
@@ -212,7 +204,7 @@ export default function Step4Documents({
                   className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200"
                 >
                   <CameraIcon className="w-4 h-4" />
-                  Webcam
+                  Caméra
                 </button>
               )}
               
@@ -247,7 +239,7 @@ export default function Step4Documents({
                   className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-6 py-4 text-white bg-gold-metallic border-2 border-gold-metallic rounded-xl hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200 min-h-[120px]"
                 >
                   <CameraIcon className="w-8 h-8 mb-2" />
-                  <span className="text-sm font-medium mb-1">Webcam</span>
+                  <span className="text-sm font-medium mb-1">Caméra</span>
                   <span className="text-xs text-center opacity-90">Prendre une photo maintenant</span>
                 </button>
               )}

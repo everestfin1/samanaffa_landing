@@ -173,11 +173,11 @@ export default function WebcamCapture({
 
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError') {
-          setError('Permission d\'accès à la webcam refusée. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.');
+          setError('Permission d\'accès à la caméra refusée. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.');
         } else if (err.name === 'NotFoundError') {
-          setError('Aucune webcam trouvée sur votre appareil.');
+          setError('Aucune caméra trouvée sur votre appareil.');
         } else if (err.name === 'NotReadableError') {
-          setError('La webcam est déjà utilisée par une autre application.');
+          setError('La caméra est déjà utilisée par une autre application.');
           // Add retry logic for this specific case
           if (retryCountRef.current < maxRetries) {
             retryCountRef.current++;
@@ -186,10 +186,10 @@ export default function WebcamCapture({
             return;
           }
         } else {
-          setError('Erreur lors de l\'accès à la webcam. Veuillez réessayer.');
+          setError('Erreur lors de l\'accès à la caméra. Veuillez réessayer.');
         }
       } else {
-        setError('Erreur inconnue lors de l\'accès à la webcam.');
+        setError('Erreur inconnue lors de l\'accès à la caméra.');
       }
 
       // Auto-retry for general errors
@@ -312,7 +312,7 @@ export default function WebcamCapture({
           <div className="flex items-start gap-3">
             <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="text-sm text-red-700 font-medium">Erreur d'accès à la webcam</p>
+              <p className="text-sm text-red-700 font-medium">Erreur d'accès à la caméra</p>
               <p className="text-xs text-red-600 mt-1">{error}</p>
               <button
                 onClick={() => requestWebcam(true)}
@@ -331,7 +331,7 @@ export default function WebcamCapture({
       return (
         <div className="flex flex-col items-center justify-center py-8">
           <div className="w-8 h-8 border-2 border-gold-metallic/30 border-t-gold-metallic rounded-full animate-spin mb-3"></div>
-          <p className="text-sm text-gray-600">Initialisation de la webcam...</p>
+          <p className="text-sm text-gray-600">Initialisation de la caméra...</p>
         </div>
       );
     }

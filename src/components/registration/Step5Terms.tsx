@@ -131,14 +131,6 @@ export default function Step5Terms({
 
   return (
     <div className="space-y-6">
-      <div className="bg-green-50 rounded-xl p-4 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <ShieldCheckIcon className="w-5 h-5 text-green-600" />
-          <h3 className="font-semibold text-night">Conditions et signature</h3>
-        </div>
-        <p className="text-sm text-night/70">Étape 5 sur 5 - Acceptez les conditions et signez</p>
-      </div>
-
       {/* Terms and Conditions */}
       <div className="border border-timberwolf/30 rounded-xl p-6 bg-gray-50/50">
         <h4 className="font-semibold text-night mb-4">Termes & conditions</h4>
