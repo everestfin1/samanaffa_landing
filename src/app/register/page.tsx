@@ -25,6 +25,7 @@ import Step2IdentityVerification from '@/components/registration/Step2IdentityVe
 import Step3Address from '@/components/registration/Step3Address';
 import Step4Documents from '@/components/registration/Step4Documents';
 import Step5Terms from '@/components/registration/Step5Terms';
+import OTPVerificationStep from '@/components/registration/OTPVerificationStep';
 import type { FormData, Step } from '@/components/registration/types';
 
 export default function RegisterPage() {
@@ -37,12 +38,6 @@ export default function RegisterPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // New state for OTP verification step
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otpTimer, setOtpTimer] = useState(0);
-  const [showOtpStep, setShowOtpStep] = useState(false);
-
   const [formData, setFormData] = useState<FormData>({
     // Step 1
     civilite: 'mr',
@@ -52,7 +47,6 @@ export default function RegisterPage() {
     email: '',
     statutEmploi: '',
     metiers: '',
-    otpMethod: 'email',
 
     // Step 2
     nationality: 'Senegal',
@@ -75,7 +69,6 @@ export default function RegisterPage() {
     selfieImage: null,
     idFrontImage: null,
     idBackImage: null,
-    otp: '',
 
     // Step 5
     termsAccepted: false,
@@ -89,33 +82,26 @@ export default function RegisterPage() {
     { id: 1, title: 'Informations personnelles', icon: UserIcon, description: 'Civilité, nom, téléphone, email, statut d\'emploi' },
     { id: 2, title: 'Vérification d\'identité', icon: IdentificationIcon, description: 'Document d\'identité et dates' },
     { id: 3, title: 'Adresse', icon: DocumentTextIcon, description: 'Adresse complète' },
-    { id: 4, title: 'Documents & vérification', icon: CameraIcon, description: 'Selfie, documents et code OTP' },
-    { id: 5, title: 'Conditions et signature', icon: ShieldCheckIcon, description: 'Termes, signature et finalisation' }
+    { id: 4, title: 'Documents', icon: CameraIcon, description: 'Selfie et documents d\'identité' },
+    { id: 5, title: 'Conditions et signature', icon: ShieldCheckIcon, description: 'Termes et signature électronique' },
+    { id: 6, title: 'Vérification finale', icon: CheckCircleIcon, description: 'Code de vérification et création du compte' }
   ];
 
-  // OTP Timer countdown
-  const startOtpTimer = () => {
-    setOtpTimer(300); // 5 minutes
-    const interval = setInterval(() => {
-      setOtpTimer(prev => {
-        if (prev <= 1) {
-          clearInterval(interval);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
 
   const getStepValidationStatus = (step: number) => {
+    // Step 6 (OTP verification) should always be pending until actually reached
+    if (step === 6) {
+      return currentStep >= 6 ? 'pending' : 'pending';
+    }
+
     // Build step 1 fields dynamically based on employment status
-    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers'];
 
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'department', 'district', 'address'],
-      4: ['selfieImage', 'idFrontImage', 'otp'],
+      4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
 
@@ -125,9 +111,6 @@ export default function RegisterPage() {
       const value = formData[field as keyof FormData];
 
       // Handle different field types properly
-      if (field === 'otp') {
-        return typeof value === 'string' && value.length === 6;
-      }
       if (field === 'selfieImage' || field === 'idFrontImage' || field === 'idBackImage') {
         return value instanceof File;
       }
@@ -278,12 +261,6 @@ export default function RegisterPage() {
         if (!value || typeof value !== 'string' || value.trim() === '') return 'District/Commune est requis';
         return '';
 
-      case 'otp':
-        if (!value || typeof value !== 'string') return 'Code OTP est requis';
-        if (value.length !== 6) {
-          return 'Code OTP doit contenir exactement 6 chiffres';
-        }
-        return '';
 
       case 'signature':
         if (!value || typeof value !== 'string' || value.trim() === '') return 'Signature est requise';
@@ -419,13 +396,13 @@ export default function RegisterPage() {
 
   const validateStep = (step: number): boolean => {
     // Build step 1 fields dynamically based on employment status
-    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers'];
 
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'department', 'district', 'address'],
-      4: ['selfieImage', 'idFrontImage', 'otp'],
+      4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
 
@@ -436,9 +413,6 @@ export default function RegisterPage() {
       const value = formData[field as keyof FormData];
 
       // Handle validation based on field type
-      if (field === 'otp' && (!value || typeof value !== 'string' || value.length !== 6)) {
-        return false;
-      }
       if (field === 'selfieImage' || field === 'idFrontImage') {
         if (!(value instanceof File)) return false;
       }
@@ -464,60 +438,17 @@ export default function RegisterPage() {
     return true;
   };
 
-  const handleSendOTP = async () => {
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email: formData.email,
-          phone: formData.phone,
-          type: 'register',
-          method: formData.otpMethod
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setOtpSent(true);
-        startOtpTimer();
-      } else {
-        setErrors(prev => ({
-          ...prev,
-          otp: data.error || 'Erreur lors de l\'envoi du code OTP'
-        }));
-      }
-    } catch (error) {
-      setErrors(prev => ({
-        ...prev,
-        otp: 'Erreur de connexion. Veuillez réessayer.'
-      }));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleResendOTP = async () => {
-    if (otpTimer > 0) return;
-
-    await handleSendOTP();
-  };
 
   const handleNext = async () => {
     // Mark all fields in current step as touched to show validation errors
     // Build step 1 fields dynamically based on employment status
-    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers', 'otpMethod'];
+    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers'];
 
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
       3: ['country', 'region', 'department', 'district', 'address'],
-      4: ['selfieImage', 'idFrontImage', 'otp'],
+      4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
 
@@ -576,13 +507,8 @@ export default function RegisterPage() {
         } finally {
           setIsLoading(false);
         }
-      } else if (currentStep === 3) {
-        // Send OTP before moving to step 4
-        handleSendOTP().then(() => {
-          setCurrentStep(4);
-        });
       } else {
-        setCurrentStep(prev => Math.min(prev + 1, 5));
+        setCurrentStep(prev => Math.min(prev + 1, 6));
       }
     }
   };
@@ -607,156 +533,6 @@ export default function RegisterPage() {
     setTouched(prev => ({ ...prev, phone: true }));
   }, []);
 
-  const handleSubmit = async () => {
-    if (!validateStep(5)) return;
-
-    setIsLoading(true);
-
-    try {
-      // First, register the user by calling verify-otp API directly
-      const registrationResponse = await fetch('/api/auth/verify-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-
-        body: JSON.stringify({
-          email: formData.email,
-          phone: formData.phone,
-          otp: formData.otp,
-          type: 'register',
-          userData: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            dateOfBirth: formData.dateOfBirth,
-            nationality: formData.nationality,
-            address: formData.address,
-            city: formData.city,
-            country: formData.country,
-            region: formData.region,
-            district: formData.district,
-            placeOfBirth: formData.placeOfBirth,
-            statutEmploi: formData.statutEmploi,
-            metiers: formData.metiers,
-            idType: formData.idType,
-            idNumber: formData.idNumber,
-            idIssueDate: formData.idIssueDate ? new Date(formData.idIssueDate) : null,
-            idExpiryDate: formData.idExpiryDate ? new Date(formData.idExpiryDate) : null,
-            civilite: formData.civilite,
-            termsAccepted: formData.termsAccepted,
-            privacyAccepted: formData.privacyAccepted,
-            signature: formData.signature
-          }
-        }),
-      });
-
-      const registrationData = await registrationResponse.json();
-
-      if (!registrationResponse.ok || !registrationData.success) {
-        setErrors(prev => ({
-          ...prev,
-          general: registrationData.error || 'Erreur lors de la finalisation de l\'inscription'
-        }));
-        return;
-      }
-
-      // Registration successful, user is now created and accounts are set up
-      // We can proceed with document upload
-
-      // After successful registration, upload documents if any exist
-      if (formData.selfieImage || formData.idFrontImage || formData.idBackImage || formData.signatureFile) {
-        setUploadingFiles(true);
-        
-        // Get the user ID from the registration response
-        const userId = registrationData.user?.id;
-        if (!userId) {
-          throw new Error('Impossible de récupérer l\'ID utilisateur');
-        }
-
-        // Upload each document separately
-        const uploadPromises = [];
-
-        if (formData.selfieImage) {
-          const selfieFormData = new FormData();
-          selfieFormData.append('file', formData.selfieImage);
-          selfieFormData.append('userId', userId);
-          selfieFormData.append('documentType', 'selfie');
-          
-          uploadPromises.push(
-            fetch('/api/kyc/upload', {
-              method: 'POST',
-              body: selfieFormData,
-            })
-          );
-        }
-
-        if (formData.idFrontImage) {
-          const idFrontFormData = new FormData();
-          idFrontFormData.append('file', formData.idFrontImage);
-          idFrontFormData.append('userId', userId);
-          idFrontFormData.append('documentType', formData.idType === 'cni' ? 'national_id' : 'passport');
-          
-          uploadPromises.push(
-            fetch('/api/kyc/upload', {
-              method: 'POST',
-              body: idFrontFormData,
-            })
-          );
-        }
-
-        if (formData.idBackImage && formData.idType === 'cni') {
-          const idBackFormData = new FormData();
-          idBackFormData.append('file', formData.idBackImage);
-          idBackFormData.append('userId', userId);
-          idBackFormData.append('documentType', 'national_id_back');
-          
-          uploadPromises.push(
-            fetch('/api/kyc/upload', {
-              method: 'POST',
-              body: idBackFormData,
-            })
-          );
-        }
-
-        if (formData.signatureFile) {
-          const signatureFormData = new FormData();
-          signatureFormData.append('file', formData.signatureFile);
-          signatureFormData.append('userId', userId);
-          signatureFormData.append('documentType', 'signature');
-          
-          uploadPromises.push(
-            fetch('/api/kyc/upload', {
-              method: 'POST',
-              body: signatureFormData,
-            })
-          );
-        }
-
-        // Wait for all uploads to complete
-        const uploadResults = await Promise.all(uploadPromises);
-        
-        // Check if any upload failed
-        const failedUploads = uploadResults.filter(response => !response.ok);
-        if (failedUploads.length > 0) {
-          console.warn('Some document uploads failed, but registration was successful');
-          // Don't fail the entire registration for document upload issues
-        }
-      }
-
-      // Registration completed successfully
-      // Redirect to login page with success message
-      router.push('/login?message=registration_success');
-    } catch (error) {
-      console.error('Registration error:', error);
-      setErrors(prev => ({
-        ...prev,
-        general: 'Erreur de connexion. Veuillez réessayer.'
-      }));
-    } finally {
-      setIsLoading(false);
-      setUploadingFiles(false);
-    }
-  };
 
 
   return (
@@ -878,14 +654,9 @@ export default function RegisterPage() {
               formData={formData}
               errors={errors}
               touched={touched}
-              otpSent={otpSent}
-              otpTimer={otpTimer}
-              isLoading={isLoading}
               onInputChange={handleInputChange}
               onBlur={handleBlur}
               onFileChange={handleFileChange}
-              onSendOTP={handleSendOTP}
-              onResendOTP={handleResendOTP}
             />
           )}
           {currentStep === 5 && (
@@ -919,6 +690,15 @@ export default function RegisterPage() {
               }}
             />
           )}
+          {currentStep === 6 && (
+            <OTPVerificationStep
+              formData={formData}
+              onSuccess={() => {
+                // Account created successfully, redirect to success page or dashboard
+                router.push('/login?message=account_created');
+              }}
+            />
+          )}
 
           {/* General Errors */}
           {errors.general && (
@@ -930,20 +710,22 @@ export default function RegisterPage() {
 
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-8 pt-6 border-t border-timberwolf/20">
-            <button
-              onClick={handlePrevious}
-              disabled={currentStep === 1}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                currentStep === 1
-                  ? 'text-timberwolf/50 cursor-not-allowed'
-                  : 'text-night hover:bg-timberwolf/10 hover:shadow-sm'
-              }`}
-            >
-              <ArrowLeftIcon className="w-5 h-5" />
-              <span>Précédent</span>
-            </button>
+            {currentStep < 6 && (
+              <button
+                onClick={handlePrevious}
+                disabled={currentStep === 1}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  currentStep === 1
+                    ? 'text-timberwolf/50 cursor-not-allowed'
+                    : 'text-night hover:bg-timberwolf/10 hover:shadow-sm'
+                }`}
+              >
+                <ArrowLeftIcon className="w-5 h-5" />
+                <span>Précédent</span>
+              </button>
+            )}
 
-            {currentStep < 5 ? (
+            {currentStep < 6 ? (
               <button
                 onClick={handleNext}
                 disabled={uploadingFiles || !validateStep(currentStep) || isLoading}
@@ -963,46 +745,14 @@ export default function RegisterPage() {
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     <span>Vérification de la disponibilité...</span>
                   </>
-                ) : isLoading && currentStep === 3 ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Envoi du code OTP...</span>
-                  </>
                 ) : (
                   <>
-                    <span>Étape suivante</span>
+                    <span>{currentStep === 5 ? 'Continuer' : 'Étape suivante'}</span>
                     <ArrowRightIcon className="w-5 h-5" />
                   </>
                 )}
               </button>
-            ) : (
-              <button
-                onClick={handleSubmit}
-                disabled={uploadingFiles || !validateStep(5) || isLoading}
-                className={`flex items-center space-x-4 px-8 py-4 rounded-xl font-bold text-lg transition-all duration-200 ${
-                  validateStep(5) && !uploadingFiles && !isLoading
-                    ? 'bg-sama-primary-green text-white hover:shadow-xl hover:-translate-y-0.5'
-                    : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
-                }`}
-              >
-                {uploadingFiles ? (
-                  <>
-                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Téléchargement des documents...</span>
-                  </>
-                ) : isLoading ? (
-                  <>
-                    <div className="w-6 h-6 border-3 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Création du compte...</span>
-                  </>
-                ) : (
-                  <>
-                    <span>Créer mon Naffa</span>
-                    <CheckCircleIcon className="w-6 h-6" />
-                  </>
-                )}
-              </button>
-            )}
+            ) : null}
           </div>
         </div>
 

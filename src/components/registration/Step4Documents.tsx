@@ -1,16 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  CameraIcon, 
-  UserIcon, 
-  DocumentTextIcon, 
-  EnvelopeIcon, 
-  ExclamationTriangleIcon, 
-  ClockIcon,
+import {
+  CameraIcon,
+  UserIcon,
+  DocumentTextIcon,
+  ExclamationTriangleIcon,
   TrashIcon,
-  EyeIcon,
-  DevicePhoneMobileIcon
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import WebcamCapture from '../common/WebcamCaptureFixed';
 import Image from 'next/image';
@@ -19,39 +16,25 @@ interface FormData {
   selfieImage: File | null;
   idFrontImage: File | null;
   idBackImage: File | null;
-  otpMethod: 'email' | 'sms';
-  otp: string;
   idType: 'cni' | 'passport';
-  email: string;
-  phone: string;
 }
 
 interface Step4DocumentsProps {
   formData: FormData;
   errors: Record<string, string>;
   touched: Record<string, boolean>;
-  otpSent: boolean;
-  otpTimer: number;
-  isLoading: boolean;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => void;
-  onSendOTP: () => void;
-  onResendOTP: () => void;
 }
 
 export default function Step4Documents({
   formData,
   errors,
   touched,
-  otpSent,
-  otpTimer,
-  isLoading,
   onInputChange,
   onBlur,
-  onFileChange,
-  onSendOTP,
-  onResendOTP
+  onFileChange
 }: Step4DocumentsProps) {
   // Webcam modal states
   const [webcamOpen, setWebcamOpen] = useState(false);
@@ -113,11 +96,6 @@ export default function Step4Documents({
     return touched[fieldName] && !!errors[fieldName];
   };
 
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   // Helper function to create image preview URL
   const createImagePreview = (file: File): string => {
@@ -476,141 +454,6 @@ export default function Step4Documents({
         )}
       </div>
 
-      {/* OTP Verification */}
-      {!otpSent && (
-        <div className="border-2 border-dashed border-purple-400/30 rounded-xl p-6 bg-purple-50">
-          <h4 className="font-semibold text-night mb-4 flex items-center gap-2">
-            {formData.otpMethod === 'email' ? (
-              <EnvelopeIcon className="w-5 h-5" />
-            ) : (
-              <DevicePhoneMobileIcon className="w-5 h-5" />
-            )}
-            Vérification d'identité
-          </h4>
-
-          <p className="text-sm text-night/70 mb-4">
-            Vos documents ont été téléchargés avec succès. Cliquez ci-dessous pour recevoir votre code de vérification {formData.otpMethod === 'email' ? 'par email' : 'par SMS'} :
-          </p>
-
-          <div className="bg-white rounded-lg p-4 border border-purple-200">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-3">
-                <div className={`p-2 rounded-lg ${
-                  formData.otpMethod === 'email' ? 'bg-blue-500 text-white' : 'bg-green-500 text-white'
-                }`}>
-                  {formData.otpMethod === 'email' ? (
-                    <EnvelopeIcon className="w-4 h-4" />
-                  ) : (
-                    <DevicePhoneMobileIcon className="w-4 h-4" />
-                  )}
-                </div>
-                <div>
-                  <h5 className="font-semibold text-sm">
-                    {formData.otpMethod === 'email' ? 'Par email' : 'Par SMS'}
-                  </h5>
-                  <p className="text-xs text-night/60">
-                    {formData.otpMethod === 'email' ? formData.email : formData.phone}
-                  </p>
-                </div>
-              </div>
-              <div className={`w-3 h-3 rounded-full ${
-                formData.otpMethod === 'email' ? 'bg-blue-500' : 'bg-green-500'
-              }`}></div>
-            </div>
-
-            <button
-              type="button"
-              onClick={onSendOTP}
-              disabled={isLoading}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                !isLoading
-                  ? formData.otpMethod === 'email'
-                    ? 'bg-gold-metallic hover:bg-gold-metallic/90 text-white shadow-lg hover:shadow-xl'
-                    : 'bg-sama-primary-green hover:bg-sama-primary-green/90 text-white shadow-lg hover:shadow-xl'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {isLoading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Envoi en cours...</span>
-                </>
-              ) : (
-                <>
-                  {formData.otpMethod === 'email' ? <EnvelopeIcon className="w-4 h-4" /> : <DevicePhoneMobileIcon className="w-4 h-4" />}
-                  <span>Envoyer le code {formData.otpMethod === 'email' ? 'par email' : 'par SMS'}</span>
-                </>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* OTP Verification */}
-      {otpSent && (
-        <div className="border border-green-200 bg-green-50 rounded-xl p-6">
-          <div className="flex items-center gap-3 mb-4">
-            {formData.otpMethod === 'email' ? (
-              <EnvelopeIcon className="w-5 h-5 text-green-600" />
-            ) : (
-              <DevicePhoneMobileIcon className="w-5 h-5 text-green-600" />
-            )}
-            <h4 className="font-semibold text-green-800">Code de vérification envoyé</h4>
-          </div>
-
-          <p className="text-sm text-green-700 mb-4">
-            Un code de vérification a été envoyé {formData.otpMethod === 'email' ? 'par email à' : 'par SMS au'}{' '}
-            <strong>{formData.otpMethod === 'email' ? formData.email : formData.phone}</strong>
-          </p>
-
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-green-800 mb-2">
-              Code de vérification (6 chiffres) *
-            </label>
-            <input
-              type="text"
-              name="otp"
-              value={formData.otp}
-              onChange={onInputChange}
-              onBlur={onBlur}
-              maxLength={6}
-              className={`w-full px-4 py-3 text-center text-2xl font-mono border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
-                hasFieldError('otp') ? 'border-red-400 bg-red-50' : 'border-green-300 bg-white'
-              }`}
-              placeholder="123456"
-              required
-            />
-            {getFieldError('otp') && (
-              <p className="text-red-500 text-sm mt-1">{getFieldError('otp')}</p>
-            )}
-          </div>
-
-          {otpTimer > 0 && (
-            <div className="flex items-center justify-center space-x-2 text-green-700 mb-4">
-              <ClockIcon className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Expire dans {formatTime(otpTimer)}
-              </span>
-            </div>
-          )}
-
-          <button
-            type="button"
-            onClick={onResendOTP}
-            disabled={otpTimer > 0 || isLoading}
-            className={`text-sm transition-colors ${
-              otpTimer > 0 || isLoading
-                ? 'text-green-400 cursor-not-allowed'
-                : 'text-gold-metallic hover:text-gold-metallic/80'
-            }`}
-          >
-            {otpTimer > 0
-              ? `Renvoyer dans ${formatTime(otpTimer)}`
-              : 'Renvoyer le code'
-            }
-          </button>
-        </div>
-      )}
 
       {/* Webcam Capture Modal */}
       <WebcamCapture

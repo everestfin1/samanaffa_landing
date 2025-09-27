@@ -163,7 +163,6 @@ interface FormData {
   email: string;
   statutEmploi: string;
   metiers: string;
-  otpMethod: "email" | "sms";
 }
 
 interface Step1PersonalInfoProps {
@@ -329,57 +328,6 @@ export default function Step1PersonalInfo({
         )}
       </div>
 
-      <div>
-        <label className="block text-sm font-semibold text-night mb-2">
-          Méthode de vérification *
-        </label>
-        <div className="flex gap-3">
-          {[
-            { value: "email", label: "Par email", subtitle: formData.email },
-            { value: "sms", label: "Par SMS", subtitle: formData.phone },
-          ].map((option) => (
-            <label
-              key={option.value}
-              className="flex-1 flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-gold-metallic/10"
-            >
-              <input
-                type="radio"
-                name="otpMethod"
-                value={option.value}
-                checked={formData.otpMethod === option.value}
-                onChange={onInputChange}
-                className="sr-only"
-                required
-              />
-              <div className="text-center">
-                <span
-                  className={`font-medium block ${
-                    formData.otpMethod === option.value
-                      ? "text-gold-metallic"
-                      : "text-night/70"
-                  }`}
-                >
-                  {option.label}
-                </span>
-                {option.subtitle && (
-                  <span className="text-xs text-night/50 block mt-1 truncate">
-                    {option.subtitle}
-                  </span>
-                )}
-              </div>
-            </label>
-          ))}
-        </div>
-        {getFieldError("otpMethod") && (
-          <p className="text-red-500 text-sm mt-1">
-            {getFieldError("otpMethod")}
-          </p>
-        )}
-        <p className="text-xs text-night/60 mt-2">
-          Vous recevrez un code de vérification par cette méthode lors de
-          l'étape suivante
-        </p>
-      </div>
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">
