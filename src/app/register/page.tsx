@@ -52,7 +52,7 @@ export default function RegisterPage() {
     email: '',
     statutEmploi: '',
     metiers: '',
-    otpMethod: 'email', // Keep for UI purposes in Step 1
+    otpMethod: 'email',
 
     // Step 2
     nationality: 'Senegal',
