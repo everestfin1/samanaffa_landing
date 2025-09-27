@@ -62,14 +62,16 @@ model Session {
 }
 
 model OtpCode {
-  id        String   @id @default(cuid())
-  userId    String
-  code      String
-  type      OtpType
-  expiresAt DateTime
-  used      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                   String              @id @default(cuid())
+  userId               String?
+  registrationSessionId String?
+  code                 String
+  type                 OtpType
+  expiresAt            DateTime
+  used                 Boolean             @default(false)
+  createdAt            DateTime            @default(now())
+  user                 User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationSession  RegistrationSession? @relation(fields: [registrationSessionId], references: [id], onDelete: Cascade)
 
   @@map("otp_codes")
 }
@@ -203,6 +205,7 @@ model RegistrationSession {
   type      SessionType @default(REGISTRATION)
   expiresAt DateTime
   createdAt DateTime    @default(now())
+  otpCodes  OtpCode[]
 
   @@map("registration_sessions")
 }

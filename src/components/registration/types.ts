@@ -25,12 +25,10 @@ export interface FormData {
   address: string;
   city: string;
 
-  // Step 4: Document Upload & OTP
+  // Step 4: Document Upload
   selfieImage: File | null;
   idFrontImage: File | null;
   idBackImage: File | null;
-  otpMethod: 'email' | 'sms';
-  otp: string;
 
   // Step 5: Terms and Security
   termsAccepted: boolean;

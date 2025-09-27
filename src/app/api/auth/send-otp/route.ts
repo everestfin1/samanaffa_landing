@@ -29,13 +29,21 @@ export async function POST(request: NextRequest) {
       // Create or update temporary registration session
       const sessionExpiry = new Date(Date.now() + 30 * 60 * 1000) // 30 minutes
 
+      const normalizedPhone = normalizeInternationalPhone(registrationData.phone || '')
+      if (!normalizedPhone) {
+        return NextResponse.json(
+          { error: 'Format du numéro de téléphone invalide' },
+          { status: 400 }
+        )
+      }
+
       const registrationSession = await prisma.registrationSession.create({
         data: {
           email: registrationData.email,
-          phone: normalizeInternationalPhone(registrationData.phone),
+          phone: normalizedPhone,
           data: JSON.stringify({
             ...registrationData,
-            phone: normalizeInternationalPhone(registrationData.phone),
+            phone: normalizedPhone,
             timestamp: new Date().toISOString()
           }),
           expiresAt: sessionExpiry,
@@ -44,8 +52,7 @@ export async function POST(request: NextRequest) {
       })
 
       // Send OTP for the registration session
-      const normalizedPhone = normalizeInternationalPhone(registrationData.phone)
-      const otpResult = await sendOTP(registrationSession.id, 'registration')
+      const otpResult = await sendOTP(registrationData.email, normalizedPhone, 'register', method, registrationSession.id)
 
       if (!otpResult.success) {
         // Clean up failed session
