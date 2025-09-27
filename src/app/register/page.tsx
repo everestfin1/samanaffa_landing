@@ -36,8 +36,13 @@ export default function RegisterPage() {
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // New state for OTP verification step
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [showOtpStep, setShowOtpStep] = useState(false);
+
   const [formData, setFormData] = useState<FormData>({
     // Step 1
     civilite: 'mr',
@@ -47,6 +52,7 @@ export default function RegisterPage() {
     email: '',
     statutEmploi: '',
     metiers: '',
+    otpMethod: 'email', // Keep for UI purposes in Step 1
 
     // Step 2
     nationality: 'Senegal',
@@ -60,6 +66,7 @@ export default function RegisterPage() {
     // Step 3
     country: 'Senegal',
     region: 'Dakar',
+    department: '',
     district: '',
     address: '',
     city: 'Dakar',
@@ -68,7 +75,6 @@ export default function RegisterPage() {
     selfieImage: null,
     idFrontImage: null,
     idBackImage: null,
-    otpMethod: 'email',
     otp: '',
 
     // Step 5
@@ -108,7 +114,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'district', 'address'],
+      3: ['country', 'region', 'department', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
@@ -264,6 +270,10 @@ export default function RegisterPage() {
         }
         return '';
 
+      case 'department':
+        if (!value || typeof value !== 'string' || value.trim() === '') return 'Département est requis';
+        return '';
+
       case 'district':
         if (!value || typeof value !== 'string' || value.trim() === '') return 'District/Commune est requis';
         return '';
@@ -302,14 +312,16 @@ export default function RegisterPage() {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      // Clear region and district when country changes away from Senegal
+      // Clear region, department and district when country changes away from Senegal
       if (name === 'country' && value !== 'Senegal') {
         newData.region = '';
+        newData.department = '';
         newData.district = '';
       }
 
-      // Clear district when region changes (in case user switches from Dakar to another region)
+      // Clear department and district when region changes (in case user switches from Dakar to another region)
       if (name === 'region') {
+        newData.department = '';
         newData.district = '';
       }
 
@@ -412,7 +424,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'district', 'address'],
+      3: ['country', 'region', 'department', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
@@ -504,7 +516,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'district', 'address'],
+      3: ['country', 'region', 'department', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage', 'otp'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
