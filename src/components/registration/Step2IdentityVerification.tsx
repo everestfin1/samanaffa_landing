@@ -45,14 +45,6 @@ export default function Step2IdentityVerification({
 
   return (
     <div className="space-y-6">
-      <div className="bg-blue-50 rounded-xl p-4 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <IdentificationIcon className="w-5 h-5 text-blue-600" />
-          <h3 className="font-semibold text-night">Vérification d'identité</h3>
-        </div>
-        <p className="text-sm text-night/70">Étape 2 sur 5 - Informations de votre document d'identité</p>
-      </div>
-
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Nationalité *</label>
         <select
@@ -107,14 +99,28 @@ export default function Step2IdentityVerification({
           type="text"
           name="idNumber"
           value={formData.idNumber}
-          onChange={onInputChange}
+          onChange={(e) => {
+            const maxLength = formData.idType === 'cni' ? 13 : 9;
+            if (e.target.value.length <= maxLength) {
+              onInputChange(e);
+            }
+          }}
           onBlur={onBlur}
+          maxLength={formData.idType === 'cni' ? 13 : 9}
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
             hasFieldError('idNumber') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
-          placeholder="Ex: 1234567890123"
+          placeholder={formData.idType === 'cni' ? "13 caractères max" : "9 caractères max"}
           required
         />
+        <div className="flex justify-between items-center mt-1">
+          <span className="text-xs text-night/60">
+            {formData.idType === 'cni' ? 'CNI (13 caractères)' : 'Passeport (9 caractères)'}
+          </span>
+          <span className={`text-xs ${formData.idNumber.length >= (formData.idType === 'cni' ? 13 : 9) ? 'text-red-500 font-medium' : 'text-night/60'}`}>
+            {formData.idNumber.length}/{formData.idType === 'cni' ? 13 : 9}
+          </span>
+        </div>
         {getFieldError('idNumber') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('idNumber')}</p>
         )}

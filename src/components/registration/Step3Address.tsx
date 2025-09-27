@@ -2,8 +2,9 @@
 
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
+import regionsSenegal from '../../../regions_senegal.json';
 
-// Senegal regions
+// All Senegal regions (14 total)
 const senegalRegions = [
   'Dakar',
   'Diourbel',
@@ -21,34 +22,27 @@ const senegalRegions = [
   'Ziguinchor'
 ];
 
-// Dakar communes (most detailed data available)
-const dakarCommunes = [
-  'Dakar-Plateau',
-  'Grand Dakar',
-  'Cambérène',
-  'Hann Bel-Air',
-  'HLM',
-  'Médina',
-  'Mermoz-Sacré-Cœur',
-  'Ngor',
-  'Ouakam',
-  'Parcelles Assainies',
-  'Patte d\'Oie',
-  'Sicap-Liberté',
-  'Yoff'
-];
+// Function to get region data by region name
+const getRegionData = (regionName: string) => {
+  return regionsSenegal.find(region => region.region.toLowerCase() === regionName.toLowerCase());
+};
+
+// Function to get departments based on region
+const getDepartmentsForRegion = (regionName: string): string[] => {
+  const regionData = getRegionData(regionName);
+  return regionData ? regionData.departements : [];
+};
 
 // Function to get communes based on region
-const getCommunesForRegion = (region: string): string[] => {
-  if (region === 'Dakar') {
-    return dakarCommunes;
-  }
-  return []; // Empty array means use text input
+const getCommunesForRegion = (regionName: string): string[] => {
+  const regionData = getRegionData(regionName);
+  return regionData ? regionData.communes : [];
 };
 
 interface FormData {
   country: string;
   region: string;
+  department: string;
   district: string;
   address: string;
 }
@@ -78,14 +72,6 @@ export default function Step3Address({
 
   return (
     <div className="space-y-6">
-      <div className="bg-green-50 rounded-xl p-4 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <DocumentTextIcon className="w-5 h-5 text-green-600" />
-          <h3 className="font-semibold text-night">Adresse complète</h3>
-        </div>
-        <p className="text-sm text-night/70">Étape 3 sur 5 - Votre adresse complète</p>
-      </div>
-
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Pays de résidence *</label>
         <div className="relative">
@@ -157,9 +143,57 @@ export default function Step3Address({
         )}
       </div>
 
+      {formData.country === 'Senegal' && formData.region && (
+        <div>
+          <label className="block text-sm font-semibold text-night mb-2">Département *</label>
+          {getDepartmentsForRegion(formData.region).length > 0 ? (
+            <div className="relative">
+              <select
+                name="department"
+                value={formData.department}
+                onChange={onInputChange}
+                onBlur={onBlur}
+                className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
+                  hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                }`}
+                required
+              >
+                <option value="">Sélectionner un département</option>
+                {getDepartmentsForRegion(formData.region).map((department: string) => (
+                  <option key={department} value={department}>
+                    {department}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+          ) : (
+            <input
+              type="text"
+              name="department"
+              value={formData.department}
+              onChange={onInputChange}
+              onBlur={onBlur}
+              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+              }`}
+              placeholder="Saisir le département"
+              required
+            />
+          )}
+          {getFieldError('department') && (
+            <p className="text-red-500 text-sm mt-1">{getFieldError('department')}</p>
+          )}
+        </div>
+      )}
+
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">Arrondissement / Commune *</label>
-        {formData.country === 'Senegal' && formData.region === 'Dakar' ? (
+        <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
+        {formData.country === 'Senegal' && getCommunesForRegion(formData.region).length > 0 ? (
           <div className="relative">
             <select
               name="district"
@@ -172,7 +206,7 @@ export default function Step3Address({
               required
             >
               <option value="">Sélectionner une commune</option>
-              {dakarCommunes.map((commune) => (
+              {getCommunesForRegion(formData.region).map((commune: string) => (
                 <option key={commune} value={commune}>
                   {commune}
                 </option>
@@ -194,10 +228,7 @@ export default function Step3Address({
             className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
               hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
             }`}
-            placeholder={formData.country === 'Senegal'
-              ? "Ex: Grand-Dakar, Sicap Liberté..."
-              : "Ex: Grand-Dakar, Sicap Liberté, Plateau..."
-            }
+            placeholder="Saisir la commune"
             required
           />
         )}

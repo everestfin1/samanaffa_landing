@@ -1,0 +1,148 @@
+[
+  {
+    "region": "Dakar",
+    "departements": [
+      "Dakar",
+      "Guédiawaye",
+      "Pikine",
+      "Rufisque"
+    ],
+    "communes": [
+      "Dakar-Plateau",
+      "Almadies",
+      "Parcelles Assainies",
+      "Guédiawaye",
+      "Pikine Est",
+      "Rufisque Est"
+    ]
+  },
+  {
+    "region": "Diourbel",
+    "departements": [
+      "Bambey",
+      "Diourbel",
+      "Mbacké"
+    ],
+    "communes": [
+      "Bambey",
+      "Ngoye",
+      "Diourbel",
+      "Ndindy",
+      "Mbacké",
+      "Touba (ville sainte)"
+    ]
+  },
+  {
+    "region": "Fatick",
+    "departements": [
+      "Fatick",
+      "Foundiougne",
+      "Gossas"
+    ],
+    "communes": [
+      "Fatick",
+      "Foundiougne",
+      "Gossas",
+      "Passy",
+      "Sokone"
+    ]
+  },
+  {
+    "region": "Kaffrine",
+    "departements": [
+      "Birkilane",
+      "Kaffrine",
+      "Koungheul"
+    ],
+    "communes": [
+      "Birkilane",
+      "Kaffrine",
+      "Koungheul",
+      "Malem Hodar"
+    ]
+  },
+  {
+    "region": "Kaolack",
+    "departements": [
+      "Guinguinéo",
+      "Kaolack",
+      "Nioro"
+    ],
+    "communes": [
+      "Kaolack",
+      "Guinguinéo",
+      "Nioro du Rip",
+      "Paosoto"
+    ]
+  },
+  {
+    "region": "Kédougou",
+    "departements": [
+      "Kédougou",
+      "Salémata",
+      "Saraya"
+    ],
+    "communes": [
+      "Kédougou",
+      "Salémata",
+      "Saraya",
+      "Bandafassi"
+    ]
+  },
+  {
+    "region": "Kolda",
+    "departements": [
+      "Kolda",
+      "Médina Yoro Foulah",
+      "Vélingara"
+    ],
+    "communes": [
+      "Kolda",
+      "Médina Yoro Foulah",
+      "Vélingara",
+      "Dabo"
+    ]
+  },
+  {
+    "region": "Louga",
+    "departements": [
+      "Kébemer",
+      "Linguère",
+      "Louga"
+    ],
+    "communes": [
+      "Louga",
+      "Kébemer",
+      "Linguère",
+      "Dahra"
+    ]
+  },
+  {
+    "region": "Matam",
+    "departements": [
+      "Kanel",
+      "Matam",
+      "Ranérou"
+    ],
+    "communes": [
+      "Matam",
+      "Kanel",
+      "Ranérou",
+      "Ourossogui"
+    ]
+  },
+  {
+    "region": "Saint-Louis",
+    "departements": [
+      "Dagana",
+      "Podor",
+      "Saint-Louis"
+    ],
+    "communes": [
+      "Saint-Louis",
+      "Gandiol",
+      "Ross Béthio",
+      "Podor"
+    ]
+  }
+]

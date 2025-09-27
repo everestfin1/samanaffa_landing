@@ -11,12 +11,11 @@ import PhoneInput from "@/components/ui/PhoneInput";
 const employmentStatuses = [
   { value: "salarié", label: "Salarié" },
   { value: "entrepreneur", label: "Entrepreneur" },
-  { value: "profession-libérale", label: "Profession libérale" },
   { value: "travailleur-autonome", label: "Travailleur autonome" },
   { value: "étudiant", label: "Étudiant" },
-  { value: "stagiaire-non-rémunéré", label: "Stagiaire non rémunéré" },
+  { value: "stagiaire", label: "Stagiaire" },
   { value: "retraité", label: "Retraité" },
-  { value: "ne-recherche-pas-emploi", label: "Ne recherche pas d'emploi" },
+  { value: "sans-emploi", label: "Sans Emploi" },
 ];
 
 // All metiers options (professions)
@@ -134,10 +133,9 @@ const getFilteredMetiers = (statutEmploi: string): string[] => {
   const activeStatuses = [
     "salarié",
     "entrepreneur",
-    "profession-libérale",
     "travailleur-autonome",
     "étudiant",
-    "stagiaire-non-rémunéré",
+    "stagiaire",
   ];
 
   if (activeStatuses.includes(statutEmploi)) {
@@ -148,7 +146,7 @@ const getFilteredMetiers = (statutEmploi: string): string[] => {
   } else if (statutEmploi === "retraité") {
     // For retired, only show "Sans activité génératrice de revenus"
     return ["Sans activité génératrice de revenus"];
-  } else if (statutEmploi === "ne-recherche-pas-emploi") {
+  } else if (statutEmploi === "sans-emploi") {
     // For not seeking employment, only show "Autres"
     return ["Autres"];
   }
@@ -210,18 +208,6 @@ export default function Step1PersonalInfo({
 
   return (
     <div className="space-y-6">
-      <div className="bg-gold-metallic/10 rounded-xl p-4 mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <UserIcon className="w-5 h-5 text-gold-metallic" />
-          <h3 className="font-semibold text-night">
-            Informations personnelles
-          </h3>
-        </div>
-        <p className="text-sm text-night/70">
-          Étape 1 sur 5 - Renseignez vos informations de base
-        </p>
-      </div>
-
       <div>
         <label className="block text-sm font-semibold text-night mb-2">
           Civilité *
@@ -343,102 +329,52 @@ export default function Step1PersonalInfo({
         )}
       </div>
 
-      {/* Verification Method Selection */}
       <div>
         <label className="block text-sm font-semibold text-night mb-2">
-          Méthode de vérification préférée *
+          Méthode de vérification *
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Email Option */}
-          <div className="relative">
-            <input
-              type="radio"
-              id="otpMethod-email"
-              name="otpMethod"
-              value="email"
-              checked={formData.otpMethod === "email"}
-              onChange={onInputChange}
-              className="sr-only peer"
-            />
+        <div className="flex gap-3">
+          {[
+            { value: "email", label: "Par email", subtitle: formData.email },
+            { value: "sms", label: "Par SMS", subtitle: formData.phone },
+          ].map((option) => (
             <label
-              htmlFor="otpMethod-email"
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                formData.otpMethod === "email"
-                  ? "border-gold-metallic bg-gold-metallic/10 text-gold-metallic"
-                  : "border-timberwolf/30 bg-white hover:bg-gold-metallic/10 hover:border-gold-metallic/50"
-              }`}
+              key={option.value}
+              className="flex-1 flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-gold-metallic/10"
             >
-              <div
-                className={`flex-shrink-0 p-2 rounded-lg ${
-                  formData.otpMethod === "email"
-                    ? "bg-gold-metallic text-white"
-                    : "bg-timberwolf/20 text-night/60"
-                }`}
-              >
-                <EnvelopeIcon className="w-5 h-5" />
+              <input
+                type="radio"
+                name="otpMethod"
+                value={option.value}
+                checked={formData.otpMethod === option.value}
+                onChange={onInputChange}
+                className="sr-only"
+                required
+              />
+              <div className="text-center">
+                <span
+                  className={`font-medium block ${
+                    formData.otpMethod === option.value
+                      ? "text-gold-metallic"
+                      : "text-night/70"
+                  }`}
+                >
+                  {option.label}
+                </span>
+                {option.subtitle && (
+                  <span className="text-xs text-night/50 block mt-1 truncate">
+                    {option.subtitle}
+                  </span>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <h5 className="font-semibold text-sm mb-1">Par email</h5>
-                <p className="text-xs opacity-70 truncate">
-                  {formData.email || "Adresse email"}
-                </p>
-                <p className="text-xs mt-1">
-                  Réception instantanée dans votre boîte mail
-                </p>
-              </div>
-              {formData.otpMethod === "email" && (
-                <div className="w-4 h-4 bg-gold-metallic rounded-full flex items-center justify-center flex-shrink-0">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-              )}
             </label>
-          </div>
-
-          {/* SMS Option */}
-          <div className="relative">
-            <input
-              type="radio"
-              id="otpMethod-sms"
-              name="otpMethod"
-              value="sms"
-              checked={formData.otpMethod === "sms"}
-              onChange={onInputChange}
-              className="sr-only peer"
-            />
-            <label
-              htmlFor="otpMethod-sms"
-              className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
-                formData.otpMethod === "sms"
-                  ? "border-sama-primary-green bg-sama-primary-green/10 text-sama-primary-green"
-                  : "border-timberwolf/30 bg-white hover:bg-sama-primary-green/10 hover:border-sama-primary-green/50"
-              }`}
-            >
-              <div
-                className={`flex-shrink-0 p-2 rounded-lg ${
-                  formData.otpMethod === "sms"
-                    ? "bg-sama-primary-green text-white"
-                    : "bg-timberwolf/20 text-night/60"
-                }`}
-              >
-                <DevicePhoneMobileIcon className="w-5 h-5" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h5 className="font-semibold text-sm mb-1">Par SMS</h5>
-                <p className="text-xs opacity-70 truncate">
-                  {formData.phone || "Numéro de téléphone"}
-                </p>
-                <p className="text-xs mt-1">
-                  Message texte sur votre téléphone
-                </p>
-              </div>
-              {formData.otpMethod === "sms" && (
-                <div className="w-4 h-4 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0">
-                  <div className="w-2 h-2 bg-white rounded-full"></div>
-                </div>
-              )}
-            </label>
-          </div>
+          ))}
         </div>
+        {getFieldError("otpMethod") && (
+          <p className="text-red-500 text-sm mt-1">
+            {getFieldError("otpMethod")}
+          </p>
+        )}
         <p className="text-xs text-night/60 mt-2">
           Vous recevrez un code de vérification par cette méthode lors de
           l'étape suivante
