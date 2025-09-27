@@ -33,6 +33,8 @@ model User {
   idNumber           String?
   idType             String?
   metiers            String?
+  otpVerifiedAt      DateTime?
+  passwordHash       String?
   placeOfBirth       String?
   privacyAccepted    Boolean             @default(false)
   region             String?
@@ -186,4 +188,21 @@ enum AdminRole {
   ADMIN
   MANAGER
   SUPPORT
+}
+
+enum SessionType {
+  REGISTRATION
+  LOGIN
+}
+
+model RegistrationSession {
+  id        String      @id @default(cuid())
+  email     String
+  phone     String
+  data      String      // JSON string containing registration form data
+  type      SessionType @default(REGISTRATION)
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+
+  @@map("registration_sessions")
 }

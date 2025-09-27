@@ -20,6 +20,7 @@ export interface FormData {
   // Step 3: Address
   country: string;
   region: string;
+  department: string;
   district: string;
   address: string;
   city: string;
