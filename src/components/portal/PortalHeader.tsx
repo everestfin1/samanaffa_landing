@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { usePrefetchTransactions } from '../../hooks/useTransactions';
+import NotificationBell from '../notifications/NotificationBell';
 import {
   UserIcon,
   HomeIcon,
@@ -199,15 +200,7 @@ export default function PortalHeader({
             {(
               <div className="flex items-center space-x-2">
                 {/* Notifications Quick Access */}
-                <button
-                  onClick={() => router.push('/portal/notifications')}
-                  className="relative p-2.5 text-night/70 hover:text-night hover:bg-timberwolf/20 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2"
-                  aria-label="Notifications (raccourci)"
-                  title="Notifications (raccourci)"
-                >
-                  <BellIcon className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></span>
-                </button>
+                <NotificationBell />
 
                 {/* User Dropdown */}
                 <div className="relative">

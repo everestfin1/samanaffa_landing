@@ -241,3 +241,135 @@ export async function sendAdminNotificationEmail(
 
   await emailTransporter.sendMail(mailOptions)
 }
+
+// KYC Status Notification Functions
+export async function sendKYCStatusEmail(
+  userEmail: string,
+  userName: string,
+  kycStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW',
+  rejectionReasons?: string[]
+): Promise<void> {
+  let subject = ''
+  let statusMessage = ''
+  let statusColor = ''
+  let actionMessage = ''
+
+  switch (kycStatus) {
+    case 'APPROVED':
+      subject = 'Félicitations ! Votre KYC a été approuvé'
+      statusMessage = 'Votre dossier KYC a été approuvé avec succès'
+      statusColor = '#10b981'
+      actionMessage = 'Vous pouvez maintenant accéder à tous les services de Sama Naffa.'
+      break
+    case 'REJECTED':
+      subject = 'Mise à jour de votre dossier KYC'
+      statusMessage = 'Votre dossier KYC nécessite des corrections'
+      statusColor = '#ef4444'
+      actionMessage = 'Veuillez consulter les détails ci-dessous et soumettre les documents manquants ou corrigés.'
+      break
+    case 'UNDER_REVIEW':
+      subject = 'Votre dossier KYC est en cours de traitement'
+      statusMessage = 'Votre dossier KYC est actuellement en cours de révision'
+      statusColor = '#f59e0b'
+      actionMessage = 'Nous vous informerons dès que la révision sera terminée.'
+      break
+  }
+
+  let rejectionDetails = ''
+  if (kycStatus === 'REJECTED' && rejectionReasons && rejectionReasons.length > 0) {
+    rejectionDetails = `
+      <div style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin: 20px 0;">
+        <h4 style="color: #dc2626; margin: 0 0 10px 0;">Raisons du rejet :</h4>
+        <ul style="margin: 0; padding-left: 20px; color: #dc2626;">
+          ${rejectionReasons.map(reason => `<li style="margin: 5px 0;">${reason}</li>`).join('')}
+        </ul>
+      </div>
+    `
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: userEmail,
+    subject: subject,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Sama Naffa</h2>
+        <p>Bonjour ${userName},</p>
+        
+        <div style="background-color: #f8fafc; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid ${statusColor};">
+          <h3 style="color: ${statusColor}; margin: 0 0 10px 0;">${statusMessage}</h3>
+          <p style="margin: 0; color: #374151;">${actionMessage}</p>
+        </div>
+        
+        ${rejectionDetails}
+        
+        <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #374151;"><strong>Prochaines étapes :</strong></p>
+          ${kycStatus === 'APPROVED' 
+            ? '<p style="margin: 5px 0; color: #374151;">Vous pouvez maintenant effectuer des transactions et accéder à tous nos services.</p>'
+            : kycStatus === 'REJECTED'
+            ? '<p style="margin: 5px 0; color: #374151;">Connectez-vous à votre portail client pour soumettre les documents corrigés.</p>'
+            : '<p style="margin: 5px 0; color: #374151;">Nous vous contacterons dès que possible avec les résultats de la révision.</p>'
+          }
+        </div>
+        
+        <div style="background-color: #dbeafe; padding: 15px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 0; color: #1e40af;"><strong>Besoin d'aide ?</strong></p>
+          <p style="margin: 5px 0; color: #1e40af;">Notre équipe support est disponible pour vous accompagner. Contactez-nous si vous avez des questions.</p>
+        </div>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">L'équipe Sama Naffa</p>
+      </div>
+    `,
+  }
+
+  await emailTransporter.sendMail(mailOptions)
+}
+
+export async function sendKYCStatusSMS(
+  userPhone: string,
+  kycStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW'
+): Promise<void> {
+  let message = ''
+  
+  switch (kycStatus) {
+    case 'APPROVED':
+      message = 'Félicitations ! Votre KYC Sama Naffa a été approuvé. Vous pouvez maintenant accéder à tous nos services.'
+      break
+    case 'REJECTED':
+      message = 'Votre dossier KYC nécessite des corrections. Consultez votre portail client pour plus de détails.'
+      break
+    case 'UNDER_REVIEW':
+      message = 'Votre dossier KYC est en cours de révision. Nous vous informerons dès que possible.'
+      break
+  }
+
+  try {
+    const authHeader = Buffer.from(`${BULKSMS_USERNAME}:${BULKSMS_PASSWORD}`).toString('base64')
+    
+    const requestBody = {
+      to: userPhone,
+      body: message,
+    }
+    
+    const response = await fetch(BULKSMS_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Basic ' + authHeader,
+      },
+      body: JSON.stringify(requestBody),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(`BulkSMS API error (${response.status}): ${JSON.stringify(errorData)}`)
+    }
+
+    console.log('✅ KYC status SMS sent successfully:', await response.json())
+  } catch (error) {
+    console.error('❌ Error sending KYC status SMS:', error)
+    throw error
+  }
+}
