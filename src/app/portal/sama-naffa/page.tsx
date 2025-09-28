@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import SamaNaffaPortal from '../../../components/portal/SamaNaffaPortal';
 import PortalHeader from '../../../components/portal/PortalHeader';
-import KYCProtection from '../../../components/kyc/KYCProtection';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -77,28 +76,26 @@ export default function SamaNaffaPage() {
   }
 
   return (
-    <KYCProtection kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'}>
-      <div className="min-h-screen bg-gray-light">
-        <PortalHeader
-          userData={{
-            firstName: userData?.firstName || '',
-            lastName: userData?.lastName || '',
-            email: userData?.email || '',
-            phone: userData?.phone || '',
-            userId: userData?.id || '',
-            isNewUser: false,
-            kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING'
-          }}
-          kycStatus={userData?.kycStatus as KYCStatus}
-          activeTab="sama-naffa"
-          setActiveTab={() => {}} // Not used with navigation
-          onLogout={handleLogout}
-        />
-        
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <SamaNaffaPortal />
-        </main>
-      </div>
-    </KYCProtection>
+    <div className="min-h-screen bg-gray-light">
+      <PortalHeader
+        userData={{
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          userId: userData?.id || '',
+          isNewUser: false,
+          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING'
+        }}
+        kycStatus={userData?.kycStatus as KYCStatus}
+        activeTab="sama-naffa"
+        setActiveTab={() => {}} // Not used with navigation
+        onLogout={handleLogout}
+      />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <SamaNaffaPortal kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'} />
+      </main>
+    </div>
   );
 }

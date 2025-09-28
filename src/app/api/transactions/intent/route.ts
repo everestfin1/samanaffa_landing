@@ -73,6 +73,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check KYC status - only allow transactions for approved users
+    if (user.kycStatus !== 'APPROVED') {
+      return NextResponse.json(
+        { 
+          error: 'kyc_required',
+          message: 'Vérification d\'identité requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
+          kycStatus: user.kycStatus
+        },
+        { status: 403 }
+      )
+    }
+
     if (!user.accounts.length) {
       return NextResponse.json(
         { error: 'Account not found' },

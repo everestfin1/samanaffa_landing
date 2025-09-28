@@ -44,7 +44,11 @@ interface TransactionIntent {
   userNotes?: string;
 }
 
-export default function SamaNaffaPortal() {
+interface SamaNaffaPortalProps {
+  kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+}
+
+export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPortalProps) {
   const { data: session } = useSession();
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
@@ -449,6 +453,7 @@ export default function SamaNaffaPortal() {
         type={transferType}
         accountName="Mon Compte Naffa Principal"
         accountType="sama_naffa"
+        kycStatus={kycStatus}
         onConfirm={handleTransferConfirm}
       />
     </div>

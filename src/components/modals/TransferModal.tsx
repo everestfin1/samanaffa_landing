@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
 import IntouchPayment from '../payments/IntouchPayment';
+import KYCVerificationMessage from '../kyc/KYCVerificationMessage';
 
 interface TransferModalProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ interface TransferModalProps {
   currentBalance?: number;
   onConfirm: (data: TransferData) => void;
   accountType?: 'sama_naffa' | 'ape_investment';
+  kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 }
 
 interface TransferData {
@@ -28,7 +30,8 @@ export default function TransferModal({
   accountName,
   currentBalance = 0,
   onConfirm,
-  accountType = 'sama_naffa'
+  accountType = 'sama_naffa',
+  kycStatus = 'APPROVED'
 }: TransferModalProps) {
   const { data: session } = useSession();
   const [amount, setAmount] = useState<string>('');
@@ -119,6 +122,49 @@ export default function TransferModal({
   };
 
   if (!isOpen) return null;
+
+  // Show KYC verification message if user is not approved
+  if (kycStatus !== 'APPROVED') {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-night">
+              Vérification d'identité requise
+            </h3>
+            <button 
+              onClick={onClose}
+              className="text-night/60 hover:text-night"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-night/70 mb-4">
+              Pour effectuer des {type === 'deposit' ? 'dépôts' : 'retraits'}, votre identité doit être vérifiée.
+            </p>
+          </div>
+
+          <KYCVerificationMessage
+            kycStatus={kycStatus}
+            variant="modal"
+            onContactSupport={() => window.open('/contact', '_blank')}
+            onRestartRegistration={() => window.open('/register', '_blank')}
+          />
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-timberwolf/30 text-night rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // Show Intouch payment component
   if (showIntouchPayment && (session?.user as any)?.id) {

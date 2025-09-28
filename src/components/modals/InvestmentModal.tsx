@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
+import KYCVerificationMessage from '../kyc/KYCVerificationMessage';
 
 interface InvestmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: (data: InvestmentData) => void;
   preselectedTranche?: 'A' | 'B' | 'C' | 'D' | null;
+  kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 }
 
 interface InvestmentData {
@@ -27,7 +29,8 @@ export default function InvestmentModal({
   isOpen, 
   onClose, 
   onConfirm,
-  preselectedTranche
+  preselectedTranche,
+  kycStatus = 'APPROVED'
 }: InvestmentModalProps) {
   const [amount, setAmount] = useState<string>('100000');
   const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>(preselectedTranche || 'D');
@@ -88,6 +91,49 @@ export default function InvestmentModal({
   };
 
   if (!isOpen) return null;
+
+  // Show KYC verification message if user is not approved
+  if (kycStatus !== 'APPROVED') {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-xl font-bold text-night">
+              Vérification d'identité requise
+            </h3>
+            <button 
+              onClick={onClose}
+              className="text-night/60 hover:text-night"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mb-6">
+            <p className="text-night/70 mb-4">
+              Pour effectuer des investissements, votre identité doit être vérifiée.
+            </p>
+          </div>
+
+          <KYCVerificationMessage
+            kycStatus={kycStatus}
+            variant="modal"
+            onContactSupport={() => window.open('/contact', '_blank')}
+            onRestartRegistration={() => window.open('/register', '_blank')}
+          />
+
+          <div className="flex justify-end mt-6">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 border border-timberwolf/30 text-night rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
+            >
+              Fermer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const selectedOption = trancheOptions.find(t => t.value === tranche);
   const projectedValue = calculateProjectedValue(parseFloat(amount || '0'), tranche);
