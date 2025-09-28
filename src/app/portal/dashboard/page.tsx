@@ -26,7 +26,6 @@ import {
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import PortalHeader from '../../../components/portal/PortalHeader';
-import KYCStatusHandler from '../../../components/kyc/KYCStatusHandler';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -274,21 +273,6 @@ export default function DashboardPage() {
     </div>
   );
 
-  // Show KYC status handler for non-approved users
-  if (userData?.kycStatus !== 'APPROVED') {
-    return (
-      <KYCStatusHandler
-        kycStatus={userData?.kycStatus as KYCStatus}
-        userData={{
-          firstName: userData?.firstName || '',
-          lastName: userData?.lastName || '',
-          email: userData?.email || '',
-          phone: userData?.phone || ''
-        }}
-        onLogout={handleLogout}
-      />
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gray-light">
@@ -300,9 +284,9 @@ export default function DashboardPage() {
           phone: userData?.phone || '',
           userId: userData?.id || '',
           isNewUser: false,
-          kycStatus: userData?.kycStatus as any
+          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING'
         }}
-        kycStatus={userData?.kycStatus}
+        kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'}
         activeTab="dashboard"
         setActiveTab={() => {}} // Not used with navigation
         onLogout={handleLogout}

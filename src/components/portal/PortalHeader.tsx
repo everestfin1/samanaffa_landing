@@ -87,11 +87,7 @@ export default function PortalHeader({
   ];
 
   const handleTabChange = (tab: ActiveTab, href: string, requiresKYC: boolean = false) => {
-    // Check if KYC is required and user is not approved
-    if (requiresKYC && kycStatus !== 'APPROVED') {
-      // Don't navigate, just show a message or do nothing
-      return;
-    }
+    // Allow navigation to all pages - KYC blocking only applies to transactions
     router.push(href);
     setIsMobileMenuOpen(false);
   };
@@ -170,36 +166,27 @@ export default function PortalHeader({
               {navigationItems.map((item) => {
                 const IconComponent = item.icon;
                 const isActive = currentTab === item.id;
-                const isDisabled = item.requiresKYC && kycStatus !== 'APPROVED';
                 
                 return (
                   <button
                     key={item.id}
                     onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
                     onMouseEnter={handlePrefetchOnHover}
-                    disabled={isDisabled}
                     className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                       isActive
                         ? item.id === 'sama-naffa'
                           ? 'bg-sama-primary-green text-white shadow-sm'
                           : 'bg-gold-metallic text-white shadow-sm'
-                        : isDisabled
-                        ? 'text-night/30 cursor-not-allowed'
                         : 'text-night/70 hover:text-night hover:bg-timberwolf/10'
                     }`}
                     aria-label={item.ariaLabel}
                     aria-current={isActive ? 'page' : undefined}
-                    title={isDisabled ? 'KYC requis - En attente de validation' : item.ariaLabel}
+                    title={item.ariaLabel}
                   >
                     <IconComponent className={`w-4 h-4 flex-shrink-0 ${
-                      isActive ? 'text-white' : 
-                      isDisabled ? 'text-night/30' : 
-                      'text-night/70'
+                      isActive ? 'text-white' : 'text-night/70'
                     }`} />
                     <span>{item.label}</span>
-                    {isDisabled && (
-                      <span className="text-xs text-night/40">(KYC requis)</span>
-                    )}
                   </button>
                 );
               })}
@@ -334,35 +321,26 @@ export default function PortalHeader({
                 {navigationItems.map((item) => {
                   const IconComponent = item.icon;
                   const isActive = currentTab === item.id;
-                  const isDisabled = item.requiresKYC && kycStatus !== 'APPROVED';
                   
                   return (
                     <button
                       key={item.id}
                       onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
-                      disabled={isDisabled}
                       className={`flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 ${
                         isActive
                           ? item.id === 'sama-naffa'
                             ? 'bg-sama-primary-green text-white shadow-sm focus:outline-none focus:ring-2 focus:ring-sama-primary-green focus:ring-offset-2'
                             : 'bg-gold-metallic text-white shadow-sm'
-                          : isDisabled
-                          ? 'text-night/30 cursor-not-allowed'
                           : 'text-night/80 hover:text-night hover:bg-timberwolf/10'
                       }`}
                       aria-label={item.ariaLabel}
                       aria-current={isActive ? 'page' : undefined}
-                      title={isDisabled ? 'KYC requis - En attente de validation' : item.ariaLabel}
+                      title={item.ariaLabel}
                     >
                       <IconComponent className={`w-4 h-4 flex-shrink-0 ${
-                        isActive ? 'text-white' : 
-                        isDisabled ? 'text-night/30' : 
-                        'text-night/70'
+                        isActive ? 'text-white' : 'text-night/70'
                       }`} />
                       <span className="flex-1">{item.label}</span>
-                      {isDisabled && (
-                        <span className="text-xs text-night/40">(KYC requis)</span>
-                      )}
                       {isActive && (
                         <div className="w-1 h-4 bg-white rounded-sm"></div>
                       )}
@@ -430,6 +408,7 @@ export default function PortalHeader({
           aria-hidden="true"
         />
       )}
+
     </header>
   );
 }

@@ -59,7 +59,11 @@ interface Investment {
   totalValue: number;
 }
 
-export default function APEPortal() {
+interface APEPortalProps {
+  kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+}
+
+export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
   const { data: session } = useSession();
   const [showInvestmentModal, setShowInvestmentModal] = useState(false);
   const [selectedTranche, setSelectedTranche] = useState<'A' | 'B' | 'C' | 'D' | null>(null);
@@ -623,6 +627,7 @@ export default function APEPortal() {
         }}
         onConfirm={handleInvestmentConfirm}
         preselectedTranche={selectedTranche}
+        kycStatus={kycStatus}
       />
     </div>
   );

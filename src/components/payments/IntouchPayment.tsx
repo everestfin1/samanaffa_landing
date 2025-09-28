@@ -83,6 +83,11 @@ export default function IntouchPayment({
       const result = await response.json();
       
       if (!result.success) {
+        // Handle KYC verification error specifically
+        if (result.error === 'kyc_required') {
+          onError(`Vérification d'identité requise: ${result.message}`);
+          return;
+        }
         throw new Error(result.error || 'Erreur lors de la création de la transaction');
       }
 
