@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
+import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
+import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
 
 export async function PUT(
   request: NextRequest,
@@ -52,12 +54,110 @@ export async function PUT(
       }
     })
 
-    // If document is approved, update user's KYC status
-    if (verificationStatus.toUpperCase() === 'APPROVED') {
+    // Check if we need to update user's overall KYC status
+    const userDocuments = await prisma.kycDocument.findMany({
+      where: { userId: updatedDocument.userId },
+      select: { verificationStatus: true }
+    })
+
+    const approvedDocs = userDocuments.filter(doc => doc.verificationStatus === 'APPROVED').length
+    const rejectedDocs = userDocuments.filter(doc => doc.verificationStatus === 'REJECTED').length
+    const pendingDocs = userDocuments.filter(doc => doc.verificationStatus === 'PENDING').length
+
+    let newKycStatus = null
+    
+    // If all documents are approved, approve user KYC
+    if (approvedDocs > 0 && pendingDocs === 0 && rejectedDocs === 0) {
+      newKycStatus = 'APPROVED'
+    }
+    // If any documents are rejected, mark user KYC as rejected
+    else if (rejectedDocs > 0) {
+      newKycStatus = 'REJECTED'
+    }
+    // If there are still pending documents but some are processed, set to UNDER_REVIEW
+    else if (pendingDocs > 0 && (approvedDocs > 0 || rejectedDocs > 0)) {
+      newKycStatus = 'UNDER_REVIEW'
+    }
+
+    // Update user KYC status if needed
+    if (newKycStatus && newKycStatus !== updatedDocument.user.kycStatus) {
       await prisma.user.update({
         where: { id: updatedDocument.userId },
-        data: { kycStatus: 'APPROVED' }
+        data: { kycStatus: newKycStatus }
       })
+
+      // Create notification for status change
+      let title = ''
+      let message = ''
+      let notificationType = 'KYC_STATUS'
+      let priority = 'NORMAL'
+
+      switch (newKycStatus) {
+        case 'APPROVED':
+          title = 'KYC Approuvé'
+          message = 'Félicitations ! Votre dossier KYC a été approuvé avec succès.'
+          notificationType = 'SUCCESS'
+          priority = 'HIGH'
+          break
+        case 'REJECTED':
+          title = 'KYC Rejeté'
+          message = 'Votre dossier KYC nécessite des corrections. Veuillez consulter les détails.'
+          notificationType = 'ERROR'
+          priority = 'HIGH'
+          break
+        case 'UNDER_REVIEW':
+          title = 'KYC En Révision'
+          message = 'Votre dossier KYC est actuellement en cours de révision.'
+          notificationType = 'WARNING'
+          priority = 'NORMAL'
+          break
+      }
+
+      // Create in-app notification
+      try {
+        await prisma.notification.create({
+          data: {
+            userId: updatedDocument.userId,
+            title,
+            message,
+            type: notificationType,
+            priority,
+            metadata: JSON.stringify({
+              kycStatus: newKycStatus,
+              documentId: updatedDocument.id,
+              documentType: updatedDocument.documentType,
+              adminNotes: adminNotes
+            })
+          }
+        })
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError)
+      }
+
+      // Get notification settings
+      const notificationSettings = getServerSideNotificationSettings()
+
+      // Send email notification if enabled
+      if (shouldSendKYCEmail(newKycStatus as any, notificationSettings)) {
+        try {
+          await sendKYCStatusEmail(
+            updatedDocument.user.email,
+            `${updatedDocument.user.firstName} ${updatedDocument.user.lastName}`,
+            newKycStatus as any
+          )
+        } catch (emailError) {
+          console.error('Error sending KYC status email:', emailError)
+        }
+      }
+
+      // Send SMS notification if enabled and configured
+      if (shouldSendKYCSMS(newKycStatus as any, notificationSettings)) {
+        try {
+          await sendKYCStatusSMS(updatedDocument.user.phone, newKycStatus as any)
+        } catch (smsError) {
+          console.error('Error sending KYC status SMS:', smsError)
+        }
+      }
     }
 
     return NextResponse.json({

@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Button from '@/components/common/Button'
+import NotificationManagement from '@/components/admin/NotificationManagement'
+import NotificationSettings from '@/components/admin/NotificationSettings'
 import { 
   Users, 
   FileText, 
@@ -100,7 +102,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -745,6 +747,8 @@ export default function AdminDashboard() {
               { id: 'users', label: 'Users', icon: Users },
               { id: 'transactions', label: 'Transactions', icon: CreditCard },
               { id: 'kyc', label: 'KYC Review', icon: FileText },
+              { id: 'notifications', label: 'Notifications', icon: MessageSquare },
+              { id: 'settings', label: 'Settings', icon: Shield },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -1610,6 +1614,30 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Notifications Tab */}
+        {activeTab === 'notifications' && (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center space-x-2">
+                  <MessageSquare className="h-5 w-5" />
+                  <span>Send KYC Status Notification</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <NotificationManagement />
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <div className="space-y-6">
+            <NotificationSettings />
           </div>
         )}
       </div>
