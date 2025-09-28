@@ -1,81 +1,66 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import PhoneInput from '@/components/ui/PhoneInput';
 import {
-  DevicePhoneMobileIcon,
-  ShieldCheckIcon,
-  ArrowRightIcon,
   EnvelopeIcon,
+  DevicePhoneMobileIcon,
+  ArrowRightIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  EyeIcon,
-  EyeSlashIcon
+  LockClosedIcon
 } from '@heroicons/react/24/outline';
+import PhoneInput from '@/components/ui/PhoneInput';
 
-function LoginForm() {
+function ForgotPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [formData, setFormData] = useState({
-    contact: '', // Unified field for email or phone
-    phone: '', // Separate phone field for react-phone-input-2
-    password: '',
+    contact: '',
+    phone: '',
     otp: '',
-    rememberMe: false
+    newPassword: '',
+    confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [step, setStep] = useState<'email' | 'password' | 'otp'>('email');
+  const [step, setStep] = useState<'email' | 'otp' | 'password'>('email');
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
   const [phoneValidation, setPhoneValidation] = useState({ isValid: true, error: '' });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  // Utility functions for input validation and detection
+  // Utility functions
   const isValidEmail = (value: string): boolean => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    return emailRegex.test(value)
-  }
-
-  const detectInputType = (value: string, phoneValue?: string): 'email' | 'phone' | null => {
-    if (isValidEmail(value)) return 'email'
-    if (phoneValue && phoneValue.length > 5) return 'phone' // Phone input validation
-    return null
-  }
-
-  // Handle phone validation changes from PhoneInput component
-  const handlePhoneValidationChange = (isValid: boolean, error?: string) => {
-    setPhoneValidation({ isValid, error: error || '' });
-    // Clear general error when phone validation changes
-    if (error) setError('');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(value);
   };
 
-  // Check for success message from registration
-  useEffect(() => {
-    const message = searchParams.get('message');
-    if (message === 'registration_success') {
-      setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter avec vos identifiants.');
-    }
-  }, [searchParams]);
+  const detectInputType = (value: string, phoneValue?: string): 'email' | 'phone' | null => {
+    if (isValidEmail(value)) return 'email';
+    if (phoneValue && phoneValue.length > 5) return 'phone';
+    return null;
+  };
+
+  const handlePhoneValidationChange = (isValid: boolean, error?: string) => {
+    setPhoneValidation({ isValid, error: error || '' });
+    if (error) setError('');
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
 
-    // Clear the other field when user starts typing in one field
     if (name === 'contact' && value && formData.phone) {
-      // User is typing email, clear phone field
       setFormData(prev => ({
         ...prev,
         contact: value,
-        phone: '' // Clear phone when email is being filled
+        phone: ''
       }));
-      setPhoneValidation({ isValid: true, error: '' }); // Reset phone validation
+      setPhoneValidation({ isValid: true, error: '' });
     } else {
-      // Handle both text inputs and checkboxes
       const fieldValue = type === 'checkbox' ? checked : value;
       setFormData(prev => ({
         ...prev,
@@ -83,20 +68,17 @@ function LoginForm() {
       }));
     }
 
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
   const handlePhoneChange = (value: string | undefined) => {
     const phoneValue = value || '';
 
-    // Clear email field when user starts typing phone
     if (phoneValue && formData.contact) {
-      // User is typing phone, clear email field
       setFormData(prev => ({
         ...prev,
         phone: phoneValue,
-        contact: '' // Clear email when phone is being filled
+        contact: ''
       }));
     } else {
       setFormData(prev => ({
@@ -105,11 +87,10 @@ function LoginForm() {
       }));
     }
 
-    // Clear error when user starts typing
     if (error) setError('');
   };
 
-  // OTP Timer countdown
+  // OTP Timer
   const startOtpTimer = () => {
     setOtpTimer(300); // 5 minutes
     const interval = setInterval(() => {
@@ -129,27 +110,15 @@ function LoginForm() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Send OTP for password reset
+  const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
     setSuccess('');
 
-    // Check if both fields are filled (should not happen due to input handlers, but safety check)
-    if (formData.contact && formData.phone) {
-      setError('Veuillez choisir soit l\'email soit le numéro de téléphone, pas les deux');
-      setIsLoading(false);
-      return;
-    }
-
     if (!formData.contact && !formData.phone) {
       setError('Veuillez saisir votre email ou numéro de téléphone');
-      setIsLoading(false);
-      return;
-    }
-
-    if (!formData.password) {
-      setError('Veuillez saisir votre mot de passe');
       setIsLoading(false);
       return;
     }
@@ -161,7 +130,6 @@ function LoginForm() {
       return;
     }
 
-    // Additional phone validation check
     if (inputType === 'phone' && !phoneValidation.isValid) {
       setError(phoneValidation.error || 'Numéro de téléphone invalide');
       setIsLoading(false);
@@ -171,66 +139,9 @@ function LoginForm() {
     try {
       let requestBody;
       if (inputType === 'email') {
-        requestBody = { email: formData.contact, phone: null, password: formData.password, type: 'login' };
+        requestBody = { email: formData.contact, phone: null, type: 'password_reset' };
       } else {
-        // Use the phone value from react-phone-input-2 (already validated)
-        requestBody = { email: null, phone: formData.phone, password: formData.password, type: 'login' };
-      }
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('Connexion réussie !');
-        // Use NextAuth signIn for session management
-        const result = await signIn('credentials', {
-          email: inputType === 'email' ? formData.contact : null,
-          phone: inputType === 'phone' ? formData.phone : null,
-          password: formData.password,
-          type: 'login',
-          redirect: false
-        });
-
-        if (result?.error) {
-          setError('Identifiants incorrects');
-        } else if (result?.ok) {
-          router.push('/portal/dashboard');
-        }
-      } else {
-        if (data.error === 'password_not_set') {
-          // User exists but no password set, offer OTP login
-          setStep('otp');
-          await handleSendOTP();
-        } else {
-          setError(data.error || 'Erreur lors de la connexion');
-        }
-      }
-    } catch (error) {
-      setError('Erreur de connexion. Veuillez réessayer.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSendOTP = async () => {
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      let requestBody;
-      const inputType = detectInputType(formData.contact, formData.phone);
-      if (inputType === 'email') {
-        requestBody = { email: formData.contact, phone: null, type: 'login' };
-      } else {
-        requestBody = { email: null, phone: formData.phone, type: 'login' };
+        requestBody = { email: null, phone: formData.phone, type: 'password_reset' };
       }
 
       const response = await fetch('/api/auth/send-otp', {
@@ -258,6 +169,7 @@ function LoginForm() {
     }
   };
 
+  // Verify OTP and proceed to password reset
   const handleVerifyOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -272,21 +184,82 @@ function LoginForm() {
 
     try {
       const inputType = detectInputType(formData.contact, formData.phone);
-      let signInData;
-      if (inputType === 'email') {
-        signInData = { email: formData.contact, phone: null, otp: formData.otp, type: 'login', redirect: false };
+      const response = await fetch('/api/auth/verify-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inputType === 'email' ? formData.contact : null,
+          phone: inputType === 'phone' ? formData.phone : null,
+          otp: formData.otp,
+          type: 'password_reset'
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccess('Code OTP vérifié. Vous pouvez maintenant définir un nouveau mot de passe.');
+        setStep('password');
       } else {
-        // Use the phone value from react-phone-input-2 (already validated)
-        signInData = { email: null, phone: formData.phone, otp: formData.otp, type: 'login', redirect: false };
+        setError(data.error || 'Code OTP invalide ou expiré');
       }
+    } catch (error) {
+      setError('Erreur de connexion. Veuillez réessayer.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      const result = await signIn('credentials', signInData);
+  // Reset password
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    setSuccess('');
 
-      if (result?.error) {
-        setError('Code OTP invalide ou expiré');
-      } else if (result?.ok) {
-        setSuccess('Connexion réussie !');
-        router.push('/portal/dashboard');
+    if (!formData.newPassword) {
+      setError('Le nouveau mot de passe est requis');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.newPassword.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères');
+      setIsLoading(false);
+      return;
+    }
+
+    if (formData.newPassword !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const inputType = detectInputType(formData.contact, formData.phone);
+      const response = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: inputType === 'email' ? formData.contact : null,
+          phone: inputType === 'phone' ? formData.phone : null,
+          newPassword: formData.newPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSuccess('Mot de passe réinitialisé avec succès !');
+        setTimeout(() => {
+          router.push('/login?message=password_reset_success');
+        }, 2000);
+      } else {
+        setError(data.error || 'Erreur lors de la réinitialisation du mot de passe');
       }
     } catch (error) {
       setError('Erreur de connexion. Veuillez réessayer.');
@@ -297,62 +270,7 @@ function LoginForm() {
 
   const handleResendOTP = async () => {
     if (otpTimer > 0) return;
-
-    setIsLoading(true);
-    setError('');
-    setSuccess('');
-
-    // Check if both fields are filled (should not happen due to input handlers, but safety check)
-    if (formData.contact && formData.phone) {
-      setError('Veuillez choisir soit l\'email soit le numéro de téléphone, pas les deux');
-      setIsLoading(false);
-      return;
-    }
-
-    const inputType = detectInputType(formData.contact, formData.phone);
-    if (!inputType) {
-      setError('Veuillez saisir un email valide ou un numéro de téléphone valide');
-      setIsLoading(false);
-      return;
-    }
-
-    // Additional phone validation check
-    if (inputType === 'phone' && !phoneValidation.isValid) {
-      setError(phoneValidation.error || 'Numéro de téléphone invalide');
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      let requestBody;
-      if (inputType === 'email') {
-        requestBody = { email: formData.contact, phone: null, type: 'login' };
-      } else {
-        // Use the phone value from react-phone-input-2 (already validated)
-        requestBody = { email: null, phone: formData.phone, type: 'login' };
-      }
-
-      const response = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('Code OTP renvoyé avec succès');
-        startOtpTimer();
-      } else {
-        setError(data.error || 'Erreur lors du renvoi du code OTP');
-      }
-    } catch (error) {
-      setError('Erreur de connexion. Veuillez réessayer.');
-    } finally {
-      setIsLoading(false);
-    }
+    await handleSendOTP();
   };
 
   return (
@@ -360,21 +278,24 @@ function LoginForm() {
       <div className="max-w-md w-full">
         {/* Header */}
         <div className="text-center mb-8">
+          <div className="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <LockClosedIcon className="w-8 h-8 text-red-600" />
+          </div>
           <h1 className="text-3xl font-bold text-night mb-2">
-            {step === 'email' ? 'Connexion' : 'Vérification OTP'}
+            {step === 'email' ? 'Mot de passe oublié' : 
+             step === 'otp' ? 'Vérification OTP' : 'Nouveau mot de passe'}
           </h1>
           <p className="text-night/70">
-            {step === 'email' 
-              ? 'Accédez à votre portail client Sama Naffa'
-              : 'Saisissez le code de vérification envoyé'
-            }
+            {step === 'email' ? 'Réinitialisez votre mot de passe en toute sécurité' :
+             step === 'otp' ? 'Vérifiez votre identité avec le code envoyé' :
+             'Définissez un nouveau mot de passe sécurisé'}
           </p>
         </div>
 
-        {/* Login Form */}
+        {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-timberwolf/10">
           {step === 'email' ? (
-            <form onSubmit={handleLogin} className="space-y-6">
+            <form onSubmit={handleSendOTP} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
                   <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
@@ -402,9 +323,6 @@ function LoginForm() {
                     className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
                     placeholder="votre@email.com"
                   />
-                  <p className="text-xs text-night/60 mt-1">
-                    Format: email@domain.com
-                  </p>
                 </div>
 
                 <div className="text-center text-night/70 text-sm font-medium py-2">
@@ -420,102 +338,31 @@ function LoginForm() {
                   placeholder="77 123 45 67"
                   required
                 />
-
-                <div className="text-center text-sm text-night/60 mt-3">
-                  <p className="bg-gold-metallic/5 px-3 py-2 rounded-lg">
-                    💡 Choisissez <strong>soit l'email</strong> soit <strong>le numéro de téléphone</strong> pour vous connecter
-                  </p>
-                </div>
-              </div>
-
-              {/* Password Field */}
-              <div>
-                <label className="block text-sm font-medium text-night mb-2">
-                  Mot de passe *
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    name="password"
-                    value={formData.password}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
-                    placeholder="Votre mot de passe"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-timberwolf/60 hover:text-timberwolf"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="w-5 h-5" />
-                    ) : (
-                      <EyeIcon className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="rememberMe"
-                  name="rememberMe"
-                  checked={formData.rememberMe}
-                  onChange={handleInputChange}
-                  className="w-4 h-4 text-gold-metallic border-timberwolf/30 rounded focus:ring-gold-metallic"
-                />
-                <label htmlFor="rememberMe" className="ml-2 text-sm text-night/70">
-                  Se souvenir de moi
-                </label>
               </div>
 
               <button
                 type="submit"
-                disabled={isLoading || (!formData.contact && !formData.phone) || (!!formData.contact && !!formData.phone) || !formData.password}
+                disabled={isLoading || (!formData.contact && !formData.phone)}
                 className={`w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
-                  isLoading || (!formData.contact && !formData.phone) || (!!formData.contact && !!formData.phone) || !formData.password
+                  isLoading || (!formData.contact && !formData.phone)
                     ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
                     : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
                 }`}
               >
                 {isLoading ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-night/30 border-t-night rounded-full animate-spin" />
-                    <span>Connexion...</span>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Envoi en cours...</span>
                   </>
                 ) : (
                   <>
-                    <span>Se connecter</span>
+                    <span>Envoyer le code de réinitialisation</span>
                     <ArrowRightIcon className="w-5 h-5" />
                   </>
                 )}
               </button>
-
-              {/* Alternative Login Options */}
-              <div className="text-center space-y-3">
-                <div className="text-sm text-night/60">
-                  <button
-                    type="button"
-                    onClick={() => setStep('otp')}
-                    className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
-                  >
-                    Connexion par code OTP
-                  </button>
-                </div>
-                <div className="text-sm text-night/60">
-                  <button
-                    type="button"
-                    onClick={() => router.push('/forgot-password')}
-                    className="text-timberwolf/60 hover:text-timberwolf transition-colors"
-                  >
-                    Mot de passe oublié ?
-                  </button>
-                </div>
-              </div>
             </form>
-          ) : (
+          ) : step === 'otp' ? (
             <form onSubmit={handleVerifyOTP} className="space-y-6">
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
@@ -580,7 +427,7 @@ function LoginForm() {
                 >
                   {isLoading ? (
                     <>
-                      <div className="w-5 h-5 border-2 border-night/30 border-t-night rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       <span>Vérification...</span>
                     </>
                   ) : (
@@ -592,7 +439,7 @@ function LoginForm() {
                 </button>
               </div>
 
-              <div className="text-center space-y-3">
+              <div className="text-center">
                 <button
                   type="button"
                   onClick={handleResendOTP}
@@ -608,38 +455,115 @@ function LoginForm() {
                     : 'Renvoyer le code'
                   }
                 </button>
-                <div className="text-sm text-night/60">
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleResetPassword} className="space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
+                  <p className="text-red-800 text-sm">{error}</p>
+                </div>
+              )}
+
+              {success && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                  <p className="text-green-800 text-sm">{success}</p>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-night mb-2">
+                  Nouveau mot de passe *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    name="newPassword"
+                    value={formData.newPassword}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
+                    placeholder="Nouveau mot de passe"
+                    required
+                  />
                   <button
                     type="button"
-                    onClick={() => setStep('email')}
-                    className="text-timberwolf/60 hover:text-timberwolf transition-colors"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-timberwolf/60 hover:text-timberwolf"
                   >
-                    Connexion par mot de passe
+                    {showPassword ? (
+                      <EyeSlashIcon className="w-5 h-5" />
+                    ) : (
+                      <EyeIcon className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-night mb-2">
+                  Confirmer le nouveau mot de passe *
+                </label>
+                <div className="relative">
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    name="confirmPassword"
+                    value={formData.confirmPassword}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
+                    placeholder="Confirmez le nouveau mot de passe"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-timberwolf/60 hover:text-timberwolf"
+                  >
+                    {showConfirmPassword ? (
+                      <EyeSlashIcon className="w-5 h-5" />
+                    ) : (
+                      <EyeIcon className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading || !formData.newPassword || formData.newPassword !== formData.confirmPassword}
+                className={`w-full flex items-center justify-center space-x-2 py-3 px-6 rounded-lg font-semibold transition-colors ${
+                  isLoading || !formData.newPassword || formData.newPassword !== formData.confirmPassword
+                    ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
+                    : 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
+                }`}
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Réinitialisation...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Réinitialiser le mot de passe</span>
+                    <ArrowRightIcon className="w-5 h-5" />
+                  </>
+                )}
+              </button>
             </form>
           )}
 
-          {/* Sign Up Link */}
+          {/* Back to Login */}
           <div className="mt-8 text-center">
             <p className="text-night/70 text-sm">
-              Pas encore de compte ?{' '}
+              Vous vous souvenez de votre mot de passe ?{' '}
               <button 
-                onClick={() => router.push('/register')}
+                onClick={() => router.push('/login')}
                 className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
               >
-                Créer un Naffa
+                Se connecter
               </button>
             </p>
-          </div>
-        </div>
-
-        {/* Security Notice */}
-        <div className="mt-6 bg-white/50 rounded-lg p-4 text-center">
-          <div className="flex items-center justify-center space-x-2 text-sm text-night/60">
-            <ShieldCheckIcon className="w-4 h-4" />
-            <span>Connexion sécurisée - Chiffrement SSL</span>
           </div>
         </div>
       </div>
@@ -647,10 +571,14 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function ForgotPasswordPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-gradient-to-br from-white-smoke to-timberwolf/20 flex items-center justify-center"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-metallic"></div></div>}>
-      <LoginForm />
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-br from-white-smoke to-timberwolf/20 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gold-metallic"></div>
+      </div>
+    }>
+      <ForgotPasswordForm />
     </Suspense>
   );
 }

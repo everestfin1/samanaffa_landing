@@ -64,11 +64,12 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Timer for OTP expiration
   const startOtpTimer = () => {
-    setOtpTimer(30);
+    setOtpTimer(300);
     const timer = setInterval(() => {
       setOtpTimer(prev => {
         if (prev <= 1) {
@@ -151,6 +152,84 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
     }
   };
 
+  // Upload KYC files to Vercel Blob
+  const uploadKYCFiles = async (userId: string) => {
+    const uploadPromises = [];
+
+    // Upload selfie
+    if (formData.selfieImage) {
+      const selfieFormData = new FormData();
+      selfieFormData.append('file', formData.selfieImage);
+      selfieFormData.append('userId', userId);
+      selfieFormData.append('documentType', 'selfie');
+
+      uploadPromises.push(
+        fetch('/api/kyc/upload', {
+          method: 'POST',
+          body: selfieFormData,
+        })
+      );
+    }
+
+    // Upload ID front
+    if (formData.idFrontImage) {
+      const idFrontFormData = new FormData();
+      idFrontFormData.append('file', formData.idFrontImage);
+      idFrontFormData.append('userId', userId);
+      idFrontFormData.append('documentType', formData.idType === 'cni' ? 'national_id' : 'passport');
+
+      uploadPromises.push(
+        fetch('/api/kyc/upload', {
+          method: 'POST',
+          body: idFrontFormData,
+        })
+      );
+    }
+
+    // Upload ID back (only for CNI)
+    if (formData.idBackImage && formData.idType === 'cni') {
+      const idBackFormData = new FormData();
+      idBackFormData.append('file', formData.idBackImage);
+      idBackFormData.append('userId', userId);
+      idBackFormData.append('documentType', 'national_id_back');
+
+      uploadPromises.push(
+        fetch('/api/kyc/upload', {
+          method: 'POST',
+          body: idBackFormData,
+        })
+      );
+    }
+
+    // Upload signature file if exists
+    if (formData.signatureFile) {
+      const signatureFormData = new FormData();
+      signatureFormData.append('file', formData.signatureFile);
+      signatureFormData.append('userId', userId);
+      signatureFormData.append('documentType', 'signature');
+
+      uploadPromises.push(
+        fetch('/api/kyc/upload', {
+          method: 'POST',
+          body: signatureFormData,
+        })
+      );
+    }
+
+    // Execute all uploads in parallel
+    if (uploadPromises.length > 0) {
+      const uploadResults = await Promise.all(uploadPromises);
+      
+      // Check if any upload failed
+      for (const result of uploadResults) {
+        if (!result.ok) {
+          const errorData = await result.json();
+          throw new Error(errorData.error || 'Erreur lors du téléchargement des documents');
+        }
+      }
+    }
+  };
+
   // Verify OTP and create account
   const handleVerifyAndCreate = async () => {
     if (!sessionId || !otpCode) return;
@@ -159,6 +238,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
     setError(null);
 
     try {
+      // First, verify OTP and create account
       const response = await fetch('/api/auth/verify-and-create-account', {
         method: 'POST',
         headers: {
@@ -173,8 +253,29 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
       const data = await response.json();
 
       if (data.success) {
-        // Success! Account created
-        onSuccess();
+        // Upload KYC files after account creation
+        setIsUploading(true);
+        try {
+          await uploadKYCFiles(data.user.id);
+          // Success! Account created and files uploaded
+          // Redirect to password setup for new users
+          if (data.redirectUrl && data.redirectUrl.includes('password_setup_required')) {
+            router.push(`/setup-password?userId=${data.user.id}`);
+          } else {
+            onSuccess();
+          }
+        } catch (uploadError) {
+          console.error('Error uploading KYC files:', uploadError);
+          setError('Compte créé mais erreur lors du téléchargement des documents. Veuillez les télécharger manuellement depuis votre profil.');
+          // Still redirect to password setup since account was created
+          if (data.redirectUrl && data.redirectUrl.includes('password_setup_required')) {
+            router.push(`/setup-password?userId=${data.user.id}`);
+          } else {
+            onSuccess();
+          }
+        } finally {
+          setIsUploading(false);
+        }
       } else {
         setError(data.error || 'Erreur lors de la vérification du code OTP');
       }
@@ -319,9 +420,9 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
             <button
               type="button"
               onClick={handleVerifyAndCreate}
-              disabled={otpCode.length !== 6 || isLoading}
+              disabled={otpCode.length !== 6 || isLoading || isUploading}
               className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
-                otpCode.length === 6 && !isLoading
+                otpCode.length === 6 && !isLoading && !isUploading
                   ? 'bg-sama-primary-green hover:bg-sama-primary-green/90 text-white shadow-lg hover:shadow-xl'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
@@ -330,6 +431,11 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
                 <>
                   <ArrowPathIcon className="w-4 h-4 animate-spin" />
                   <span>Vérification...</span>
+                </>
+              ) : isUploading ? (
+                <>
+                  <ArrowPathIcon className="w-4 h-4 animate-spin" />
+                  <span>Téléchargement des documents...</span>
                 </>
               ) : (
                 <>
@@ -342,9 +448,9 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
             <button
               type="button"
               onClick={handleResendOTP}
-              disabled={otpTimer > 0 || isLoading}
+              disabled={otpTimer > 0 || isLoading || isUploading}
               className={`px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
-                otpTimer > 0 || isLoading
+                otpTimer > 0 || isLoading || isUploading
                   ? 'text-green-400 cursor-not-allowed bg-green-100'
                   : 'text-gold-metallic hover:text-gold-metallic/80 bg-gold-metallic/10 hover:bg-gold-metallic/20'
               }`}
