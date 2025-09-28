@@ -19,10 +19,10 @@ interface InvestmentData {
 }
 
 const trancheOptions = [
-  { value: 'A' as const, label: 'Tranche A', term: 3, rate: 6.40, description: 'Court terme - 3 ans' },
-  { value: 'B' as const, label: 'Tranche B', term: 5, rate: 6.60, description: 'Moyen terme - 5 ans' },
-  { value: 'C' as const, label: 'Tranche C', term: 7, rate: 6.75, description: 'Long terme - 7 ans' },
-  { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans' }
+  { value: 'A' as const, label: 'Tranche A', term: 3, rate: 6.40, description: 'Court terme - 3 ans', isin: 'SN0000004268' },
+  { value: 'B' as const, label: 'Tranche B', term: 5, rate: 6.60, description: 'Moyen terme - 5 ans', isin: 'SN0000004276' },
+  { value: 'C' as const, label: 'Tranche C', term: 7, rate: 6.75, description: 'Long terme - 7 ans', isin: 'SN0000004284' },
+  { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans', isin: 'SN0000004292' }
 ];
 
 export default function InvestmentModal({ 
@@ -81,7 +81,7 @@ export default function InvestmentModal({
     
     // Redirect to WhatsApp instead of creating intent
     const message = encodeURIComponent(
-      `Bonjour, je souhaite investir ${investmentAmount.toLocaleString()} FCFA dans la ${selectedOption?.label} (${selectedOption?.rate}% sur ${selectedOption?.term} ans). Pouvez-vous m'aider avec le traitement du paiement ?`
+      `Bonjour, je souhaite investir ${investmentAmount.toLocaleString()} FCFA dans la ${selectedOption?.label} (${selectedOption?.rate}% sur ${selectedOption?.term} ans) - ISIN: ${selectedOption?.isin}. Pouvez-vous m'aider avec le traitement du paiement ?`
     );
     const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
     window.open(whatsappUrl, '_blank');
@@ -159,6 +159,7 @@ export default function InvestmentModal({
                 <div>
                   <h4 className="font-semibold text-gold-dark">{selectedOption?.label}</h4>
                   <p className="text-sm text-night/60">{selectedOption?.description}</p>
+                  <p className="text-xs text-night/50 font-mono mt-1">ISIN: {selectedOption?.isin}</p>
                 </div>
                 <div className="text-right">
                   <div className="text-lg font-bold text-gold-metallic">{selectedOption?.rate}%</div>

@@ -10,9 +10,12 @@ import {
   ArrowDownIcon,
   InformationCircleIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  PlusIcon
 } from '@heroicons/react/24/outline';
 import TransferModal from '../modals/TransferModal';
+import CreateNaffaModal from '../modals/CreateNaffaModal';
+import { NaffaType } from '../data/naffaTypes';
 import Image from 'next/image';
 
 interface UserAccount {
@@ -51,6 +54,7 @@ interface SamaNaffaPortalProps {
 export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPortalProps) {
   const { data: session } = useSession();
   const [showTransferModal, setShowTransferModal] = useState(false);
+  const [showCreateNaffaModal, setShowCreateNaffaModal] = useState(false);
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [showBalance, setShowBalance] = useState(false);
@@ -156,6 +160,13 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
     // This function is no longer used since we redirect to WhatsApp directly
     // The modal now handles the WhatsApp redirect internally
     setShowTransferModal(false);
+  };
+
+  const handleCreateNaffa = (naffaType: NaffaType) => {
+    // TODO: Implement backend integration for creating new Naffa
+    console.log('Creating Naffa:', naffaType);
+    // For now, just show a success message
+    alert(`Naffa "${naffaType.name}" sera créé prochainement. Cette fonctionnalité sera bientôt disponible.`);
   };
 
   // Loading state
@@ -264,6 +275,13 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-xl font-bold text-night">Mon Naffa</h3>
+          <button
+            onClick={() => setShowCreateNaffaModal(true)}
+            className="flex items-center space-x-2 bg-sama-primary-green text-white px-4 py-2 rounded-lg font-medium hover:bg-sama-secondary-green-dark transition-colors"
+          >
+            <PlusIcon className="w-5 h-5" />
+            <span>Créer un Naffa</span>
+          </button>
         </div>
 
         {/* Account Balance Card */}
@@ -455,6 +473,13 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         accountType="sama_naffa"
         kycStatus={kycStatus}
         onConfirm={handleTransferConfirm}
+      />
+
+      {/* Create Naffa Modal */}
+      <CreateNaffaModal
+        isOpen={showCreateNaffaModal}
+        onClose={() => setShowCreateNaffaModal(false)}
+        onSelectNaffa={handleCreateNaffa}
       />
     </div>
   );
