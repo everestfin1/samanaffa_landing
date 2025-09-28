@@ -3,13 +3,13 @@
 import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
-  EnvelopeIcon,
-  DevicePhoneMobileIcon,
   ArrowRightIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  LockClosedIcon
+  LockClosedIcon,
+  EyeSlashIcon,
+  EyeIcon
 } from '@heroicons/react/24/outline';
 import PhoneInput from '@/components/ui/PhoneInput';
 
@@ -270,7 +270,7 @@ function ForgotPasswordForm() {
 
   const handleResendOTP = async () => {
     if (otpTimer > 0) return;
-    await handleSendOTP();
+    await handleSendOTP({ preventDefault: () => {} } as React.FormEvent);
   };
 
   return (
