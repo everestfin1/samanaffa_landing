@@ -318,7 +318,7 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                 <div className="flex justify-between items-end">
                   <div>
                     <p className="text-white/70 text-xs">Taux d'intérêt</p>
-                    <p className="text-lg font-semibold">7.5% annuel</p>
+                    <p className="text-lg font-semibold">4.5% annuel</p>
                   </div>
                   <div className="text-right">
                     <p className="text-white/70 text-xs">Statut</p>

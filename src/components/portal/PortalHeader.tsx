@@ -227,7 +227,7 @@ export default function PortalHeader({
                       <span className="text-sm font-medium text-night/80 truncate">
                         Bonjour, {userData.firstName}
                       </span>
-                      <span className="text-xs text-night/50 truncate">{userData.email}</span>
+                      <span className="text-xs text-night/50 truncate">{userData.phone}</span>
                     </div>
                     <svg 
                       className={`w-4 h-4 transition-transform ${isUserDropdownOpen ? 'rotate-180' : ''}`} 

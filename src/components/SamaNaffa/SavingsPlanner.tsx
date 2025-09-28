@@ -33,8 +33,11 @@ const calculerCapitalFinal = (
 };
 
 // --- PROPS ---
+interface SavingsPlannerProps {
+  redirectTo?: 'register' | 'sama-naffa';
+}
 
-export const SavingsPlanner: React.FC = () => {
+export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 'register' }) => {
   // --- ROUTER & CONTEXT ---
   const router = useRouter();
   const { setSelectionData } = useSelection();
@@ -113,8 +116,12 @@ export const SavingsPlanner: React.FC = () => {
       selectedObjective: simulationMode === 'objective' ? selectedObjective || undefined : undefined,
     });
 
-    // Navigate directly to registration
-    router.push('/register');
+    // Navigate based on the redirectTo prop
+    if (redirectTo === 'sama-naffa') {
+      router.push('/portal/sama-naffa');
+    } else {
+      router.push('/register');
+    }
   }
 
   // --- RENDER LOGIC ---
