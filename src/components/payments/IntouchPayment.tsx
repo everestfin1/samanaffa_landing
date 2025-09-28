@@ -161,6 +161,8 @@ export default function IntouchPayment({
         document.head.removeChild(existingScript);
       }
     };
+    
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array since handlePayment doesn't depend on changing props
 
   // Listen for payment completion
