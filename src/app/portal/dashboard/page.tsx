@@ -26,6 +26,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -212,6 +213,18 @@ export default function DashboardPage() {
           </button>
 
           {/* Comparison tool removed as per simplification requirements */}
+        </div>
+      </div>
+
+      {/* Savings Planner Section */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-night">Planificateur d'épargne</h2>
+          <div className="h-px bg-gradient-to-r from-gold-metallic/20 to-transparent flex-1 ml-4"></div>
+        </div>
+        
+        <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
+          <SavingsPlanner redirectTo="sama-naffa" />
         </div>
       </div>
 
