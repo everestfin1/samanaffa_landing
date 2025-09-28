@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { normalizeInternationalPhone } from '@/lib/utils'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
@@ -20,15 +21,38 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find user by email or phone
-    const user = await prisma.user.findFirst({
-      where: {
-        OR: [
-          ...(email ? [{ email }] : []),
-          ...(phone ? [{ phone }] : [])
-        ]
+    // Normalize phone number if provided
+    const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
+
+    // Find user by email or phone (try multiple phone formats for better compatibility)
+    let user = null
+
+    if (email) {
+      // First try email lookup
+      user = await prisma.user.findFirst({
+        where: { email }
+      })
+    }
+
+    if (!user && normalizedPhone) {
+      // Try multiple phone number formats for lookup
+      const phoneFormats = [
+        normalizedPhone, // normalized format (should be +221XXXXXXXXX)
+        normalizedPhone.replace('+221', ''), // without country code
+        normalizedPhone.replace('+', ''), // without + sign
+        `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
+      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+
+      for (const phoneFormat of phoneFormats) {
+        user = await prisma.user.findFirst({
+          where: { phone: phoneFormat }
+        })
+
+        if (user) {
+          break
+        }
       }
-    })
+    }
 
     if (!user) {
       return NextResponse.json(
