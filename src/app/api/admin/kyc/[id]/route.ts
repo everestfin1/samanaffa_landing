@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
+import { KycStatus, NotificationPriority, NotificationType } from '@prisma/client'
 
 export async function PUT(
   request: NextRequest,
@@ -83,7 +84,7 @@ export async function PUT(
     if (newKycStatus && newKycStatus !== updatedDocument.user.kycStatus) {
       await prisma.user.update({
         where: { id: updatedDocument.userId },
-        data: { kycStatus: newKycStatus }
+        data: { kycStatus: newKycStatus as KycStatus }
       })
 
       // Create notification for status change
@@ -120,8 +121,8 @@ export async function PUT(
             userId: updatedDocument.userId,
             title,
             message,
-            type: notificationType,
-            priority,
+            type: notificationType as NotificationType,
+            priority: priority as NotificationPriority,
             metadata: JSON.stringify({
               kycStatus: newKycStatus,
               documentId: updatedDocument.id,

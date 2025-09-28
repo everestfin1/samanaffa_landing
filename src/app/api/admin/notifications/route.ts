@@ -3,13 +3,14 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
+import { NotificationPriority, NotificationType } from '@prisma/client'
 
 // GET /api/admin/notifications - Get all notifications (admin)
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -94,7 +95,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -182,8 +183,8 @@ export async function POST(request: NextRequest) {
         userId,
         title,
         message,
-        type: notificationType,
-        priority,
+        type: notificationType as NotificationType,
+        priority: priority as NotificationPriority,
         metadata: JSON.stringify({
           kycStatus,
           rejectionReasons,
