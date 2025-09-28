@@ -200,10 +200,10 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
   };
 
   const trancheOptions = [
-    { value: 'A' as const, label: 'Tranche A', term: 3, rate: 6.40, description: 'Court terme - 3 ans' },
-    { value: 'B' as const, label: 'Tranche B', term: 5, rate: 6.60, description: 'Moyen terme - 5 ans' },
-    { value: 'C' as const, label: 'Tranche C', term: 7, rate: 6.75, description: 'Long terme - 7 ans' },
-    { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans' }
+    { value: 'A' as const, label: 'Tranche A', term: 3, rate: 6.40, description: 'Court terme - 3 ans', isin: 'SN0000004268' },
+    { value: 'B' as const, label: 'Tranche B', term: 5, rate: 6.60, description: 'Moyen terme - 5 ans', isin: 'SN0000004276' },
+    { value: 'C' as const, label: 'Tranche C', term: 7, rate: 6.75, description: 'Long terme - 7 ans', isin: 'SN0000004284' },
+    { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans', isin: 'SN0000004292' }
   ];
 
   const handleInvestmentConfirm = async (data: { amount: number; tranche: 'A' | 'B' | 'C' | 'D'; method: string }) => {
@@ -216,6 +216,11 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
   const getTermForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): number => {
     const terms = { A: 3, B: 5, C: 7, D: 10 };
     return terms[tranche];
+  };
+
+  const getIsinForTranche = (tranche: 'A' | 'B' | 'C' | 'D'): string => {
+    const isins = { A: 'SN0000004268', B: 'SN0000004276', C: 'SN0000004284', D: 'SN0000004292' };
+    return isins[tranche];
   };
 
   const handleTrancheClick = (tranche: 'A' | 'B' | 'C' | 'D') => {
@@ -495,6 +500,14 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
                   <div className="font-bold text-night">10 000 FCFA*</div>
                 </div>
                 
+                {/* ISIN Code */}
+                <div className="mb-4">
+                  <div className="text-sm text-night/60 mb-1">Code ISIN:</div>
+                  <div className="font-mono text-sm text-night bg-timberwolf/10 px-3 py-2 rounded-lg">
+                    {option.isin}
+                  </div>
+                </div>
+
                 {/* Emission Amount */}
                 <div className="mb-6">
                   <div className="text-sm text-night/60 mb-1">Montant de l'émission:</div>
@@ -532,6 +545,7 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
                   <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Date</th>
                   <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Type</th>
                   <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">Tranche</th>
+                  <th className="text-left py-3 px-2 text-sm font-semibold text-night/70">ISIN</th>
                   <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Montant</th>
                   <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Taux</th>
                   <th className="text-right py-3 px-2 text-sm font-semibold text-night/70">Statut</th>
@@ -554,6 +568,11 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
                     </td>
                     <td className="py-4 px-2 text-sm text-night/70">
                       {transaction.investmentTranche ? `Tranche ${transaction.investmentTranche}` : '-'}
+                    </td>
+                    <td className="py-4 px-2 text-sm text-night/70 font-mono">
+                      {transaction.investmentTranche ? 
+                        getIsinForTranche(transaction.investmentTranche as 'A' | 'B' | 'C' | 'D')
+                        : '-'}
                     </td>
                     <td className={`py-4 px-2 text-sm font-semibold text-right ${
                       transaction.intentType === 'INVESTMENT' ? 'text-blue-600' : 'text-green-600'
