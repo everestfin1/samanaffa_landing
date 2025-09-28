@@ -200,6 +200,21 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // For login or password reset, just return user data
+    if (type === 'password_reset') {
+      return NextResponse.json({
+        success: true,
+        message: 'Code OTP vérifié. Vous pouvez maintenant définir un nouveau mot de passe.',
+        user: {
+          id: user.id,
+          email: user.email,
+          phone: user.phone,
+          firstName: user.firstName,
+          lastName: user.lastName,
+        }
+      })
+    }
+
     // For login, just return user data
     return NextResponse.json({
       success: true,

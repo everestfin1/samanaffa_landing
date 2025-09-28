@@ -4,30 +4,27 @@ import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
 import { normalizeInternationalPhone } from './utils'
+import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
-      name: 'otp',
+      name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
         phone: { label: 'Phone', type: 'text' },
+        password: { label: 'Password', type: 'password' },
         otp: { label: 'OTP Code', type: 'text' },
-        type: { label: 'Type', type: 'text' } // 'login' or 'register'
+        type: { label: 'Type', type: 'text' } // 'login', 'register', or 'password_login'
       },
       async authorize(credentials) {
         if (!credentials?.email && !credentials?.phone) {
           throw new Error('Email or phone is required')
         }
 
-        if (!credentials?.otp) {
-          throw new Error('OTP code is required')
-        }
-
         // Normalize phone number if provided
         const normalizedPhone = credentials.phone ? normalizeInternationalPhone(credentials.phone) : null
-        // console.log('🔍 NextAuth authorize:', { email: credentials.email, phone: credentials.phone, normalizedPhone })
 
         // Find user - try multiple phone formats for better compatibility
         let user = null
@@ -37,7 +34,6 @@ export const authOptions: NextAuthOptions = {
           user = await prisma.user.findFirst({
             where: { email: credentials.email }
           })
-          // console.log('🔍 NextAuth email lookup result:', { email: credentials.email, found: !!user })
         }
 
         if (!user && normalizedPhone) {
@@ -49,16 +45,12 @@ export const authOptions: NextAuthOptions = {
             `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
           ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
 
-          // console.log('🔍 NextAuth phone lookup formats to try:', phoneFormats)
-
           for (const phoneFormat of phoneFormats) {
             user = await prisma.user.findFirst({
               where: { phone: phoneFormat }
             })
-            // console.log('🔍 NextAuth phone lookup attempt:', { format: phoneFormat, found: !!user })
 
             if (user) {
-              // console.log('✅ NextAuth user found with phone format:', phoneFormat)
               break
             }
           }
@@ -66,6 +58,40 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) {
           throw new Error('User not found')
+        }
+
+        // Handle password-based login
+        if (credentials.type === 'login' && credentials.password) {
+          if (!user.passwordHash) {
+            throw new Error('Password not set for this account')
+          }
+
+          // Verify password
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash)
+          if (!isPasswordValid) {
+            throw new Error('Invalid password')
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+          }
+        }
+
+        // Handle OTP-based login (existing logic)
+        if (credentials.type === 'login' && credentials.otp) {
+          // Verify OTP
+          const isValidOTP = await verifyOTP(user.id, credentials.otp)
+          if (!isValidOTP) {
+            throw new Error('Invalid OTP code')
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: `${user.firstName} ${user.lastName}`,
+          }
         }
 
         // For registration type, skip OTP verification since it was already verified
@@ -86,17 +112,7 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // For login type, verify OTP
-        const isValidOTP = await verifyOTP(user.id, credentials.otp)
-        if (!isValidOTP) {
-          throw new Error('Invalid OTP code')
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-        }
+        throw new Error('Invalid authentication method')
       }
     })
   ],
