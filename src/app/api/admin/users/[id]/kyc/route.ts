@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { NotificationType, NotificationPriority } from '@prisma/client'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
@@ -57,27 +58,27 @@ export async function PUT(
     // Create in-app notification
     let title = ''
     let message = ''
-    let notificationType = 'KYC_STATUS'
-    let priority = 'NORMAL'
+    let notificationType: NotificationType = NotificationType.KYC_STATUS
+    let priority: NotificationPriority = NotificationPriority.NORMAL
 
     switch (kycStatus.toUpperCase()) {
       case 'APPROVED':
         title = 'KYC Approuvé'
         message = 'Félicitations ! Votre dossier KYC a été approuvé avec succès.'
-        notificationType = 'SUCCESS'
-        priority = 'HIGH'
+        notificationType = NotificationType.SUCCESS
+        priority = NotificationPriority.HIGH
         break
       case 'REJECTED':
         title = 'KYC Rejeté'
         message = 'Votre dossier KYC nécessite des corrections. Veuillez consulter les détails.'
-        notificationType = 'ERROR'
-        priority = 'HIGH'
+        notificationType = NotificationType.ERROR
+        priority = NotificationPriority.HIGH
         break
       case 'UNDER_REVIEW':
         title = 'KYC En Révision'
         message = 'Votre dossier KYC est actuellement en cours de révision.'
-        notificationType = 'WARNING'
-        priority = 'NORMAL'
+        notificationType = NotificationType.WARNING
+        priority = NotificationPriority.NORMAL
         break
     }
 

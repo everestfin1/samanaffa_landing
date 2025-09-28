@@ -382,7 +382,7 @@ export default function NotificationManagement() {
                   onClick={handleSendNotification}
                   disabled={sending || (!notificationForm.sendEmail && !notificationForm.sendSMS)}
                   className="w-full"
-                  variant={notificationForm.kycStatus === 'APPROVED' ? 'default' : 'destructive'}
+                  variant={notificationForm.kycStatus === 'APPROVED' ? 'primary' : 'secondary'}
                 >
                   {sending ? (
                     <>

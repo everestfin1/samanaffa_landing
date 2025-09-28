@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+declare global {
+  var notificationSettings: NotificationSettings | undefined
+}
+
 interface NotificationSettings {
   id?: string
   enableEmailNotifications: boolean
@@ -23,7 +27,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -38,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     // For now, we'll store settings in a simple JSON file approach
     // In a production system, you might want a dedicated settings table
-    let settings: NotificationSettings = {
+    const settings: NotificationSettings = {
       enableEmailNotifications: true,
       enableSMSNotifications: false,
       enableKYCApprovalSMS: false,
@@ -86,7 +90,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session?.user?.id) {
+    if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
