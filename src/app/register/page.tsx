@@ -88,44 +88,6 @@ export default function RegisterPage() {
   ];
 
 
-  const getStepValidationStatus = (step: number) => {
-    // Step 6 (OTP verification) should always be pending until actually reached
-    if (step === 6) {
-      return currentStep >= 6 ? 'pending' : 'pending';
-    }
-
-    // Build step 1 fields dynamically based on employment status
-    const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers'];
-
-    const stepFields = {
-      1: step1Fields,
-      2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'department', 'district', 'address'],
-      4: ['selfieImage', 'idFrontImage'],
-      5: ['termsAccepted', 'privacyAccepted', 'signature']
-    };
-
-    const fields = stepFields[step as keyof typeof stepFields] || [];
-    const hasErrors = fields.some(field => errors[field]);
-    const allFilled = fields.every(field => {
-      const value = formData[field as keyof FormData];
-
-      // Handle different field types properly
-      if (field === 'selfieImage' || field === 'idFrontImage' || field === 'idBackImage') {
-        return value instanceof File;
-      }
-      if (field === 'termsAccepted' || field === 'privacyAccepted' || field === 'marketingAccepted') {
-        return typeof value === 'boolean' && value === true;
-      }
-
-      // For string fields, check if not empty
-      return typeof value === 'string' && value.trim() !== '';
-    });
-
-    if (hasErrors) return 'error';
-    if (allFilled) return 'valid';
-    return 'pending';
-  };
 
   // Fixed validation functions
   const validateField = (name: string, value: any): string => {
@@ -551,74 +513,35 @@ export default function RegisterPage() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex justify-center">
-            <div className="flex justify-between w-full max-w-2xl">
-              {steps.map((step, index) => {
-                const IconComponent = step.icon;
-                const isActive = currentStep === step.id;
-                const isCompleted = currentStep > step.id;
-
-                const validationStatus = getStepValidationStatus(step.id);
-
-                return (
-                  <div key={step.id} className="flex flex-col items-center flex-1 relative">
-                    {/* Icon */}
-                    <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                      isCompleted
-                        ? 'bg-green-500 border-green-500 text-white shadow-lg scale-110'
-                        : isActive
-                          ? validationStatus === 'error'
-                            ? 'border-red-400 text-red-400 bg-red-50 shadow-md scale-105'
-                            : validationStatus === 'valid'
-                              ? 'border-green-400 text-green-400 bg-green-50 shadow-md scale-105'
-                              : 'border-gold-metallic text-gold-metallic bg-gold-metallic/10 shadow-md scale-105'
-                          : validationStatus === 'error'
-                            ? 'border-red-300 text-red-300 bg-red-50'
-                            : validationStatus === 'valid'
-                              ? 'border-green-300 text-green-300 bg-green-50'
-                              : 'border-timberwolf/40 text-timberwolf/40 bg-white'
-                    }`}>
-                      {isCompleted ? (
-                        <CheckCircleIcon className="w-5 h-5" />
-                      ) : validationStatus === 'error' ? (
-                        <ExclamationTriangleIcon className="w-4 h-4" />
-                      ) : (
-                        <IconComponent className="w-4 h-4" />
-                      )}
-                    </div>                    
-
-                    {/* Step Labels */}
-                    <div className={`text-center mt-4 px-2 transition-all duration-300 ${
-                      isActive
-                        ? validationStatus === 'error'
-                          ? 'text-red-500 font-semibold'
-                          : validationStatus === 'valid'
-                            ? 'text-green-600 font-semibold'
-                            : 'text-gold-metallic font-semibold'
-                        : isCompleted
-                          ? 'text-green-600 font-medium'
-                          : validationStatus === 'error'
-                            ? 'text-red-400 font-medium'
-                            : validationStatus === 'valid'
-                              ? 'text-green-500 font-medium'
-                              : 'text-night/60'
-                    }`}>
-                      <div className="text-xs font-medium mb-1">{step.title}</div>
-                      <div className="text-xs text-night/50 leading-tight">{step.description}</div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="w-full max-w-2xl">
+              {/* Progress Bar */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex-1 bg-timberwolf/20 rounded-full h-2 mr-4">
+                  <div 
+                    className="bg-gradient-to-r from-gold-dark to-gold-metallic h-2 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
+                  />
+                </div>
+                <div className="text-sm font-medium text-night/70">
+                  Étape {currentStep} sur {steps.length}
+                </div>
+              </div>
+              
+              {/* Current Step Title */}
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-night">
+                  {steps[currentStep - 1].title}
+                </h3>
+                <p className="text-sm text-night/60 mt-1">
+                  {steps[currentStep - 1].description}
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8 border border-timberwolf/10">
-          <div className="mb-6">
-            <h2 className="text-xl font-semibold text-night">
-              {steps[currentStep - 1].title}
-            </h2>
-          </div>
 
           {currentStep === 1 && (
             <Step1PersonalInfo
