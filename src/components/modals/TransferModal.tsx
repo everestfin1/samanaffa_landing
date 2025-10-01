@@ -44,13 +44,29 @@ export default function TransferModal({
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setError(''); // Clear error when user types
-    
-    // Validate withdrawal amount
-    if (type === 'withdraw' && value) {
-      const requestedAmount = parseFloat(value);
-      if (requestedAmount > currentBalance) {
-        setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
+
+    if (!value) {
+      return;
+    }
+
+    const requestedAmount = parseFloat(value);
+    if (Number.isNaN(requestedAmount)) {
+      return;
+    }
+
+    if (type === 'deposit') {
+      if (requestedAmount < 500) {
+        setError('Le montant minimum de dépôt est de 500 FCFA');
+        return;
       }
+      if (requestedAmount % 500 !== 0) {
+        setError('Les dépôts doivent être par paliers de 500 FCFA');
+        return;
+      }
+    }
+
+    if (type === 'withdraw' && requestedAmount > currentBalance) {
+      setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
     }
   };
 
@@ -75,6 +91,17 @@ export default function TransferModal({
     if (type === 'withdraw' && requestedAmount > currentBalance) {
       setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
       return;
+    }
+
+    if (type === 'deposit') {
+      if (requestedAmount < 500) {
+        setError('Le montant minimum de dépôt est de 500 FCFA');
+        return;
+      }
+      if (requestedAmount % 500 !== 0) {
+        setError('Les dépôts doivent être par paliers de 500 FCFA');
+        return;
+      }
     }
 
     // Minimum amount validation (temporarily disabled for testing)
@@ -234,10 +261,10 @@ export default function TransferModal({
                 type="number" 
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : "50 000"}
-                min="01"
+                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un multiple de 500'}
+                min={type === 'deposit' ? 500 : 1}
                 max={type === 'withdraw' ? currentBalance : undefined}
-                step="1"
+                step={type === 'deposit' ? 500 : 1}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}

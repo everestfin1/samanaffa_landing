@@ -1,8 +1,21 @@
 'use client';
 
-import { useState } from 'react';
-import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  XMarkIcon,
+  CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline';
 import { naffaTypes, NaffaType } from '../data/naffaTypes';
+
+const cardStyle = {
+  gradient:
+    'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
+  chip: 'bg-white/15 text-white',
+};
+
+const getCardStyle = () => cardStyle;
 
 interface CreateNaffaModalProps {
   isOpen: boolean;
@@ -10,147 +23,380 @@ interface CreateNaffaModalProps {
   onSelectNaffa: (naffaType: NaffaType) => void;
 }
 
-export default function CreateNaffaModal({ isOpen, onClose, onSelectNaffa }: CreateNaffaModalProps) {
+export default function CreateNaffaModal({
+  isOpen,
+  onClose,
+  onSelectNaffa,
+}: CreateNaffaModalProps) {
   const [selectedNaffa, setSelectedNaffa] = useState<NaffaType | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [sidePadding, setSidePadding] = useState(0);
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const scrollDetectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
 
-  const handleSelectNaffa = (naffa: NaffaType) => {
-    setSelectedNaffa(naffa);
-  };
+  const getClampedIndex = useCallback(
+    (index: number) => Math.max(0, Math.min(index, naffaTypes.length - 1)),
+    [],
+  );
+
+  const updateSelection = useCallback(
+    (index: number) => {
+      const clamped = getClampedIndex(index);
+      setCurrentIndex(clamped);
+      setSelectedNaffa(naffaTypes[clamped]);
+    },
+    [getClampedIndex],
+  );
+
+  const scrollToCard = useCallback(
+    (index: number, smooth = true) => {
+      const container = sliderRef.current;
+      if (!container) return;
+
+      const clamped = getClampedIndex(index);
+      const target = container.children[clamped] as HTMLElement | undefined;
+      if (!target) return;
+
+      const offset =
+        target.offsetLeft -
+        (container.offsetWidth - target.offsetWidth) / 2;
+
+      container.scrollTo({
+        left: offset,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    },
+    [getClampedIndex],
+  );
+
+  const goToIndex = useCallback(
+    (index: number, smooth = true) => {
+      updateSelection(index);
+      scrollToCard(index, smooth);
+    },
+    [scrollToCard, updateSelection],
+  );
+
+  const handlePrev = useCallback(() => {
+    if (currentIndex <= 0) return;
+    goToIndex(currentIndex - 1);
+  }, [currentIndex, goToIndex]);
+
+  const handleNext = useCallback(() => {
+    if (currentIndex >= naffaTypes.length - 1) return;
+    goToIndex(currentIndex + 1);
+  }, [currentIndex, goToIndex]);
+
+  const handleScroll = useCallback(() => {
+    if (scrollDetectionTimeout.current) {
+      clearTimeout(scrollDetectionTimeout.current);
+    }
+
+    scrollDetectionTimeout.current = setTimeout(() => {
+      const container = sliderRef.current;
+      if (!container) return;
+
+      const children = Array.from(container.children) as HTMLElement[];
+      if (!children.length) return;
+
+      const containerCenter =
+        container.scrollLeft + container.offsetWidth / 2;
+
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      children.forEach((child, index) => {
+        const childCenter = child.offsetLeft + child.offsetWidth / 2;
+        const distance = Math.abs(childCenter - containerCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      updateSelection(closestIndex);
+    }, 120);
+  }, [updateSelection]);
+
+  const handleSelectNaffa = useCallback(
+    (index: number) => {
+      goToIndex(index);
+    },
+    [goToIndex],
+  );
 
   const handleConfirm = () => {
-    if (selectedNaffa) {
-      onSelectNaffa(selectedNaffa);
-      setSelectedNaffa(null);
-      onClose();
-    }
+    if (!selectedNaffa) return;
+    onSelectNaffa(selectedNaffa);
+    handleClose();
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setSelectedNaffa(null);
+    setCurrentIndex(0);
+    setSidePadding(0);
+    if (sliderRef.current) {
+      sliderRef.current.scrollTo({ left: 0, behavior: 'auto' });
+    }
     onClose();
-  };
+  }, [onClose]);
 
-  const getColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'bg-blue-50 border-blue-200 text-blue-800',
-      green: 'bg-green-50 border-green-200 text-green-800',
-      purple: 'bg-purple-50 border-purple-200 text-purple-800',
-      gray: 'bg-gray-50 border-gray-200 text-gray-800',
-      orange: 'bg-orange-50 border-orange-200 text-orange-800',
-      yellow: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-      red: 'bg-red-50 border-red-200 text-red-800'
-    };
-    return colorMap[color as keyof typeof colorMap] || 'bg-gray-50 border-gray-200 text-gray-800';
-  };
+  const computeSidePadding = useCallback(() => {
+    const container = sliderRef.current;
+    if (!container) return;
 
-  const getSelectedColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'bg-blue-100 border-blue-400 text-blue-900',
-      green: 'bg-green-100 border-green-400 text-green-900',
-      purple: 'bg-purple-100 border-purple-400 text-purple-900',
-      gray: 'bg-gray-100 border-gray-400 text-gray-900',
-      orange: 'bg-orange-100 border-orange-400 text-orange-900',
-      yellow: 'bg-yellow-100 border-yellow-400 text-yellow-900',
-      red: 'bg-red-100 border-red-400 text-red-900'
+    const firstCard = container.querySelector<HTMLElement>('[data-naffa-card]');
+    if (!firstCard) return;
+
+    const padding = Math.max(
+      0,
+      (container.offsetWidth - firstCard.offsetWidth) / 2,
+    );
+
+    setSidePadding(padding);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scrollDetectionTimeout.current) {
+        clearTimeout(scrollDetectionTimeout.current);
+      }
     };
-    return colorMap[color as keyof typeof colorMap] || 'bg-gray-100 border-gray-400 text-gray-900';
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedNaffa(null);
+      setCurrentIndex(0);
+      setSidePadding(0);
+      if (sliderRef.current) {
+        sliderRef.current.scrollTo({ left: 0, behavior: 'auto' });
+      }
+      return;
+    }
+
+    const defaultIndex = 0;
+    updateSelection(defaultIndex);
+
+    const handleResize = () => computeSidePadding();
+
+    requestAnimationFrame(() => {
+      computeSidePadding();
+      scrollToCard(defaultIndex, false);
+    });
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [
+    isOpen,
+    computeSidePadding,
+    scrollToCard,
+    updateSelection,
+  ]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    scrollToCard(currentIndex, false);
+  }, [sidePadding, currentIndex, isOpen, scrollToCard]);
 
   if (!isOpen) return null;
 
+  const isAtBeginning = currentIndex === 0;
+  const isAtEnd = currentIndex === naffaTypes.length - 1;
+
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-timberwolf/20">
+        <div className="flex items-center justify-between border-b border-timberwolf/20 p-6">
           <div>
-            <h2 className="text-2xl font-bold text-night">Créer un nouveau Naffa</h2>
-            <p className="text-night/70 mt-1">Choisissez le type de Naffa qui correspond à vos objectifs</p>
+            <h2 className="text-2xl font-bold text-night">
+              Créer un nouveau Naffa
+            </h2>
+            <p className="mt-1 text-night/70">
+              Choisissez le type de Naffa qui correspond à vos objectifs
+            </p>
           </div>
           <button
+            type="button"
             onClick={handleClose}
-            className="p-2 text-night/50 hover:text-night hover:bg-timberwolf/10 rounded-lg transition-colors"
+            className="rounded-lg p-2 text-night/50 transition-colors hover:bg-timberwolf/10 hover:text-night"
+            aria-label="Fermer la fenêtre de sélection"
           >
-            <XMarkIcon className="w-6 h-6" />
+            <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {naffaTypes.map((naffa) => (
-              <div
+        <div className="px-6 pt-6">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={handlePrev}
+              disabled={isAtBeginning}
+              className={`absolute left-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/40 bg-white/80 p-2 shadow-md backdrop-blur-sm transition ${
+                isAtBeginning
+                  ? 'cursor-not-allowed opacity-40'
+                  : 'hover:bg-white'
+              }`}
+              aria-label="Voir le Naffa précédent"
+            >
+              <ChevronLeftIcon className="h-5 w-5 text-night" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={isAtEnd}
+              className={`absolute right-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/40 bg-white/80 p-2 shadow-md backdrop-blur-sm transition ${
+                isAtEnd ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
+              }`}
+              aria-label="Voir le Naffa suivant"
+            >
+              <ChevronRightIcon className="h-5 w-5 text-night" />
+            </button>
+
+            <div
+              ref={sliderRef}
+              onScroll={handleScroll}
+              style={{
+                paddingLeft: sidePadding,
+                paddingRight: sidePadding,
+              }}
+              className="flex gap-6 overflow-x-auto overflow-y-visible py-6 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {naffaTypes.map((naffa, index) => {
+                const isSelected = selectedNaffa?.id === naffa.id;
+                const { gradient, chip } = getCardStyle();
+
+                return (
+                  <button
+                    key={naffa.id}
+                    type="button"
+                    onClick={() => handleSelectNaffa(index)}
+                    className="snap-center shrink-0 basis-[260px] focus:outline-none sm:basis-[320px] lg:basis-[360px]"
+                    data-naffa-card
+                    aria-label={`Sélectionner ${naffa.name}`}
+                  >
+                    <div
+                      className={`relative flex h-full flex-col justify-between rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${gradient} ${
+                        isSelected
+                          ? 'scale-[1.02] shadow-xl'
+                          : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="mb-6 flex items-start justify-between">
+                        <span
+                          className={`inline-flex max-w-[70%] items-center truncate rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm ${chip}`}
+                        >
+                          {naffa.persona}
+                        </span>
+                        {isSelected && (
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-metallic text-white shadow-lg">
+                            <CheckIcon className="h-4 w-4" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="mb-4 flex items-start gap-3">
+                        <div className="text-4xl leading-none">{naffa.icon}</div>
+                        <div className="space-y-1">
+                          <h3 className="text-lg font-semibold">
+                            {naffa.name}
+                          </h3>
+                          <p className="text-sm italic text-white/70">
+                            "{naffa.message}"
+                          </p>
+                        </div>
+                      </div>
+
+                      <p className="mb-5 text-sm leading-relaxed text-white/80">
+                        {naffa.description}
+                      </p>
+
+                      <div className="space-y-2 text-sm font-medium">
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/70">
+                            Montant recommandé
+                          </span>
+                          <span>
+                            {naffa.defaultAmount.toLocaleString()} FCFA / mois
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-white/70">Durée cible</span>
+                          <span>{naffa.duration} ans</span>
+                        </div>
+                        <div className="flex items-start justify-between">
+                          <span className="text-white/70">Objectif</span>
+                          <span className="max-w-[60%] text-right text-white/80">
+                            {naffa.objective}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex justify-center space-x-2 pb-4">
+            {naffaTypes.map((naffa, index) => (
+              <button
                 key={naffa.id}
-                onClick={() => handleSelectNaffa(naffa)}
-                className={`relative p-6 rounded-xl border-2 cursor-pointer transition-all duration-200 hover:shadow-lg ${
-                  selectedNaffa?.id === naffa.id
-                    ? getSelectedColorClasses(naffa.color)
-                    : getColorClasses(naffa.color)
+                type="button"
+                onClick={() => handleSelectNaffa(index)}
+                className={`h-2.5 rounded-full transition-all duration-300 ${
+                  currentIndex === index
+                    ? 'w-6 bg-gold-metallic'
+                    : 'w-2.5 bg-timberwolf/50 hover:bg-timberwolf/80'
                 }`}
-              >
-                {/* Selection indicator */}
-                {selectedNaffa?.id === naffa.id && (
-                  <div className="absolute top-4 right-4 w-6 h-6 bg-gold-metallic rounded-full flex items-center justify-center">
-                    <CheckIcon className="w-4 h-4 text-white" />
-                  </div>
-                )}
-
-                {/* Icon and title */}
-                <div className="flex items-start space-x-4 mb-4">
-                  <div className="text-3xl">{naffa.icon}</div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-bold mb-1">{naffa.name}</h3>
-                    <p className="text-sm opacity-80">{naffa.persona}</p>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <p className="text-sm mb-4 opacity-90">{naffa.description}</p>
-
-                {/* Key details */}
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="opacity-70">Montant par défaut:</span>
-                    <span className="font-semibold">{naffa.defaultAmount.toLocaleString()} FCFA/mois</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="opacity-70">Durée:</span>
-                    <span className="font-semibold">{naffa.duration} ans</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="opacity-70">Objectif:</span>
-                    <span className="font-semibold text-right max-w-[60%]">{naffa.objective}</span>
-                  </div>
-                </div>
-
-                {/* Message */}
-                <div className="mt-4 p-3 bg-white/50 rounded-lg">
-                  <p className="text-sm font-medium italic">"{naffa.message}"</p>
-                </div>
-              </div>
+                aria-label={`Aller au plan ${naffa.name}`}
+              />
             ))}
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between p-6 border-t border-timberwolf/20 bg-timberwolf/5">
-          <div className="text-sm text-night/70">
-            {selectedNaffa ? `Sélectionné: ${selectedNaffa.name}` : 'Aucun Naffa sélectionné'}
+        <div className="flex items-center justify-between border-t border-timberwolf/20 bg-timberwolf/5 p-6">
+          <div className="flex-1">
+            {selectedNaffa ? (
+              <>
+                <p className="text-sm font-semibold text-night">
+                  Sélectionné : {selectedNaffa.name}
+                </p>
+                <p className="mt-1 text-xs text-night/60">
+                  {selectedNaffa.objective}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-night/70">
+                Faites glisser les cartes pour découvrir les différents Naffa.
+              </p>
+            )}
           </div>
-          <div className="flex space-x-3">
+          <div className="ml-6 flex space-x-3">
             <button
+              type="button"
               onClick={handleClose}
-              className="px-6 py-2 text-night/70 hover:text-night hover:bg-timberwolf/20 rounded-lg transition-colors"
+              className="rounded-lg border border-timberwolf/30 px-6 py-2 font-medium text-night transition-colors hover:bg-timberwolf/10"
             >
               Annuler
             </button>
             <button
+              type="button"
               onClick={handleConfirm}
               disabled={!selectedNaffa}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+              className={`rounded-lg px-6 py-2 font-medium transition-colors ${
                 selectedNaffa
                   ? 'bg-gold-metallic text-white hover:bg-gold-dark'
-                  : 'bg-timberwolf/30 text-night/50 cursor-not-allowed'
+                  : 'cursor-not-allowed bg-timberwolf/30 text-night/50'
               }`}
             >
               Créer ce Naffa
