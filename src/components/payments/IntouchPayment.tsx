@@ -35,8 +35,7 @@ declare global {
       phone: string,
       email: string,
       description: string,
-      param12: string,
-      param13: string
+      param12: string
     ) => void;
   }
 }
@@ -118,8 +117,7 @@ export default function IntouchPayment({
           '', // phone - empty like HTML example
           '', // email - empty like HTML example
           `${intentType.toUpperCase()} - ${referenceNumber}`, // description
-          '', // extra param12 like HTML
-          ''  // extra param13 like HTML
+          '' // param12 - empty like HTML example (12 params total)
         );
       } else {
         throw new Error('Système de paiement Intouch non disponible');
