@@ -6,6 +6,13 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  AcademicCapIcon,
+  BriefcaseIcon,
+  HomeIcon,
+  ShieldCheckIcon,
+  UserGroupIcon,
+  PaperAirplaneIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline';
 import { naffaTypes, NaffaType } from '../data/naffaTypes';
 
@@ -16,6 +23,22 @@ const cardStyle = {
 };
 
 const getCardStyle = () => cardStyle;
+
+// Icon mapping for Naffa types
+const getNaffaIcon = (naffaId: string) => {
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    'etudes-enfant': AcademicCapIcon,
+    'business': BriefcaseIcon,
+    'diaspora': HomeIcon,
+    'serenite': ShieldCheckIcon,
+    'communautaire': UserGroupIcon,
+    'liberte': PaperAirplaneIcon,
+    'prestige': SparklesIcon,
+  };
+  
+  const IconComponent = iconMap[naffaId] || BriefcaseIcon;
+  return IconComponent;
+};
 
 interface CreateNaffaModalProps {
   isOpen: boolean;
@@ -284,59 +307,53 @@ export default function CreateNaffaModal({
                     aria-label={`Sélectionner ${naffa.name}`}
                   >
                     <div
-                      className={`relative flex h-full flex-col justify-between rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${gradient} ${
+                      className={`relative flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${gradient} ${
                         isSelected
                           ? 'scale-[1.02] shadow-xl'
                           : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
                       }`}
                     >
-                      <div className="mb-6 flex items-start justify-between">
-                        <span
-                          className={`inline-flex max-w-[70%] items-center truncate rounded-full px-3 py-1 text-xs font-medium backdrop-blur-sm ${chip}`}
-                        >
-                          {naffa.persona}
-                        </span>
+                      {/* Header with icon and selection indicator */}
+                      <div className="mb-4 flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="flex p-2 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+                            {(() => {
+                              const IconComponent = getNaffaIcon(naffa.id);
+                              return <IconComponent className="h-5 w-5 text-white" />;
+                            })()}
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold">
+                              {naffa.name}
+                            </h3>
+                            <p className="text-xs text-white/70">
+                              {naffa.persona}
+                            </p>
+                          </div>
+                        </div>
                         {isSelected && (
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold-metallic text-white shadow-lg">
-                            <CheckIcon className="h-4 w-4" />
+                          <div className="flex p-2 items-center justify-center rounded-full bg-gold-metallic text-white">
+                            <CheckIcon className="h-3 w-3" />
                           </div>
                         )}
                       </div>
 
-                      <div className="mb-4 flex items-start gap-3">
-                        <div className="text-4xl leading-none">{naffa.icon}</div>
-                        <div className="space-y-1">
-                          <h3 className="text-lg font-semibold">
-                            {naffa.name}
-                          </h3>
-                          <p className="text-sm italic text-white/70">
-                            "{naffa.message}"
-                          </p>
-                        </div>
-                      </div>
-
-                      <p className="mb-5 text-sm leading-relaxed text-white/80">
+                      {/* Description */}
+                      <p className="mb-4 text-sm leading-relaxed text-white/80">
                         {naffa.description}
                       </p>
 
-                      <div className="space-y-2 text-sm font-medium">
+                      {/* Key details */}
+                      <div className="mt-auto space-y-2 text-sm">
                         <div className="flex items-center justify-between">
-                          <span className="text-white/70">
-                            Montant recommandé
-                          </span>
-                          <span>
-                            {naffa.defaultAmount.toLocaleString()} FCFA / mois
+                          <span className="text-white/70">Montant</span>
+                          <span className="font-medium">
+                            {naffa.defaultAmount.toLocaleString()} FCFA/mois
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-white/70">Durée cible</span>
-                          <span>{naffa.duration} ans</span>
-                        </div>
-                        <div className="flex items-start justify-between">
-                          <span className="text-white/70">Objectif</span>
-                          <span className="max-w-[60%] text-right text-white/80">
-                            {naffa.objective}
-                          </span>
+                          <span className="text-white/70">Durée</span>
+                          <span className="font-medium">{naffa.duration} ans</span>
                         </div>
                       </div>
                     </div>
