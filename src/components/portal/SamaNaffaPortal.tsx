@@ -508,6 +508,9 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                             <p className="text-3xl font-bold tracking-wide">
                               {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
+                            <button onClick={() => setShowBalance(prev => !prev)} className="text-white/80 hover:text-white transition-colors">
+                              {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
+                            </button>
                           </div>
                         </div>
 
