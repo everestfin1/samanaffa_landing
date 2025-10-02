@@ -1,14 +1,32 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
+interface UserAccountTransaction {
+  id: string;
+  intentType: string;
+  amount: number;
+  status: string;
+  referenceNumber: string;
+  createdAt: string;
+}
+
 interface UserAccount {
   id: string;
-  userId: string;
+  userId?: string;
   accountType: string;
   accountNumber: string;
+  productCode?: string | null;
+  productName?: string | null;
+  interestRate?: number | null;
+  lockPeriodMonths?: number | null;
+  lockedUntil?: string | null;
+  isLocked?: boolean;
+  allowAdditionalDeposits?: boolean;
+  metadata?: Record<string, unknown>;
   balance: number;
   status: string;
   createdAt: string;
   updatedAt: string;
+  recentTransactions?: UserAccountTransaction[];
 }
 
 interface AccountsResponse {
@@ -85,7 +103,14 @@ export const useCreateAccount = () => {
 
   return useMutation({
     mutationFn: async (accountData: {
-      accountType: string;
+      productId?: string;
+      accountType?: string;
+      productName?: string;
+      productCode?: string;
+      interestRate?: number;
+      lockPeriodMonths?: number;
+      allowAdditionalDeposits?: boolean;
+      metadata?: Record<string, unknown>;
       initialDeposit?: number;
     }): Promise<UserAccount> => {
       const response = await fetch('/api/accounts', {

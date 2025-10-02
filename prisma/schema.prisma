@@ -11,6 +11,7 @@ model User {
   id                 String              @id @default(cuid())
   email              String              @unique
   phone              String              @unique
+  passwordHash       String?
   firstName          String
   lastName           String
   dateOfBirth        DateTime?
@@ -20,7 +21,7 @@ model User {
   preferredLanguage  String              @default("fr")
   emailVerified      Boolean             @default(false)
   phoneVerified      Boolean             @default(false)
-  marketingAccepted  Boolean             @default(false)
+  otpVerifiedAt      DateTime?
   kycStatus          KycStatus           @default(PENDING)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -32,9 +33,8 @@ model User {
   idIssueDate        DateTime?
   idNumber           String?
   idType             String?
+  marketingAccepted  Boolean             @default(false)
   metiers            String?
-  otpVerifiedAt      DateTime?
-  passwordHash       String?
   placeOfBirth       String?
   privacyAccepted    Boolean             @default(false)
   region             String?
@@ -46,7 +46,6 @@ model User {
   sessions           Session[]
   transactionIntents TransactionIntent[]
   accounts           UserAccount[]
-  notifications      Notification[]
 
   @@map("users")
 }
@@ -63,70 +62,62 @@ model Session {
 }
 
 model OtpCode {
-  id                   String              @id @default(cuid())
-  userId               String?
+  id                    String              @id @default(cuid())
+  userId                String?
   registrationSessionId String?
-  code                 String
-  type                 OtpType
-  expiresAt            DateTime
-  used                 Boolean             @default(false)
-  createdAt            DateTime            @default(now())
-  user                 User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  registrationSession  RegistrationSession? @relation(fields: [registrationSessionId], references: [id], onDelete: Cascade)
+  code                  String
+  type                  OtpType
+  expiresAt             DateTime
+  used                  Boolean             @default(false)
+  createdAt             DateTime            @default(now())
+  user                  User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  registrationSession   RegistrationSession? @relation(fields: [registrationSessionId], references: [id], onDelete: Cascade)
 
   @@map("otp_codes")
 }
 
 model UserAccount {
-  id                 String              @id @default(cuid())
-  userId             String
-  accountType        AccountType
-  accountNumber      String              @unique
-  balance            Decimal             @default(0.00) @db.Decimal(15, 2)
-  status             AccountStatus       @default(ACTIVE)
-  createdAt          DateTime            @default(now())
-  transactionIntents TransactionIntent[]
-  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                        String              @id @default(cuid())
+  userId                    String
+  accountType               AccountType
+  accountNumber             String              @unique
+  productCode               String?
+  productName               String?
+  interestRate              Decimal?            @db.Decimal(15, 2)
+  lockPeriodMonths          Int?
+  lockedUntil               DateTime?
+  allowAdditionalDeposits   Boolean             @default(true)
+  metadata                  Json?
+  balance                   Decimal             @default(0.00) @db.Decimal(15, 2)
+  status                    AccountStatus       @default(ACTIVE)
+  createdAt                 DateTime            @default(now())
+  transactionIntents        TransactionIntent[]
+  user                      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_accounts")
 }
 
 model TransactionIntent {
-  id                     String                 @id @default(cuid())
-  userId                 String
-  accountId              String
-  accountType            AccountType
-  intentType             IntentType
-  amount                 Decimal                @db.Decimal(15, 2)
-  paymentMethod          String
-  investmentTranche      String?
-  investmentTerm         Int?
-  userNotes              String?
-  adminNotes             String?
-  status                 TransactionStatus      @default(PENDING)
-  referenceNumber        String                 @unique
-  providerTransactionId  String?                @unique
-  providerStatus         String?
-  lastCallbackAt         DateTime?
-  lastCallbackPayload    Json?
-  createdAt              DateTime               @default(now())
-  updatedAt              DateTime               @updatedAt
-  account                UserAccount            @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  callbackLogs           PaymentCallbackLog[]
+  id                    String            @id @default(cuid())
+  userId                String
+  accountId             String
+  accountType           AccountType
+  intentType            IntentType
+  amount                Decimal           @db.Decimal(15, 2)
+  paymentMethod         String
+  investmentTranche     String?
+  investmentTerm        Int?
+  userNotes             String?
+  adminNotes            String?
+  status                TransactionStatus @default(PENDING)
+  referenceNumber       String            @unique
+  providerTransactionId String?           @unique
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  account               UserAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("transaction_intents")
-}
-
-model PaymentCallbackLog {
-  id                  String            @id @default(cuid())
-  transactionIntentId String
-  status              String
-  payload             Json
-  receivedAt          DateTime          @default(now())
-  transactionIntent   TransactionIntent @relation(fields: [transactionIntentId], references: [id], onDelete: Cascade)
-
-  @@map("payment_callback_logs")
 }
 
 model KycDocument {
@@ -157,6 +148,19 @@ model AdminUser {
   updatedAt      DateTime  @updatedAt
 
   @@map("admin_users")
+}
+
+model RegistrationSession {
+  id        String      @id @default(cuid())
+  email     String
+  phone     String
+  data      String
+  type      SessionType @default(REGISTRATION)
+  expiresAt DateTime
+  createdAt DateTime    @default(now())
+  otpCodes  OtpCode[]
+
+  @@map("registration_sessions")
 }
 
 enum KycStatus {
@@ -209,60 +213,7 @@ enum AdminRole {
   SUPPORT
 }
 
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-  KYC_STATUS
-  TRANSACTION
-  SYSTEM
-}
-
-enum NotificationStatus {
-  UNREAD
-  READ
-  ARCHIVED
-}
-
-enum NotificationPriority {
-  LOW
-  NORMAL
-  HIGH
-  URGENT
-}
-
 enum SessionType {
   REGISTRATION
   LOGIN
-}
-
-model RegistrationSession {
-  id        String      @id @default(cuid())
-  email     String
-  phone     String
-  data      String      // JSON string containing registration form data
-  type      SessionType @default(REGISTRATION)
-  expiresAt DateTime
-  createdAt DateTime    @default(now())
-  otpCodes  OtpCode[]
-
-  @@map("registration_sessions")
-}
-
-model Notification {
-  id          String             @id @default(cuid())
-  userId      String
-  title       String
-  message     String
-  type        NotificationType   @default(INFO)
-  status      NotificationStatus @default(UNREAD)
-  priority    NotificationPriority @default(NORMAL)
-  metadata    String?            // JSON string for additional data
-  readAt      DateTime?
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("notifications")
 }

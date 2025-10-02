@@ -79,6 +79,19 @@ export function generateAccountNumber(prefix: string): string {
   return `${prefix}-${timestamp}-${random}`
 }
 
+export function addMonths(date: Date, months: number): Date {
+  const result = new Date(date.getTime())
+  const desiredMonth = result.getMonth() + months
+  result.setMonth(desiredMonth)
+
+  // Handle cases where adding months rolls over to the next month (e.g., Jan 31 + 1 month)
+  if (result.getMonth() !== ((desiredMonth % 12) + 12) % 12) {
+    result.setDate(0)
+  }
+
+  return result
+}
+
 export function generateReferenceNumber(
   accountType: 'sama_naffa' | 'ape_investment',
   intentType: 'deposit' | 'investment' | 'withdrawal',
