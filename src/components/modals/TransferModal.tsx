@@ -57,16 +57,16 @@ export default function TransferModal({
       return;
     }
 
-    // if (type === 'deposit') {
-    //   if (requestedAmount < 1000) {
-    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
-    //     return;
-    //   }
-    //   if (requestedAmount % 1000 !== 0) {
-    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
-    //     return;
-    //   }
-    // }
+    if (type === 'deposit') {
+      if (requestedAmount < 1000) {
+        setError('Le montant minimum de dépôt est de 1000 FCFA');
+        return;
+      }
+      if (requestedAmount % 1000 !== 0) {
+        setError('Les dépôts doivent être par paliers de 1000 FCFA');
+        return;
+      }
+    }
 
     if (type === 'withdraw' && requestedAmount > currentBalance) {
       setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
@@ -165,16 +165,16 @@ export default function TransferModal({
       return;
     }
 
-    // if (type === 'deposit') {
-    //   if (requestedAmount < 1000) {
-    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
-    //     return;
-    //   }
-    //   if (requestedAmount % 1000 !== 0) {
-    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
-    //     return;
-    //   }
-    // }
+    if (type === 'deposit') {
+      if (requestedAmount < 1000) {
+        setError('Le montant minimum de dépôt est de 1000 FCFA');
+        return;
+      }
+      if (requestedAmount % 1000 !== 0) {
+        setError('Les dépôts doivent être par paliers de 1000 FCFA');
+        return;
+      }
+    }
 
 
     // Handle Intouch payment
@@ -334,9 +334,9 @@ export default function TransferModal({
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
                 placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un multiple de 1000'}
-                // min={type === 'deposit' ? 1000 : 1}
-                // max={type === 'withdraw' ? currentBalance : undefined}
-                // step={type === 'deposit' ? 1000 : 1}
+                min={type === 'deposit' ? 1000 : 1}
+                max={type === 'withdraw' ? currentBalance : undefined}
+                step={type === 'deposit' ? 1000 : 1}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}
