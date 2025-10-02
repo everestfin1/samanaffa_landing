@@ -1,33 +1,42 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
-  BanknotesIcon,
-  ArrowTrendingUpIcon,
-  ArrowRightIcon,
-  ArrowUpIcon,
   ArrowDownIcon,
-  InformationCircleIcon,
+  ArrowUpIcon,
+  BanknotesIcon,
+  ClockIcon,
   EyeIcon,
   EyeSlashIcon,
-  PlusIcon
+  PlusIcon,
 } from '@heroicons/react/24/outline';
+import Image from 'next/image';
+
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
 import { NaffaType } from '../data/naffaTypes';
-import Image from 'next/image';
+
+type IntentKind = 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
 
 interface UserAccount {
   id: string;
   accountType: string;
   accountNumber: string;
+  productCode?: string | null;
+  productName?: string | null;
   balance: number;
   status: string;
   createdAt: string;
+  interestRate?: number | null;
+  lockPeriodMonths?: number | null;
+  lockedUntil?: string | null;
+  isLocked?: boolean;
+  allowAdditionalDeposits?: boolean;
+  metadata?: Record<string, unknown>;
   recentTransactions: Array<{
     id: string;
-    intentType: string;
+    intentType: IntentKind;
     amount: number;
     status: string;
     referenceNumber: string;
@@ -38,7 +47,8 @@ interface UserAccount {
 interface TransactionIntent {
   id: string;
   accountType: string;
-  intentType: string;
+  accountId: string;
+  intentType: IntentKind;
   amount: number;
   paymentMethod: string;
   status: string;
@@ -53,170 +63,247 @@ interface SamaNaffaPortalProps {
 
 export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPortalProps) {
   const { data: session } = useSession();
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [showCreateNaffaModal, setShowCreateNaffaModal] = useState(false);
-  const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
-  const [selectedAccount, setSelectedAccount] = useState<string>('');
+  const userId = useMemo(() => (session?.user as any)?.id ?? null, [session]);
+
+  const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
+  const [accountsError, setAccountsError] = useState<string | null>(null);
+
+  const [accounts, setAccounts] = useState<UserAccount[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+
   const [showBalance, setShowBalance] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  // Real data from backend
-  const [samaNaffaAccount, setSamaNaffaAccount] = useState<UserAccount | null>(null);
-  const [transactionHistory, setTransactionHistory] = useState<TransactionIntent[]>([]);
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
 
-  // Pagination state
-  const [loadedTransactions, setLoadedTransactions] = useState<TransactionIntent[]>([]);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreatingAccount, setIsCreatingAccount] = useState(false);
+  const [creationFeedback, setCreationFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  const [transactions, setTransactions] = useState<TransactionIntent[]>([]);
+  const [pagedTransactions, setPagedTransactions] = useState<TransactionIntent[]>([]);
   const [totalTransactions, setTotalTransactions] = useState(0);
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [actionWarning, setActionWarning] = useState<string | null>(null);
 
-  // Fetch user's Sama Naffa account data
-  useEffect(() => {
-    const fetchAccountData = async () => {
-      if (!session) return;
+  const orderedThemes = [
+    'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
+    'from-[#C38D1C] via-[#b3830f] to-[#a37a0d]',
+    'from-[#435933] via-[#5a7344] to-[#364529]',
+    'from-[#30461f] via-[#243318] to-[#1a2612]',
+    'from-[#b3830f] via-[#C38D1C] to-[#d49a20]',
+  ];
 
-      try {
-        // Fetch user accounts
-        const accountsResponse = await fetch('/api/accounts');
-        const accountsData = await accountsResponse.json();
+  const getThemeByIndex = (index: number) => orderedThemes[index % orderedThemes.length];
 
-        if (accountsData.success) {
-          const samaNaffaAcc = accountsData.accounts.find(
-            (acc: UserAccount) => acc.accountType === 'SAMA_NAFFA'
-          );
-          setSamaNaffaAccount(samaNaffaAcc || null);
-        }
+  const successMessage = creationFeedback?.type === 'success' ? creationFeedback.message : null;
+  const modalErrorMessage = creationFeedback?.type === 'error' ? creationFeedback.message : null;
 
-        // Fetch initial transaction history (5 items)
-        await fetchTransactions(5, 0);
-      } catch (error) {
-        console.error('Error fetching account data:', error);
-        setError('Erreur lors du chargement des données');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const selectedAccount = useMemo(
+    () => (selectedAccountId ? accounts.find(acc => acc.id === selectedAccountId) ?? null : null),
+    [accounts, selectedAccountId],
+  );
 
-    fetchAccountData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session]);
+  const fetchAccounts = async () => {
+    if (!userId) return;
 
-  // Function to fetch transactions with pagination
-  const fetchTransactions = async (limit: number = 5, offset: number = 0) => {
-    if (!session) return;
+    setIsLoadingAccounts(true);
+    setAccountsError(null);
 
     try {
-      const transactionsResponse = await fetch(
-        `/api/transactions/intent?userId=${(session.user as any).id}&limit=${limit}&offset=${offset}`
-      );
-      const transactionsData = await transactionsResponse.json();
-
-      if (transactionsData.success) {
-        const samaNaffaTransactions = transactionsData.transactionIntents.filter(
-          (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
-        );
-
-        if (offset === 0) {
-          // First load
-          setLoadedTransactions(samaNaffaTransactions);
-          setTotalTransactions(transactionsData.pagination.total);
-          setHasMoreTransactions(transactionsData.pagination.hasMore);
-        } else {
-          // Load more - append to existing
-          setLoadedTransactions(prev => [...prev, ...samaNaffaTransactions]);
-          setHasMoreTransactions(transactionsData.pagination.hasMore);
-        }
-
-        // Update full transaction history for other operations
-        const allTransactionsResponse = await fetch(`/api/transactions/intent?userId=${(session.user as any).id}`);
-        const allTransactionsData = await allTransactionsResponse.json();
-
-        if (allTransactionsData.success) {
-          const allSamaNaffaTransactions = allTransactionsData.transactionIntents.filter(
-            (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA'
-          );
-          setTransactionHistory(allSamaNaffaTransactions);
-        }
+      const response = await fetch('/api/accounts');
+      if (!response.ok) {
+        throw new Error('Impossible de récupérer vos comptes Sama Naffa.');
       }
-    } catch (error) {
-      console.error('Error fetching transactions:', error);
+
+      const payload = await response.json();
+      if (!payload.success) {
+        throw new Error(payload.error || 'Réponse inattendue du serveur.');
+      }
+
+      const samaAccounts: UserAccount[] = (payload.accounts || []).filter(
+        (account: UserAccount) => account.accountType === 'SAMA_NAFFA',
+      );
+
+      setAccounts(samaAccounts);
+
+      if (samaAccounts.length > 0) {
+        const defaultAccountId =
+          selectedAccountId && samaAccounts.some(acc => acc.id === selectedAccountId)
+            ? selectedAccountId
+            : samaAccounts[0].id;
+
+        setSelectedAccountId(defaultAccountId);
+      } else {
+        setSelectedAccountId(null);
+      }
+    } catch (err) {
+      console.error('[SamaNaffaPortal] fetchAccounts error:', err);
+      const message = err instanceof Error ? err.message : 'Erreur inconnue lors du chargement de vos comptes.';
+      setAccountsError(message);
+    } finally {
+      setIsLoadingAccounts(false);
     }
   };
 
-  // Load more transactions
-  const loadMoreTransactions = async () => {
-    if (!session || isLoadingMore || !hasMoreTransactions) return;
+  const fetchTransactions = async (accountId: string, limit = 5, offset = 0) => {
+    if (!userId) return;
 
+    try {
+      const response = await fetch(`/api/transactions/intent?userId=${userId}&limit=${limit}&offset=${offset}`);
+      if (!response.ok) {
+        throw new Error('Impossible de récupérer vos transactions.');
+      }
+
+      const payload = await response.json();
+      if (!payload.success) {
+        throw new Error(payload.error || 'Réponse inattendue lors du chargement des transactions.');
+      }
+
+      const filteredTransactions: TransactionIntent[] = (payload.transactionIntents || []).filter(
+        (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA' && tx.accountId === accountId,
+      );
+
+      if (offset === 0) {
+        setPagedTransactions(filteredTransactions);
+        setTransactions(filteredTransactions);
+      } else {
+        setPagedTransactions(prev => [...prev, ...filteredTransactions]);
+        setTransactions(prev => {
+          const combined = [...prev, ...filteredTransactions];
+          const unique = new Map<string, TransactionIntent>();
+          combined.forEach(tx => unique.set(tx.id, tx));
+          return Array.from(unique.values()).sort(
+            (a, b) => new Date(b.createdAt).valueOf() - new Date(a.createdAt).valueOf(),
+          );
+        });
+      }
+
+      setTotalTransactions(payload.pagination?.total ?? filteredTransactions.length ?? 0);
+      setHasMoreTransactions(payload.pagination?.hasMore ?? false);
+    } catch (err) {
+      console.error('[SamaNaffaPortal] fetchTransactions error:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (!userId) return;
+    fetchAccounts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
+  useEffect(() => {
+    if (!selectedAccountId) return;
+    fetchTransactions(selectedAccountId, 5, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedAccountId]);
+
+  const handleSelectAccount = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setCreationFeedback(null);
+  };
+
+  const handleCreateAccount = async (naffaType: NaffaType) => {
+    if (!naffaType || isCreatingAccount) return;
+
+    setCreationFeedback(null);
+    setIsCreatingAccount(true);
+
+    try {
+      const response = await fetch('/api/accounts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId: naffaType.id }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || 'Création de Naffa impossible pour le moment.');
+      }
+
+      const payload = await response.json();
+      if (!payload.success || !payload.account) {
+        throw new Error(payload.error || 'Réponse inattendue du serveur.');
+      }
+
+      setCreationFeedback({
+        type: 'success',
+        message: `Le Naffa "${payload.account.productName || naffaType.name}" a été créé avec succès.`,
+      });
+      setShowCreateModal(false);
+      await fetchAccounts();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erreur inconnue lors de la création du Naffa.';
+      setCreationFeedback({ type: 'error', message });
+    } finally {
+      setIsCreatingAccount(false);
+    }
+  };
+
+  const handleOpenTransfer = (type: 'deposit' | 'withdraw') => {
+    if (!selectedAccount) return;
+
+    setActionWarning(null);
+
+    if (
+      type === 'withdraw' &&
+      selectedAccount.isLocked &&
+      selectedAccount.lockedUntil &&
+      new Date(selectedAccount.lockedUntil) > new Date()
+    ) {
+      setActionWarning(
+        `Ce Naffa est bloqué jusqu'au ${new Date(selectedAccount.lockedUntil).toLocaleDateString('fr-FR', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+        })}. Les retraits seront disponibles à partir de cette date.`,
+      );
+      return;
+    }
+
+    setTransferType(type);
+    setShowTransferModal(true);
+  };
+
+  const handleTransferCompleted = async () => {
+    setShowTransferModal(false);
+    if (selectedAccountId) {
+      await fetchTransactions(selectedAccountId, 5, 0);
+      await fetchAccounts();
+    }
+  };
+
+  const handleLoadMoreTransactions = async () => {
+    if (!selectedAccountId || isLoadingMore || !hasMoreTransactions) return;
     setIsLoadingMore(true);
     try {
-      await fetchTransactions(5, loadedTransactions.length);
+      await fetchTransactions(selectedAccountId, 5, pagedTransactions.length);
     } finally {
       setIsLoadingMore(false);
     }
   };
 
-  const handleTransferConfirm = async (data: { amount: number; method: string; note?: string }) => {
-    // This function is no longer used since we redirect to WhatsApp directly
-    // The modal now handles the WhatsApp redirect internally
-    setShowTransferModal(false);
-  };
-
-  const handleCreateNaffa = (naffaType: NaffaType) => {
-    // TODO: Implement backend integration for creating new Naffa
-    console.log('Creating Naffa:', naffaType);
-    // For now, just show a success message
-    alert(`Naffa "${naffaType.name}" sera créé prochainement. Cette fonctionnalité sera bientôt disponible.`);
-  };
-
-  // Loading state
-  if (isLoading) {
+  if (isLoadingAccounts) {
     return (
       <div className="space-y-8">
-        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
-              <p className="text-night/70 text-lg">Chargement de votre compte...</p>
-            </div>
-            <div className="hidden md:block">
-              <div className="bg-gold-metallic/10 p-4 rounded-full">
-                <BanknotesIcon className="w-12 h-12 text-gold-metallic" />
-              </div>
-            </div>
-          </div>
-        </div> */}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="flex items-center justify-center py-12">
-            <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin" />
           </div>
         </div>
       </div>
     );
   }
 
-  // Error state
-  if (error) {
+  if (accountsError) {
     return (
       <div className="space-y-8">
-        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
-              <p className="text-night/70 text-lg">Erreur lors du chargement</p>
-            </div>
-            <div className="hidden md:block">
-              <div className="bg-gold-metallic/10 p-4 rounded-full">
-                <BanknotesIcon className="w-12 h-12 text-gold-metallic" />
-              </div>
-            </div>
-          </div>
-        </div> */}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
           <div className="text-center py-12">
-            <p className="text-red-600 mb-4">{error}</p>
-            <button 
-              onClick={() => window.location.reload()}
+            <p className="text-red-600 mb-4">{accountsError}</p>
+            <button
+              onClick={fetchAccounts}
               className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
             >
               Réessayer
@@ -227,151 +314,314 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
     );
   }
 
-  // No account found
-  if (!samaNaffaAccount) {
+  if (!selectedAccount) {
     return (
       <div className="space-y-8">
-        {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
-              <p className="text-night/70 text-lg">Compte non trouvé</p>
-            </div>
-            <div className="hidden md:block">
-              <div className="bg-gold-metallic/10 p-4 rounded-full">
-                <BanknotesIcon className="w-12 h-12 text-gold-metallic" />
-              </div>
-            </div>
+        {creationFeedback && (
+          <div
+            className={`border rounded-xl px-4 py-3 ${
+              creationFeedback.type === 'error'
+                ? 'bg-red-50 border-red-200 text-red-700'
+                : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+            }`}
+          >
+            {creationFeedback.message}
           </div>
-        </div> */}
+        )}
         <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-          <div className="text-center py-12">
-            <p className="text-night/70 mb-4">Votre compte Sama Naffa n'a pas été trouvé.</p>
-            <p className="text-sm text-night/50">Veuillez contacter le support si le problème persiste.</p>
+          <div className="text-center py-12 space-y-4">
+            <p className="text-night/70">Aucun Naffa actif pour le moment.</p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center space-x-2 bg-sama-primary-green text-white px-4 py-2 rounded-lg font-medium hover:bg-sama-secondary-green-dark transition-colors"
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span>Créer mon premier Naffa</span>
+            </button>
           </div>
         </div>
+
+        <CreateNaffaModal
+          isOpen={showCreateModal}
+          onClose={() => {
+            if (!isCreatingAccount) {
+              setShowCreateModal(false);
+              setCreationFeedback(null);
+            }
+          }}
+          onSelectNaffa={handleCreateAccount}
+        isSubmitting={isCreatingAccount}
+        errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
+        />
       </div>
     );
   }
 
+  const isAccountLocked =
+    selectedAccount.isLocked &&
+    selectedAccount.lockedUntil &&
+    new Date(selectedAccount.lockedUntil) > new Date();
+
+  const lockedUntilDate = isAccountLocked
+    ? new Date(selectedAccount.lockedUntil!).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+      })
+    : null;
+
+  const canWithdraw = !isAccountLocked;
+
   return (
     <div className="space-y-8">
-      {/* Welcome Section */}
-      {/* <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
-        <div className="flex items-center justify-between">
+      {creationFeedback && (
+        <div
+          className={`border rounded-xl px-4 py-3 ${
+            creationFeedback.type === 'error'
+              ? 'bg-red-50 border-red-200 text-red-700'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          }`}
+        >
+          {creationFeedback.message}
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8 space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h2 className="text-3xl font-bold text-night mb-2">Sama Naffa</h2>
-            <p className="text-night/70 text-lg">Votre compte d'épargne principal</p>
+            <h3 className="text-xl font-bold text-night">Mes Naffa</h3>
+            <p className="text-night/60 text-sm">
+              {accounts.length > 1
+                ? `${accounts.length} comptes d'épargne actifs`
+                : 'Votre compte d’épargne Sama Naffa'}
+            </p>
           </div>
-          <div className="hidden md:block">
-            <div className="bg-gold-metallic/10 p-4 rounded-full">
-              <BanknotesIcon className="w-12 h-12 text-gold-metallic" />
-            </div>
+          <div className="flex items-center gap-3">
+            {isAccountLocked && (
+              <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2 text-amber-700">
+                <ClockIcon className="w-5 h-5" />
+                <span>
+                  Bloqué jusqu'au{' '}
+                  {new Date(selectedAccount.lockedUntil!).toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric',
+                  })}
+                </span>
+              </div>
+            )}
+            <button
+              onClick={() => {
+                setCreationFeedback(null);
+                setShowCreateModal(true);
+              }}
+              className="flex items-center space-x-2 bg-sama-primary-green text-white px-4 py-2 rounded-lg font-medium hover:bg-sama-secondary-green-dark transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+              disabled={isCreatingAccount}
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span>{isCreatingAccount ? 'Création en cours...' : 'Créer un Naffa'}</span>
+            </button>
           </div>
         </div>
-      </div> */}
 
-      {/* Primary Naffa Account */}
-      <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">Mon Naffa</h3>
-          <button
-            onClick={() => setShowCreateNaffaModal(true)}
-            className="flex items-center space-x-2 bg-sama-primary-green text-white px-4 py-2 rounded-lg font-medium hover:bg-sama-secondary-green-dark transition-colors"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>Créer un Naffa</span>
-          </button>
-        </div>
-
-        {/* Account Balance Card */}
-        <div className="mb-8">
-          {/* Card Design */}
-          <div className="relative bg-gradient-to-br from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark rounded-2xl p-8 text-white overflow-hidden">
-            {/* Grainy texture overlay */}
-            <div className="absolute inset-0 opacity-80 z-10" style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-              mixBlendMode: 'overlay'
-            }}></div>
-            
-            {/* Decorative circles */}
-            <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full"></div>
-            <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full"></div>
-            <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full"></div>
-            
-            {/* Logo */}
-            <div className="absolute top-6 right-6 z-30">
-                <Image
-                  src="/sama_naffa_logo.png"
-                  alt="Sama Naffa Logo"
-                  className="h-12 w-auto"
-                  width={100}
-                  height={48}
-                />
+        {accounts.length > 1 && (
+          <div className="relative h-[400px] mb-8">
+            <div className="absolute top-4 right-4 z-50">
+              <button
+                onClick={() => setShowBalance(prev => !prev)}
+                className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm text-night px-4 py-2 rounded-lg shadow-lg hover:bg-white transition-colors border border-timberwolf/20"
+              >
+                {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                <span className="text-sm font-medium">{showBalance ? 'Masquer' : 'Afficher'}</span>
+              </button>
             </div>
+            <div className="relative w-full h-full">
+              {accounts.map((account, index) => {
+                const isSelected = account.id === selectedAccountId;
+                const totalCards = accounts.length;
+                const selectedIndex = accounts.findIndex(acc => acc.id === selectedAccountId);
+                
+                // Calculate stacking position with directional offsets for clarity
+                let translateY = 0;
+                let translateX = 0;
+                let scale = 1;
+                let zIndex = 0;
+                let opacity = 1;
 
-            {/* Card Content */}
-            <div className="relative z-10">
-              <div className="mb-8">
-                <h4 className="text-lg font-medium text-white/90 mb-2">Solde Naffa</h4>
-                <div className="flex items-center space-x-3">
-                  <div className="text-2xl font-bold tracking-wider">
-                    {showBalance ? `${Number(samaNaffaAccount.balance).toLocaleString()} FCFA` : '••••••••••••'}
-                  </div>
-                  <button 
-                    onClick={() => setShowBalance(!showBalance)}
-                    className="text-white/80 hover:text-white transition-colors"
+                if (isSelected) {
+                  translateY = 0;
+                  translateX = 0;
+                  scale = 1;
+                  zIndex = 120;
+                  opacity = 1;
+                } else {
+                  const delta = index - selectedIndex;
+                  const distance = Math.abs(delta);
+                  translateY = -(distance * 16 + 8);
+                  translateX = delta * 26;
+                  scale = Math.max(0.78, 1 - distance * 0.06);
+                  zIndex = 120 - distance * 2 - (delta > 0 ? 1 : 0);
+                  opacity = Math.max(0.4, 1 - distance * 0.22);
+                }
+
+                const cardTheme = getThemeByIndex(index);
+
+                return (
+                  <button
+                    key={account.id}
+                    onClick={() => handleSelectAccount(account.id)}
+                    className="absolute top-0 left-0 w-full transition-all duration-500 ease-out cursor-pointer"
+                    style={{
+                      transform: `translateY(${translateY}px) translateX(${translateX}px) scale(${scale})`,
+                      zIndex,
+                      opacity,
+                    }}
                   >
+                    <div className={`relative bg-gradient-to-br ${cardTheme} rounded-2xl p-8 text-white overflow-hidden shadow-2xl border border-white/10`}>
+                      <div
+                        className="absolute inset-0 opacity-30 z-10"
+                        style={{
+                          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                          mixBlendMode: 'overlay',
+                        }}
+                      />
+                      
+                      <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full" />
+                      <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full" />
+                      <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full" />
+                      
+                      <div className="absolute top-6 right-6 z-30">
+                        <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-12 w-auto" width={100} height={48} />
+                      </div>
+
+                      <div className="relative z-20 space-y-6">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-sm text-white/70">Compte d'épargne</p>
+                            <h4 className="text-xl font-semibold">{account.productName || 'Naffa personnalisé'}</h4>
+                          </div>
+                        </div>
+
+                        <div>
+                          <p className="text-white/70 text-sm mb-1">Solde disponible</p>
+                          <div className="flex items-center space-x-4">
+                            <p className="text-3xl font-bold tracking-wide">
+                              {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <p className="text-xs text-white/60 uppercase">N° d'association</p>
+                            <p className="font-mono text-sm">{account.accountNumber}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-white/60 uppercase">Taux d'intérêt</p>
+                            <p className="text-sm font-semibold">{account.interestRate ?? 4.5}% annuel</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-white/60 uppercase">Statut</p>
+                            <p className="text-sm font-semibold capitalize">{account.status.toLowerCase()}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {accounts.length === 1 && (
+          <div className="relative bg-gradient-to-br from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark rounded-2xl p-8 text-white overflow-hidden shadow-2xl border border-white/10">
+            <div
+              className="absolute inset-0 opacity-80 z-10"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                mixBlendMode: 'overlay',
+              }}
+            />
+            <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full" />
+            <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full" />
+            <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full" />
+            <div className="absolute top-6 right-6 z-30">
+              <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-12 w-auto" width={100} height={48} />
+            </div>
+
+            <div className="relative z-20 space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-white/70">Compte d'épargne</p>
+                  <h4 className="text-xl font-semibold">{selectedAccount.productName || 'Naffa personnalisé'}</h4>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-white/70 text-sm mb-1">Solde disponible</p>
+                <div className="flex items-center space-x-4">
+                  <p className="text-3xl font-bold tracking-wide">
+                    {showBalance ? `${Number(selectedAccount.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
+                  </p>
+                  <button onClick={() => setShowBalance(prev => !prev)} className="text-white/80 hover:text-white transition-colors">
                     {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
                   </button>
                 </div>
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <p className="text-white/70 text-sm mb-1">Association</p>
-                  <p className="text-lg font-mono tracking-wider">{samaNaffaAccount.accountNumber}</p>
+                  <p className="text-xs text-white/60 uppercase">N° d'association</p>
+                  <p className="font-mono text-sm">{selectedAccount.accountNumber}</p>
                 </div>
-                
-                <div className="flex justify-between items-end">
-                  <div>
-                    <p className="text-white/70 text-xs">Taux d'intérêt</p>
-                    <p className="text-lg font-semibold">4.5% annuel</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-white/70 text-xs">Statut</p>
-                    <p className="text-lg font-semibold capitalize">{samaNaffaAccount.status}</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-white/60 uppercase">Taux d'intérêt</p>
+                  <p className="text-sm font-semibold">{selectedAccount.interestRate ?? 4.5}% annuel</p>
+                </div>
+                <div>
+                  <p className="text-xs text-white/60 uppercase">Statut</p>
+                  <p className="text-sm font-semibold capitalize">{selectedAccount.status.toLowerCase()}</p>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Quick Actions */}
-        <div className="flex space-x-4">
-          <button 
-            onClick={() => {setTransferType('deposit'); setSelectedAccount(samaNaffaAccount.id); setShowTransferModal(true);}}
+        <div className="flex flex-col md:flex-row gap-3">
+          <button
+            onClick={() => handleOpenTransfer('deposit')}
             className="flex-1 bg-gold-metallic text-white py-4 px-6 rounded-xl font-semibold hover:bg-gold-dark transition-colors flex items-center justify-center space-x-2"
           >
             <ArrowDownIcon className="w-5 h-5" />
             <span>Effectuer un dépôt</span>
           </button>
-          <button 
-            onClick={() => {setTransferType('withdraw'); setSelectedAccount(samaNaffaAccount.id); setShowTransferModal(true);}}
-            className="flex-1 border-2 border-gold-metallic text-gold-metallic py-4 px-6 rounded-xl font-semibold hover:bg-gold-metallic/5 transition-colors flex items-center justify-center space-x-2"
+          <button
+            onClick={() => handleOpenTransfer('withdraw')}
+            className={`flex-1 border-2 py-4 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2 ${
+              canWithdraw
+                ? 'border-gold-metallic text-gold-metallic hover:bg-gold-metallic/5'
+                : 'border-timberwolf/60 text-timberwolf/70 cursor-not-allowed bg-timberwolf/10'
+            }`}
+            disabled={!canWithdraw}
           >
             <ArrowUpIcon className="w-5 h-5" />
-            <span>Effectuer un retrait</span>
+            <span>
+              {canWithdraw ? 'Effectuer un retrait' : `Retrait indisponible jusqu'au ${lockedUntilDate}`}
+            </span>
           </button>
         </div>
       </div>
 
-      {/* Transaction History */}
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-        <h3 className="text-xl font-bold text-night mb-6">Historique des transactions</h3>
-        
-        {loadedTransactions.length > 0 ? (
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-bold text-night">Historique des transactions</h3>
+          <p className="text-sm text-night/50">
+            {pagedTransactions.length} / {totalTransactions} transactions affichées
+          </p>
+        </div>
+
+        {pagedTransactions.length > 0 ? (
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
@@ -385,39 +635,56 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                 </tr>
               </thead>
               <tbody className="divide-y divide-timberwolf/10">
-                {loadedTransactions.map((transaction) => (
+                {pagedTransactions.map(transaction => (
                   <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
                     <td className="py-4 px-2 text-sm text-night">
                       {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
                     </td>
                     <td className="py-4 px-2">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.intentType === 'DEPOSIT' ? 'bg-green-100 text-green-800' :
-                        transaction.intentType === 'WITHDRAWAL' ? 'bg-red-100 text-red-800' :
-                        'bg-blue-100 text-blue-800'
-                      }`}>
-                        {transaction.intentType === 'DEPOSIT' ? 'Dépôt' :
-                         transaction.intentType === 'WITHDRAWAL' ? 'Retrait' : 'Investissement'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          transaction.intentType === 'DEPOSIT'
+                            ? 'bg-green-100 text-green-800'
+                            : transaction.intentType === 'WITHDRAWAL'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {transaction.intentType === 'DEPOSIT'
+                          ? 'Dépôt'
+                          : transaction.intentType === 'WITHDRAWAL'
+                          ? 'Retrait'
+                          : 'Investissement'}
                       </span>
                     </td>
-                    <td className="py-4 px-2 text-sm text-night/70">
-                      {transaction.paymentMethod}
-                    </td>
-                    <td className={`py-4 px-2 text-sm font-semibold text-right ${
-                      transaction.intentType === 'WITHDRAWAL' ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {transaction.intentType === 'WITHDRAWAL' ? '-' : '+'}{transaction.amount.toLocaleString()} FCFA
+                    <td className="py-4 px-2 text-sm text-night/70">{transaction.paymentMethod}</td>
+                    <td
+                      className={`py-4 px-2 text-sm font-semibold text-right ${
+                        transaction.intentType === 'WITHDRAWAL' ? 'text-red-600' : 'text-green-600'
+                      }`}
+                    >
+                      {transaction.intentType === 'WITHDRAWAL' ? '-' : '+'}
+                      {transaction.amount.toLocaleString('fr-FR')} FCFA
                     </td>
                     <td className="py-4 px-2 text-sm font-medium text-right">
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        transaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                        transaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                        transaction.status === 'REJECTED' ? 'bg-red-100 text-red-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}>
-                        {transaction.status === 'COMPLETED' ? 'Complété' :
-                         transaction.status === 'PENDING' ? 'En attente' :
-                         transaction.status === 'REJECTED' ? 'Rejeté' : 'En cours'}
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          transaction.status === 'COMPLETED'
+                            ? 'bg-green-100 text-green-800'
+                            : transaction.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : transaction.status === 'REJECTED'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
+                        {transaction.status === 'COMPLETED'
+                          ? 'Complété'
+                          : transaction.status === 'PENDING'
+                          ? 'En attente'
+                          : transaction.status === 'REJECTED'
+                          ? 'Rejeté'
+                          : 'En cours'}
                       </span>
                     </td>
                     <td className="py-4 px-2 text-sm font-medium text-right text-night">
@@ -438,11 +705,10 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
           </div>
         )}
 
-        {/* Load More Button - only show if there are more than 5 transactions total and more to load */}
-        {totalTransactions > 5 && hasMoreTransactions && (
+        {totalTransactions > pagedTransactions.length && hasMoreTransactions && (
           <div className="mt-6 flex justify-center">
             <button
-              onClick={loadMoreTransactions}
+              onClick={handleLoadMoreTransactions}
               disabled={isLoadingMore}
               className={`flex items-center space-x-2 py-2 px-6 rounded-lg font-medium text-sm transition-colors ${
                 isLoadingMore
@@ -462,24 +728,29 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
           </div>
         )}
       </div>
-      
-      {/* Transfer Modal */}
+
       <TransferModal
         isOpen={showTransferModal}
         onClose={() => setShowTransferModal(false)}
-        currentBalance={samaNaffaAccount.balance}
+        currentBalance={selectedAccount?.balance ?? 0}
         type={transferType}
-        accountName="Mon Compte Naffa Principal"
+        accountName={selectedAccount?.productName || 'Mon Naffa'}
         accountType="sama_naffa"
         kycStatus={kycStatus}
-        onConfirm={handleTransferConfirm}
+        onConfirm={handleTransferCompleted}
       />
 
-      {/* Create Naffa Modal */}
       <CreateNaffaModal
-        isOpen={showCreateNaffaModal}
-        onClose={() => setShowCreateNaffaModal(false)}
-        onSelectNaffa={handleCreateNaffa}
+        isOpen={showCreateModal}
+        onClose={() => {
+          if (!isCreatingAccount) {
+            setShowCreateModal(false);
+            setCreationFeedback(null);
+          }
+        }}
+        onSelectNaffa={handleCreateAccount}
+        isSubmitting={isCreatingAccount}
+        errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
       />
     </div>
   );

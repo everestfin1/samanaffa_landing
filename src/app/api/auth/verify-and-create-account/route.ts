@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
-import { generateAccountNumber } from '@/lib/utils'
+import { addMonths, generateAccountNumber } from '@/lib/utils'
+import { getNaffaProductById } from '@/lib/naffa-products'
 
 export async function POST(request: NextRequest) {
   try {
@@ -117,11 +119,25 @@ export async function POST(request: NextRequest) {
     })
 
     // Auto-create both accounts (Sama Naffa + APE)
+    const defaultNaffaProduct = getNaffaProductById(userData?.defaultNaffaProductId || 'default')
+    const naffaLockMonths = defaultNaffaProduct.lockPeriodMonths ?? 0
+    const naffaLockedUntil =
+      naffaLockMonths > 0 ? addMonths(new Date(), naffaLockMonths) : null
+
     const samaNaffaAccount = await prisma.userAccount.create({
       data: {
         userId: newUser.id,
         accountType: 'SAMA_NAFFA',
         accountNumber: generateAccountNumber('SN'),
+        productCode: defaultNaffaProduct.productCode,
+        productName: defaultNaffaProduct.name,
+        interestRate: new Prisma.Decimal(defaultNaffaProduct.interestRate.toFixed(2)),
+        lockPeriodMonths: naffaLockMonths,
+        lockedUntil: naffaLockedUntil,
+        allowAdditionalDeposits: defaultNaffaProduct.allowAdditionalDeposits,
+        metadata: defaultNaffaProduct.metadata
+          ? (defaultNaffaProduct.metadata as Prisma.InputJsonValue)
+          : undefined,
       }
     })
 

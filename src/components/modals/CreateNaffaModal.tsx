@@ -24,40 +24,40 @@ const cardStyle = {
 
 const getCardStyle = () => cardStyle;
 
-// Icon mapping for Naffa types
 const getNaffaIcon = (naffaId: string) => {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
     'etudes-enfant': AcademicCapIcon,
-    'business': BriefcaseIcon,
-    'diaspora': HomeIcon,
-    'serenite': ShieldCheckIcon,
-    'communautaire': UserGroupIcon,
-    'liberte': PaperAirplaneIcon,
-    'prestige': SparklesIcon,
+    business: BriefcaseIcon,
+    diaspora: HomeIcon,
+    serenite: ShieldCheckIcon,
+    communautaire: UserGroupIcon,
+    liberte: PaperAirplaneIcon,
+    prestige: SparklesIcon,
   };
-  
-  const IconComponent = iconMap[naffaId] || BriefcaseIcon;
-  return IconComponent;
+
+  return iconMap[naffaId] || BriefcaseIcon;
 };
 
 interface CreateNaffaModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectNaffa: (naffaType: NaffaType) => void;
+  isSubmitting?: boolean;
+  errorMessage?: string | null;
 }
 
 export default function CreateNaffaModal({
   isOpen,
   onClose,
   onSelectNaffa,
+  isSubmitting = false,
+  errorMessage = null,
 }: CreateNaffaModalProps) {
   const [selectedNaffa, setSelectedNaffa] = useState<NaffaType | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [sidePadding, setSidePadding] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
-  const scrollDetectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
+  const scrollDetectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const getClampedIndex = useCallback(
     (index: number) => Math.max(0, Math.min(index, naffaTypes.length - 1)),
@@ -82,9 +82,7 @@ export default function CreateNaffaModal({
       const target = container.children[clamped] as HTMLElement | undefined;
       if (!target) return;
 
-      const offset =
-        target.offsetLeft -
-        (container.offsetWidth - target.offsetWidth) / 2;
+      const offset = target.offsetLeft - (container.offsetWidth - target.offsetWidth) / 2;
 
       container.scrollTo({
         left: offset,
@@ -124,8 +122,7 @@ export default function CreateNaffaModal({
       const children = Array.from(container.children) as HTMLElement[];
       if (!children.length) return;
 
-      const containerCenter =
-        container.scrollLeft + container.offsetWidth / 2;
+      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
 
       let closestIndex = 0;
       let closestDistance = Number.POSITIVE_INFINITY;
@@ -152,12 +149,13 @@ export default function CreateNaffaModal({
   );
 
   const handleConfirm = () => {
-    if (!selectedNaffa) return;
+    if (!selectedNaffa || isSubmitting) return;
     onSelectNaffa(selectedNaffa);
     handleClose();
   };
 
   const handleClose = useCallback(() => {
+    if (isSubmitting) return;
     setSelectedNaffa(null);
     setCurrentIndex(0);
     setSidePadding(0);
@@ -165,7 +163,7 @@ export default function CreateNaffaModal({
       sliderRef.current.scrollTo({ left: 0, behavior: 'auto' });
     }
     onClose();
-  }, [onClose]);
+  }, [onClose, isSubmitting]);
 
   const computeSidePadding = useCallback(() => {
     const container = sliderRef.current;
@@ -174,11 +172,7 @@ export default function CreateNaffaModal({
     const firstCard = container.querySelector<HTMLElement>('[data-naffa-card]');
     if (!firstCard) return;
 
-    const padding = Math.max(
-      0,
-      (container.offsetWidth - firstCard.offsetWidth) / 2,
-    );
-
+    const padding = Math.max(0, (container.offsetWidth - firstCard.offsetWidth) / 2);
     setSidePadding(padding);
   }, []);
 
@@ -215,12 +209,7 @@ export default function CreateNaffaModal({
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [
-    isOpen,
-    computeSidePadding,
-    scrollToCard,
-    updateSelection,
-  ]);
+  }, [isOpen, computeSidePadding, scrollToCard, updateSelection]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -235,12 +224,9 @@ export default function CreateNaffaModal({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-white shadow-2xl">
-        {/* Header */}
         <div className="flex items-center justify-between border-b border-timberwolf/20 p-6">
           <div>
-            <h2 className="text-2xl font-bold text-night">
-              Créer un nouveau Naffa
-            </h2>
+            <h2 className="text-2xl font-bold text-night">Créer un nouveau Naffa</h2>
             <p className="mt-1 text-night/70">
               Choisissez le type de Naffa qui correspond à vos objectifs
             </p>
@@ -248,14 +234,14 @@ export default function CreateNaffaModal({
           <button
             type="button"
             onClick={handleClose}
-            className="rounded-lg p-2 text-night/50 transition-colors hover:bg-timberwolf/10 hover:text-night"
+            disabled={isSubmitting}
+            className="rounded-lg p-2 text-night/50 transition-colors hover:bg-timberwolf/10 hover:text-night disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Fermer la fenêtre de sélection"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
         </div>
 
-        {/* Content */}
         <div className="px-6 pt-6">
           <div className="relative">
             <button
@@ -263,9 +249,7 @@ export default function CreateNaffaModal({
               onClick={handlePrev}
               disabled={isAtBeginning}
               className={`absolute left-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-white/40 bg-white/80 p-2 shadow-md backdrop-blur-sm transition ${
-                isAtBeginning
-                  ? 'cursor-not-allowed opacity-40'
-                  : 'hover:bg-white'
+                isAtBeginning ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
               }`}
               aria-label="Voir le Naffa précédent"
             >
@@ -287,15 +271,14 @@ export default function CreateNaffaModal({
             <div
               ref={sliderRef}
               onScroll={handleScroll}
-              style={{
-                paddingLeft: sidePadding,
-                paddingRight: sidePadding,
-              }}
+              style={{ paddingLeft: sidePadding, paddingRight: sidePadding }}
               className="flex gap-6 overflow-x-auto overflow-y-visible py-6 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             >
               {naffaTypes.map((naffa, index) => {
                 const isSelected = selectedNaffa?.id === naffa.id;
-                const { gradient, chip } = getCardStyle();
+                const { gradient } = getCardStyle();
+
+                const IconComponent = getNaffaIcon(naffa.id);
 
                 return (
                   <button
@@ -305,51 +288,36 @@ export default function CreateNaffaModal({
                     className="snap-center shrink-0 basis-[260px] focus:outline-none sm:basis-[320px] lg:basis-[360px]"
                     data-naffa-card
                     aria-label={`Sélectionner ${naffa.name}`}
+                    disabled={isSubmitting}
                   >
                     <div
                       className={`relative flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${gradient} ${
-                        isSelected
-                          ? 'scale-[1.02] shadow-xl'
-                          : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
-                      }`}
+                        isSelected ? 'scale-[1.02] shadow-xl' : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
+                      } ${isSubmitting ? 'opacity-60 cursor-not-allowed' : ''}`}
                     >
-                      {/* Header with icon and selection indicator */}
                       <div className="mb-4 flex items-start justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="flex p-2 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
-                            {(() => {
-                              const IconComponent = getNaffaIcon(naffa.id);
-                              return <IconComponent className="h-5 w-5 text-white" />;
-                            })()}
+                          <div className="flex items-center justify-center rounded-full bg-white/20 p-2 backdrop-blur-sm">
+                            <IconComponent className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold">
-                              {naffa.name}
-                            </h3>
-                            <p className="text-xs text-white/70">
-                              {naffa.persona}
-                            </p>
+                            <h3 className="text-lg font-semibold">{naffa.name}</h3>
+                            <p className="text-xs text-white/70">{naffa.persona}</p>
                           </div>
                         </div>
                         {isSelected && (
-                          <div className="flex p-2 items-center justify-center rounded-full bg-gold-metallic text-white">
+                          <div className="flex items-center justify-center rounded-full bg-gold-metallic p-2 text-white">
                             <CheckIcon className="h-3 w-3" />
                           </div>
                         )}
                       </div>
 
-                      {/* Description */}
-                      <p className="mb-4 text-sm leading-relaxed text-white/80">
-                        {naffa.description}
-                      </p>
+                      <p className="mb-4 text-sm leading-relaxed text-white/80">{naffa.description}</p>
 
-                      {/* Key details */}
                       <div className="mt-auto space-y-2 text-sm">
                         <div className="flex items-center justify-between">
                           <span className="text-white/70">Montant</span>
-                          <span className="font-medium">
-                            {naffa.defaultAmount.toLocaleString()} FCFA/mois
-                          </span>
+                          <span className="font-medium">{naffa.defaultAmount.toLocaleString()} FCFA/mois</span>
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-white/70">Durée</span>
@@ -369,55 +337,59 @@ export default function CreateNaffaModal({
                 key={naffa.id}
                 type="button"
                 onClick={() => handleSelectNaffa(index)}
+                disabled={isSubmitting}
                 className={`h-2.5 rounded-full transition-all duration-300 ${
-                  currentIndex === index
-                    ? 'w-6 bg-gold-metallic'
-                    : 'w-2.5 bg-timberwolf/50 hover:bg-timberwolf/80'
-                }`}
+                  currentIndex === index ? 'w-6 bg-gold-metallic' : 'w-2.5 bg-timberwolf/50 hover:bg-timberwolf/80'
+                } ${isSubmitting ? 'cursor-not-allowed opacity-60' : ''}`}
                 aria-label={`Aller au plan ${naffa.name}`}
               />
             ))}
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-between border-t border-timberwolf/20 bg-timberwolf/5 p-6">
-          <div className="flex-1">
-            {selectedNaffa ? (
-              <>
-                <p className="text-sm font-semibold text-night">
-                  Sélectionné : {selectedNaffa.name}
+        <div className="border-t border-timberwolf/20 bg-timberwolf/5 p-6 space-y-3">
+          {errorMessage && (
+            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              {errorMessage}
+            </div>
+          )}
+
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex-1">
+              {selectedNaffa ? (
+                <>
+                  <p className="text-sm font-semibold text-night">Sélectionné : {selectedNaffa.name}</p>
+                  <p className="mt-1 text-xs text-night/60">{selectedNaffa.objective}</p>
+                </>
+              ) : (
+                <p className="text-sm text-night/70">
+                  Faites glisser les cartes pour découvrir les différents Naffa.
                 </p>
-                <p className="mt-1 text-xs text-night/60">
-                  {selectedNaffa.objective}
-                </p>
-              </>
-            ) : (
-              <p className="text-sm text-night/70">
-                Faites glisser les cartes pour découvrir les différents Naffa.
-              </p>
-            )}
-          </div>
-          <div className="ml-6 flex space-x-3">
-            <button
-              type="button"
-              onClick={handleClose}
-              className="rounded-lg border border-timberwolf/30 px-6 py-2 font-medium text-night transition-colors hover:bg-timberwolf/10"
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirm}
-              disabled={!selectedNaffa}
-              className={`rounded-lg px-6 py-2 font-medium transition-colors ${
-                selectedNaffa
-                  ? 'bg-gold-metallic text-white hover:bg-gold-dark'
-                  : 'cursor-not-allowed bg-timberwolf/30 text-night/50'
-              }`}
-            >
-              Créer ce Naffa
-            </button>
+              )}
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                type="button"
+                onClick={handleClose}
+                disabled={isSubmitting}
+                className="rounded-lg border border-timberwolf/30 px-6 py-2 font-medium text-night transition-colors hover:bg-timberwolf/10 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirm}
+                disabled={!selectedNaffa || isSubmitting}
+                className={`rounded-lg px-6 py-2 font-medium transition-colors ${
+                  selectedNaffa && !isSubmitting
+                    ? 'bg-gold-metallic text-white hover:bg-gold-dark'
+                    : 'cursor-not-allowed bg-timberwolf/30 text-night/50'
+                }`}
+              >
+                {isSubmitting ? 'Création...' : 'Créer ce Naffa'}
+              </button>
+            </div>
           </div>
         </div>
       </div>

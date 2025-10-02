@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { generateReferenceNumber } from '@/lib/utils'
 import { sendTransactionIntentEmail, sendAdminNotificationEmail } from '@/lib/notifications'
@@ -29,8 +30,11 @@ export async function POST(request: NextRequest) {
       providerTransactionId,
     } = await request.json()
 
+    const normalizedAccountType = (accountType ?? '').toString().toLowerCase()
+    const normalizedIntentType = (intentType ?? '').toString().toLowerCase()
+
     // Validate required fields
-    if (!userId || !accountType || !intentType || !amount || !paymentMethod) {
+    if (!userId || !normalizedAccountType || !normalizedIntentType || amount === undefined || amount === null || !paymentMethod) {
       return respondError('missing_fields', 'Missing required fields', 400)
     }
 
@@ -39,17 +43,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate account type
-    if (!['sama_naffa', 'ape_investment'].includes(accountType)) {
+    if (!['sama_naffa', 'ape_investment'].includes(normalizedAccountType)) {
       return respondError('invalid_account_type', 'Invalid account type', 400)
     }
 
     // Validate intent type
-    if (!['deposit', 'investment', 'withdrawal'].includes(intentType)) {
+    if (!['deposit', 'investment', 'withdrawal'].includes(normalizedIntentType)) {
       return respondError('invalid_intent_type', 'Invalid intent type', 400)
     }
 
     // For APE investments, validate tranche and term
-    if (accountType === 'ape_investment' && intentType === 'investment') {
+    if (normalizedAccountType === 'ape_investment' && normalizedIntentType === 'investment') {
       if (!investmentTranche || !['A', 'B', 'C', 'D'].includes(investmentTranche)) {
         return respondError('invalid_investment_tranche', 'Invalid investment tranche', 400)
       }
@@ -63,7 +67,7 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
       include: {
         accounts: {
-          where: { accountType: accountType.toUpperCase() }
+          where: { accountType: normalizedAccountType.toUpperCase() }
         }
       }
     })
@@ -77,7 +81,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: 'Vérification d\'identité requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
+          error: 'Vérification d\'identité (KYC) requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
           code: 'kyc_required',
           kycStatus: user.kycStatus,
         },
@@ -90,6 +94,20 @@ export async function POST(request: NextRequest) {
     }
 
     const account = user.accounts[0]
+    const now = new Date()
+
+    if (account.lockedUntil && account.lockedUntil > now && normalizedIntentType === 'withdrawal') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Ce compte est bloqué jusqu\'à la fin de sa période de maturation.',
+          code: 'account_locked',
+          lockedUntil: account.lockedUntil,
+        },
+        { status: 403 },
+      )
+    }
+
     const createdAt = new Date()
 
     // Generate reference number
@@ -97,8 +115,8 @@ export async function POST(request: NextRequest) {
       typeof providedReferenceNumber === 'string' && providedReferenceNumber.trim().length > 0
         ? providedReferenceNumber.trim()
         : generateReferenceNumber(
-            accountType as 'sama_naffa' | 'ape_investment',
-            intentType as 'deposit' | 'investment' | 'withdrawal',
+            normalizedAccountType as 'sama_naffa' | 'ape_investment',
+            normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
             userId,
             createdAt,
           )
@@ -108,9 +126,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId,
         accountId: account.id,
-        accountType: accountType.toUpperCase(),
-        intentType: intentType.toUpperCase(),
-        amount: parseFloat(amount),
+        accountType: normalizedAccountType.toUpperCase(),
+        intentType: normalizedIntentType.toUpperCase(),
+        amount: typeof amount === 'string' ? parseFloat(amount) : Number(amount),
         paymentMethod,
         investmentTranche,
         investmentTerm,
@@ -125,11 +143,11 @@ export async function POST(request: NextRequest) {
       user.email,
       `${user.firstName} ${user.lastName}`,
       {
-        type: intentType as 'deposit' | 'investment' | 'withdrawal',
-        amount: parseFloat(amount),
+        type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
+        amount: transactionIntent.amount.toNumber ? transactionIntent.amount.toNumber() : Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
-        accountType: accountType as 'sama_naffa' | 'ape_investment',
+        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',
         investmentTranche,
         investmentTerm,
         userNotes
@@ -143,11 +161,11 @@ export async function POST(request: NextRequest) {
         userName: `${user.firstName} ${user.lastName}`,
         userEmail: user.email,
         userPhone: user.phone,
-        type: intentType as 'deposit' | 'investment' | 'withdrawal',
-        amount: parseFloat(amount),
+        type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
+        amount: transactionIntent.amount.toNumber ? transactionIntent.amount.toNumber() : Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
-        accountType: accountType as 'sama_naffa' | 'ape_investment',
+        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',
         investmentTranche,
         investmentTerm,
         userNotes
