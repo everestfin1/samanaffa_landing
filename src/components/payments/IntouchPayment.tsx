@@ -285,8 +285,6 @@ export default function IntouchPayment({
     onError,
     referenceNumber,
     resetPaymentState,
-    session?.user?.email,
-    session?.user?.name,
     session?.user,
     userId,
   ]);
