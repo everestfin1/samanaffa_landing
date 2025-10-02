@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 interface IntouchPaymentProps {
@@ -21,6 +21,25 @@ interface IntouchPaymentData {
   status: 'pending' | 'success' | 'failed' | 'cancelled';
 }
 
+type TransactionIntentResponse =
+  | {
+      success: true;
+      transactionId: string;
+      transactionIntent: {
+        id: string;
+        referenceNumber: string;
+        amount: number;
+        status: string;
+        createdAt: string;
+      };
+    }
+  | {
+      success: false;
+      error: string;
+      code?: string;
+      kycStatus?: string;
+    };
+
 declare global {
   interface Window {
     sendPaymentInfos: (
@@ -40,6 +59,9 @@ declare global {
   }
 }
 
+const INTOUCH_SCRIPT_URL =
+  'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+
 export default function IntouchPayment({
   amount,
   userId,
@@ -48,17 +70,115 @@ export default function IntouchPayment({
   referenceNumber,
   onSuccess,
   onError,
-  onCancel
+  onCancel,
 }: IntouchPaymentProps) {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+  const [scriptReady, setScriptReady] = useState(false);
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<IntouchPaymentData | null>(null);
 
-  const handlePayment = async () => {
+  const paymentStartedRef = useRef(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  const merchantId = process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID;
+  const apiKey = process.env.NEXT_PUBLIC_INTOUCH_API_KEY;
+  const domain = process.env.NEXT_PUBLIC_INTOUCH_DOMAIN;
+
+  const resetPaymentState = useCallback(() => {
+    paymentStartedRef.current = false;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setIsLoading(false);
+  }, []);
+
+  const handleIntentError = useCallback(
+    (payload: TransactionIntentResponse | null, fallbackMessage?: string) => {
+      const defaultMessage =
+        fallbackMessage || 'Erreur lors de la création de la transaction Intouch';
+
+      if (payload && payload.success === false) {
+        let errorMessage =
+          payload.error ||
+          defaultMessage ||
+          'Erreur lors de la création de la transaction Intouch';
+
+        switch (payload.code) {
+          case 'kyc_required':
+            errorMessage =
+              payload.error ||
+              "Votre identité doit être vérifiée avant d'effectuer des transactions.";
+            setStatusMessage(
+              "Vérification d'identité requise avant de pouvoir finaliser le paiement."
+            );
+            break;
+          case 'account_not_found':
+            errorMessage =
+              "Aucun compte associé n'a été trouvé. Merci de contacter le support.";
+            setStatusMessage(errorMessage);
+            break;
+          case 'invalid_intent_type':
+            errorMessage =
+              'Type de transaction non pris en charge. Veuillez réessayer ou contacter le support.';
+            setStatusMessage(errorMessage);
+            break;
+          case 'invalid_account_type':
+            errorMessage =
+              'Type de compte invalide pour ce paiement. Vérifiez vos informations.';
+            setStatusMessage(errorMessage);
+            break;
+          case 'missing_fields':
+            errorMessage =
+              'Informations manquantes pour initier le paiement. Veuillez réessayer.';
+            setStatusMessage(errorMessage);
+            break;
+          case 'invalid_investment_tranche':
+            errorMessage =
+              'Tranche d’investissement invalide. Vérifiez les détails saisis.';
+            setStatusMessage(errorMessage);
+            break;
+          case 'invalid_investment_term':
+            errorMessage =
+              'Durée d’investissement invalide. Veuillez sélectionner une durée autorisée.';
+            setStatusMessage(errorMessage);
+            break;
+          default:
+            setStatusMessage(errorMessage);
+        }
+
+        onError(errorMessage);
+      } else {
+        onError(defaultMessage);
+        setStatusMessage(defaultMessage);
+      }
+
+      resetPaymentState();
+    },
+    [onError, resetPaymentState]
+  );
+
+  const handlePayment = useCallback(async () => {
+    if (paymentStartedRef.current) {
+      return;
+    }
+
+    if (!merchantId || !apiKey || !domain) {
+      const message =
+        'Configuration Intouch manquante (merchantId, apiKey ou domain).';
+      setStatusMessage(message);
+      onError(message);
+      return;
+    }
+
+    paymentStartedRef.current = true;
     setIsLoading(true);
-    
+    setStatusMessage('Initialisation du paiement Intouch...');
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     try {
-      // Create transaction intent first
       const response = await fetch('/api/transactions/intent', {
         method: 'POST',
         headers: {
@@ -71,144 +191,264 @@ export default function IntouchPayment({
           amount,
           paymentMethod: 'intouch',
           referenceNumber,
-          userNotes: `Paiement via Intouch - ${intentType}`
-        })
+          userNotes: `Paiement via Intouch - ${intentType}`,
+        }),
+        signal: controller.signal,
       });
 
-      if (!response.ok) {
-        throw new Error('Erreur lors de la création de la transaction');
+      const result = (await response
+        .json()
+        .catch(() => null)) as TransactionIntentResponse | null;
+
+      if (!response.ok || !result || result.success === false) {
+        const errorPayload = !result
+          ? null
+          : result.success === false
+          ? result
+          : null;
+
+        const fallbackMessage =
+          result && result.success === false && result.error
+            ? result.error
+            : 'Impossible de créer la transaction Intouch';
+
+        handleIntentError(errorPayload, fallbackMessage);
+        return;
       }
 
-      const result = await response.json();
-      
-      if (!result.success) {
-        // Handle KYC verification error specifically
-        if (result.error === 'kyc_required') {
-          onError(`Vérification d'identité requise: ${result.message}`);
-          return;
-        }
-        throw new Error(result.error || 'Erreur lors de la création de la transaction');
-      }
+      const transactionId = result.transactionId;
 
-      // Store payment data
-      const transactionData: IntouchPaymentData = {
-        transactionId: result.transactionId,
+      setPaymentData({
+        transactionId,
         amount,
         referenceNumber,
-        status: 'pending'
-      };
-      setPaymentData(transactionData);
+        status: 'pending',
+      });
+      setStatusMessage(
+        'Paiement initié. Veuillez finaliser dans la fenêtre Intouch.'
+      );
 
-      // Call Intouch payment function
-      if (window.sendPaymentInfos) {
-        const customerName = session?.user?.name || 'Client';
-        const customerEmail = session?.user?.email || '';
-        const customerPhone = (session?.user as any)?.phone || '';
-        
-        window.sendPaymentInfos(
-          parseInt(result.transactionId) || new Date().getTime(),
-          process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID || '***REMOVED***',
-          process.env.NEXT_PUBLIC_INTOUCH_API_KEY || '***REMOVED***',
-          process.env.NEXT_PUBLIC_INTOUCH_DOMAIN || 'everestfin.com',
-          '', // customerName - empty like HTML example
-          '', // param6 - empty like HTML example
-          amount, // amount in position 7 like HTML example
-          'Dakar', // city
-          '', // phone - empty like HTML example
-          '', // email - empty like HTML example
-          `${intentType.toUpperCase()} - ${referenceNumber}`, // description
-          '' // param12 - empty like HTML example (12 params total)
+      if (typeof window.sendPaymentInfos !== 'function') {
+        throw new Error(
+          'Système de paiement Intouch non disponible dans le navigateur.'
         );
-      } else {
-        throw new Error('Système de paiement Intouch non disponible');
       }
 
+      const customerName =
+        session?.user?.name ||
+        `${(session?.user as any)?.firstName ?? ''} ${
+          (session?.user as any)?.lastName ?? ''
+        }`.trim() ||
+        'Client Sama Naffa';
+      const customerEmail = session?.user?.email || '';
+      const customerPhone = (session?.user as any)?.phone || '';
+
+      window.sendPaymentInfos(
+        Number.parseInt(transactionId, 10) || Date.now(),
+        merchantId,
+        apiKey,
+        domain,
+        customerName,
+        '',
+        amount,
+        'Dakar',
+        customerPhone,
+        customerEmail,
+        `${intentType.toUpperCase()} - ${referenceNumber}`,
+        ''
+      );
     } catch (error) {
-      console.error('Payment error:', error);
-      onError(error instanceof Error ? error.message : 'Erreur lors du traitement du paiement');
+      console.error('Intouch payment error:', error);
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors du traitement du paiement Intouch';
+
+      setPaymentData((prev) =>
+        prev ? { ...prev, status: 'failed' } : prev
+      );
+      setStatusMessage(message);
+      onError(message);
+      resetPaymentState();
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
-  };
+  }, [
+    accountType,
+    amount,
+    apiKey,
+    domain,
+    handleIntentError,
+    intentType,
+    merchantId,
+    onError,
+    referenceNumber,
+    resetPaymentState,
+    session?.user?.email,
+    session?.user?.name,
+    session?.user,
+    userId,
+  ]);
 
-  // Load Intouch script and auto-initiate payment
   useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    if (typeof window.sendPaymentInfos === 'function') {
+      setScriptReady(true);
+      return;
+    }
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[data-intouch-script="true"]'
+    );
+
+    const handleLoad = () => {
+      setLoadError(null);
+      setScriptReady(true);
+    };
+
+    const handleError = () => {
+      const message =
+        'Erreur lors du chargement du système de paiement Intouch.';
+      setLoadError(message);
+      setStatusMessage(message);
+      onError(message);
+    };
+
+    if (existingScript) {
+      if (existingScript.getAttribute('data-loaded') === 'true') {
+        handleLoad();
+      } else {
+        existingScript.addEventListener('load', handleLoad);
+        existingScript.addEventListener('error', handleError);
+      }
+
+      return () => {
+        existingScript.removeEventListener('load', handleLoad);
+        existingScript.removeEventListener('error', handleError);
+      };
+    }
+
     const script = document.createElement('script');
-    script.src = 'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+    script.src = INTOUCH_SCRIPT_URL;
     script.type = 'text/javascript';
     script.async = true;
-
+    script.dataset.intouchScript = 'true';
     script.onload = () => {
-      console.log('Intouch payment script loaded');
-      // Auto-initiate payment after script loads
-      setTimeout(() => {
-        handlePayment();
-      }, 500); // Small delay for better UX
+      script.setAttribute('data-loaded', 'true');
+      handleLoad();
     };
-
-    script.onerror = () => {
-      onError('Erreur lors du chargement du système de paiement Intouch');
-    };
+    script.onerror = handleError;
 
     document.head.appendChild(script);
 
     return () => {
-      // Cleanup script on unmount
-      const existingScript = document.querySelector('script[src*="touchpay"]');
-      if (existingScript) {
-        document.head.removeChild(existingScript);
-      }
+      script.onload = null;
+      script.onerror = null;
     };
-    
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Empty dependency array since handlePayment doesn't depend on changing props
+  }, [onError]);
 
-  // Listen for payment completion
+  useEffect(() => {
+    if (scriptReady && !loadError && !paymentStartedRef.current) {
+      handlePayment();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scriptReady, loadError]);
+
   useEffect(() => {
     const handlePaymentResult = (event: MessageEvent) => {
-      if (event.data && event.data.type === 'INTOUCH_PAYMENT_RESULT') {
-        const { status, transactionId } = event.data;
-        
-        if (status === 'success') {
-          setPaymentData(prev => prev ? { ...prev, status: 'success' } : null);
-          onSuccess(transactionId);
-        } else if (status === 'failed') {
-          setPaymentData(prev => prev ? { ...prev, status: 'failed' } : null);
-          onError('Paiement échoué');
-        } else if (status === 'cancelled') {
-          setPaymentData(prev => prev ? { ...prev, status: 'cancelled' } : null);
-          onCancel();
-        }
+      if (!event.data || event.data.type !== 'INTOUCH_PAYMENT_RESULT') {
+        return;
+      }
+
+      const { status, transactionId } = event.data;
+
+      if (status === 'success') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'success' } : null
+        );
+        setStatusMessage('Paiement réussi.');
+        onSuccess(transactionId);
+      } else if (status === 'failed') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'failed' } : null
+        );
+        setStatusMessage('Paiement échoué. Veuillez réessayer.');
+        onError('Paiement échoué');
+        resetPaymentState();
+      } else if (status === 'cancelled') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'cancelled' } : null
+        );
+        setStatusMessage('Paiement annulé.');
+        onCancel();
+        resetPaymentState();
       }
     };
 
-    // Also listen for Intouch-specific events
-    const handleIntouchResult = (event: any) => {
-      console.log('Intouch payment event:', event);
-      if (event.detail) {
-        const { status, transactionId } = event.detail;
-        
-        if (status === 'success' || status === 'completed') {
-          setPaymentData(prev => prev ? { ...prev, status: 'success' } : null);
-          onSuccess(transactionId);
-        } else if (status === 'failed' || status === 'error') {
-          setPaymentData(prev => prev ? { ...prev, status: 'failed' } : null);
-          onError('Paiement échoué');
-        } else if (status === 'cancelled') {
-          setPaymentData(prev => prev ? { ...prev, status: 'cancelled' } : null);
-          onCancel();
-        }
+    const handleIntouchEvent = (event: CustomEvent) => {
+      if (!event.detail) {
+        return;
+      }
+
+      const { status, transactionId } = event.detail;
+
+      if (status === 'success' || status === 'completed') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'success' } : null
+        );
+        setStatusMessage('Paiement réussi.');
+        onSuccess(transactionId);
+      } else if (status === 'failed' || status === 'error') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'failed' } : null
+        );
+        setStatusMessage('Paiement échoué. Veuillez réessayer.');
+        onError('Paiement échoué');
+        resetPaymentState();
+      } else if (status === 'cancelled') {
+        setPaymentData((prev) =>
+          prev ? { ...prev, status: 'cancelled' } : null
+        );
+        setStatusMessage('Paiement annulé.');
+        onCancel();
+        resetPaymentState();
       }
     };
 
     window.addEventListener('message', handlePaymentResult);
-    window.addEventListener('intouch-payment-result', handleIntouchResult);
-    
+    window.addEventListener(
+      'intouch-payment-result',
+      handleIntouchEvent as EventListener
+    );
+
     return () => {
       window.removeEventListener('message', handlePaymentResult);
-      window.removeEventListener('intouch-payment-result', handleIntouchResult);
+      window.removeEventListener(
+        'intouch-payment-result',
+        handleIntouchEvent as EventListener
+      );
+      abortControllerRef.current?.abort();
     };
-  }, [onSuccess, onError, onCancel]);
+  }, [onCancel, onError, onSuccess, resetPaymentState]);
+
+  const handleRetry = () => {
+    setPaymentData(null);
+    setStatusMessage(null);
+    resetPaymentState();
+    if (scriptReady && !loadError) {
+      handlePayment();
+    }
+  };
+
+  const disableAction =
+    isLoading ||
+    !scriptReady ||
+    loadError !== null ||
+    (paymentData?.status === 'pending' && paymentStartedRef.current);
 
   return (
     <div className="space-y-4">
@@ -229,20 +469,34 @@ export default function IntouchPayment({
         </div>
       </div>
 
+      {statusMessage && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-900">
+          {statusMessage}
+        </div>
+      )}
+
       {paymentData && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex items-center space-x-2">
-            <div className={`w-3 h-3 rounded-full ${
-              paymentData.status === 'success' ? 'bg-green-500' :
-              paymentData.status === 'failed' ? 'bg-red-500' :
-              paymentData.status === 'cancelled' ? 'bg-yellow-500' :
-              'bg-blue-500 animate-pulse'
-            }`} />
+            <div
+              className={`w-3 h-3 rounded-full ${
+                paymentData.status === 'success'
+                  ? 'bg-green-500'
+                  : paymentData.status === 'failed'
+                  ? 'bg-red-500'
+                  : paymentData.status === 'cancelled'
+                  ? 'bg-yellow-500'
+                  : 'bg-blue-500 animate-pulse'
+              }`}
+            />
             <span className="text-sm font-medium">
-              {paymentData.status === 'success' ? 'Paiement réussi' :
-               paymentData.status === 'failed' ? 'Paiement échoué' :
-               paymentData.status === 'cancelled' ? 'Paiement annulé' :
-               'En cours de traitement...'}
+              {paymentData.status === 'success'
+                ? 'Paiement réussi'
+                : paymentData.status === 'failed'
+                ? 'Paiement échoué'
+                : paymentData.status === 'cancelled'
+                ? 'Paiement annulé'
+                : 'En cours de traitement...'}
             </span>
           </div>
         </div>
@@ -251,16 +505,16 @@ export default function IntouchPayment({
       <div className="flex space-x-3">
         <button
           onClick={handlePayment}
-          disabled={isLoading || (paymentData?.status !== 'pending')}
+          disabled={disableAction}
           className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-            isLoading || (paymentData?.status !== 'pending')
+            disableAction
               ? 'bg-gray-400 text-white cursor-not-allowed'
               : 'bg-gold-metallic hover:bg-gold-dark text-white'
           }`}
         >
           {isLoading ? 'Traitement...' : 'Payer avec Intouch'}
         </button>
-        
+
         <button
           onClick={onCancel}
           className="flex-1 border border-timberwolf/30 text-night py-3 px-4 rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
@@ -268,6 +522,15 @@ export default function IntouchPayment({
           Annuler
         </button>
       </div>
+
+      {(paymentData?.status === 'failed' || paymentData?.status === 'cancelled') && (
+        <button
+          onClick={handleRetry}
+          className="w-full py-2 px-4 text-sm font-medium text-gold-dark border border-gold-metallic rounded-lg hover:bg-gold-light/20 transition-colors"
+        >
+          Réessayer le paiement
+        </button>
+      )}
     </div>
   );
 }

@@ -92,25 +92,41 @@ model UserAccount {
 }
 
 model TransactionIntent {
-  id                String            @id @default(cuid())
-  userId            String
-  accountId         String
-  accountType       AccountType
-  intentType        IntentType
-  amount            Decimal           @db.Decimal(15, 2)
-  paymentMethod     String
-  investmentTranche String?
-  investmentTerm    Int?
-  userNotes         String?
-  adminNotes        String?
-  status            TransactionStatus @default(PENDING)
-  referenceNumber   String            @unique
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
-  account           UserAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
-  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                     String                 @id @default(cuid())
+  userId                 String
+  accountId              String
+  accountType            AccountType
+  intentType             IntentType
+  amount                 Decimal                @db.Decimal(15, 2)
+  paymentMethod          String
+  investmentTranche      String?
+  investmentTerm         Int?
+  userNotes              String?
+  adminNotes             String?
+  status                 TransactionStatus      @default(PENDING)
+  referenceNumber        String                 @unique
+  providerTransactionId  String?                @unique
+  providerStatus         String?
+  lastCallbackAt         DateTime?
+  lastCallbackPayload    Json?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  account                UserAccount            @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  user                   User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  callbackLogs           PaymentCallbackLog[]
 
   @@map("transaction_intents")
+}
+
+model PaymentCallbackLog {
+  id                  String            @id @default(cuid())
+  transactionIntentId String
+  status              String
+  payload             Json
+  receivedAt          DateTime          @default(now())
+  transactionIntent   TransactionIntent @relation(fields: [transactionIntentId], references: [id], onDelete: Cascade)
+
+  @@map("payment_callback_logs")
 }
 
 model KycDocument {

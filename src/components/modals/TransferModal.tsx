@@ -40,6 +40,9 @@ export default function TransferModal({
   const [error, setError] = useState<string>('');
   const [showIntouchPayment, setShowIntouchPayment] = useState<boolean>(false);
   const [referenceNumber, setReferenceNumber] = useState<string>('');
+  const [isPreflightChecking, setIsPreflightChecking] = useState<boolean>(false);
+  const [preflightMessage, setPreflightMessage] = useState<string>('');
+  const withdrawBlocked = type === 'withdraw' && kycStatus !== 'APPROVED';
 
   const handleAmountChange = (value: string) => {
     setAmount(value);
@@ -54,16 +57,16 @@ export default function TransferModal({
       return;
     }
 
-    if (type === 'deposit') {
-      if (requestedAmount < 500) {
-        setError('Le montant minimum de dépôt est de 500 FCFA');
-        return;
-      }
-      if (requestedAmount % 500 !== 0) {
-        setError('Les dépôts doivent être par paliers de 500 FCFA');
-        return;
-      }
-    }
+    // if (type === 'deposit') {
+    //   if (requestedAmount < 1000) {
+    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
+    //     return;
+    //   }
+    //   if (requestedAmount % 1000 !== 0) {
+    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
+    //     return;
+    //   }
+    // }
 
     if (type === 'withdraw' && requestedAmount > currentBalance) {
       setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
@@ -76,7 +79,76 @@ export default function TransferModal({
     return `${accountType.toUpperCase()}-${type.toUpperCase()}-${timestamp}-${random}`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const runPreflightChecks = async (requestedAmount: number) => {
+    setIsPreflightChecking(true);
+    setPreflightMessage('Vérification de votre compte et de votre identité...');
+    setError('');
+
+    try {
+      const sessionUserId = (session?.user as any)?.id;
+      if (!sessionUserId) {
+        throw new Error('Votre session a expiré. Veuillez vous reconnecter.');
+      }
+
+      if (type === 'withdraw' && kycStatus !== 'APPROVED') {
+        throw new Error("Votre identité doit être approuvée avant d'effectuer un retrait.");
+      }
+
+      const supportedAccountTypes: Array<'sama_naffa' | 'ape_investment'> = ['sama_naffa', 'ape_investment'];
+      if (!supportedAccountTypes.includes(accountType)) {
+        throw new Error('Type de compte non pris en charge pour les paiements Intouch.');
+      }
+
+      const response = await fetch('/api/accounts', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error('Impossible de vérifier vos comptes. Veuillez réessayer plus tard.');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Aucun compte valide trouvé.');
+      }
+
+      const normalizedAccountType = accountType.toUpperCase();
+      const matchingAccount = (data.accounts || []).find(
+        (account: any) => account.accountType === normalizedAccountType
+      );
+
+      if (!matchingAccount) {
+        throw new Error('Le compte sélectionné est introuvable. Contactez le support pour assistance.');
+      }
+
+      const rawBalance = matchingAccount.balance;
+      const numericBalance =
+        typeof rawBalance === 'number'
+          ? rawBalance
+          : typeof rawBalance === 'string'
+            ? parseFloat(rawBalance)
+            : Number(rawBalance);
+
+      const effectiveBalance = Number.isFinite(numericBalance) ? numericBalance : currentBalance;
+
+      if (type === 'withdraw' && requestedAmount > effectiveBalance) {
+        throw new Error(`Fonds insuffisants. Solde disponible: ${effectiveBalance.toLocaleString()} FCFA`);
+      }
+
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Erreur lors de la vérification des prérequis du paiement.';
+      setError(message);
+      return false;
+    } finally {
+      setIsPreflightChecking(false);
+      setPreflightMessage('');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     
@@ -93,25 +165,25 @@ export default function TransferModal({
       return;
     }
 
-    if (type === 'deposit') {
-      if (requestedAmount < 500) {
-        setError('Le montant minimum de dépôt est de 500 FCFA');
-        return;
-      }
-      if (requestedAmount % 500 !== 0) {
-        setError('Les dépôts doivent être par paliers de 500 FCFA');
-        return;
-      }
-    }
-
-    // Minimum amount validation (temporarily disabled for testing)
-    // if (requestedAmount < 1000) {
-    //   setError('Le montant minimum est de 1,000 FCFA');
-    //   return;
+    // if (type === 'deposit') {
+    //   if (requestedAmount < 1000) {
+    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
+    //     return;
+    //   }
+    //   if (requestedAmount % 1000 !== 0) {
+    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
+    //     return;
+    //   }
     // }
+
 
     // Handle Intouch payment
     if (method === 'intouch') {
+      const canProceed = await runPreflightChecks(requestedAmount);
+      if (!canProceed) {
+        return;
+      }
+
       const refNumber = generateReferenceNumber();
       setReferenceNumber(refNumber);
       setShowIntouchPayment(true);
@@ -150,14 +222,14 @@ export default function TransferModal({
 
   if (!isOpen) return null;
 
-  // Show KYC verification message if user is not approved
-  if (kycStatus !== 'APPROVED') {
+  // Block withdrawals when KYC is not approved
+  if (withdrawBlocked) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-night">
-              Vérification d'identité requise
+              Retrait indisponible
             </h3>
             <button 
               onClick={onClose}
@@ -169,7 +241,7 @@ export default function TransferModal({
 
           <div className="mb-6">
             <p className="text-night/70 mb-4">
-              Pour effectuer des {type === 'deposit' ? 'dépôts' : 'retraits'}, votre identité doit être vérifiée.
+              Pour effectuer un retrait, votre identité doit d'abord être vérifiée et approuvée.
             </p>
           </div>
 
@@ -261,10 +333,10 @@ export default function TransferModal({
                 type="number" 
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un multiple de 500'}
-                min={type === 'deposit' ? 500 : 1}
-                max={type === 'withdraw' ? currentBalance : undefined}
-                step={type === 'deposit' ? 500 : 1}
+                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un multiple de 1000'}
+                // min={type === 'deposit' ? 1000 : 1}
+                // max={type === 'withdraw' ? currentBalance : undefined}
+                // step={type === 'deposit' ? 1000 : 1}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}
@@ -293,6 +365,12 @@ export default function TransferModal({
             </div>
           </div>
 
+          {preflightMessage && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+              {preflightMessage}
+            </div>
+          )}
+
           <div className="flex space-x-3 mt-6">
             <button 
               type="button"
@@ -303,14 +381,22 @@ export default function TransferModal({
             </button>
             <button 
               type="submit"
-              disabled={!!error || (type === 'withdraw' && parseFloat(amount) > currentBalance)}
+              disabled={
+                !!error ||
+                isPreflightChecking ||
+                (type === 'withdraw' && parseFloat(amount) > currentBalance)
+              }
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors text-white ${
                 type === 'deposit' 
                   ? 'bg-gold-metallic hover:bg-gold-dark disabled:bg-gray-400' 
                   : 'bg-red-600 hover:bg-red-700 disabled:bg-gray-400'
               }`}
             >
-              {type === 'deposit' ? 'Déposer' : 'Retirer'}
+              {isPreflightChecking
+                ? 'Vérification...'
+                : type === 'deposit'
+                  ? 'Déposer'
+                  : 'Retirer'}
             </button>
           </div>
         </form>
