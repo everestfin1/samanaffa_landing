@@ -46,6 +46,7 @@ model User {
   sessions           Session[]
   transactionIntents TransactionIntent[]
   accounts           UserAccount[]
+  notifications      Notification[]
 
   @@map("users")
 }
@@ -112,12 +113,27 @@ model TransactionIntent {
   status                TransactionStatus @default(PENDING)
   referenceNumber       String            @unique
   providerTransactionId String?           @unique
+  providerStatus        String?
+  lastCallbackAt        DateTime?
+  lastCallbackPayload   Json?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   account               UserAccount       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   user                  User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  paymentCallbacks      PaymentCallbackLog[]
 
   @@map("transaction_intents")
+}
+
+model PaymentCallbackLog {
+  id                String            @id @default(cuid())
+  transactionIntentId String
+  status            String
+  payload           Json
+  createdAt         DateTime          @default(now())
+  transactionIntent TransactionIntent @relation(fields: [transactionIntentId], references: [id], onDelete: Cascade)
+
+  @@map("payment_callback_logs")
 }
 
 model KycDocument {
@@ -161,6 +177,22 @@ model RegistrationSession {
   otpCodes  OtpCode[]
 
   @@map("registration_sessions")
+}
+
+model Notification {
+  id              String        @id @default(cuid())
+  userId          String
+  title           String
+  message         String
+  type            NotificationType
+  priority        NotificationPriority
+  isRead          Boolean       @default(false)
+  metadata        String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
 }
 
 enum KycStatus {
@@ -216,4 +248,20 @@ enum AdminRole {
 enum SessionType {
   REGISTRATION
   LOGIN
+}
+
+enum NotificationType {
+  KYC_STATUS
+  SUCCESS
+  ERROR
+  WARNING
+  TRANSACTION
+  SECURITY
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }

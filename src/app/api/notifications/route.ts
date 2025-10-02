@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (status && status !== 'all') {
-      where.status = status.toUpperCase()
+      where.isRead = status === 'read'
     }
 
     if (type) {
@@ -44,10 +44,9 @@ export async function GET(request: NextRequest) {
           title: true,
           message: true,
           type: true,
-          status: true,
+          isRead: true,
           priority: true,
           metadata: true,
-          readAt: true,
           createdAt: true,
           updatedAt: true
         }
@@ -59,7 +58,7 @@ export async function GET(request: NextRequest) {
     const unreadCount = await prisma.notification.count({
       where: {
         userId: session.user.id,
-        status: 'UNREAD'
+        isRead: false
       }
     })
 
