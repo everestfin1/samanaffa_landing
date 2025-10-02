@@ -3,6 +3,17 @@ import { prisma } from '@/lib/prisma'
 import { generateReferenceNumber } from '@/lib/utils'
 import { sendTransactionIntentEmail, sendAdminNotificationEmail } from '@/lib/notifications'
 
+function respondError(code: string, message: string, status = 400) {
+  return NextResponse.json(
+    {
+      success: false,
+      error: message,
+      code,
+    },
+    { status },
+  );
+}
+
 export async function POST(request: NextRequest) {
   try {
     const {
@@ -13,46 +24,37 @@ export async function POST(request: NextRequest) {
       paymentMethod,
       investmentTranche,
       investmentTerm,
-      userNotes
+      userNotes,
+      referenceNumber: providedReferenceNumber,
+      providerTransactionId,
     } = await request.json()
 
     // Validate required fields
     if (!userId || !accountType || !intentType || !amount || !paymentMethod) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
+      return respondError('missing_fields', 'Missing required fields', 400)
+    }
+
+    if (providerTransactionId && typeof providerTransactionId !== 'string') {
+      return respondError('invalid_provider_transaction_id', 'Invalid provider transaction identifier', 400)
     }
 
     // Validate account type
     if (!['sama_naffa', 'ape_investment'].includes(accountType)) {
-      return NextResponse.json(
-        { error: 'Invalid account type' },
-        { status: 400 }
-      )
+      return respondError('invalid_account_type', 'Invalid account type', 400)
     }
 
     // Validate intent type
     if (!['deposit', 'investment', 'withdrawal'].includes(intentType)) {
-      return NextResponse.json(
-        { error: 'Invalid intent type' },
-        { status: 400 }
-      )
+      return respondError('invalid_intent_type', 'Invalid intent type', 400)
     }
 
     // For APE investments, validate tranche and term
     if (accountType === 'ape_investment' && intentType === 'investment') {
       if (!investmentTranche || !['A', 'B', 'C', 'D'].includes(investmentTranche)) {
-        return NextResponse.json(
-          { error: 'Invalid investment tranche' },
-          { status: 400 }
-        )
+        return respondError('invalid_investment_tranche', 'Invalid investment tranche', 400)
       }
       if (!investmentTerm || ![3, 5, 7, 10].includes(investmentTerm)) {
-        return NextResponse.json(
-          { error: 'Invalid investment term' },
-          { status: 400 }
-        )
+        return respondError('invalid_investment_term', 'Invalid investment term', 400)
       }
     }
 
@@ -67,41 +69,39 @@ export async function POST(request: NextRequest) {
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
+      return respondError('user_not_found', 'User not found', 404)
     }
 
     // Check KYC status - only allow transactions for approved users
     if (user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
-        { 
-          error: 'kyc_required',
-          message: 'Vérification d\'identité requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
-          kycStatus: user.kycStatus
+        {
+          success: false,
+          error: 'Vérification d\'identité requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
+          code: 'kyc_required',
+          kycStatus: user.kycStatus,
         },
-        { status: 403 }
+        { status: 403 },
       )
     }
 
     if (!user.accounts.length) {
-      return NextResponse.json(
-        { error: 'Account not found' },
-        { status: 404 }
-      )
+      return respondError('account_not_found', 'Account not found', 404)
     }
 
     const account = user.accounts[0]
     const createdAt = new Date()
 
     // Generate reference number
-    const referenceNumber = generateReferenceNumber(
-      accountType as 'sama_naffa' | 'ape_investment',
-      intentType as 'deposit' | 'investment' | 'withdrawal',
-      userId,
-      createdAt
-    )
+    const referenceNumber =
+      typeof providedReferenceNumber === 'string' && providedReferenceNumber.trim().length > 0
+        ? providedReferenceNumber.trim()
+        : generateReferenceNumber(
+            accountType as 'sama_naffa' | 'ape_investment',
+            intentType as 'deposit' | 'investment' | 'withdrawal',
+            userId,
+            createdAt,
+          )
 
     // Create transaction intent
     const transactionIntent = await prisma.transactionIntent.create({
@@ -116,6 +116,7 @@ export async function POST(request: NextRequest) {
         investmentTerm,
         userNotes,
         referenceNumber,
+        providerTransactionId: providerTransactionId || null,
       }
     })
 
@@ -162,15 +163,14 @@ export async function POST(request: NextRequest) {
         amount: transactionIntent.amount,
         status: transactionIntent.status,
         createdAt: transactionIntent.createdAt,
+        providerTransactionId: transactionIntent.providerTransactionId,
       },
-      transactionId: transactionIntent.id
+      transactionId: transactionIntent.id,
+      providerTransactionId: transactionIntent.providerTransactionId,
     })
   } catch (error) {
     console.error('Error creating transaction intent:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return respondError('internal_error', 'Internal server error', 500)
   }
 }
 
