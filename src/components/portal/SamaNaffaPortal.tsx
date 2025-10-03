@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   BanknotesIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   ClockIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -86,6 +88,160 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
   const [hasMoreTransactions, setHasMoreTransactions] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [actionWarning, setActionWarning] = useState<string | null>(null);
+
+  const sliderRef = useRef<HTMLDivElement>(null);
+  const scrollDetectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [carouselPadding, setCarouselPadding] = useState(0);
+  const [activeAccountIndex, setActiveAccountIndex] = useState(0);
+
+  const getClampedIndex = useCallback(
+    (index: number) => {
+      if (!accounts.length) return 0;
+      return Math.max(0, Math.min(index, accounts.length - 1));
+    },
+    [accounts.length],
+  );
+
+  const scrollToAccount = useCallback(
+    (index: number, smooth = true) => {
+      const container = sliderRef.current;
+      if (!container) return;
+
+      const target = container.children[index] as HTMLElement | undefined;
+      if (!target) return;
+
+      const offset = target.offsetLeft - (container.offsetWidth - target.offsetWidth) / 2;
+
+      container.scrollTo({
+        left: offset,
+        behavior: smooth ? 'smooth' : 'auto',
+      });
+    },
+    [],
+  );
+
+  const updateActiveAccount = useCallback(
+    (index: number, smooth = true) => {
+      const clamped = getClampedIndex(index);
+      const account = accounts[clamped];
+      if (!account) return;
+
+      setCreationFeedback(null);
+      setActiveAccountIndex(clamped);
+
+      if (selectedAccountId !== account.id) {
+        setSelectedAccountId(account.id);
+      }
+
+      scrollToAccount(clamped, smooth);
+    },
+    [accounts, getClampedIndex, scrollToAccount, selectedAccountId],
+  );
+
+  const handleSelectAccount = useCallback(
+    (accountId: string, smooth = true) => {
+      const index = accounts.findIndex(acc => acc.id === accountId);
+      if (index === -1) return;
+      updateActiveAccount(index, smooth);
+    },
+    [accounts, updateActiveAccount],
+  );
+
+  const handlePreviousAccount = useCallback(() => {
+    if (activeAccountIndex <= 0) return;
+    updateActiveAccount(activeAccountIndex - 1);
+  }, [activeAccountIndex, updateActiveAccount]);
+
+  const handleNextAccount = useCallback(() => {
+    if (activeAccountIndex >= accounts.length - 1) return;
+    updateActiveAccount(activeAccountIndex + 1);
+  }, [activeAccountIndex, accounts.length, updateActiveAccount]);
+
+  const computeCarouselPadding = useCallback(() => {
+    const container = sliderRef.current;
+    if (!container) return;
+
+    const firstCard = container.querySelector<HTMLElement>('[data-account-card]');
+    if (!firstCard) return;
+
+    const padding = Math.max(0, (container.offsetWidth - firstCard.offsetWidth) / 2);
+    setCarouselPadding(padding);
+  }, []);
+
+  const handleCarouselScroll = useCallback(() => {
+    if (scrollDetectionTimeout.current) {
+      clearTimeout(scrollDetectionTimeout.current);
+    }
+
+    scrollDetectionTimeout.current = setTimeout(() => {
+      const container = sliderRef.current;
+      if (!container) return;
+
+      const children = Array.from(container.children) as HTMLElement[];
+      if (!children.length) return;
+
+      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
+
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      children.forEach((child, index) => {
+        const childCenter = child.offsetLeft + child.offsetWidth / 2;
+        const distance = Math.abs(childCenter - containerCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      const account = accounts[closestIndex];
+      if (!account) return;
+
+      setActiveAccountIndex(closestIndex);
+
+      if (selectedAccountId !== account.id) {
+        setSelectedAccountId(account.id);
+        setCreationFeedback(null);
+      }
+    }, 120);
+  }, [accounts, selectedAccountId]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollDetectionTimeout.current) {
+        clearTimeout(scrollDetectionTimeout.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!accounts.length) return;
+
+    const handleResize = () => computeCarouselPadding();
+
+    computeCarouselPadding();
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [accounts.length, computeCarouselPadding]);
+
+  useEffect(() => {
+    if (!accounts.length) return;
+
+    const index = selectedAccountId ? accounts.findIndex(acc => acc.id === selectedAccountId) : 0;
+    const targetIndex = index >= 0 ? index : 0;
+
+    setActiveAccountIndex(targetIndex);
+
+    requestAnimationFrame(() => {
+      computeCarouselPadding();
+      scrollToAccount(targetIndex, false);
+    });
+  }, [accounts, selectedAccountId, computeCarouselPadding, scrollToAccount]);
 
   const orderedThemes = [
     'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
@@ -198,11 +354,6 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
     fetchTransactions(selectedAccountId, 5, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAccountId]);
-
-  const handleSelectAccount = (accountId: string) => {
-    setSelectedAccountId(accountId);
-    setCreationFeedback(null);
-  };
 
   const handleCreateAccount = async (naffaType: NaffaType) => {
     if (!naffaType || isCreatingAccount) return;
@@ -372,6 +523,10 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
 
   const canWithdraw = !isAccountLocked;
 
+  const maxAccountIndex = Math.max(0, accounts.length - 1);
+  const isAtBeginning = activeAccountIndex <= 0;
+  const isAtEnd = activeAccountIndex >= maxAccountIndex;
+
   return (
     <div className="space-y-8">
       {creationFeedback && (
@@ -425,9 +580,34 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         </div>
 
         {accounts.length > 1 && (
-          <div className="relative h-[400px] mb-8">
-            <div className="absolute top-4 right-4 z-50">
+          <div className="space-y-6 mb-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handlePreviousAccount}
+                  disabled={isAtBeginning}
+                  className={`rounded-full border border-timberwolf/30 bg-white/90 p-2 shadow-md backdrop-blur-sm transition ${
+                    isAtBeginning ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
+                  }`}
+                  aria-label="Voir le compte précédent"
+                >
+                  <ChevronLeftIcon className="h-5 w-5 text-night" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextAccount}
+                  disabled={isAtEnd}
+                  className={`rounded-full border border-timberwolf/30 bg-white/90 p-2 shadow-md backdrop-blur-sm transition ${
+                    isAtEnd ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
+                  }`}
+                  aria-label="Voir le compte suivant"
+                >
+                  <ChevronRightIcon className="h-5 w-5 text-night" />
+                </button>
+              </div>
               <button
+                type="button"
                 onClick={() => setShowBalance(prev => !prev)}
                 className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm text-night px-4 py-2 rounded-lg shadow-lg hover:bg-white transition-colors border border-timberwolf/20"
               >
@@ -435,49 +615,31 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                 <span className="text-sm font-medium">{showBalance ? 'Masquer' : 'Afficher'}</span>
               </button>
             </div>
-            <div className="relative w-full h-full">
+
+            <div
+              ref={sliderRef}
+              onScroll={handleCarouselScroll}
+              style={{ paddingLeft: carouselPadding, paddingRight: carouselPadding }}
+              className="flex gap-6 overflow-x-auto overflow-y-visible py-4 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            >
               {accounts.map((account, index) => {
                 const isSelected = account.id === selectedAccountId;
-                const totalCards = accounts.length;
-                const selectedIndex = accounts.findIndex(acc => acc.id === selectedAccountId);
-                
-                // Calculate stacking position with directional offsets for clarity
-                let translateY = 0;
-                let translateX = 0;
-                let scale = 1;
-                let zIndex = 0;
-                let opacity = 1;
-
-                if (isSelected) {
-                  translateY = 0;
-                  translateX = 0;
-                  scale = 1;
-                  zIndex = 120;
-                  opacity = 1;
-                } else {
-                  const delta = index - selectedIndex;
-                  const distance = Math.abs(delta);
-                  translateY = -(distance * 16 + 8);
-                  translateX = delta * 26;
-                  scale = Math.max(0.78, 1 - distance * 0.06);
-                  zIndex = 120 - distance * 2 - (delta > 0 ? 1 : 0);
-                  opacity = Math.max(0.4, 1 - distance * 0.22);
-                }
-
                 const cardTheme = getThemeByIndex(index);
 
                 return (
                   <button
                     key={account.id}
+                    type="button"
                     onClick={() => handleSelectAccount(account.id)}
-                    className="absolute top-0 left-0 w-full transition-all duration-500 ease-out cursor-pointer"
-                    style={{
-                      transform: `translateY(${translateY}px) translateX(${translateX}px) scale(${scale})`,
-                      zIndex,
-                      opacity,
-                    }}
+                    data-account-card
+                    className="snap-center shrink-0 basis-[280px] focus:outline-none sm:basis-[320px] lg:basis-[360px]"
+                    aria-current={isSelected}
                   >
-                    <div className={`relative bg-gradient-to-br ${cardTheme} rounded-2xl p-8 text-white overflow-hidden shadow-2xl border border-white/10`}>
+                    <div
+                      className={`relative flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${cardTheme} ${
+                        isSelected ? 'scale-[1.02] ring-2 ring-gold-metallic shadow-xl' : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
+                      }`}
+                    >
                       <div
                         className="absolute inset-0 opacity-30 z-10"
                         style={{
@@ -485,11 +647,11 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                           mixBlendMode: 'overlay',
                         }}
                       />
-                      
+
                       <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full" />
                       <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full" />
                       <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full" />
-                      
+
                       <div className="absolute top-6 right-6 z-30">
                         <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-12 w-auto" width={100} height={48} />
                       </div>
@@ -508,7 +670,15 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                             <p className="text-3xl font-bold tracking-wide">
                               {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
-                            <button onClick={() => setShowBalance(prev => !prev)} className="text-white/80 hover:text-white transition-colors">
+                            <button
+                              type="button"
+                              onClick={event => {
+                                event.stopPropagation();
+                                setShowBalance(prev => !prev);
+                              }}
+                              className="text-white/80 hover:text-white transition-colors"
+                              aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
+                            >
                               {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
                             </button>
                           </div>
@@ -533,6 +703,20 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                   </button>
                 );
               })}
+            </div>
+
+            <div className="flex justify-center gap-2">
+              {accounts.map((account, index) => (
+                <button
+                  key={account.id}
+                  type="button"
+                  onClick={() => handleSelectAccount(account.id)}
+                  className={`h-2.5 rounded-full transition-all duration-300 ${
+                    activeAccountIndex === index ? 'w-6 bg-gold-metallic' : 'w-2.5 bg-timberwolf/50 hover:bg-timberwolf/80'
+                  }`}
+                  aria-label={`Voir le compte ${account.productName || `#${index + 1}`}`}
+                />
+              ))}
             </div>
           </div>
         )}

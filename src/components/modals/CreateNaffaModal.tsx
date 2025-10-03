@@ -16,13 +16,23 @@ import {
 } from '@heroicons/react/24/outline';
 import { naffaTypes, NaffaType } from '../data/naffaTypes';
 
-const cardStyle = {
-  gradient:
-    'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
-  chip: 'bg-white/15 text-white',
-};
+const getCardStyle = (naffaId: string) => {
+  // Distinct color scheme for each Naffa type using Sama brand palette
+  const colorMap: Record<string, string> = {
+    'etudes-enfant': 'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark', // Primary green
+    'business': 'from-[#C38D1C] via-[#b3830f] to-[#a37a0d]', // Golden orange
+    'diaspora': 'from-[#435933] via-[#5a7344] to-[#364529]', // Green
+    'serenite': 'from-[#8B9298] via-[#6B7278] to-[#4B5258]', // Light gray (stability)
+    'communautaire': 'from-[#D4A574] via-[#C39563] to-[#B38552]', // Warm orange-brown (community)
+    'liberte': 'from-[#5a7344] via-[#6b8555] to-[#7c9666]', // Bright green (freedom)
+    'prestige': 'from-[#1a2612] via-[#0f1a0a] to-[#050a02]', // Very dark green/black (premium)
+  };
 
-const getCardStyle = () => cardStyle;
+  return {
+    gradient: colorMap[naffaId] || 'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
+    chip: 'bg-white/15 text-white',
+  };
+};
 
 const getNaffaIcon = (naffaId: string) => {
   const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -276,7 +286,7 @@ export default function CreateNaffaModal({
             >
               {naffaTypes.map((naffa, index) => {
                 const isSelected = selectedNaffa?.id === naffa.id;
-                const { gradient } = getCardStyle();
+                const { gradient } = getCardStyle(naffa.id);
 
                 const IconComponent = getNaffaIcon(naffa.id);
 
