@@ -379,7 +379,7 @@ export default function RegisterPage() {
     return touched[fieldName] && !!errors[fieldName];
   };
 
-  const validateStep = (step: number): boolean => {
+  const validateStep = async (step: number): Promise<boolean> => {
     // Build step 1 fields dynamically based on employment status
     const step1Fields = ['civilite', 'firstName', 'lastName', 'phone', 'email', 'statutEmploi', 'metiers'];
 
@@ -426,7 +426,7 @@ export default function RegisterPage() {
       // This is a simplified check - in a real app, you might want to move this logic
       // to a utility function or use the same functions from Step3Address
       try {
-        const regionsSenegal = require('../../../regions_senegal.json');
+        const regionsSenegal = await import('../../../regions_senegal.json');
         const regionData = regionsSenegal.find((region: any) => 
           region.name.toLowerCase() === formData.region.toLowerCase()
         );
@@ -478,7 +478,7 @@ export default function RegisterPage() {
     });
     setTouched(newTouched);
 
-    if (validateStep(currentStep)) {
+    if (await validateStep(currentStep)) {
       // Special handling for step 1: Check email/phone availability before proceeding
       if (currentStep === 1) {
         setIsLoading(true);
@@ -702,9 +702,9 @@ export default function RegisterPage() {
             {currentStep < 6 ? (
               <button
                 onClick={handleNext}
-                disabled={uploadingFiles || !validateStep(currentStep) || isLoading}
+                disabled={uploadingFiles || isLoading}
                 className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  validateStep(currentStep) && !uploadingFiles && !isLoading
+                  !uploadingFiles && !isLoading
                     ? 'bg-gradient-to-r from-gold-dark to-gold-metallic text-white hover:shadow-lg hover:-translate-y-0.5'
                     : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
                 }`}
