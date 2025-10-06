@@ -59,11 +59,12 @@ export default function RegisterPage() {
 
     // Step 3
     country: 'Senegal',
-    region: 'Dakar',
+    region: '',
     department: '',
+    arrondissement: '',
     district: '',
     address: '',
-    city: 'Dakar',
+    city: '',
 
     // Step 4
     selfieImage: null,
@@ -209,6 +210,10 @@ export default function RegisterPage() {
         if (!value || typeof value !== 'string' || value.trim() === '') return 'Lieu de naissance est requis';
         return '';
 
+      case 'region':
+        if (!value || typeof value !== 'string' || value.trim() === '') return 'Région est requise';
+        return '';
+
       case 'address':
         if (!value || typeof value !== 'string' || value.trim().length < 5) {
           return 'Adresse doit contenir au moins 5 caractères';
@@ -217,6 +222,11 @@ export default function RegisterPage() {
 
       case 'department':
         if (!value || typeof value !== 'string' || value.trim() === '') return 'Département est requis';
+        return '';
+
+      case 'arrondissement':
+        // Arrondissement is only required if the department has arrondissements
+        // This validation will be handled by the Step3Address component
         return '';
 
       case 'district':
@@ -251,16 +261,29 @@ export default function RegisterPage() {
         [name]: type === 'checkbox' ? checked : value
       };
 
-      // Clear region, department and district when country changes away from Senegal
+      // Clear region, department, arrondissement and district when country changes away from Senegal
       if (name === 'country' && value !== 'Senegal') {
         newData.region = '';
         newData.department = '';
+        newData.arrondissement = '';
         newData.district = '';
       }
 
-      // Clear department and district when region changes (in case user switches from Dakar to another region)
+      // Clear department, arrondissement and district when region changes
       if (name === 'region') {
         newData.department = '';
+        newData.arrondissement = '';
+        newData.district = '';
+      }
+
+      // Clear arrondissement and district when department changes
+      if (name === 'department') {
+        newData.arrondissement = '';
+        newData.district = '';
+      }
+
+      // Clear district when arrondissement changes
+      if (name === 'arrondissement') {
         newData.district = '';
       }
 
@@ -397,6 +420,34 @@ export default function RegisterPage() {
       if (errors[field]) return false;
     }
 
+    // Special validation for step 3 (address) - check arrondissement requirement
+    if (step === 3 && formData.country === 'Senegal') {
+      // Import the regions data to check if department has arrondissements
+      // This is a simplified check - in a real app, you might want to move this logic
+      // to a utility function or use the same functions from Step3Address
+      try {
+        const regionsSenegal = require('../../../regions_senegal.json');
+        const regionData = regionsSenegal.find((region: any) => 
+          region.name.toLowerCase() === formData.region.toLowerCase()
+        );
+        
+        if (regionData) {
+          const department = regionData.departements.find((dept: any) => 
+            dept.name.toLowerCase() === formData.department.toLowerCase()
+          );
+          
+          // If department has arrondissements, arrondissement field is required
+          if (department && department.arrondissements && department.arrondissements.length > 0) {
+            if (!formData.arrondissement || formData.arrondissement.trim() === '') {
+              return false;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error validating arrondissement requirement:', error);
+      }
+    }
+
     return true;
   };
 
@@ -409,7 +460,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'department', 'district', 'address'],
+      3: ['country', 'region', 'department', 'arrondissement', 'district', 'address'],
       4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };

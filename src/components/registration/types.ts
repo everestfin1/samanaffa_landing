@@ -21,6 +21,7 @@ export interface FormData {
   country: string;
   region: string;
   department: string;
+  arrondissement: string;
   district: string;
   address: string;
   city: string;

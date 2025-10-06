@@ -96,6 +96,8 @@ export async function POST(request: NextRequest) {
         city: userData.city,
         country: userData.country,
         region: userData.region,
+        department: userData.department,
+        arrondissement: userData.arrondissement,
         district: userData.district,
         placeOfBirth: userData.placeOfBirth,
         statutEmploi: userData.statutEmploi,

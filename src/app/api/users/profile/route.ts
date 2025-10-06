@@ -43,6 +43,11 @@ export async function GET(request: NextRequest) {
         nationality: user.nationality,
         address: user.address,
         city: user.city,
+        country: user.country,
+        region: user.region,
+        department: user.department,
+        arrondissement: user.arrondissement,
+        district: user.district,
         preferredLanguage: user.preferredLanguage,
         emailVerified: user.emailVerified,
         phoneVerified: user.phoneVerified,
@@ -79,6 +84,11 @@ export async function PUT(request: NextRequest) {
       nationality,
       address,
       city,
+      country,
+      region,
+      department,
+      arrondissement,
+      district,
       preferredLanguage
     } = await request.json()
 
@@ -91,6 +101,11 @@ export async function PUT(request: NextRequest) {
         nationality,
         address,
         city,
+        country,
+        region,
+        department,
+        arrondissement,
+        district,
         preferredLanguage
       }
     })
@@ -108,6 +123,11 @@ export async function PUT(request: NextRequest) {
         nationality: updatedUser.nationality,
         address: updatedUser.address,
         city: updatedUser.city,
+        country: updatedUser.country,
+        region: updatedUser.region,
+        department: updatedUser.department,
+        arrondissement: updatedUser.arrondissement,
+        district: updatedUser.district,
         preferredLanguage: updatedUser.preferredLanguage,
         kycStatus: updatedUser.kycStatus,
       }

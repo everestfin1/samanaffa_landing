@@ -43,18 +43,18 @@ type TransactionIntentResponse =
 declare global {
   interface Window {
     sendPaymentInfos: (
-      transactionId: string | number,
-      merchantId: string,
-      apiKey: string,
-      domain: string,
-      customerName: string,
-      param6: string,
+      orderNumber: string | number,
+      agencyCode: string,
+      secureCode: string,
+      domainName: string,
+      urlRedirectionSuccess: string,
+      urlRedirectionFailed: string,
       amount: number,
       city: string,
-      phone: string,
       email: string,
-      description: string,
-      param12: string
+      clientFirstName: string,
+      clientLastName: string,
+      clientPhone: string
     ) => void;
   }
 }
@@ -234,28 +234,29 @@ export default function IntouchPayment({
         );
       }
 
-      const customerName =
-        session?.user?.name ||
-        `${(session?.user as any)?.firstName ?? ''} ${
-          (session?.user as any)?.lastName ?? ''
-        }`.trim() ||
-        'Client Sama Naffa';
+      const customerFirstName = (session?.user as any)?.firstName || session?.user?.name?.split(' ')[0] || 'Client';
+      const customerLastName = (session?.user as any)?.lastName || session?.user?.name?.split(' ')[1] || 'Sama Naffa';
       const customerEmail = session?.user?.email || '';
       const customerPhone = (session?.user as any)?.phone || '';
 
+      // Construct redirect URLs with query parameters
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://everestfin.com';
+      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
+      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
+
       window.sendPaymentInfos(
-        Number.parseInt(transactionId, 10) || Date.now(),
+        referenceNumber,
         merchantId,
         apiKey,
         domain,
-        customerName,
-        '',
-        amount,
+        successUrl,
+        failedUrl,
+        Number(amount),
         'Dakar',
-        customerPhone,
         customerEmail,
-        `${intentType.toUpperCase()} - ${referenceNumber}`,
-        ''
+        customerFirstName,
+        customerLastName,
+        customerPhone
       );
     } catch (error) {
       console.error('Intouch payment error:', error);

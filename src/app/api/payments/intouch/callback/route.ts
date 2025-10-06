@@ -30,13 +30,66 @@ const CALLBACK_STATUS_MAPPING: Record<string, CallbackStatus> = {
   aborted: 'CANCELLED',
 };
 
-const TRANSACTION_ID_KEYS = ['transactionId', 'transaction_id', 'id', 'intouchTransactionId'];
-const REFERENCE_KEYS = ['referenceNumber', 'reference', 'merchantReference', 'merchantRef', 'merchant_transaction_id'];
-const STATUS_KEYS = ['status', 'transactionStatus', 'state'];
-const AMOUNT_KEYS = ['amount', 'transactionAmount', 'montant'];
-const PAYMENT_METHOD_KEYS = ['paymentMethod', 'payment_method', 'paymentChannel', 'channel'];
-const TIMESTAMP_KEYS = ['timestamp', 'eventTimestamp', 'date', 'datetime'];
-const CUSTOMER_INFO_KEYS = ['customerInfo', 'customer', 'client', 'customer_info'];
+const TRANSACTION_ID_KEYS = [
+  'transactionId',
+  'transaction_id',
+  'id',
+  'intouchTransactionId',
+  'num_transaction_from_gu',
+  'numTransactionFromGu',
+  'transactionReference',
+  'reference_transaction',
+];
+const REFERENCE_KEYS = [
+  'referenceNumber',
+  'reference',
+  'merchantReference',
+  'merchantRef',
+  'merchant_transaction_id',
+  'num_command',
+  'numCommand',
+  'order_number',
+  'orderNumber',
+  'commande',
+];
+const STATUS_KEYS = [
+  'status',
+  'transactionStatus',
+  'state',
+  'status_code',
+  'statusCode',
+  'code',
+  'code_etat',
+  'codeEtat',
+  'errorCode',
+  'error',
+  'result',
+];
+const AMOUNT_KEYS = [
+  'amount',
+  'transactionAmount',
+  'montant',
+  'montant_total',
+  'montantTTC',
+  'totalAmount',
+  'amount_total',
+];
+const PAYMENT_METHOD_KEYS = [
+  'paymentMethod',
+  'payment_method',
+  'paymentChannel',
+  'channel',
+  'moyen_paiement',
+];
+const TIMESTAMP_KEYS = [
+  'timestamp',
+  'eventTimestamp',
+  'date',
+  'datetime',
+  'date_transaction',
+  'transactionDate',
+];
+const CUSTOMER_INFO_KEYS = ['customerInfo', 'customer', 'client', 'customer_info', 'client_info'];
 
 function getHeaderSignature(request: NextRequest): string | null {
   for (const header of SIGNATURE_HEADER_CANDIDATES) {
@@ -174,12 +227,20 @@ export async function POST(request: NextRequest) {
   }
 
   const transactionId = coerceString(pickFirst(parsedBody, TRANSACTION_ID_KEYS));
-  const statusRaw = coerceString(pickFirst(parsedBody, STATUS_KEYS));
+  const statusRawCandidate = coerceString(pickFirst(parsedBody, STATUS_KEYS));
   const amountRaw = pickFirst(parsedBody, AMOUNT_KEYS);
   const referenceNumber = coerceString(pickFirst(parsedBody, REFERENCE_KEYS));
   const paymentMethod = coerceString(pickFirst(parsedBody, PAYMENT_METHOD_KEYS));
   const timestampRaw = coerceString(pickFirst(parsedBody, TIMESTAMP_KEYS));
   const customerInfoRaw = pickFirst(parsedBody, CUSTOMER_INFO_KEYS);
+  const statusFallback = coerceString(
+    pickFirst(parsedBody, ['success', 'is_success', 'isSuccess', 'payment_status', 'paymentStatus'])
+  );
+
+  const statusRaw =
+    statusRawCandidate && statusRawCandidate.trim().length > 0
+      ? statusRawCandidate
+      : statusFallback;
 
   if (!transactionId || !statusRaw || !amountRaw || !referenceNumber) {
     return NextResponse.json(
@@ -188,10 +249,39 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const normalizedStatus = statusRaw.toLowerCase();
-  const mappedStatus = CALLBACK_STATUS_MAPPING[normalizedStatus];
+  const normalizedStatus = statusRaw.toString().trim().toLowerCase();
+  let mappedStatus = CALLBACK_STATUS_MAPPING[normalizedStatus];
+
   if (!mappedStatus) {
-    console.warn('Received unknown Intouch status:', statusRaw);
+    if (/^\d+$/.test(normalizedStatus)) {
+      if (['0', '00', '200'].includes(normalizedStatus)) {
+        mappedStatus = 'COMPLETED';
+      } else if (normalizedStatus.startsWith('1') || normalizedStatus.startsWith('2')) {
+        mappedStatus = 'PENDING';
+      } else {
+        mappedStatus = 'FAILED';
+      }
+    } else if (normalizedStatus.startsWith('success') || normalizedStatus === 'ok') {
+      mappedStatus = 'COMPLETED';
+    } else if (
+      normalizedStatus.includes('pending') ||
+      normalizedStatus === 'processing' ||
+      normalizedStatus.includes('progress')
+    ) {
+      mappedStatus = 'PENDING';
+    } else if (normalizedStatus.includes('cancel')) {
+      mappedStatus = 'CANCELLED';
+    } else if (
+      normalizedStatus.includes('fail') ||
+      normalizedStatus.includes('error') ||
+      normalizedStatus.includes('decline')
+    ) {
+      mappedStatus = 'FAILED';
+    }
+  }
+
+  if (!mappedStatus) {
+    console.warn('Received unknown Intouch status:', statusRaw, parsedBody);
     return NextResponse.json(
       { error: `Unsupported payment status: ${statusRaw}` },
       { status: 400 },

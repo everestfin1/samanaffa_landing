@@ -3,10 +3,10 @@
     "name": "DAKAR",
     "departements": [
       {
-        "name": "DAKAR",
+        "name": "DE DAKAR",
         "arrondissements": [
           {
-            "name": "DAKAR-PLATEAU",
+            "name": "ARRONDISSEMENT  DAKAR-PLATEAU",
             "communes": [
               {
                 "name": "GOREE",
@@ -31,7 +31,7 @@
             ]
           },
           {
-            "name": "GRAND DAKAR",
+            "name": "ARRONDISSEMENT  GRAND DAKAR",
             "communes": [
               {
                 "name": "GRAND DAKAR",
@@ -60,7 +60,7 @@
             ]
           },
           {
-            "name": "ALMADIES",
+            "name": "ARRONDISSEMENT  ALMADIES",
             "communes": [
               {
                 "name": "OUAKAM",
@@ -75,13 +75,13 @@
                 "type": "commune"
               },
               {
-                "name": "MERMOZ/ SACRE-COEUR",
+                "name": "MERMOZ/ SACRE -COEUR",
                 "type": "commune"
               }
             ]
           },
           {
-            "name": "PARCELLES ASS",
+            "name": "ARRONDISSEMENT  PARCELLES ASS",
             "communes": [
               {
                 "name": "GRAND YOFF",
@@ -104,23 +104,23 @@
         ]
       },
       {
-        "name": "GUEDIAWAYE",
+        "name": "DE GUEDIAWAYE",
         "arrondissements": [
           {
-            "name": "SAM  NOTAIRE",
+            "name": "ARRONDISSEMENT  SAM  NOTAIRE",
             "communes": [
               {
-                "name": "SAM  NOTAIRE",
+                "name": "GOLF SUD",
                 "type": "commune"
               },
               {
-                "name": "GOLF SUD",
+                "name": "SAM  NOTAIRE",
                 "type": "commune"
               }
             ]
           },
           {
-            "name": "WAKHINANE NIMZATT",
+            "name": "ARRONDISSEMENT WAKHINANE NIMZATT",
             "communes": [
               {
                 "name": "N’DIAREME LIMAMOULAYE",
@@ -139,7 +139,7 @@
         ]
       },
       {
-        "name": "KEUR MASSAR",
+        "name": "DE KEUR MASSAR",
         "arrondissements": [
           {
             "name": "MALIKA",
@@ -183,7 +183,7 @@
         ]
       },
       {
-        "name": "PIKINE",
+        "name": "DE PIKINE",
         "arrondissements": [
           {
             "name": "PIKINE DAGOUDA",
@@ -246,7 +246,7 @@
         ]
       },
       {
-        "name": "RUFISQUE",
+        "name": "DE RUFISQUE",
         "arrondissements": [
           {
             "name": "BAMBYLOR",
@@ -317,19 +317,28 @@
         "name": "BAMBEY",
         "arrondissements": [
           {
+            "name": "BAMBEY",
+            "communes": [
+              {
+                "name": "BAMBEY",
+                "type": "commune"
+              }
+            ]
+          },
+          {
             "name": "BABA GARAGE",
             "communes": [
               {
                 "name": "BABA GARAGE",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "DINGUIRAYE",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "K. SAMBA KANE",
-                "type": "commune"
+                "type": "communaute_rurale"
               }
             ]
           },
@@ -338,19 +347,19 @@
             "communes": [
               {
                 "name": "GAWANE",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "LAMBAYE",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "N’GOGOM",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "REFANE",
-                "type": "commune"
+                "type": "communaute_rurale"
               }
             ]
           },
@@ -359,19 +368,19 @@
             "communes": [
               {
                 "name": "DANGALMA",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "N’DONDOL",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "N’GOYE",
-                "type": "commune"
+                "type": "communaute_rurale"
               },
               {
                 "name": "THIAKAR",
-                "type": "commune"
+                "type": "communaute_rurale"
               }
             ]
           }
@@ -381,18 +390,23 @@
         "name": "DIOURBEL",
         "arrondissements": [
           {
+            "name": "DIOURBEL",
+            "communes": [
+              {
+                "name": "DIOURBEL",
+                "type": "commune"
+              }
+            ]
+          },
+          {
             "name": "NDINDY",
             "communes": [
               {
-                "name": "DANKH SENE",
+                "name": "DANKH  SENE",
                 "type": "communaute_rurale"
               },
               {
                 "name": "GADE ESCALE",
-                "type": "communaute_rurale"
-              },
-              {
-                "name": "TOUBA LAPPE",
                 "type": "communaute_rurale"
               },
               {
@@ -444,6 +458,15 @@
         "name": "MBACKE",
         "arrondissements": [
           {
+            "name": "MBACKE",
+            "communes": [
+              {
+                "name": "MBACKE",
+                "type": "commune"
+              }
+            ]
+          },
+          {
             "name": "KAEL",
             "communes": [
               {
@@ -451,7 +474,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "DAROU SALAM TYP",
+                "name": "DAROU SALAM  TYP",
                 "type": "communaute_rurale"
               },
               {
@@ -463,11 +486,11 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "N’DIOUMANE T. THIEKENE",
+                "name": "N’DIOUMANE  T. THIEKENE",
                 "type": "communaute_rurale"
               },
               {
-                "name": "TOUBA M’BOUL",
+                "name": "TOUBA  M’BOUL",
                 "type": "communaute_rurale"
               },
               {
@@ -544,7 +567,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "THIARE NDIALGUI",
+                "name": "THIARE  NDIALGUI",
                 "type": "communaute_rurale"
               }
             ]
@@ -608,23 +631,6 @@
       },
       {
         "name": "FOUNDIOUGNE",
-        "communes": [
-          {
-            "name": "FOUNDIOUGNE"
-          },
-          {
-            "name": "SOKONE"
-          },
-          {
-            "name": "PASSY"
-          },
-          {
-            "name": "KARANG POSTE"
-          },
-          {
-            "name": "SOUM"
-          }
-        ],
         "arrondissements": [
           {
             "name": "DJILOR",
@@ -695,6 +701,15 @@
         "name": "GOSSAS",
         "arrondissements": [
           {
+            "name": "GOSSAS",
+            "communes": [
+              {
+                "name": "GOSSAS",
+                "type": "commune"
+              }
+            ]
+          },
+          {
             "name": "COLOBANE",
             "communes": [
               {
@@ -733,14 +748,6 @@
     "departements": [
       {
         "name": "KAFFRINE",
-        "communes": [
-          {
-            "name": "KAFFRINE"
-          },
-          {
-            "name": "N'GANDA"
-          }
-        ],
         "arrondissements": [
           {
             "name": "GNIBY",
@@ -784,29 +791,7 @@
       },
       {
         "name": "MBIRKILANE",
-        "communes": [
-          {
-            "name": "MBIRKILANE"
-          }
-        ],
         "arrondissements": [
-          {
-            "name": "KEUR M'BOUKI",
-            "communes": [
-              {
-                "name": "KEUR M'BOUKI",
-                "type": "communaute_rurale"
-              },
-              {
-                "name": "TOUBA M'BELLA",
-                "type": "communaute_rurale"
-              },
-              {
-                "name": "DIAMAL",
-                "type": "communaute_rurale"
-              }
-            ]
-          },
           {
             "name": "MABO",
             "communes": [
@@ -832,11 +817,6 @@
       },
       {
         "name": "KOUNGHEUL",
-        "communes": [
-          {
-            "name": "KOUNGHEUL"
-          }
-        ],
         "arrondissements": [
           {
             "name": "IDA MOURIDE",
@@ -889,11 +869,6 @@
       },
       {
         "name": "MALEM HODDAR",
-        "communes": [
-          {
-            "name": "MALEM HODDAR"
-          }
-        ],
         "arrondissements": [
           {
             "name": "DAROU MINAM II",
@@ -938,23 +913,6 @@
     "departements": [
       {
         "name": "KAOLACK",
-        "communes": [
-          {
-            "name": "KAOLACK"
-          },
-          {
-            "name": "KAHONE"
-          },
-          {
-            "name": "GANDIAYE"
-          },
-          {
-            "name": "NDOFFANE"
-          },
-          {
-            "name": "SIBASSOR"
-          }
-        ],
         "arrondissements": [
           {
             "name": "NDIEDIENG",
@@ -1011,14 +969,6 @@
       },
       {
         "name": "NIORO",
-        "communes": [
-          {
-            "name": "NIORO"
-          },
-          {
-            "name": "KEUR MADIABEL"
-          }
-        ],
         "arrondissements": [
           {
             "name": "MEDINA-SABAKH",
@@ -1091,17 +1041,6 @@
       },
       {
         "name": "GUINGUINEO",
-        "communes": [
-          {
-            "name": "GUINGUINEO"
-          },
-          {
-            "name": "FASS"
-          },
-          {
-            "name": "MBOSS"
-          }
-        ],
         "arrondissements": [
           {
             "name": "MBADAKHOUNE",
@@ -1158,14 +1097,9 @@
     "departements": [
       {
         "name": "KEDOUGOU",
-        "communes": [
-          {
-            "name": "KEDOUGOU"
-          }
-        ],
         "arrondissements": [
           {
-            "name": "BANDAFASSI",
+            "name": "ARRONDISSEMENT  BANDAFASSI",
             "communes": [
               {
                 "name": "BANDAFASSI",
@@ -1186,7 +1120,7 @@
             ]
           },
           {
-            "name": "FONGOLIMBI",
+            "name": "ARRONDISSEMENT  FONGOLIMBI",
             "communes": [
               {
                 "name": "DIMBOLI",
@@ -1202,14 +1136,9 @@
       },
       {
         "name": "SALEMATA",
-        "communes": [
-          {
-            "name": "SALEMATA"
-          }
-        ],
         "arrondissements": [
           {
-            "name": "DAKATELI",
+            "name": "ARRONDISSEMENT  DAKATELI",
             "communes": [
               {
                 "name": "DAKATELI",
@@ -1222,7 +1151,7 @@
             ]
           },
           {
-            "name": "DAR SALAM",
+            "name": "ARRONDISSEMENT  DAR SALAM",
             "communes": [
               {
                 "name": "DAR SALAM",
@@ -1242,14 +1171,9 @@
       },
       {
         "name": "SARAYA",
-        "communes": [
-          {
-            "name": "SARAYA"
-          }
-        ],
         "arrondissements": [
           {
-            "name": "BEMBOU",
+            "name": "ARRONDISSEMENT  BEMBOU",
             "communes": [
               {
                 "name": "MEDINA BAFFE",
@@ -1262,7 +1186,7 @@
             ]
           },
           {
-            "name": "SABODALA",
+            "name": "ARRONDISSEMENT  SABODALA",
             "communes": [
               {
                 "name": "KHOSSANTO",
@@ -1283,24 +1207,10 @@
     ]
   },
   {
-    "name": "KOLDA",
+    "name": "DE KOLDA",
     "departements": [
       {
-        "name": "KOLDA",
-        "communes": [
-          {
-            "name": "KOLDA"
-          },
-          {
-            "name": "DABO"
-          },
-          {
-            "name": "SALIKEGNE"
-          },
-          {
-            "name": "SARE YOBA DIEGA"
-          }
-        ],
+        "name": "DEPARTEMENT  KOLDA",
         "arrondissements": [
           {
             "name": "DIOULACOLON",
@@ -1310,7 +1220,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "MEDINA EL HADJI",
+                "name": "MEDINA  EL HADJI",
                 "type": "communaute_rurale"
               },
               {
@@ -1365,17 +1275,6 @@
       },
       {
         "name": "VELINGARA",
-        "communes": [
-          {
-            "name": "VELINGARA"
-          },
-          {
-            "name": "DIAOUBE- KABENDOU"
-          },
-          {
-            "name": "KOUNKANE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "BONCONTO",
@@ -1393,7 +1292,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "SINTHIANG KOUNDARA",
+                "name": "SINTHIANG  KOUNDARA",
                 "type": "communaute_rurale"
               }
             ]
@@ -1440,14 +1339,6 @@
       },
       {
         "name": "MEDINA YORO FOULAH",
-        "communes": [
-          {
-            "name": "MEDINA YORO FOULAH"
-          },
-          {
-            "name": "PATA"
-          }
-        ],
         "arrondissements": [
           {
             "name": "FAFACOUROU",
@@ -1493,7 +1384,7 @@
               {
                 "name": "KEREWANE",
                 "type": "communaute_rurale"
-              } ,
+              },
               {
                 "name": "NIAMING",
                 "type": "communaute_rurale"
@@ -1505,21 +1396,13 @@
     ]
   },
   {
-    "name": "LOUGA",
+    "name": "DE LOUGA",
     "departements": [
       {
         "name": "KEBEMER",
-        "communes": [
-          {
-            "name": "KEBEMER"
-          },
-          {
-            "name": "GUEOUL"
-          }
-        ],
         "arrondissements": [
           {
-            "name": "DAROU MOUSTY",
+            "name": "ARRONDISSEMENT  DAROU MOUSTY",
             "communes": [
               {
                 "name": "DAROU MARNANE",
@@ -1530,7 +1413,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "MBARDIANE",
+                "name": "MBADIANE",
                 "type": "communaute_rurale"
               },
               {
@@ -1605,17 +1488,6 @@
       },
       {
         "name": "LINGUERE",
-        "communes": [
-          {
-            "name": "LINGUERE"
-          },
-          {
-            "name": "DAHRA"
-          },
-          {
-            "name": "MBEULEUKHE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "BARKEDJI",
@@ -1705,14 +1577,6 @@
       },
       {
         "name": "LOUGA",
-        "communes": [
-          {
-            "name": "LOUGA"
-          },
-          {
-            "name": "NDIAGNE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "COKI",
@@ -1785,7 +1649,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "NGEUNE SARR",
+                "name": "NGUEUNE SARR",
                 "type": "communaute_rurale"
               },
               {
@@ -1803,20 +1667,6 @@
     "departements": [
       {
         "name": "MATAM",
-        "communes": [
-          {
-            "name": "MATAM"
-          },
-          {
-            "name": "OUROSSOGUI"
-          },
-          {
-            "name": "THILOGNE"
-          },
-          {
-            "name": "NGUIDILOGNE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "AGNAM-CIVOL",
@@ -1856,29 +1706,6 @@
       },
       {
         "name": "KANEL",
-        "communes": [
-          {
-            "name": "KANEL"
-          },
-          {
-            "name": "SEMME"
-          },
-          {
-            "name": "WAOUNDE"
-          },
-          {
-            "name": "DEMBANCANE"
-          },
-          {
-            "name": "HAMADY OUNARE"
-          },
-          {
-            "name": "SINTHIOU BANZAMBE-BNANADJI"
-          },
-          {
-            "name": "ODOBERE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "ORKADIERE",
@@ -1914,11 +1741,6 @@
       },
       {
         "name": "RANEROU",
-        "communes": [
-          {
-            "name": "RANEROU"
-          }
-        ],
         "arrondissements": [
           {
             "name": "VELINGARA",
@@ -1946,26 +1768,6 @@
     "departements": [
       {
         "name": "DAGANA",
-        "communes": [
-          {
-            "name": "DAGANA"
-          },
-          {
-            "name": "RICHARD-TOLL"
-          },
-          {
-            "name": "ROSSO-SENEGAL"
-          },
-          {
-            "name": "ROSS-BETHIO"
-          },
-          {
-            "name": "GAE"
-          },
-          {
-            "name": "NDOMBO SANDJIRY"
-          }
-        ],
         "arrondissements": [
           {
             "name": "MBANE",
@@ -2001,44 +1803,6 @@
       },
       {
         "name": "PODOR",
-        "communes": [
-          {
-            "name": "PODOR"
-          },
-          {
-            "name": "NDIOUM"
-          },
-          {
-            "name": "GOLLERE"
-          },
-          {
-            "name": "NDIANDANE"
-          },
-          {
-            "name": "BODE LAO"
-          },
-          {
-            "name": "DEMETTE"
-          },
-          {
-            "name": "GALOYA TOUCOULEUR"
-          },
-          {
-            "name": "GUEDE CHANTIER"
-          },
-          {
-            "name": "MBOUMBA"
-          },
-          {
-            "name": "AERE LAO"
-          },
-          {
-            "name": "PETE"
-          },
-          {
-            "name": "WALALDE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "CAS-CAS",
@@ -2104,14 +1868,6 @@
       },
       {
         "name": "SAINT-LOUIS",
-        "communes": [
-          {
-            "name": "SAINT LOUIS"
-          },
-          {
-            "name": "M'PAL"
-          }
-        ],
         "arrondissements": [
           {
             "name": "RAO",
@@ -2125,7 +1881,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'DIEBENE GANDIOLE",
+                "name": "N’DIEBENE GANDIOLE",
                 "type": "communaute_rurale"
               }
             ]
@@ -2139,17 +1895,6 @@
     "departements": [
       {
         "name": "SEDHIOU",
-        "communes": [
-          {
-            "name": "SEDHIOU"
-          },
-          {
-            "name": "MARSASSOUM"
-          },
-          {
-            "name": "DIANAH MALARY"
-          }
-        ],
         "arrondissements": [
           {
             "name": "DIENDE",
@@ -2214,23 +1959,12 @@
       },
       {
         "name": "BOUNKILING",
-        "communes": [
-          {
-            "name": "BOUNKILING"
-          },
-          {
-            "name": "MADINA WANDIFA"
-          },
-          {
-            "name": "N'DIAMACOUTA"
-          }
-        ],
         "arrondissements": [
           {
             "name": "BOGHAL",
             "communes": [
               {
-                "name": "N'DIAMALATHIEL",
+                "name": "N’DIAMALATHIEL",
                 "type": "communaute_rurale"
               },
               {
@@ -2289,20 +2023,6 @@
       },
       {
         "name": "GOUDOMP",
-        "communes": [
-          {
-            "name": "GOUDOMP"
-          },
-          {
-            "name": "DIATTACOUNDA"
-          },
-          {
-            "name": "SAMINE"
-          },
-          {
-            "name": "TANAFF"
-          }
-        ],
         "arrondissements": [
           {
             "name": "DJIBANAR",
@@ -2368,21 +2088,10 @@
     ]
   },
   {
-    "name": "TAMBACOUNDA",
+    "name": "REGION  TAMBACOUNDA",
     "departements": [
       {
-        "name": "BAKEL",
-        "communes": [
-          {
-            "name": "BAKEL"
-          },
-          {
-            "name": "DIAWARA"
-          },
-          {
-            "name": "KIDIRA"
-          }
-        ],
+        "name": "DEPARTEMENT   BAKEL",
         "arrondissements": [
           {
             "name": "KENIABA",
@@ -2439,11 +2148,6 @@
       },
       {
         "name": "TAMBACOUNDA",
-        "communes": [
-          {
-            "name": "TAMBACOUNDA"
-          }
-        ],
         "arrondissements": [
           {
             "name": "KOUSSANAR",
@@ -2466,7 +2170,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'DOGA BABACAR",
+                "name": "N’DOGA BABACAR",
                 "type": "communaute_rurale"
               },
               {
@@ -2496,14 +2200,6 @@
       },
       {
         "name": "GOUDIRY",
-        "communes": [
-          {
-            "name": "GOUDIRY"
-          },
-          {
-            "name": "KOTHIARY"
-          }
-        ],
         "arrondissements": [
           {
             "name": "BALA",
@@ -2547,7 +2243,7 @@
             "name": "DIANKE MAKHA",
             "communes": [
               {
-                "name": "BANI ISRAEL",
+                "name": "BANI   ISRAEL",
                 "type": "communaute_rurale"
               },
               {
@@ -2580,21 +2276,13 @@
         ]
       },
       {
-        "name": "KOUMPENTOUM",
-        "communes": [
-          {
-            "name": "KOUMPENTOUM"
-          },
-          {
-            "name": "MALEM NIANI"
-          }
-        ],
+        "name": "DEPARTEMENT   KOUMPENTOUM",
         "arrondissements": [
           {
             "name": "BAMBA THIALEN",
             "communes": [
               {
-                "name": "BAMBA THIALENE",
+                "name": "BAMBA  THIALENE",
                 "type": "communaute_rurale"
               },
               {
@@ -2606,7 +2294,7 @@
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'DAME",
+                "name": "N’DAME",
                 "type": "communaute_rurale"
               }
             ]
@@ -2637,55 +2325,29 @@
     ]
   },
   {
-    "name": "THIES",
+    "name": "REGION  THIES",
     "departements": [
       {
         "name": "MBOUR",
-        "communes": [
-          {
-            "name": "JOAL- FADIOUTH"
-          },
-          {
-            "name": "M'BOUR"
-          },
-          {
-            "name": "GUEKOKH"
-          },
-          {
-            "name": "THIADIAYE"
-          },
-          {
-            "name": "N'GAPAROU"
-          },
-          {
-            "name": "POPOGUINE"
-          },
-          {
-            "name": "SALY PORTUDAL"
-          },
-          {
-            "name": "SOMONE"
-          }
-        ],
         "arrondissements": [
           {
-            "name": "FISSEL",
+            "name": "ARRONDISSEMENT  FISSEL",
             "communes": [
               {
                 "name": "FISSEL",
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'DIAGANIAO",
+                "name": "N’DIAGANIAO",
                 "type": "communaute_rurale"
               }
             ]
           },
           {
-            "name": "SESSENE",
+            "name": "ARRONDISSEMENT  SESSENE",
             "communes": [
               {
-                "name": "N'GUENIENE",
+                "name": "N’GUENIENE",
                 "type": "communaute_rurale"
               },
               {
@@ -2699,7 +2361,7 @@
             ]
           },
           {
-            "name": "SINDIA",
+            "name": "ARRONDISSEMENT  SINDIA",
             "communes": [
               {
                 "name": "MALICOUNDA",
@@ -2719,17 +2381,6 @@
       },
       {
         "name": "THIES",
-        "communes": [
-          {
-            "name": "KHOMBOLE"
-          },
-          {
-            "name": "POUT"
-          },
-          {
-            "name": "CAYAR"
-          }
-        ],
         "arrondissements": [
           {
             "name": "THIES NORD",
@@ -2754,7 +2405,7 @@
             ]
           },
           {
-            "name": "NOTTO",
+            "name": "ARRONDISSEMNT  NOTTO",
             "communes": [
               {
                 "name": "NOTTO",
@@ -2770,11 +2421,11 @@
             "name": "THIENABA",
             "communes": [
               {
-                "name": "N'DIEYENE SIRAKH",
+                "name": "N’DIEYENE SIRAKH",
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'GOUNDIANE",
+                "name": "N’GOUNDIANE",
                 "type": "communaute_rurale"
               },
               {
@@ -2788,7 +2439,7 @@
             ]
           },
           {
-            "name": "KEUR MOUSSA",
+            "name": "ARRONDISSEMNT  KEUR MOUSSA",
             "communes": [
               {
                 "name": "DIENDER GUEDJI",
@@ -2807,28 +2458,17 @@
         ]
       },
       {
-        "name": "TIVAOUANE",
-        "communes": [
-          {
-            "name": "MEKHE"
-          },
-          {
-            "name": "TIVAOUANE"
-          },
-          {
-            "name": "M'BORO"
-          }
-        ],
+        "name": "DEPARTEMENT  TIVAOUANE",
         "arrondissements": [
           {
-            "name": "MEOUANE",
+            "name": "ARRONDISSEMENT  MEOUANE",
             "communes": [
               {
                 "name": "MEOUANE",
                 "type": "communaute_rurale"
               },
               {
-                "name": "TAIBA N'DIAYE",
+                "name": "TAIBA N’DIAYE",
                 "type": "communaute_rurale"
               },
               {
@@ -2838,7 +2478,7 @@
             ]
           },
           {
-            "name": "MERINA DAKHAR",
+            "name": "ARRONDISSEMENT  MERINA DAKHAR",
             "communes": [
               {
                 "name": "KOUL",
@@ -2855,14 +2495,14 @@
             ]
           },
           {
-            "name": "NIAKHENE",
+            "name": "ARRONDISSEMENT  NIAKHENE",
             "communes": [
               {
-                "name": "M'BAYENE",
+                "name": "M’BAYENE",
                 "type": "communaute_rurale"
               },
               {
-                "name": "N'GANDIOUF",
+                "name": "N’GANDIOUF",
                 "type": "communaute_rurale"
               },
               {
@@ -2876,7 +2516,7 @@
             ]
           },
           {
-            "name": "PAMBAL",
+            "name": "ARRONDISSEMENT  PAMBAL",
             "communes": [
               {
                 "name": "CHERIF LÖ",
@@ -2909,17 +2549,6 @@
     "departements": [
       {
         "name": "BIGNONA",
-        "communes": [
-          {
-            "name": "BIGNONA"
-          },
-          {
-            "name": "THIONCK-ESSYL"
-          },
-          {
-            "name": "DIOULOULOU"
-          }
-        ],
         "arrondissements": [
           {
             "name": "SINDIAN",
@@ -2989,7 +2618,7 @@
             ]
           },
           {
-            "name": "KATABA I",
+            "name": "ARRONDISSEMENT  KATABA I",
             "communes": [
               {
                 "name": "DJINAKI",
@@ -3009,11 +2638,6 @@
       },
       {
         "name": "OUSSOUYE",
-        "communes": [
-          {
-            "name": "OUSSOUYE"
-          }
-        ],
         "arrondissements": [
           {
             "name": "KABROUSSE",
@@ -3029,7 +2653,7 @@
             ]
           },
           {
-            "name": "LOUDIA OUOLOF",
+            "name": "ARRONDISSEMENT   LOUDIA OUOLOF",
             "communes": [
               {
                 "name": "MLOMP",
@@ -3045,11 +2669,6 @@
       },
       {
         "name": "ZIGUINCHOR",
-        "communes": [
-          {
-            "name": "ZIGUINCHOR"
-          }
-        ],
         "arrondissements": [
           {
             "name": "DE NIAGUIS",
