@@ -647,6 +647,7 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
         onConfirm={handleInvestmentConfirm}
         preselectedTranche={selectedTranche}
         kycStatus={kycStatus}
+        accountType="ape_investment"
       />
     </div>
   );
