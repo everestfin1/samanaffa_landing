@@ -102,7 +102,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
         dateOfBirth: formData.dateOfBirth,
         nationality: formData.nationality,
         address: formData.address,
-        city: formData.city,
+        city: formData.district, // Use district as city value
         country: formData.country,
         region: formData.region,
         department: formData.department,
