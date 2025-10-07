@@ -88,6 +88,7 @@ interface FormData {
   arrondissement: string;
   district: string;
   address: string;
+  city: string;
 }
 
 interface Step3AddressProps {

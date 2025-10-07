@@ -684,22 +684,20 @@ export default function RegisterPage() {
 
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-8 pt-6 border-t border-timberwolf/20">
-            {currentStep < 6 && (
-              <button
-                onClick={handlePrevious}
-                disabled={currentStep === 1}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
-                  currentStep === 1
-                    ? 'text-timberwolf/50 cursor-not-allowed'
-                    : 'text-night hover:bg-timberwolf/10 hover:shadow-sm'
-                }`}
-              >
-                <ArrowLeftIcon className="w-5 h-5" />
-                <span>Précédent</span>
-              </button>
-            )}
+            <button
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+                currentStep === 1
+                  ? 'text-timberwolf/50 cursor-not-allowed'
+                  : 'text-night hover:bg-timberwolf/10 hover:shadow-sm'
+              }`}
+            >
+              <ArrowLeftIcon className="w-5 h-5" />
+              <span>Précédent</span>
+            </button>
 
-            {currentStep < 6 ? (
+            {currentStep < 6 && (
               <button
                 onClick={handleNext}
                 disabled={uploadingFiles || isLoading}
@@ -726,7 +724,7 @@ export default function RegisterPage() {
                   </>
                 )}
               </button>
-            ) : null}
+            )}
           </div>
         </div>
 
