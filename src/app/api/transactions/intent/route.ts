@@ -76,12 +76,14 @@ export async function POST(request: NextRequest) {
       return respondError('user_not_found', 'User not found', 404)
     }
 
-    // Check KYC status - only allow transactions for approved users
-    if (user.kycStatus !== 'APPROVED') {
+    // Check KYC status - allow deposits and investments without KYC, but require for withdrawals
+    const requiresKyc = normalizedIntentType === 'withdrawal';
+
+    if (requiresKyc && user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
         {
           success: false,
-          error: 'Vérification d\'identité (KYC) requise pour effectuer des transactions. Veuillez attendre la validation de vos documents.',
+          error: 'Vérification d\'identité (KYC) requise pour effectuer des retraits. Veuillez attendre la validation de vos documents.',
           code: 'kyc_required',
           kycStatus: user.kycStatus,
         },

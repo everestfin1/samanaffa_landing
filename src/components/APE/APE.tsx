@@ -95,8 +95,8 @@ export default function APE() {
       additionalInfo: selectedTranche.additionalInfo,
     });
 
-    // Navigate to registration
-    router.push("/register");
+    // Navigate to APE subscription page instead of registration
+    router.push("/souscrire-ape");
   };
 
   const trancheOptions = [
@@ -291,7 +291,7 @@ export default function APE() {
 
                       {/* Invest Button */}
                       <button
-                        onClick={() => router.push("/register")}
+                        onClick={() => handleTrancheSelection(option.value)}
                         className="w-full bg-gold-metallic text-white py-3 px-4 rounded-lg font-semibold hover:bg-gold-dark transition-colors flex items-center justify-center space-x-2 group-hover:scale-105 transform duration-200"
                       >
                         <span>J'investis</span>

@@ -12,6 +12,8 @@ interface IntouchPaymentProps {
   onSuccess: (transactionId: string) => void;
   onError: (error: string) => void;
   onCancel: () => void;
+  investmentTranche?: 'A' | 'B' | 'C' | 'D';
+  investmentTerm?: 3 | 5 | 7 | 10;
 }
 
 interface IntouchPaymentData {
@@ -71,6 +73,8 @@ export default function IntouchPayment({
   onSuccess,
   onError,
   onCancel,
+  investmentTranche,
+  investmentTerm,
 }: IntouchPaymentProps) {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -108,9 +112,11 @@ export default function IntouchPayment({
           case 'kyc_required':
             errorMessage =
               payload.error ||
-              "Votre identité doit être vérifiée avant d'effectuer des transactions.";
+              "Votre identité doit être vérifiée avant d'effectuer cette transaction.";
             setStatusMessage(
-              "Vérification d'identité requise avant de pouvoir finaliser le paiement."
+              intentType === 'withdrawal'
+                ? "Vérification d'identité requise pour les retraits. Veuillez attendre la validation de vos documents."
+                : "Erreur inattendue: vérification KYC requise pour ce type de transaction."
             );
             break;
           case 'account_not_found':
@@ -192,6 +198,8 @@ export default function IntouchPayment({
           paymentMethod: 'intouch',
           referenceNumber,
           userNotes: `Paiement via Intouch - ${intentType}`,
+          ...(investmentTranche && { investmentTranche }),
+          ...(investmentTerm && { investmentTerm }),
         }),
         signal: controller.signal,
       });

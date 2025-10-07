@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
-import KYCVerificationMessage from '../kyc/KYCVerificationMessage';
+import IntouchPayment from '../payments/IntouchPayment';
 
 interface InvestmentModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface InvestmentModalProps {
   onConfirm: (data: InvestmentData) => void;
   preselectedTranche?: 'A' | 'B' | 'C' | 'D' | null;
   kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  accountType?: 'ape_investment';
 }
 
 interface InvestmentData {
@@ -25,17 +27,23 @@ const trancheOptions = [
   { value: 'D' as const, label: 'Tranche D', term: 10, rate: 6.95, description: 'Très long terme - 10 ans', isin: 'SN0000004292' }
 ];
 
-export default function InvestmentModal({ 
-  isOpen, 
-  onClose, 
+export default function InvestmentModal({
+  isOpen,
+  onClose,
   onConfirm,
   preselectedTranche,
-  kycStatus = 'APPROVED'
+  kycStatus = 'APPROVED',
+  accountType = 'ape_investment'
 }: InvestmentModalProps) {
+  const { data: session } = useSession();
   const [amount, setAmount] = useState<string>('100000');
   const [tranche, setTranche] = useState<'A' | 'B' | 'C' | 'D'>(preselectedTranche || 'D');
   const [method, setMethod] = useState<string>('intouch');
   const [error, setError] = useState<string>('');
+  const [showIntouchPayment, setShowIntouchPayment] = useState<boolean>(false);
+  const [referenceNumber, setReferenceNumber] = useState<string>('');
+  const [isPreflightChecking, setIsPreflightChecking] = useState<boolean>(false);
+  const [preflightMessage, setPreflightMessage] = useState<string>('');
 
   // Update tranche when preselectedTranche changes
   useEffect(() => {
@@ -60,17 +68,74 @@ export default function InvestmentModal({
     setError(''); // Clear error when user types
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const generateReferenceNumber = () => {
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `${accountType.toUpperCase()}-INVESTMENT-${timestamp}-${random}`;
+  };
+
+  const runPreflightChecks = async (requestedAmount: number) => {
+    setIsPreflightChecking(true);
+    setPreflightMessage('Vérification de votre compte et de votre identité...');
+    setError('');
+
+    try {
+      const sessionUserId = (session?.user as any)?.id;
+      if (!sessionUserId) {
+        throw new Error('Votre session a expiré. Veuillez vous reconnecter.');
+      }
+
+      const supportedAccountTypes: Array<'ape_investment'> = ['ape_investment'];
+      if (!supportedAccountTypes.includes(accountType)) {
+        throw new Error('Type de compte non pris en charge pour les paiements Intouch.');
+      }
+
+      const response = await fetch('/api/accounts', {
+        method: 'GET',
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error('Impossible de vérifier vos comptes. Veuillez réessayer plus tard.');
+      }
+
+      const data = await response.json();
+      if (!data.success) {
+        throw new Error(data.error || 'Aucun compte valide trouvé.');
+      }
+
+      const normalizedAccountType = accountType.toUpperCase();
+      const matchingAccount = (data.accounts || []).find(
+        (account: any) => account.accountType === normalizedAccountType
+      );
+
+      if (!matchingAccount) {
+        throw new Error('Le compte sélectionné est introuvable. Contactez le support pour assistance.');
+      }
+
+      return true;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Erreur lors de la vérification des prérequis du paiement.';
+      setError(message);
+      return false;
+    } finally {
+      setIsPreflightChecking(false);
+      setPreflightMessage('');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+
     if (!amount || parseFloat(amount) <= 0) {
       setError('Veuillez entrer un montant valide');
       return;
     }
 
     const investmentAmount = parseFloat(amount);
-    
+
     // Minimum amount validation
     if (investmentAmount < 10000) {
       setError('Le montant minimum d\'investissement est de 10,000 FCFA');
@@ -78,30 +143,62 @@ export default function InvestmentModal({
     }
 
     const selectedOption = trancheOptions.find(t => t.value === tranche);
-    
-    // Redirect to WhatsApp instead of creating intent
+
+    // Handle Intouch payment
+    if (method === 'intouch') {
+      const canProceed = await runPreflightChecks(investmentAmount);
+      if (!canProceed) {
+        return;
+      }
+
+      const refNumber = generateReferenceNumber();
+      setReferenceNumber(refNumber);
+      setShowIntouchPayment(true);
+      return;
+    }
+
+    // Fallback to WhatsApp for other methods
     const message = encodeURIComponent(
       `Bonjour, je souhaite investir ${investmentAmount.toLocaleString()} FCFA dans la ${selectedOption?.label} (${selectedOption?.rate}% sur ${selectedOption?.term} ans) - ISIN: ${selectedOption?.isin}. Pouvez-vous m'aider avec le traitement du paiement ?`
     );
     const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
     window.open(whatsappUrl, '_blank');
-    
+
     // Close modal after redirect
     onClose();
   };
 
+  const handleIntouchSuccess = (transactionId: string) => {
+    console.log('Intouch payment successful:', transactionId);
+    onConfirm({
+      amount: parseFloat(amount),
+      tranche: tranche,
+      method: 'intouch'
+    });
+    onClose();
+  };
+
+  const handleIntouchError = (error: string) => {
+    setError(error);
+    setShowIntouchPayment(false);
+  };
+
+  const handleIntouchCancel = () => {
+    setShowIntouchPayment(false);
+  };
+
   if (!isOpen) return null;
 
-  // Show KYC verification message if user is not approved
-  if (kycStatus !== 'APPROVED') {
+  // Show Intouch payment component
+  if (showIntouchPayment && (session?.user as any)?.id) {
     return (
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
         <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-night">
-              Vérification d'identité requise
+              Paiement via Intouch
             </h3>
-            <button 
+            <button
               onClick={onClose}
               className="text-night/60 hover:text-night"
             >
@@ -109,27 +206,18 @@ export default function InvestmentModal({
             </button>
           </div>
 
-          <div className="mb-6">
-            <p className="text-night/70 mb-4">
-              Pour effectuer des investissements, votre identité doit être vérifiée.
-            </p>
-          </div>
-
-          <KYCVerificationMessage
-            kycStatus={kycStatus}
-            variant="modal"
-            onContactSupport={() => window.open('/contact', '_blank')}
-            onRestartRegistration={() => window.open('/register', '_blank')}
+          <IntouchPayment
+            amount={parseFloat(amount)}
+            userId={(session?.user as any)?.id}
+            accountType={accountType}
+            intentType={'investment' as any}
+            referenceNumber={referenceNumber}
+            investmentTranche={tranche}
+            investmentTerm={trancheOptions.find(t => t.value === tranche)?.term as 3 | 5 | 7 | 10}
+            onSuccess={handleIntouchSuccess}
+            onError={handleIntouchError}
+            onCancel={handleIntouchCancel}
           />
-
-          <div className="flex justify-end mt-6">
-            <button
-              onClick={onClose}
-              className="px-6 py-2 border border-timberwolf/30 text-night rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
-            >
-              Fermer
-            </button>
-          </div>
         </div>
       </div>
     );
@@ -218,6 +306,12 @@ export default function InvestmentModal({
             />
           </div>
 
+          {preflightMessage && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm text-blue-900">
+              {preflightMessage}
+            </div>
+          )}
+
           <div className="flex space-x-3 mt-6">
             <button 
               type="button"
@@ -226,12 +320,18 @@ export default function InvestmentModal({
             >
               Annuler
             </button>
-            <button 
+            <button
               type="submit"
-              disabled={!!error || (amount ? parseFloat(amount) < 10000 : true)}
+              disabled={
+                !!error ||
+                isPreflightChecking ||
+                (amount ? parseFloat(amount) < 10000 : true)
+              }
               className="flex-1 bg-gold-metallic text-white py-3 px-4 rounded-lg font-medium hover:bg-gold-dark transition-colors disabled:bg-gray-400"
             >
-              Confirmer l'investissement
+              {isPreflightChecking
+                ? 'Vérification...'
+                : 'Confirmer l\'investissement'}
             </button>
           </div>
         </form>
