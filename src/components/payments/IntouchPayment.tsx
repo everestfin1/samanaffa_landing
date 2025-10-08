@@ -87,7 +87,7 @@ export default function IntouchPayment({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const merchantId = process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID;
-  const apiKey = process.env.NEXT_PUBLIC_INTOUCH_API_KEY;
+  const apiKey = process.env.INTOUCH_API_KEY;
   const domain = process.env.NEXT_PUBLIC_INTOUCH_DOMAIN;
 
   const resetPaymentState = useCallback(() => {
