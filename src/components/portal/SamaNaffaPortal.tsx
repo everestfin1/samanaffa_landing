@@ -670,17 +670,25 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                             <p className="text-3xl font-bold tracking-wide">
                               {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
-                            <button
-                              type="button"
+                            <div
                               onClick={event => {
                                 event.stopPropagation();
                                 setShowBalance(prev => !prev);
                               }}
-                              className="text-white/80 hover:text-white transition-colors"
+                              className="text-white/80 hover:text-white transition-colors cursor-pointer"
+                              role="button"
+                              tabIndex={0}
                               aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
+                              onKeyDown={event => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                  event.preventDefault();
+                                  event.stopPropagation();
+                                  setShowBalance(prev => !prev);
+                                }
+                              }}
                             >
                               {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
-                            </button>
+                            </div>
                           </div>
                         </div>
 
@@ -751,9 +759,21 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                   <p className="text-3xl font-bold tracking-wide">
                     {showBalance ? `${Number(selectedAccount.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                   </p>
-                  <button onClick={() => setShowBalance(prev => !prev)} className="text-white/80 hover:text-white transition-colors">
+                  <div
+                    onClick={() => setShowBalance(prev => !prev)}
+                    className="text-white/80 hover:text-white transition-colors cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
+                    onKeyDown={event => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        setShowBalance(prev => !prev);
+                      }
+                    }}
+                  >
                     {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
-                  </button>
+                  </div>
                 </div>
               </div>
 
