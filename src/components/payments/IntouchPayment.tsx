@@ -170,6 +170,14 @@ export default function IntouchPayment({
     }
 
     if (!merchantId || !apiKey || !domain) {
+      console.log('Intouch configuration check:', {
+        merchantId: merchantId ? 'SET' : 'MISSING',
+        apiKey: apiKey ? 'SET' : 'MISSING',
+        domain: domain ? 'SET' : 'MISSING',
+        merchantIdValue: merchantId,
+        apiKeyValue: apiKey ? '***' : 'MISSING',
+        domainValue: domain
+      });
       const message =
         'Configuration Intouch manquante (merchantId, apiKey ou domain).';
       setStatusMessage(message);
