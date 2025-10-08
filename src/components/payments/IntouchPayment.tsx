@@ -259,7 +259,7 @@ export default function IntouchPayment({
       const customerPhone = (session?.user as any)?.phone || '';
 
       // Construct redirect URLs with query parameters
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://everestfin.com';
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://samanaffa.com';
       const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
       const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
 
