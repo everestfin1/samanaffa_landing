@@ -82,13 +82,14 @@ export default function IntouchPayment({
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<IntouchPaymentData | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
 
   const paymentStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const merchantId = process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID;
-  const apiKey = process.env.INTOUCH_API_KEY;
   const domain = process.env.NEXT_PUBLIC_INTOUCH_DOMAIN;
+  const [apiKey, setApiKey] = useState<string>('');
 
   const resetPaymentState = useCallback(() => {
     paymentStartedRef.current = false;
@@ -165,7 +166,9 @@ export default function IntouchPayment({
   );
 
   const handlePayment = useCallback(async () => {
+    console.log('handlePayment called - starting payment process');
     if (paymentStartedRef.current) {
+      console.log('Payment already started, returning');
       return;
     }
 
@@ -260,6 +263,21 @@ export default function IntouchPayment({
       const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
       const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
 
+      console.log('Calling sendPaymentInfos with parameters:', {
+        orderNumber: referenceNumber,
+        agencyCode: merchantId,
+        secureCode: apiKey ? '***' : 'MISSING',
+        urlRedirectionSuccess: successUrl,
+        urlRedirectionFailed: failedUrl,
+        domainName: domain,
+        amount: Number(amount),
+        city: 'Dakar',
+        email: customerEmail,
+        clientFirstName: customerFirstName,
+        clientLastName: customerLastName,
+        clientPhone: customerPhone
+      });
+
       window.sendPaymentInfos(
         referenceNumber,
         merchantId,
@@ -306,7 +324,30 @@ export default function IntouchPayment({
     userId,
   ]);
 
+  // Fetch API key from server
   useEffect(() => {
+    const fetchApiKey = async () => {
+      try {
+        const response = await fetch('/api/payments/intouch/config');
+        const data = await response.json();
+        setApiKey(data.apiKey);
+      } catch (error) {
+        console.error('Failed to fetch Intouch API key:', error);
+        setLoadError('Erreur de configuration Intouch');
+      } finally {
+        setConfigLoading(false);
+      }
+    };
+
+    fetchApiKey();
+  }, []);
+
+  useEffect(() => {
+    console.log('IntouchPayment component mounted - checking configuration:');
+    console.log('NEXT_PUBLIC_INTOUCH_MERCHANT_ID:', merchantId ? 'SET' : 'MISSING');
+    console.log('INTOUCH_API_KEY:', apiKey ? 'SET' : 'MISSING');
+    console.log('NEXT_PUBLIC_INTOUCH_DOMAIN:', domain ? 'SET' : 'MISSING');
+
     if (typeof window === 'undefined') {
       return;
     }
@@ -321,11 +362,13 @@ export default function IntouchPayment({
     );
 
     const handleLoad = () => {
+      console.log('Intouch script loaded successfully');
       setLoadError(null);
       setScriptReady(true);
     };
 
     const handleError = () => {
+      console.log('Intouch script failed to load');
       const message =
         'Erreur lors du chargement du système de paiement Intouch.';
       setLoadError(message);
@@ -367,11 +410,11 @@ export default function IntouchPayment({
   }, [onError]);
 
   useEffect(() => {
-    if (scriptReady && !loadError && !paymentStartedRef.current) {
+    if (scriptReady && !loadError && !configLoading && !paymentStartedRef.current) {
       handlePayment();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scriptReady, loadError]);
+  }, [scriptReady, loadError, configLoading]);
 
   useEffect(() => {
     const handlePaymentResult = (event: MessageEvent) => {
@@ -463,6 +506,7 @@ export default function IntouchPayment({
     isLoading ||
     !scriptReady ||
     loadError !== null ||
+    configLoading ||
     (paymentData?.status === 'pending' && paymentStartedRef.current);
 
   return (
@@ -527,7 +571,11 @@ export default function IntouchPayment({
               : 'bg-gold-metallic hover:bg-gold-dark text-white'
           }`}
         >
-          {isLoading ? 'Traitement...' : 'Payer avec Intouch'}
+          {configLoading
+            ? 'Configuration...'
+            : isLoading
+            ? 'Traitement...'
+            : 'Payer avec Intouch'}
         </button>
 
         <button
