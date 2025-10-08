@@ -64,7 +64,7 @@ Add these to your `.env` file:
 ```env
 # Intouch Payment Provider
 NEXT_PUBLIC_INTOUCH_MERCHANT_ID="***REMOVED***"
-NEXT_PUBLIC_INTOUCH_API_KEY="***REMOVED***"
+INTOUCH_API_KEY="***REMOVED***"
 NEXT_PUBLIC_INTOUCH_DOMAIN="everestfin.com"
 INTOUCH_WEBHOOK_SECRET="your-intouch-webhook-secret"
 ```

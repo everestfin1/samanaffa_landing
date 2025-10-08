@@ -206,7 +206,7 @@ Ensure the following environment variables are configured:
 ```bash
 # Intouch Merchant Configuration
 NEXT_PUBLIC_INTOUCH_MERCHANT_ID=***REMOVED***
-NEXT_PUBLIC_INTOUCH_API_KEY=your_api_key_here
+INTOUCH_API_KEY=your_api_key_here
 NEXT_PUBLIC_INTOUCH_DOMAIN=everestfin.com
 
 # Webhook Security
