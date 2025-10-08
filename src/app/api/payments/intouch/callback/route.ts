@@ -31,6 +31,7 @@ const CALLBACK_STATUS_MAPPING: Record<string, CallbackStatus> = {
 };
 
 const TRANSACTION_ID_KEYS = [
+  'payment_token',           // Intouch specific field
   'transactionId',
   'transaction_id',
   'id',
@@ -41,6 +42,7 @@ const TRANSACTION_ID_KEYS = [
   'reference_transaction',
 ];
 const REFERENCE_KEYS = [
+  'command_number',          // Intouch specific field
   'referenceNumber',
   'reference',
   'merchantReference',
@@ -53,6 +55,7 @@ const REFERENCE_KEYS = [
   'commande',
 ];
 const STATUS_KEYS = [
+  'payment_status',          // Intouch specific field
   'status',
   'transactionStatus',
   'state',
@@ -66,6 +69,8 @@ const STATUS_KEYS = [
   'result',
 ];
 const AMOUNT_KEYS = [
+  'paid_amount',             // Intouch specific field
+  'paid_sum',                // Intouch specific field (total)
   'amount',
   'transactionAmount',
   'montant',
@@ -75,6 +80,7 @@ const AMOUNT_KEYS = [
   'amount_total',
 ];
 const PAYMENT_METHOD_KEYS = [
+  'payment_mode',            // Intouch specific field
   'paymentMethod',
   'payment_method',
   'paymentChannel',
@@ -82,6 +88,7 @@ const PAYMENT_METHOD_KEYS = [
   'moyen_paiement',
 ];
 const TIMESTAMP_KEYS = [
+  'payment_validation_date', // Intouch specific field
   'timestamp',
   'eventTimestamp',
   'date',
@@ -226,6 +233,45 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  console.log('[Intouch] Received POST callback:', parsedBody);
+
+  // Use shared processing logic
+  return processIntouchCallback(parsedBody);
+}
+
+// Handle GET requests - Intouch sends callbacks as GET with query params
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  
+  // Check if this is a webhook verification challenge
+  const challenge = searchParams.get('challenge');
+  if (challenge) {
+    return NextResponse.json({ challenge });
+  }
+
+  // Check if this is an Intouch callback (they send as GET with query params)
+  const paymentToken = searchParams.get('payment_token');
+  const commandNumber = searchParams.get('command_number');
+  const paymentStatus = searchParams.get('payment_status');
+  
+  if (paymentToken && commandNumber && paymentStatus) {
+    // Convert query params to body format and process
+    const callbackData: Record<string, unknown> = {};
+    searchParams.forEach((value, key) => {
+      callbackData[key] = value;
+    });
+
+    console.log('[Intouch] Received GET callback:', callbackData);
+
+    // Process the callback data using the same logic as POST
+    return processIntouchCallback(callbackData);
+  }
+
+  return NextResponse.json({ status: 'Intouch webhook endpoint active' });
+}
+
+// Shared callback processing logic
+async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   const transactionId = coerceString(pickFirst(parsedBody, TRANSACTION_ID_KEYS));
   const statusRawCandidate = coerceString(pickFirst(parsedBody, STATUS_KEYS));
   const amountRaw = pickFirst(parsedBody, AMOUNT_KEYS);
@@ -254,10 +300,14 @@ export async function POST(request: NextRequest) {
 
   if (!mappedStatus) {
     if (/^\d+$/.test(normalizedStatus)) {
+      // Intouch uses 200 for success
       if (['0', '00', '200'].includes(normalizedStatus)) {
         mappedStatus = 'COMPLETED';
       } else if (normalizedStatus.startsWith('1') || normalizedStatus.startsWith('2')) {
         mappedStatus = 'PENDING';
+      } else if (normalizedStatus === '420') {
+        // Intouch uses 420 for failure
+        mappedStatus = 'FAILED';
       } else {
         mappedStatus = 'FAILED';
       }
@@ -338,7 +388,7 @@ export async function POST(request: NextRequest) {
   }
 
   const providerTransactionId = String(transactionId);
-  const callbackTimestamp = timestampRaw ? new Date(String(timestampRaw)) : new Date();
+  const callbackTimestamp = timestampRaw ? new Date(Number(timestampRaw)) : new Date();
   const customerInfo = parseCustomerInfo(customerInfoRaw);
 
   try {
@@ -472,7 +522,9 @@ export async function POST(request: NextRequest) {
       responsePayload.customer = customerInfo;
     }
 
-    return NextResponse.json(responsePayload);
+    // Return 200 for success, 420 for failure (as per Intouch docs)
+    const statusCode = finalStatus === 'COMPLETED' ? 200 : 420;
+    return NextResponse.json(responsePayload, { status: statusCode });
   } catch (error) {
     console.error('Intouch callback processing error:', error);
 
@@ -492,22 +544,10 @@ export async function POST(request: NextRequest) {
     if (failureMessage === 'Insufficient funds for withdrawal') {
       return NextResponse.json(
         { error: 'Insufficient funds for withdrawal', status: 'FAILED' },
-        { status: 400 },
+        { status: 420 },
       );
     }
 
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
-}
-
-// Handle GET requests for webhook verification
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const challenge = searchParams.get('challenge');
-
-  if (challenge) {
-    return NextResponse.json({ challenge });
-  }
-
-  return NextResponse.json({ status: 'Intouch webhook endpoint active' });
 }
