@@ -80,22 +80,47 @@ Our system maps Intouch's `payment_status` values as follows:
 
 ## Security
 
-### Webhook Signature (Optional)
-If Intouch provides webhook signatures, they should be sent in one of these headers:
+### Basic Authentication (REQUIRED)
+
+**IMPORTANT**: According to InTouch API documentation, all webhook callbacks are secured with **Basic Authentication**.
+
+InTouch will send callbacks with an `Authorization` header:
+```
+Authorization: Basic <base64(username:password)>
+```
+
+**You MUST request Basic Auth credentials from the InTouch team** for webhook verification.
+
+#### Required Environment Variables
+```bash
+# Basic Auth credentials (REQUEST THESE FROM INTOUCH)
+INTOUCH_BASIC_AUTH_USERNAME="your-webhook-username"
+INTOUCH_BASIC_AUTH_PASSWORD="your-webhook-password"
+
+# Allow unsigned callbacks during testing only (set to false in production)
+INTOUCH_ALLOW_UNSIGNED_CALLBACKS="true"
+```
+
+### HMAC Signature Verification (Optional/Fallback)
+
+If InTouch also provides webhook signatures (in addition to Basic Auth), they should be sent in one of these headers:
 - `x-intouch-signature`
 - `X-Intouch-Signature`
 - `x-signature`
 
 The signature should be a SHA256 HMAC of the request body.
 
-### Environment Variables Required
 ```bash
-# Optional: For signature verification
-INTOUCH_WEBHOOK_SECRET=your_webhook_secret_here
-
-# Optional: Allow unsigned callbacks during testing
-INTOUCH_ALLOW_UNSIGNED_CALLBACKS=true
+# Optional: For HMAC signature verification
+INTOUCH_WEBHOOK_SECRET="your_webhook_secret_here"
 ```
+
+### Configuration Priority
+
+Our endpoint checks authentication in this order:
+1. **Basic Authentication** (if credentials are configured) - InTouch's primary method
+2. **HMAC Signature** (if webhook secret is configured) - Optional additional security
+3. **Allow Unsigned** (if enabled) - For testing only, should be disabled in production
 
 ## What Happens After Callback
 
@@ -112,14 +137,55 @@ When our system receives a callback:
 
 ## Testing the Callback
 
-### Test with cURL (GET)
+### Automated Testing with Our Scripts
+
+We provide dedicated testing utilities for easier debugging:
+
+#### 1. Test Callback Endpoint
 ```bash
-curl "https://samanaffa.com/api/payments/intouch/callback?payment_mode=INTOUCH_SERVICE_CODE&paid_sum=1000&paid_amount=1000&payment_token=TEST123&payment_status=200&command_number=YOUR_REFERENCE_NUMBER&payment_validation_date=1234567890"
+# Test with a specific transaction reference (success scenario)
+npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200
+
+# Test failure scenario
+npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 420
+
+# Test against a different server
+npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200 https://samanaffa.com
 ```
 
-### Test with cURL (POST JSON)
+This script will:
+- Fetch the transaction from the database
+- Send test callbacks with Basic Auth (GET, POST JSON, and POST form-urlencoded)
+- Verify the transaction status updates correctly
+- Check balance updates
+
+#### 2. Check Pending Transactions
+```bash
+# View all pending transactions and diagnostic info
+npx tsx scripts/check-pending-transactions.ts
+```
+
+This script shows:
+- All pending transactions
+- Transactions that received callbacks but didn't update
+- Transactions missing provider IDs
+- Recent completed transactions for comparison
+- Summary statistics by status
+
+### Manual Testing with cURL
+
+**Note**: Include Basic Authentication header in all requests.
+
+#### Test with cURL (GET)
+```bash
+curl "https://samanaffa.com/api/payments/intouch/callback?payment_mode=INTOUCH_SERVICE_CODE&paid_sum=1000&paid_amount=1000&payment_token=TEST123&payment_status=200&command_number=YOUR_REFERENCE_NUMBER&payment_validation_date=1234567890" \
+  -u "username:password"
+```
+
+#### Test with cURL (POST JSON)
 ```bash
 curl -X POST https://samanaffa.com/api/payments/intouch/callback \
+  -u "username:password" \
   -H "Content-Type: application/json" \
   -d '{
     "payment_mode": "INTOUCH_SERVICE_CODE",
@@ -131,6 +197,8 @@ curl -X POST https://samanaffa.com/api/payments/intouch/callback \
     "payment_validation_date": "1234567890"
   }'
 ```
+
+Replace `username:password` with the actual Basic Auth credentials from InTouch.
 
 ## Important Notes for Intouch Team
 
@@ -165,8 +233,76 @@ Please confirm the following with the Intouch team:
 - [ ] Test callbacks sent and verified successful
 - [ ] Production callbacks enabled
 
+## Troubleshooting
+
+### Problem: Callbacks not updating transaction status
+
+**Possible causes:**
+1. **Missing Basic Auth credentials** - InTouch requires Basic Authentication
+   - Check if `INTOUCH_BASIC_AUTH_USERNAME` and `INTOUCH_BASIC_AUTH_PASSWORD` are set
+   - Request credentials from InTouch if not configured
+   - Temporarily set `INTOUCH_ALLOW_UNSIGNED_CALLBACKS=true` for testing
+
+2. **InTouch hasn't configured callback URL** - They may not have your webhook URL
+   - Confirm with InTouch team they have: `https://samanaffa.com/api/payments/intouch/callback`
+   - Ask them to send a test callback
+
+3. **Callbacks being sent but rejected** - Authentication failures
+   - Check server logs for `[Intouch Callback]` entries
+   - Look for "Basic Auth verification FAILED" errors
+   - Verify credentials match what InTouch is sending
+
+4. **Reference number mismatch** - Callback can't find the transaction
+   - Run `npx tsx scripts/check-pending-transactions.ts` to see pending transactions
+   - Verify InTouch is using the correct `command_number` (our reference number)
+   - Check logs for "Transaction intent NOT FOUND" errors
+
+5. **Network/Firewall issues** - Callbacks can't reach your server
+   - Verify your server is accessible from InTouch's IP addresses
+   - Check firewall rules allow incoming HTTPS traffic
+   - Test endpoint manually: `curl https://samanaffa.com/api/payments/intouch/callback`
+
+### Checking Logs
+
+Look for these log patterns in your application logs:
+
+**Successful callback:**
+```
+[Intouch Callback] POST request received
+[Intouch Callback] Basic Auth verification PASSED
+[Intouch Callback] Processing callback data...
+[Intouch Callback] Transaction intent found
+[Intouch Callback] Transaction processing completed
+```
+
+**Failed authentication:**
+```
+[Intouch Callback] POST request received
+[Intouch Callback] Basic Auth verification FAILED
+```
+
+**Transaction not found:**
+```
+[Intouch Callback] POST request received
+[Intouch Callback] Transaction intent NOT FOUND for reference: XXX
+```
+
+### Questions to Ask InTouch
+
+1. **Authentication**: What Basic Auth username/password should we use?
+2. **Testing**: Can you send a test callback to verify the integration?
+3. **Method**: Do you send callbacks as GET or POST requests?
+4. **Retry Logic**: Do you retry failed callbacks? How many times?
+5. **Timeout**: What is your callback timeout? (our endpoint responds quickly)
+6. **IP Whitelist**: Do you need us to whitelist specific IPs for incoming callbacks?
+
 ## Changelog
 
+- **2025-01-09**: Added Basic Authentication support (per InTouch API spec)
+- **2025-01-09**: Added comprehensive logging for diagnostics
+- **2025-01-09**: Created test-intouch-callback.ts utility script
+- **2025-01-09**: Created check-pending-transactions.ts diagnostic script
+- **2025-01-09**: Added troubleshooting guide
 - **2025-01-08**: Initial callback configuration documentation
 - **2025-01-08**: Added support for Intouch-specific field names (payment_token, command_number, payment_status, etc.)
 - **2025-01-08**: Added GET request support for query parameter callbacks
