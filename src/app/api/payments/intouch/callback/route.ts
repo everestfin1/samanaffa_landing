@@ -179,35 +179,79 @@ function parseCustomerInfo(value: unknown): Prisma.InputJsonValue | undefined {
 }
 
 export async function POST(request: NextRequest) {
+  // Log all incoming headers for diagnostics
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature') 
+      ? '***REDACTED***' 
+      : value;
+  });
+  console.log('[Intouch Callback] POST request received');
+  console.log('[Intouch Callback] Headers:', JSON.stringify(headers, null, 2));
+
   const webhookSecret = process.env.INTOUCH_WEBHOOK_SECRET;
   const allowUnsigned = process.env.INTOUCH_ALLOW_UNSIGNED_CALLBACKS === 'true';
+  const basicAuthUsername = process.env.INTOUCH_BASIC_AUTH_USERNAME;
+  const basicAuthPassword = process.env.INTOUCH_BASIC_AUTH_PASSWORD;
 
-  if (!webhookSecret && !allowUnsigned) {
-    console.error('Intouch webhook secret is not configured.');
-    return NextResponse.json(
-      { error: 'Webhook secret not configured on server' },
-      { status: 500 },
-    );
+  // Verify Basic Authentication (InTouch API requirement)
+  const authHeader = request.headers.get('authorization');
+  if (authHeader) {
+    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0]);
+    
+    if (authHeader.startsWith('Basic ')) {
+      const base64Credentials = authHeader.split(' ')[1];
+      const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+      const [username, password] = credentials.split(':');
+      
+      console.log('[Intouch Callback] Basic Auth - Username received:', username);
+      
+      // Verify credentials if configured
+      if (basicAuthUsername && basicAuthPassword) {
+        if (username !== basicAuthUsername || password !== basicAuthPassword) {
+          console.error('[Intouch Callback] Basic Auth verification FAILED');
+          return NextResponse.json(
+            { error: 'Invalid authentication credentials' },
+            { status: 401 },
+          );
+        }
+        console.log('[Intouch Callback] Basic Auth verification PASSED');
+      } else {
+        console.warn('[Intouch Callback] Basic Auth credentials not configured, skipping verification');
+      }
+    }
+  } else {
+    console.warn('[Intouch Callback] No Authorization header present');
   }
 
   const rawBody = await request.text();
   if (!rawBody) {
+    console.error('[Intouch Callback] Empty request body');
     return NextResponse.json({ error: 'Empty request body' }, { status: 400 });
   }
 
+  console.log('[Intouch Callback] Raw body length:', rawBody.length, 'bytes');
+
+  // Check for HMAC signature (fallback/additional security)
   const signature = getHeaderSignature(request);
-  if (!signature) {
-    if (!allowUnsigned) {
-      return NextResponse.json({ error: 'Missing webhook signature' }, { status: 401 });
+  if (signature) {
+    console.log('[Intouch Callback] HMAC signature present');
+    if (webhookSecret) {
+      if (!verifySignature(rawBody, signature, webhookSecret)) {
+        if (!allowUnsigned) {
+          console.error('[Intouch Callback] HMAC signature verification FAILED');
+          return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
+        }
+        console.warn('[Intouch Callback] HMAC signature verification failed, processing due to allow flag.');
+      } else {
+        console.log('[Intouch Callback] HMAC signature verification PASSED');
+      }
+    } else {
+      console.warn('[Intouch Callback] Signature provided but webhook secret missing; skipping verification.');
     }
-    console.warn('[Intouch] Callback received without signature, processing due to allow flag.');
-  } else if (!webhookSecret) {
-    console.warn('[Intouch] Signature provided but webhook secret missing; skipping verification.');
-  } else if (!verifySignature(rawBody, signature, webhookSecret)) {
-    if (!allowUnsigned) {
-      return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
-    }
-    console.warn('[Intouch] Signature verification failed, processing due to allow flag.');
+  } else if (!authHeader && !allowUnsigned) {
+    console.error('[Intouch Callback] No authentication provided (no Basic Auth or HMAC signature)');
+    return NextResponse.json({ error: 'Missing authentication' }, { status: 401 });
   }
 
   const contentType = request.headers.get('content-type') || '';
@@ -241,12 +285,58 @@ export async function POST(request: NextRequest) {
 
 // Handle GET requests - Intouch sends callbacks as GET with query params
 export async function GET(request: NextRequest) {
+  // Log all incoming headers for diagnostics
+  const headers: Record<string, string> = {};
+  request.headers.forEach((value, key) => {
+    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature') 
+      ? '***REDACTED***' 
+      : value;
+  });
+  console.log('[Intouch Callback] GET request received');
+  console.log('[Intouch Callback] Headers:', JSON.stringify(headers, null, 2));
+
   const { searchParams } = new URL(request.url);
+  console.log('[Intouch Callback] Query params:', Object.fromEntries(searchParams.entries()));
   
   // Check if this is a webhook verification challenge
   const challenge = searchParams.get('challenge');
   if (challenge) {
+    console.log('[Intouch Callback] Webhook verification challenge received');
     return NextResponse.json({ challenge });
+  }
+
+  // Verify Basic Authentication (InTouch API requirement)
+  const basicAuthUsername = process.env.INTOUCH_BASIC_AUTH_USERNAME;
+  const basicAuthPassword = process.env.INTOUCH_BASIC_AUTH_PASSWORD;
+  const allowUnsigned = process.env.INTOUCH_ALLOW_UNSIGNED_CALLBACKS === 'true';
+
+  const authHeader = request.headers.get('authorization');
+  if (authHeader) {
+    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0]);
+    
+    if (authHeader.startsWith('Basic ')) {
+      const base64Credentials = authHeader.split(' ')[1];
+      const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+      const [username, password] = credentials.split(':');
+      
+      console.log('[Intouch Callback] Basic Auth - Username received:', username);
+      
+      // Verify credentials if configured
+      if (basicAuthUsername && basicAuthPassword) {
+        if (username !== basicAuthUsername || password !== basicAuthPassword) {
+          console.error('[Intouch Callback] Basic Auth verification FAILED');
+          return NextResponse.json(
+            { error: 'Invalid authentication credentials' },
+            { status: 401 },
+          );
+        }
+        console.log('[Intouch Callback] Basic Auth verification PASSED');
+      } else {
+        console.warn('[Intouch Callback] Basic Auth credentials not configured, skipping verification');
+      }
+    }
+  } else {
+    console.warn('[Intouch Callback] No Authorization header present');
   }
 
   // Check if this is an Intouch callback (they send as GET with query params)
@@ -261,17 +351,20 @@ export async function GET(request: NextRequest) {
       callbackData[key] = value;
     });
 
-    console.log('[Intouch] Received GET callback:', callbackData);
+    console.log('[Intouch Callback] Processing GET callback with data:', callbackData);
 
     // Process the callback data using the same logic as POST
     return processIntouchCallback(callbackData);
   }
 
+  console.log('[Intouch Callback] Health check - endpoint is active');
   return NextResponse.json({ status: 'Intouch webhook endpoint active' });
 }
 
 // Shared callback processing logic
 async function processIntouchCallback(parsedBody: Record<string, unknown>) {
+  console.log('[Intouch Callback] Processing callback data...');
+  
   const transactionId = coerceString(pickFirst(parsedBody, TRANSACTION_ID_KEYS));
   const statusRawCandidate = coerceString(pickFirst(parsedBody, STATUS_KEYS));
   const amountRaw = pickFirst(parsedBody, AMOUNT_KEYS);
@@ -288,7 +381,22 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       ? statusRawCandidate
       : statusFallback;
 
+  console.log('[Intouch Callback] Extracted fields:', {
+    transactionId,
+    statusRaw,
+    amount: amountRaw,
+    referenceNumber,
+    paymentMethod,
+    timestamp: timestampRaw,
+  });
+
   if (!transactionId || !statusRaw || !amountRaw || !referenceNumber) {
+    console.error('[Intouch Callback] Missing required fields:', {
+      hasTransactionId: !!transactionId,
+      hasStatus: !!statusRaw,
+      hasAmount: !!amountRaw,
+      hasReferenceNumber: !!referenceNumber,
+    });
     return NextResponse.json(
       { error: 'Missing required fields (transactionId, status, amount, referenceNumber)' },
       { status: 400 },
@@ -330,8 +438,14 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
     }
   }
 
+  console.log('[Intouch Callback] Status mapping:', {
+    rawStatus: statusRaw,
+    normalizedStatus,
+    mappedStatus,
+  });
+
   if (!mappedStatus) {
-    console.warn('Received unknown Intouch status:', statusRaw, parsedBody);
+    console.error('[Intouch Callback] Unknown status received:', statusRaw, 'Full payload:', parsedBody);
     return NextResponse.json(
       { error: `Unsupported payment status: ${statusRaw}` },
       { status: 400 },
@@ -340,8 +454,11 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
   const callbackAmountDecimal = parseAmount(amountRaw);
   if (!callbackAmountDecimal) {
+    console.error('[Intouch Callback] Invalid amount format:', amountRaw);
     return NextResponse.json({ error: 'Invalid amount format' }, { status: 400 });
   }
+
+  console.log('[Intouch Callback] Looking up transaction intent with reference:', referenceNumber);
 
   const intent = await prisma.transactionIntent.findUnique({
     where: { referenceNumber: String(referenceNumber) },
@@ -352,9 +469,18 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   });
 
   if (!intent) {
-    console.error('Transaction intent not found for reference:', referenceNumber, parsedBody);
+    console.error('[Intouch Callback] Transaction intent NOT FOUND for reference:', referenceNumber);
+    console.error('[Intouch Callback] Full callback payload:', parsedBody);
     return NextResponse.json({ error: 'Transaction intent not found' }, { status: 404 });
   }
+
+  console.log('[Intouch Callback] Transaction intent found:', {
+    intentId: intent.id,
+    currentStatus: intent.status,
+    amount: intent.amount.toString(),
+    userId: intent.userId,
+    accountId: intent.accountId,
+  });
 
   if (intent.providerTransactionId && intent.providerTransactionId !== String(transactionId)) {
     console.error('Conflict: callback transaction ID does not match existing provider transaction ID', {
@@ -486,7 +612,16 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
     const { updatedIntent, finalStatus, failureReason, statusChangedToCompleted } = transactionResult;
 
+    console.log('[Intouch Callback] Transaction processing completed:', {
+      intentId: updatedIntent.id,
+      oldStatus: intent.status,
+      newStatus: finalStatus,
+      statusChangedToCompleted,
+      failureReason,
+    });
+
     if (statusChangedToCompleted) {
+      console.log('[Intouch Callback] Sending email notification for completed transaction');
       await sendTransactionIntentEmail(
         updatedIntent.user.email,
         `${updatedIntent.user.firstName} ${updatedIntent.user.lastName}`,
@@ -524,9 +659,14 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
     // Return 200 for success, 420 for failure (as per Intouch docs)
     const statusCode = finalStatus === 'COMPLETED' ? 200 : 420;
+    console.log('[Intouch Callback] Returning response:', {
+      statusCode,
+      finalStatus,
+      transactionId: updatedIntent.id,
+    });
     return NextResponse.json(responsePayload, { status: statusCode });
   } catch (error) {
-    console.error('Intouch callback processing error:', error);
+    console.error('[Intouch Callback] ERROR during processing:', error);
 
     const failureMessage = error instanceof Error ? error.message : 'Internal server error';
 
