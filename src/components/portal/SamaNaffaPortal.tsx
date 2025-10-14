@@ -18,6 +18,7 @@ import Image from 'next/image';
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
 import { NaffaType } from '../data/naffaTypes';
+import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
 
 type IntentKind = 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
 
@@ -842,63 +843,63 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                 </tr>
               </thead>
               <tbody className="divide-y divide-timberwolf/10">
-                {pagedTransactions.map(transaction => (
-                  <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
-                    <td className="py-4 px-2 text-sm text-night">
-                      {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
-                    </td>
-                    <td className="py-4 px-2">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          transaction.intentType === 'DEPOSIT'
-                            ? 'bg-green-100 text-green-800'
-                            : transaction.intentType === 'WITHDRAWAL'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-blue-100 text-blue-800'
+                {pagedTransactions.map(transaction => {
+                  const transactionDate = new Date(transaction.createdAt);
+                  return (
+                    <tr key={transaction.id} className="hover:bg-timberwolf/5 transition-colors">
+                      <td className="py-4 px-2">
+                        <div className="text-sm text-night font-medium">
+                          {formatDateShortFrench(transactionDate)}
+                        </div>
+                        <div className="text-xs text-night/50 mt-0.5">
+                          {getRelativeTimeFrench(transactionDate)}
+                        </div>
+                      </td>
+                      <td className="py-4 px-2">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            transaction.intentType === 'DEPOSIT'
+                              ? 'bg-green-100 text-green-800'
+                              : transaction.intentType === 'WITHDRAWAL'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-blue-100 text-blue-800'
+                          }`}
+                        >
+                          {getTransactionTypeLabelFrench(transaction.intentType)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-2 text-sm text-night/70 capitalize">{transaction.paymentMethod}</td>
+                      <td
+                        className={`py-4 px-2 text-sm font-semibold text-right ${
+                          transaction.intentType === 'WITHDRAWAL' ? 'text-red-600' : 'text-green-600'
                         }`}
                       >
-                        {transaction.intentType === 'DEPOSIT'
-                          ? 'Dépôt'
-                          : transaction.intentType === 'WITHDRAWAL'
-                          ? 'Retrait'
-                          : 'Investissement'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-2 text-sm text-night/70">{transaction.paymentMethod}</td>
-                    <td
-                      className={`py-4 px-2 text-sm font-semibold text-right ${
-                        transaction.intentType === 'WITHDRAWAL' ? 'text-red-600' : 'text-green-600'
-                      }`}
-                    >
-                      {transaction.intentType === 'WITHDRAWAL' ? '-' : '+'}
-                      {transaction.amount.toLocaleString('fr-FR')} FCFA
-                    </td>
-                    <td className="py-4 px-2 text-sm font-medium text-right">
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          transaction.status === 'COMPLETED'
-                            ? 'bg-green-100 text-green-800'
-                            : transaction.status === 'PENDING'
-                            ? 'bg-yellow-100 text-yellow-800'
-                            : transaction.status === 'REJECTED'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {transaction.status === 'COMPLETED'
-                          ? 'Complété'
-                          : transaction.status === 'PENDING'
-                          ? 'En attente'
-                          : transaction.status === 'REJECTED'
-                          ? 'Rejeté'
-                          : 'En cours'}
-                      </span>
-                    </td>
-                    <td className="py-4 px-2 text-sm font-medium text-right text-night">
-                      {transaction.referenceNumber}
-                    </td>
-                  </tr>
-                ))}
+                        {transaction.intentType === 'WITHDRAWAL' ? '-' : '+'}
+                        {transaction.amount.toLocaleString('fr-FR')} FCFA
+                      </td>
+                      <td className="py-4 px-2 text-sm font-medium text-right">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            transaction.status === 'COMPLETED'
+                              ? 'bg-green-100 text-green-800'
+                              : transaction.status === 'PENDING'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : transaction.status === 'FAILED'
+                              ? 'bg-red-100 text-red-800'
+                              : transaction.status === 'CANCELLED'
+                              ? 'bg-gray-100 text-gray-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {getStatusLabelFrench(transaction.status)}
+                        </span>
+                      </td>
+                      <td className="py-4 px-2 text-xs font-mono text-right text-night/70">
+                        {transaction.referenceNumber}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

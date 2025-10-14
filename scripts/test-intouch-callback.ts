@@ -1,15 +1,17 @@
 /**
  * InTouch Callback Testing Utility
- * 
+ *
  * This script simulates InTouch payment callbacks to test the webhook endpoint locally.
  * It helps verify that the callback endpoint correctly processes payment notifications.
- * 
+ *
+ * IMPORTANT: Reference numbers now use hyphens instead of underscores to comply with InTouch requirements.
+ *
  * Usage:
  *   npx tsx scripts/test-intouch-callback.ts <reference-number> <status>
- * 
+ *
  * Examples:
- *   npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200
- *   npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 420
+ *   npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 200
+ *   npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 420
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -163,9 +165,9 @@ const baseUrl = args[2];
 if (!referenceNumber) {
   console.error('Usage: npx tsx scripts/test-intouch-callback.ts <reference-number> [status] [base-url]');
   console.error('\nExamples:');
-  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200');
-  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 420');
-  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200 http://localhost:3000');
+  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 200');
+  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 420');
+  console.error('  npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 200 http://localhost:3000');
   console.error('\nStatus codes:');
   console.error('  200 = Success');
   console.error('  420 = Failure');

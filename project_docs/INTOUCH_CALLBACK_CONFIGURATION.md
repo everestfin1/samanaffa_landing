@@ -38,7 +38,7 @@ According to Intouch documentation, the callback will include the following para
 
 ### Example Callback URL (GET)
 ```
-https://samanaffa.com/api/payments/intouch/callback?payment_mode=INTOUCH_SERVICE_CODE&paid_sum=22200.0&paid_amount=22200.0&payment_token=1565251468191&payment_status=200&command_number=SAMA_NAFFA-DEPOSIT-1234567890-ABC123&payment_validation_date=1565251499748
+https://samanaffa.com/api/payments/intouch/callback?payment_mode=INTOUCH_SERVICE_CODE&paid_sum=22200.0&paid_amount=22200.0&payment_token=1565251468191&payment_status=200&command_number=SAMA-NAFFA-DEPOSIT-1234567890-ABC123&payment_validation_date=1565251499748
 ```
 
 ### Example Callback Payload (POST JSON)
@@ -49,7 +49,7 @@ https://samanaffa.com/api/payments/intouch/callback?payment_mode=INTOUCH_SERVICE
   "paid_amount": "22200.0",
   "payment_token": "1565251468191",
   "payment_status": "200",
-  "command_number": "SAMA_NAFFA-DEPOSIT-1234567890-ABC123",
+  "command_number": "SAMA-NAFFA-DEPOSIT-1234567890-ABC123",
   "payment_validation_date": "1565251499748"
 }
 ```
@@ -144,13 +144,13 @@ We provide dedicated testing utilities for easier debugging:
 #### 1. Test Callback Endpoint
 ```bash
 # Test with a specific transaction reference (success scenario)
-npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200
+npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 200
 
 # Test failure scenario
-npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 420
+npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 420
 
 # Test against a different server
-npx tsx scripts/test-intouch-callback.ts SAMA_NAFFA-DEPOSIT-1234567890-ABC123 200 https://samanaffa.com
+npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 200 https://samanaffa.com
 ```
 
 This script will:
@@ -202,10 +202,10 @@ Replace `username:password` with the actual Basic Auth credentials from InTouch.
 
 ## Important Notes for Intouch Team
 
-1. **Reference Number Format**: Our reference numbers follow this pattern:
-   - `SAMA_NAFFA-DEPOSIT-{timestamp}-{random}`
-   - `SAMA_NAFFA-WITHDRAWAL-{timestamp}-{random}`
-   - `APE_INVESTMENT-INVESTMENT-{timestamp}-{random}`
+1. **Reference Number Format**: Our reference numbers follow this pattern (NO underscores allowed by InTouch):
+   - `SAMA-NAFFA-DEPOSIT-{timestamp}-{random}`
+   - `SAMA-NAFFA-WITHDRAWAL-{timestamp}-{random}`
+   - `APE-INVESTMENT-INVESTMENT-{timestamp}-{random}`
 
 2. **Amount Format**: We expect amounts as numbers (can be string or numeric type)
 

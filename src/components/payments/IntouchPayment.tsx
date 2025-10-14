@@ -260,10 +260,22 @@ export default function IntouchPayment({
 
       // Construct redirect URLs with query parameters
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://samanaffa.com';
-      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
-      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
+      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`;
+      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`;
 
-      console.log('Calling sendPaymentInfos with parameters:', {
+      console.log('[InTouch Payment] Constructing redirect URLs');
+      console.log('[InTouch Payment] Success URL:', successUrl);
+      console.log('[InTouch Payment] Failed URL:', failedUrl);
+      console.log('[InTouch Payment] Transaction Details:', {
+        transactionId,
+        referenceNumber,
+        amount,
+        accountType,
+        intentType,
+        userId,
+      });
+
+      console.log('[InTouch Payment] Calling sendPaymentInfos with parameters:', {
         orderNumber: referenceNumber,
         agencyCode: merchantId,
         secureCode: apiKey ? '***' : 'MISSING',
@@ -418,11 +430,14 @@ export default function IntouchPayment({
 
   useEffect(() => {
     const handlePaymentResult = (event: MessageEvent) => {
+      console.log('[InTouch Payment] Received message event:', event.data);
+      
       if (!event.data || event.data.type !== 'INTOUCH_PAYMENT_RESULT') {
         return;
       }
 
       const { status, transactionId } = event.data;
+      console.log('[InTouch Payment] Payment result:', { status, transactionId });
 
       if (status === 'success') {
         setPaymentData((prev) =>
@@ -448,11 +463,14 @@ export default function IntouchPayment({
     };
 
     const handleIntouchEvent = (event: CustomEvent) => {
+      console.log('[InTouch Payment] Received InTouch event:', event.detail);
+      
       if (!event.detail) {
         return;
       }
 
       const { status, transactionId } = event.detail;
+      console.log('[InTouch Payment] InTouch event status:', { status, transactionId });
 
       if (status === 'success' || status === 'completed') {
         setPaymentData((prev) =>

@@ -108,7 +108,7 @@ export function generateReferenceNumber(
   // For now, we'll use a simple sequence. In production, you might want to track this in the database
   const sequence = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
   
-  return `${prefix}-${intentCode}-${date}-${time}-${userShort}-${sequence}`
+  return `${prefix}-${intentCode}-${date}-${time}-${userShort}-${sequence}`.replace(/_/g, '-');
 }
 
 export function formatCurrency(amount: number, currency: string = 'FCFA'): string {

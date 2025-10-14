@@ -76,7 +76,7 @@ export default function TransferModal({
   const generateReferenceNumber = () => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `${accountType.toUpperCase()}-${type.toUpperCase()}-${timestamp}-${random}`;
+    return `${accountType.toUpperCase()}-${type.toUpperCase()}-${timestamp}-${random}`.replace(/_/g, '-');
   };
 
   const runPreflightChecks = async (requestedAmount: number) => {

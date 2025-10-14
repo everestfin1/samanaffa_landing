@@ -71,7 +71,7 @@ export default function InvestmentModal({
   const generateReferenceNumber = () => {
     const timestamp = Date.now();
     const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `${accountType.toUpperCase()}-INVESTMENT-${timestamp}-${random}`;
+    return `${accountType.toUpperCase()}-INVESTMENT-${timestamp}-${random}`.replace(/_/g, '-');
   };
 
   const runPreflightChecks = async (requestedAmount: number) => {
