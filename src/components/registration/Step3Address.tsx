@@ -4,6 +4,100 @@ import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
 import regionsSenegal from '../../../regions_senegal.json';
 
+// Utility function to convert ALL CAPS text to Title Case
+const toTitleCase = (text: string): string => {
+  if (!text) return text;
+  
+  // Handle special cases and common abbreviations
+  const specialCases: Record<string, string> = {
+    'HLM': 'HLM',
+    'N\'GOR': 'N\'Gor',
+    'D\'OIE': 'd\'Oie',
+    'D\'AIR': 'd\'Air',
+    'L\'AMITIE': 'l\'Amitié',
+    'SACRE-COEUR': 'Sacré-Cœur',
+    'SAINT-LOUIS': 'Saint-Louis',
+    'SEDHIOU': 'Sédhiou',
+    'KEDOUGOU': 'Kédougou',
+    'THIES': 'Thiès',
+    'ZIGUINCHOR': 'Ziguinchor',
+    'DIOURBEL': 'Diourbel',
+    'FATICK': 'Fatick',
+    'KAFFRINE': 'Kaffrine',
+    'KAOLACK': 'Kaolack',
+    'KOLDA': 'Kolda',
+    'LOUGA': 'Louga',
+    'MATAM': 'Matam',
+    'TAMBACOUNDA': 'Tambacounda',
+    'DAKAR': 'Dakar',
+    'GUEDIAWAYE': 'Guédiawaye',
+    'KEUR MASSAR': 'Keur Massar',
+    'PIKINE': 'Pikine',
+    'RUFISQUE': 'Rufisque',
+    'BAMBEY': 'Bambey',
+    'MBACKE': 'Mbacké',
+    'FOUNDIOUGNE': 'Foundiougne',
+    'GOSSAS': 'Gossas',
+    'MBIRKILANE': 'Mbirklane',
+    'KOUNGHEUL': 'Koungheul',
+    'MALEM HODDAR': 'Malem Hodar',
+    'NIORO': 'Nioro',
+    'GUINGUINEO': 'Guinginéo',
+    'SALEMATA': 'Salémata',
+    'SARAYA': 'Saraya',
+    'VELINGARA': 'Vélingara',
+    'MEDINA YORO FOULAH': 'Médina Yoro Foulah',
+    'KEBEMER': 'Kébémer',
+    'LINGUERE': 'Linguère',
+    'KANEL': 'Kanél',
+    'RANEROU': 'Ranérou',
+    'DAGANA': 'Dagana',
+    'PODOR': 'Podor',
+    'BOUNKILING': 'Bounkiling',
+    'GOUDOMP': 'Goudomp',
+    'BAKEL': 'Bakel',
+    'GOUDIRY': 'Goudiry',
+    'KOUMPENTOUM': 'Koumpentoum',
+    'MBOUR': 'M\'Bour',
+    'TIVAOUANE': 'Tivaouane',
+    'BIGNONA': 'Bignona',
+    'OUSSOUYE': 'Oussouye'
+  };
+
+  // Check for exact matches first
+  if (specialCases[text]) {
+    return specialCases[text];
+  }
+
+  // Handle common patterns
+  return text
+    .toLowerCase()
+    .split(' ')
+    .map(word => {
+      // Handle words with apostrophes
+      if (word.includes('\'')) {
+        return word.split('\'').map((part, index) => 
+          index === 0 ? part.charAt(0).toUpperCase() + part.slice(1) : part
+        ).join('\'');
+      }
+      // Handle words with hyphens
+      if (word.includes('-')) {
+        return word.split('-').map(part => 
+          part.charAt(0).toUpperCase() + part.slice(1)
+        ).join('-');
+      }
+      // Handle words with slashes
+      if (word.includes('/')) {
+        return word.split('/').map(part => 
+          part.charAt(0).toUpperCase() + part.slice(1)
+        ).join('/');
+      }
+      // Regular words
+      return word.charAt(0).toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+};
+
 // All Senegal regions (14 total) - with display names and JSON keys
 const senegalRegions = [
   { display: 'Dakar', value: 'DAKAR' },
@@ -28,37 +122,46 @@ const getRegionData = (regionName: string) => {
 };
 
 // Function to get departments based on region
-const getDepartmentsForRegion = (regionName: string): string[] => {
+const getDepartmentsForRegion = (regionName: string): Array<{value: string, display: string}> => {
   const regionData = getRegionData(regionName);
   if (!regionData) return [];
   
-  return regionData.departements.map(dept => dept.name);
+  return regionData.departements.map(dept => ({
+    value: dept.name,
+    display: toTitleCase(dept.name)
+  }));
 };
 
 // Function to get arrondissements for a specific department
-const getArrondissementsForDepartment = (regionName: string, departmentName: string): string[] => {
+const getArrondissementsForDepartment = (regionName: string, departmentName: string): Array<{value: string, display: string}> => {
   const regionData = getRegionData(regionName);
   if (!regionData) return [];
   
   const department = regionData.departements.find(dept => dept.name.toLowerCase() === departmentName.toLowerCase());
   if (!department || !department.arrondissements) return [];
   
-  return department.arrondissements.map(arr => arr.name);
+  return department.arrondissements.map(arr => ({
+    value: arr.name,
+    display: toTitleCase(arr.name)
+  }));
 };
 
 // Function to get direct communes for a specific department
-const getDirectCommunesForDepartment = (regionName: string, departmentName: string): string[] => {
+const getDirectCommunesForDepartment = (regionName: string, departmentName: string): Array<{value: string, display: string}> => {
   const regionData = getRegionData(regionName);
   if (!regionData) return [];
   
   const department = regionData.departements.find(dept => dept.name.toLowerCase() === departmentName.toLowerCase());
   if (!department || !department.communes) return [];
   
-  return department.communes.map(commune => commune.name);
+  return department.communes.map(commune => ({
+    value: commune.name,
+    display: toTitleCase(commune.name)
+  }));
 };
 
 // Function to get communes for a specific arrondissement
-const getCommunesForArrondissement = (regionName: string, departmentName: string, arrondissementName: string): string[] => {
+const getCommunesForArrondissement = (regionName: string, departmentName: string, arrondissementName: string): Array<{value: string, display: string}> => {
   const regionData = getRegionData(regionName);
   if (!regionData) return [];
   
@@ -68,7 +171,10 @@ const getCommunesForArrondissement = (regionName: string, departmentName: string
   const arrondissement = department.arrondissements.find(arr => arr.name.toLowerCase() === arrondissementName.toLowerCase());
   if (!arrondissement || !arrondissement.communes) return [];
   
-  return arrondissement.communes.map(commune => commune.name);
+  return arrondissement.communes.map(commune => ({
+    value: commune.name,
+    display: toTitleCase(commune.name)
+  }));
 };
 
 // Function to check if department has direct communes
@@ -238,9 +344,9 @@ export default function Step3Address({
                 required
               >
                 <option value="">Sélectionner un département</option>
-                {getDepartmentsForRegion(formData.region).map((department: string) => (
-                  <option key={department} value={department}>
-                    {department}
+                {getDepartmentsForRegion(formData.region).map((department) => (
+                  <option key={department.value} value={department.value}>
+                    {department.display}
                   </option>
                 ))}
               </select>
@@ -285,9 +391,9 @@ export default function Step3Address({
               required
             >
               <option value="">Sélectionner un arrondissement</option>
-              {getArrondissementsForDepartment(formData.region, formData.department).map((arrondissement: string) => (
-                <option key={arrondissement} value={arrondissement}>
-                  {arrondissement}
+              {getArrondissementsForDepartment(formData.region, formData.department).map((arrondissement) => (
+                <option key={arrondissement.value} value={arrondissement.value}>
+                  {arrondissement.display}
                 </option>
               ))}
             </select>
@@ -307,7 +413,7 @@ export default function Step3Address({
         <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
         {formData.country === 'Senegal' && formData.region && formData.department ? (
           (() => {
-            let communes: string[] = [];
+            let communes: Array<{value: string, display: string}> = [];
             
             // If department has direct communes, use them
             if (departmentHasDirectCommunes(formData.region, formData.department)) {
@@ -331,9 +437,9 @@ export default function Step3Address({
                   required
                 >
                   <option value="">Sélectionner une commune</option>
-                  {communes.map((commune: string) => (
-                    <option key={commune} value={commune}>
-                      {commune}
+                  {communes.map((commune) => (
+                    <option key={commune.value} value={commune.value}>
+                      {commune.display}
                     </option>
                   ))}
                 </select>

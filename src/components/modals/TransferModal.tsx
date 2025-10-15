@@ -21,7 +21,6 @@ interface TransferModalProps {
 interface TransferData {
   amount: number;
   method: string;
-  note?: string;
 }
 
 export default function TransferModal({
@@ -38,7 +37,6 @@ export default function TransferModal({
   const { data: session } = useSession();
   const [amount, setAmount] = useState<string>('');
   const [method, setMethod] = useState<string>('intouch');
-  const [note, setNote] = useState<string>('');
   const [error, setError] = useState<string>('');
   const [showIntouchPayment, setShowIntouchPayment] = useState<boolean>(false);
   const [referenceNumber, setReferenceNumber] = useState<string>('');
@@ -194,7 +192,7 @@ export default function TransferModal({
 
     // Fallback to WhatsApp for other methods
     const message = encodeURIComponent(
-      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA${note.trim() ? ` - ${note.trim()}` : ''}. Pouvez-vous m'aider avec le traitement du paiement ?`
+      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA. Pouvez-vous m'aider avec le traitement du paiement ?`
     );
     const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
     window.open(whatsappUrl, '_blank');
@@ -207,8 +205,7 @@ export default function TransferModal({
     console.log('Intouch payment successful:', transactionId);
     onConfirm({
       amount: parseFloat(amount),
-      method: 'intouch',
-      note: note
+      method: 'intouch'
     });
     onClose();
   };
@@ -360,16 +357,6 @@ export default function TransferModal({
               type={type}
             />
 
-            <div>
-              <label className="block text-sm font-medium text-night mb-2">Note (optionnelle)</label>
-              <textarea 
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                placeholder="Motif de la transaction..."
-                rows={3}
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
-              />
-            </div>
           </div>
 
           {preflightMessage && (

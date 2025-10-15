@@ -459,11 +459,12 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
               </div>
 
               {/* Selected Account Card */}
-              <button
-                type="button"
-                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                className="group w-full relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 cursor-pointer"
-              >
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  className="group w-full relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 cursor-pointer"
+                >
                 {(() => {
                   const selectedIndex = accounts.findIndex(acc => acc.id === selectedAccountId);
                   const cardTheme = getThemeByIndex(selectedIndex);
@@ -510,16 +511,6 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                             <p className="text-2xl font-bold tracking-wide">
                               {showBalance ? `${Number(selectedAccount?.balance || 0).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setShowBalance(prev => !prev);
-                              }}
-                              className="text-white/80 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
-                              aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
-                            >
-                              {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                            </button>
                           </div>
                         </div>
 
@@ -544,7 +535,20 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                     </div>
                   );
                 })()}
-              </button>
+                </button>
+
+                {/* Eye Button - Positioned absolutely outside the card button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowBalance(prev => !prev);
+                  }}
+                  className="absolute top-20 right-6 z-40 text-white/80 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
+                  aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
+                >
+                  {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                </button>
+              </div>
 
               {/* Dropdown List */}
               {showAccountDropdown && (
