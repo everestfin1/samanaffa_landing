@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 interface IntouchPaymentProps {
   amount: number;
   userId: string;
+  accountId?: string | null;
   accountType: 'sama_naffa' | 'ape_investment';
   intentType: 'deposit' | 'investment' | 'withdrawal';
   referenceNumber: string;
@@ -67,6 +68,7 @@ const INTOUCH_SCRIPT_URL =
 export default function IntouchPayment({
   amount,
   userId,
+  accountId,
   accountType,
   intentType,
   referenceNumber,
@@ -162,7 +164,7 @@ export default function IntouchPayment({
 
       resetPaymentState();
     },
-    [onError, resetPaymentState]
+    [onError, resetPaymentState, intentType]
   );
 
   const handlePayment = useCallback(async () => {
@@ -203,6 +205,7 @@ export default function IntouchPayment({
         },
         body: JSON.stringify({
           userId,
+          accountId,
           accountType,
           intentType,
           amount,
@@ -323,11 +326,14 @@ export default function IntouchPayment({
     }
   }, [
     accountType,
+    accountId,
     amount,
     apiKey,
     domain,
     handleIntentError,
     intentType,
+    investmentTerm,
+    investmentTranche,
     merchantId,
     onError,
     referenceNumber,
@@ -419,14 +425,14 @@ export default function IntouchPayment({
       script.onload = null;
       script.onerror = null;
     };
-  }, [onError]);
+  }, [onError, apiKey, domain, merchantId]);
 
   useEffect(() => {
     if (scriptReady && !loadError && !configLoading && !paymentStartedRef.current) {
       handlePayment();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scriptReady, loadError, configLoading]);
+  }, [scriptReady, loadError, configLoading, apiKey, domain, merchantId]);
 
   useEffect(() => {
     const handlePaymentResult = (event: MessageEvent) => {

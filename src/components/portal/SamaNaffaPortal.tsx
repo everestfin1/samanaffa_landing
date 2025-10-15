@@ -1,12 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import {
   ArrowDownIcon,
   ArrowUpIcon,
   BanknotesIcon,
-  ChevronLeftIcon,
   ChevronRightIcon,
   ClockIcon,
   EyeIcon,
@@ -78,6 +77,17 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+
+  const orderedThemes = [
+    'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
+    'from-[#C38D1C] via-[#b3830f] to-[#a37a0d]',
+    'from-[#435933] via-[#5a7344] to-[#364529]',
+    'from-[#30461f] via-[#243318] to-[#1a2612]',
+    'from-[#b3830f] via-[#C38D1C] to-[#d49a20]',
+  ];
+
+  const getThemeByIndex = (index: number) => orderedThemes[index % orderedThemes.length];
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
@@ -90,169 +100,16 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [actionWarning, setActionWarning] = useState<string | null>(null);
 
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const scrollDetectionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [carouselPadding, setCarouselPadding] = useState(0);
-  const [activeAccountIndex, setActiveAccountIndex] = useState(0);
-
-  const getClampedIndex = useCallback(
-    (index: number) => {
-      if (!accounts.length) return 0;
-      return Math.max(0, Math.min(index, accounts.length - 1));
-    },
-    [accounts.length],
-  );
-
-  const scrollToAccount = useCallback(
-    (index: number, smooth = true) => {
-      const container = sliderRef.current;
-      if (!container) return;
-
-      const target = container.children[index] as HTMLElement | undefined;
-      if (!target) return;
-
-      const offset = target.offsetLeft - (container.offsetWidth - target.offsetWidth) / 2;
-
-      container.scrollTo({
-        left: offset,
-        behavior: smooth ? 'smooth' : 'auto',
-      });
-    },
-    [],
-  );
-
-  const updateActiveAccount = useCallback(
-    (index: number, smooth = true) => {
-      const clamped = getClampedIndex(index);
-      const account = accounts[clamped];
+  const handleSelectAccount = useCallback(
+    (accountId: string) => {
+      const account = accounts.find(acc => acc.id === accountId);
       if (!account) return;
 
       setCreationFeedback(null);
-      setActiveAccountIndex(clamped);
-
-      if (selectedAccountId !== account.id) {
-        setSelectedAccountId(account.id);
-      }
-
-      scrollToAccount(clamped, smooth);
+      setSelectedAccountId(accountId);
     },
-    [accounts, getClampedIndex, scrollToAccount, selectedAccountId],
+    [accounts],
   );
-
-  const handleSelectAccount = useCallback(
-    (accountId: string, smooth = true) => {
-      const index = accounts.findIndex(acc => acc.id === accountId);
-      if (index === -1) return;
-      updateActiveAccount(index, smooth);
-    },
-    [accounts, updateActiveAccount],
-  );
-
-  const handlePreviousAccount = useCallback(() => {
-    if (activeAccountIndex <= 0) return;
-    updateActiveAccount(activeAccountIndex - 1);
-  }, [activeAccountIndex, updateActiveAccount]);
-
-  const handleNextAccount = useCallback(() => {
-    if (activeAccountIndex >= accounts.length - 1) return;
-    updateActiveAccount(activeAccountIndex + 1);
-  }, [activeAccountIndex, accounts.length, updateActiveAccount]);
-
-  const computeCarouselPadding = useCallback(() => {
-    const container = sliderRef.current;
-    if (!container) return;
-
-    const firstCard = container.querySelector<HTMLElement>('[data-account-card]');
-    if (!firstCard) return;
-
-    const padding = Math.max(0, (container.offsetWidth - firstCard.offsetWidth) / 2);
-    setCarouselPadding(padding);
-  }, []);
-
-  const handleCarouselScroll = useCallback(() => {
-    if (scrollDetectionTimeout.current) {
-      clearTimeout(scrollDetectionTimeout.current);
-    }
-
-    scrollDetectionTimeout.current = setTimeout(() => {
-      const container = sliderRef.current;
-      if (!container) return;
-
-      const children = Array.from(container.children) as HTMLElement[];
-      if (!children.length) return;
-
-      const containerCenter = container.scrollLeft + container.offsetWidth / 2;
-
-      let closestIndex = 0;
-      let closestDistance = Number.POSITIVE_INFINITY;
-
-      children.forEach((child, index) => {
-        const childCenter = child.offsetLeft + child.offsetWidth / 2;
-        const distance = Math.abs(childCenter - containerCenter);
-
-        if (distance < closestDistance) {
-          closestDistance = distance;
-          closestIndex = index;
-        }
-      });
-
-      const account = accounts[closestIndex];
-      if (!account) return;
-
-      setActiveAccountIndex(closestIndex);
-
-      if (selectedAccountId !== account.id) {
-        setSelectedAccountId(account.id);
-        setCreationFeedback(null);
-      }
-    }, 120);
-  }, [accounts, selectedAccountId]);
-
-  useEffect(() => {
-    return () => {
-      if (scrollDetectionTimeout.current) {
-        clearTimeout(scrollDetectionTimeout.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!accounts.length) return;
-
-    const handleResize = () => computeCarouselPadding();
-
-    computeCarouselPadding();
-
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [accounts.length, computeCarouselPadding]);
-
-  useEffect(() => {
-    if (!accounts.length) return;
-
-    const index = selectedAccountId ? accounts.findIndex(acc => acc.id === selectedAccountId) : 0;
-    const targetIndex = index >= 0 ? index : 0;
-
-    setActiveAccountIndex(targetIndex);
-
-    requestAnimationFrame(() => {
-      computeCarouselPadding();
-      scrollToAccount(targetIndex, false);
-    });
-  }, [accounts, selectedAccountId, computeCarouselPadding, scrollToAccount]);
-
-  const orderedThemes = [
-    'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
-    'from-[#C38D1C] via-[#b3830f] to-[#a37a0d]',
-    'from-[#435933] via-[#5a7344] to-[#364529]',
-    'from-[#30461f] via-[#243318] to-[#1a2612]',
-    'from-[#b3830f] via-[#C38D1C] to-[#d49a20]',
-  ];
-
-  const getThemeByIndex = (index: number) => orderedThemes[index % orderedThemes.length];
 
   const successMessage = creationFeedback?.type === 'success' ? creationFeedback.message : null;
   const modalErrorMessage = creationFeedback?.type === 'error' ? creationFeedback.message : null;
@@ -286,10 +143,18 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
       setAccounts(samaAccounts);
 
       if (samaAccounts.length > 0) {
-        const defaultAccountId =
-          selectedAccountId && samaAccounts.some(acc => acc.id === selectedAccountId)
-            ? selectedAccountId
-            : samaAccounts[0].id;
+        let defaultAccountId = selectedAccountId && samaAccounts.some(acc => acc.id === selectedAccountId)
+          ? selectedAccountId
+          : null;
+
+        // If no previously selected account, prioritize "Naffa classique"
+        if (!defaultAccountId) {
+          const naffaClassique = samaAccounts.find(acc => 
+            acc.productName?.toLowerCase().includes('classique') || 
+            acc.productCode?.toLowerCase().includes('classique')
+          );
+          defaultAccountId = naffaClassique?.id || samaAccounts[0].id;
+        }
 
         setSelectedAccountId(defaultAccountId);
       } else {
@@ -304,11 +169,11 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
     }
   };
 
-  const fetchTransactions = async (accountId: string, limit = 5, offset = 0) => {
+  const fetchTransactions = async (accountId: string, limit = 20, offset = 0) => {
     if (!userId) return;
 
     try {
-      const response = await fetch(`/api/transactions/intent?userId=${userId}&limit=${limit}&offset=${offset}`);
+      const response = await fetch(`/api/transactions/intent?userId=${userId}&accountId=${accountId}&accountType=SAMA_NAFFA&limit=${limit}&offset=${offset}`);
       if (!response.ok) {
         throw new Error('Impossible de récupérer vos transactions.');
       }
@@ -318,9 +183,8 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         throw new Error(payload.error || 'Réponse inattendue lors du chargement des transactions.');
       }
 
-      const filteredTransactions: TransactionIntent[] = (payload.transactionIntents || []).filter(
-        (tx: TransactionIntent) => tx.accountType === 'SAMA_NAFFA' && tx.accountId === accountId,
-      );
+      // No need to filter anymore - API does it for us
+      const filteredTransactions: TransactionIntent[] = payload.transactionIntents || [];
 
       if (offset === 0) {
         setPagedTransactions(filteredTransactions);
@@ -337,7 +201,8 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         });
       }
 
-      setTotalTransactions(payload.pagination?.total ?? filteredTransactions.length ?? 0);
+      // Use API pagination data since filtering is now server-side
+      setTotalTransactions(payload.pagination?.total ?? filteredTransactions.length);
       setHasMoreTransactions(payload.pagination?.hasMore ?? false);
     } catch (err) {
       console.error('[SamaNaffaPortal] fetchTransactions error:', err);
@@ -352,7 +217,7 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
 
   useEffect(() => {
     if (!selectedAccountId) return;
-    fetchTransactions(selectedAccountId, 5, 0);
+    fetchTransactions(selectedAccountId, 20, 0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAccountId]);
 
@@ -421,7 +286,7 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
   const handleTransferCompleted = async () => {
     setShowTransferModal(false);
     if (selectedAccountId) {
-      await fetchTransactions(selectedAccountId, 5, 0);
+      await fetchTransactions(selectedAccountId, 20, 0);
       await fetchAccounts();
     }
   };
@@ -430,7 +295,7 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
     if (!selectedAccountId || isLoadingMore || !hasMoreTransactions) return;
     setIsLoadingMore(true);
     try {
-      await fetchTransactions(selectedAccountId, 5, pagedTransactions.length);
+      await fetchTransactions(selectedAccountId, 20, pagedTransactions.length);
     } finally {
       setIsLoadingMore(false);
     }
@@ -524,9 +389,6 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
 
   const canWithdraw = !isAccountLocked;
 
-  const maxAccountIndex = Math.max(0, accounts.length - 1);
-  const isAtBeginning = activeAccountIndex <= 0;
-  const isAtEnd = activeAccountIndex >= maxAccountIndex;
 
   return (
     <div className="space-y-8">
@@ -581,66 +443,35 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         </div>
 
         {accounts.length > 1 && (
-          <div className="space-y-6 mb-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handlePreviousAccount}
-                  disabled={isAtBeginning}
-                  className={`rounded-full border border-timberwolf/30 bg-white/90 p-2 shadow-md backdrop-blur-sm transition ${
-                    isAtBeginning ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
-                  }`}
-                  aria-label="Voir le compte précédent"
-                >
-                  <ChevronLeftIcon className="h-5 w-5 text-night" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleNextAccount}
-                  disabled={isAtEnd}
-                  className={`rounded-full border border-timberwolf/30 bg-white/90 p-2 shadow-md backdrop-blur-sm transition ${
-                    isAtEnd ? 'cursor-not-allowed opacity-40' : 'hover:bg-white'
-                  }`}
-                  aria-label="Voir le compte suivant"
-                >
-                  <ChevronRightIcon className="h-5 w-5 text-night" />
-                </button>
+          <div className="mb-8">
+            <div className="relative">
+              {/* Helper Text */}
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-xs text-night/60 flex items-center gap-1.5">
+                  <span className="inline-block w-1.5 h-1.5 bg-gold-metallic rounded-full animate-pulse"></span>
+                  Cliquez sur la carte pour changer de compte
+                </p>
+                {accounts.length > 1 && (
+                  <span className="text-xs font-medium text-gold-metallic bg-gold-metallic/10 px-2 py-1 rounded-full">
+                    {accounts.length} comptes
+                  </span>
+                )}
               </div>
+
+              {/* Selected Account Card */}
               <button
                 type="button"
-                onClick={() => setShowBalance(prev => !prev)}
-                className="flex items-center space-x-2 bg-white/90 backdrop-blur-sm text-night px-4 py-2 rounded-lg shadow-lg hover:bg-white transition-colors border border-timberwolf/20"
+                onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                className="group w-full relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 cursor-pointer"
               >
-                {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                <span className="text-sm font-medium">{showBalance ? 'Masquer' : 'Afficher'}</span>
-              </button>
-            </div>
-
-            <div
-              ref={sliderRef}
-              onScroll={handleCarouselScroll}
-              style={{ paddingLeft: carouselPadding, paddingRight: carouselPadding }}
-              className="flex gap-6 overflow-x-auto overflow-y-visible py-4 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {accounts.map((account, index) => {
-                const isSelected = account.id === selectedAccountId;
-                const cardTheme = getThemeByIndex(index);
-
-                return (
-                  <button
-                    key={account.id}
-                    type="button"
-                    onClick={() => handleSelectAccount(account.id)}
-                    data-account-card
-                    className="snap-center shrink-0 basis-[280px] focus:outline-none sm:basis-[320px] lg:basis-[360px]"
-                    aria-current={isSelected}
-                  >
-                    <div
-                      className={`relative flex h-full flex-col rounded-3xl border border-white/10 bg-gradient-to-br px-6 py-6 text-white shadow-lg transition-all duration-500 ease-out ${cardTheme} ${
-                        isSelected ? 'scale-[1.02] ring-2 ring-gold-metallic shadow-xl' : 'opacity-80 hover:-translate-y-1 hover:opacity-100'
-                      }`}
-                    >
+                {(() => {
+                  const selectedIndex = accounts.findIndex(acc => acc.id === selectedAccountId);
+                  const cardTheme = getThemeByIndex(selectedIndex);
+                  return (
+                    <div className={`relative bg-gradient-to-br ${cardTheme} p-6 text-white transition-all duration-300`}>
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-all duration-300 z-10" />
+                      
                       <div
                         className="absolute inset-0 opacity-30 z-10"
                         style={{
@@ -648,84 +479,132 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                           mixBlendMode: 'overlay',
                         }}
                       />
-
+                      
+                      {/* Decorative circles */}
                       <div className="absolute top-4 right-4 w-32 h-32 border border-white/10 rounded-full" />
                       <div className="absolute top-8 right-8 w-24 h-24 border border-white/10 rounded-full" />
                       <div className="absolute -top-4 -right-4 w-16 h-16 border border-white/10 rounded-full" />
-
-                      <div className="absolute top-6 right-6 z-30">
-                        <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-12 w-auto" width={100} height={48} />
+                      
+                      {/* Logo */}
+                      <div className="absolute top-4 right-4 z-30">
+                        <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-10 w-auto" width={100} height={40} />
                       </div>
 
-                      <div className="relative z-20 space-y-6">
-                        <div className="flex items-center justify-between">
+                      <div className="relative z-20">
+                        <div className="flex items-start justify-between mb-4">
                           <div>
                             <p className="text-sm text-white/70">Compte d'épargne</p>
-                            <h4 className="text-xl font-semibold">{account.productName || 'Naffa personnalisé'}</h4>
+                            <h4 className="text-xl font-semibold">{selectedAccount?.productName || 'Naffa personnalisé'}</h4>
+                          </div>
+                          <div className="flex flex-col items-center gap-1">
+                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 group-hover:bg-white/30 transition-colors">
+                              <ChevronRightIcon className={`w-5 h-5 text-white transition-transform duration-300 ${showAccountDropdown ? 'rotate-90' : 'group-hover:translate-x-0.5'}`} />
+                            </div>
+                            <span className="text-[10px] text-white/70 uppercase tracking-wide font-medium">Changer</span>
                           </div>
                         </div>
 
-                        <div>
+                        <div className="mb-4">
                           <p className="text-white/70 text-sm mb-1">Solde disponible</p>
-                          <div className="flex items-center space-x-4">
-                            <p className="text-3xl font-bold tracking-wide">
-                              {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
+                          <div className="flex items-center space-x-3">
+                            <p className="text-2xl font-bold tracking-wide">
+                              {showBalance ? `${Number(selectedAccount?.balance || 0).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
-                            <div
-                              onClick={event => {
-                                event.stopPropagation();
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 setShowBalance(prev => !prev);
                               }}
-                              className="text-white/80 hover:text-white transition-colors cursor-pointer"
-                              role="button"
-                              tabIndex={0}
+                              className="text-white/80 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
                               aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
-                              onKeyDown={event => {
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                  event.preventDefault();
-                                  event.stopPropagation();
-                                  setShowBalance(prev => !prev);
-                                }
-                              }}
                             >
-                              {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
-                            </div>
+                              {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
+                            </button>
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                           <div>
-                            <p className="text-xs text-white/60 uppercase">N° d'association</p>
-                            <p className="font-mono text-sm">{account.accountNumber}</p>
+                            <p className="text-xs text-white/60 uppercase">N° Compte</p>
+                            <p className="font-mono text-sm">{selectedAccount?.accountNumber}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-white/60 uppercase">Taux d'intérêt</p>
-                            <p className="text-sm font-semibold">{account.interestRate ?? 4.5}% annuel</p>
+                            <p className="text-xs text-white/60 uppercase">Taux</p>
+                            <p className="text-sm font-semibold">{selectedAccount?.interestRate ?? 4.5}%</p>
                           </div>
                           <div>
                             <p className="text-xs text-white/60 uppercase">Statut</p>
-                            <p className="text-sm font-semibold capitalize">{account.status.toLowerCase()}</p>
+                            <p className="text-sm font-semibold capitalize">{selectedAccount?.status.toLowerCase()}</p>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
 
-            <div className="flex justify-center gap-2">
-              {accounts.map((account, index) => (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => handleSelectAccount(account.id)}
-                  className={`h-2.5 rounded-full transition-all duration-300 ${
-                    activeAccountIndex === index ? 'w-6 bg-gold-metallic' : 'w-2.5 bg-timberwolf/50 hover:bg-timberwolf/80'
-                  }`}
-                  aria-label={`Voir le compte ${account.productName || `#${index + 1}`}`}
-                />
-              ))}
+                      {/* Bottom indicator */}
+                      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:via-white/50 transition-all duration-300" />
+                    </div>
+                  );
+                })()}
+              </button>
+
+              {/* Dropdown List */}
+              {showAccountDropdown && (
+                <div className="absolute z-50 mt-2 w-full bg-white border border-timberwolf/30 rounded-xl shadow-2xl overflow-hidden">
+                  {accounts.map((account, index) => {
+                    const isSelected = account.id === selectedAccountId;
+                    const cardTheme = getThemeByIndex(index);
+                    return (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() => {
+                          handleSelectAccount(account.id);
+                          setShowAccountDropdown(false);
+                        }}
+                        className={`w-full relative overflow-hidden transition-all duration-200 ${
+                          isSelected ? 'ring-2 ring-gold-metallic ring-inset' : ''
+                        }`}
+                      >
+                        <div className={`relative bg-gradient-to-br ${cardTheme} p-5 text-white hover:opacity-95 transition-opacity`}>
+                          <div
+                            className="absolute inset-0 opacity-20 z-10"
+                            style={{
+                              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                              mixBlendMode: 'overlay',
+                            }}
+                          />
+                          
+                          {/* Selected indicator */}
+                          {isSelected && (
+                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold-metallic z-30" />
+                          )}
+
+                          <div className="relative z-20 text-left">
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center space-x-2">
+                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-gold-metallic' : 'bg-white/50'}`}></div>
+                                <h5 className="font-semibold text-base">{account.productName || 'Naffa personnalisé'}</h5>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              <div>
+                                <p className="text-white/70 text-xs">Solde</p>
+                                <p className="font-semibold">
+                                  {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••'}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-white/70 text-xs">N° Compte</p>
+                                <p className="font-mono text-xs">{account.accountNumber}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -822,11 +701,21 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
       </div>
 
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">Historique des transactions</h3>
-          <p className="text-sm text-night/50">
-            {pagedTransactions.length} / {totalTransactions} transactions affichées
-          </p>
+        <div className="flex flex-col gap-3 mb-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-night">Historique des transactions</h3>
+            <p className="text-sm text-night/50">
+              {pagedTransactions.length} transaction{pagedTransactions.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          {selectedAccount && (
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-night/60">Compte:</span>
+              <span className="font-medium text-gold-metallic bg-gold-metallic/10 px-3 py-1 rounded-full">
+                {selectedAccount.productName || 'Naffa personnalisé'}
+              </span>
+            </div>
+          )}
         </div>
 
         {pagedTransactions.length > 0 ? (
@@ -908,8 +797,10 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
             <div className="bg-gold-metallic/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
               <BanknotesIcon className="w-8 h-8 text-gold-metallic" />
             </div>
-            <p className="text-night/60">Aucune transaction récente</p>
-            <p className="text-sm text-night/40">Vos transactions Sama Naffa apparaîtront ici</p>
+            <p className="text-night/60">Aucune transaction pour ce compte</p>
+            <p className="text-sm text-night/40">
+              Les transactions de {selectedAccount?.productName || 'ce Naffa'} apparaîtront ici
+            </p>
           </div>
         )}
 
@@ -943,6 +834,7 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
         currentBalance={selectedAccount?.balance ?? 0}
         type={transferType}
         accountName={selectedAccount?.productName || 'Mon Naffa'}
+        accountId={selectedAccountId}
         accountType="sama_naffa"
         kycStatus={kycStatus}
         onConfirm={handleTransferCompleted}

@@ -19,6 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     const {
       userId,
+      accountId,
       accountType,
       intentType,
       amount,
@@ -67,7 +68,10 @@ export async function POST(request: NextRequest) {
       where: { id: userId },
       include: {
         accounts: {
-          where: { accountType: normalizedAccountType.toUpperCase() }
+          where: {
+            accountType: normalizedAccountType.toUpperCase(),
+            ...(accountId && { id: accountId })
+          }
         }
       }
     })
@@ -96,6 +100,9 @@ export async function POST(request: NextRequest) {
     }
 
     const account = user.accounts[0]
+    if (accountId && account.id !== accountId) {
+      return respondError('account_mismatch', 'Selected account not found or does not match type', 400)
+    }
     const now = new Date()
 
     if (account.lockedUntil && account.lockedUntil > now && normalizedIntentType === 'withdrawal') {
@@ -198,6 +205,8 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId')
+    const accountId = searchParams.get('accountId')
+    const accountType = searchParams.get('accountType')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
@@ -208,13 +217,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    // Build where clause
+    const where: any = { userId }
+    if (accountId) {
+      where.accountId = accountId
+    }
+    if (accountType) {
+      where.accountType = accountType.toUpperCase()
+    }
+
     // Get total count for pagination
     const totalCount = await prisma.transactionIntent.count({
-      where: { userId }
+      where
     })
 
     const transactionIntents = await prisma.transactionIntent.findMany({
-      where: { userId },
+      where,
       include: {
         account: true
       },

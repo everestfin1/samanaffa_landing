@@ -11,6 +11,7 @@ interface TransferModalProps {
   onClose: () => void;
   type: 'deposit' | 'withdraw';
   accountName?: string;
+  accountId?: string | null;
   currentBalance?: number;
   onConfirm: (data: TransferData) => void;
   accountType?: 'sama_naffa' | 'ape_investment';
@@ -23,11 +24,12 @@ interface TransferData {
   note?: string;
 }
 
-export default function TransferModal({ 
-  isOpen, 
-  onClose, 
-  type, 
+export default function TransferModal({
+  isOpen,
+  onClose,
+  type,
   accountName,
+  accountId,
   currentBalance = 0,
   onConfirm,
   accountType = 'sama_naffa',
@@ -285,6 +287,7 @@ export default function TransferModal({
           <IntouchPayment
             amount={parseFloat(amount)}
             userId={(session?.user as any)?.id}
+            accountId={accountId}
             accountType={accountType}
             intentType={type as 'deposit' | 'investment' | 'withdrawal'}
             referenceNumber={referenceNumber}
@@ -301,11 +304,15 @@ export default function TransferModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-bold text-night">
-            {type === 'deposit' ? 'Effectuer un dépôt' : 'Effectuer un retrait'}
-            {accountName && ` - ${accountName}`}
-          </h3>
-          <button 
+          <div>
+            <h3 className="text-xl font-bold text-night">
+              {type === 'deposit' ? 'Dépôt' : 'Retrait'}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              {type === 'deposit' ? 'Dépôt vers:' : 'Retrait depuis:'} {accountName}
+            </p>
+          </div>
+          <button
             onClick={onClose}
             className="text-night/60 hover:text-night"
           >
