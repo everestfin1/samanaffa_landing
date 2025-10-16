@@ -1,6 +1,6 @@
 export interface FormData {
   // Step 1: Personal Information
-  civilite: 'mr' | 'mme' | 'mlle';
+  civilite: 'mr' | 'mme';
   firstName: string;
   lastName: string;
   phone: string;

@@ -156,7 +156,7 @@ const getFilteredMetiers = (statutEmploi: string): string[] => {
 };
 
 interface FormData {
-  civilite: "mr" | "mme" | "mlle";
+  civilite: "mr" | "mme";
   firstName: string;
   lastName: string;
   phone: string;
@@ -215,7 +215,6 @@ export default function Step1PersonalInfo({
           {[
             { value: "mr", label: "Mr" },
             { value: "mme", label: "Mme" },
-            { value: "mlle", label: "Mlle" },
           ].map((option) => (
             <label
               key={option.value}

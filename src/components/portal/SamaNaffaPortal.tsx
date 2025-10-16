@@ -492,40 +492,64 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                       </div>
 
                       <div className="relative z-20">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <p className="text-sm text-white/70">Compte d'épargne</p>
-                            <h4 className="text-xl font-semibold">{selectedAccount?.productName || 'Naffa personnalisé'}</h4>
-                          </div>
-                          <div className="flex flex-col items-center gap-1">
-                            <div className="bg-white/20 backdrop-blur-sm rounded-full p-2 group-hover:bg-white/30 transition-colors">
-                              <ChevronRightIcon className={`w-5 h-5 text-white transition-transform duration-300 ${showAccountDropdown ? 'rotate-90' : 'group-hover:translate-x-0.5'}`} />
+                        {/* Professional Card Layout */}
+                        <div className="space-y-6">
+                          {/* Top Section: Title and Actions */}
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="text-sm text-white/70 mb-1">Compte d'épargne</p>
+                              <h4 className="text-2xl font-bold">{selectedAccount?.productName || 'Naffa personnalisé'}</h4>
                             </div>
-                            <span className="text-[10px] text-white/70 uppercase tracking-wide font-medium">Changer</span>
+                            <div className="flex items-center gap-3">
+                              <div
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setShowBalance(prev => !prev);
+                                }}
+                                className="bg-white/10 backdrop-blur-sm rounded-full p-2 hover:bg-white/20 transition-all cursor-pointer"
+                                role="button"
+                                tabIndex={0}
+                                aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
+                                onKeyDown={event => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setShowBalance(prev => !prev);
+                                  }
+                                }}
+                              >
+                                {showBalance ? <EyeSlashIcon className="w-5 h-5 text-white" /> : <EyeIcon className="w-5 h-5 text-white" />}
+                              </div>
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="bg-white/10 backdrop-blur-sm rounded-full p-2 group-hover:bg-white/20 transition-all">
+                                  <ChevronRightIcon className={`w-5 h-5 text-white transition-transform duration-300 ${showAccountDropdown ? 'rotate-90' : 'group-hover:translate-x-0.5'}`} />
+                                </div>
+                                <span className="text-[10px] text-white/70 uppercase tracking-wide font-medium">Changer</span>
+                              </div>
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="mb-4">
-                          <p className="text-white/70 text-sm mb-1">Solde disponible</p>
-                          <div className="flex items-center space-x-3">
-                            <p className="text-2xl font-bold tracking-wide">
+                          {/* Balance Section */}
+                          <div className="py-4 border-y border-white/10">
+                            <p className="text-sm text-white/70 mb-2">Solde disponible</p>
+                            <p className="text-3xl font-bold tracking-tight">
                               {showBalance ? `${Number(selectedAccount?.balance || 0).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                             </p>
                           </div>
-                        </div>
 
-                        <div className="grid grid-cols-3 gap-4">
-                          <div>
-                            <p className="text-xs text-white/60 uppercase">N° Compte</p>
-                            <p className="font-mono text-sm">{selectedAccount?.accountNumber}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-white/60 uppercase">Taux</p>
-                            <p className="text-sm font-semibold">{selectedAccount?.interestRate ?? 4.5}%</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-white/60 uppercase">Statut</p>
-                            <p className="text-sm font-semibold capitalize">{selectedAccount?.status.toLowerCase()}</p>
+                          {/* Bottom Grid: Account Details */}
+                          <div className="grid grid-cols-3 gap-6">
+                            <div>
+                              <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">N° Compte</p>
+                              <p className="font-mono text-sm font-medium">{selectedAccount?.accountNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">Statut</p>
+                              <p className="text-sm font-semibold capitalize">{selectedAccount?.status.toLowerCase()}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">Taux</p>
+                              <p className="text-sm font-semibold">{selectedAccount?.interestRate ?? 4.5}%</p>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -537,17 +561,6 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                 })()}
                 </button>
 
-                {/* Eye Button - Positioned absolutely outside the card button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowBalance(prev => !prev);
-                  }}
-                  className="absolute top-20 right-6 z-40 text-white/80 hover:text-white transition-colors p-1.5 hover:bg-white/10 rounded-lg"
-                  aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
-                >
-                  {showBalance ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
-                </button>
               </div>
 
               {/* Dropdown List */}
@@ -582,24 +595,30 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                             <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold-metallic z-30" />
                           )}
 
-                          <div className="relative z-20 text-left">
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center space-x-2">
+                          <div className="relative z-20">
+                            {/* Professional Dropdown Card Layout */}
+                            <div className="space-y-3">
+                              <div className="flex items-center space-x-2 mb-3">
                                 <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-gold-metallic' : 'bg-white/50'}`}></div>
-                                <h5 className="font-semibold text-base">{account.productName || 'Naffa personnalisé'}</h5>
+                                <h5 className="font-bold text-lg">{account.productName || 'Naffa personnalisé'}</h5>
                               </div>
-                            </div>
-                            
-                            <div className="grid grid-cols-2 gap-3 text-sm">
-                              <div>
-                                <p className="text-white/70 text-xs">Solde</p>
-                                <p className="font-semibold">
+
+                              <div className="py-3 border-y border-white/10">
+                                <p className="text-white/70 text-xs uppercase mb-1.5">Solde</p>
+                                <p className="font-bold text-xl">
                                   {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••'}
                                 </p>
                               </div>
-                              <div>
-                                <p className="text-white/70 text-xs">N° Compte</p>
-                                <p className="font-mono text-xs">{account.accountNumber}</p>
+
+                              <div className="grid grid-cols-2 gap-4 pt-2">
+                                <div>
+                                  <p className="text-white/70 text-xs uppercase tracking-wide mb-1">N° Compte</p>
+                                  <p className="font-mono text-xs font-medium">{account.accountNumber}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Statut</p>
+                                  <p className="text-sm font-semibold capitalize">{account.status.toLowerCase()}</p>
+                                </div>
                               </div>
                             </div>
                           </div>
@@ -629,23 +648,18 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
               <Image src="/sama_naffa_logo.png" alt="Sama Naffa Logo" className="h-12 w-auto" width={100} height={48} />
             </div>
 
-            <div className="relative z-20 space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-white/70">Compte d'épargne</p>
-                  <h4 className="text-xl font-semibold">{selectedAccount.productName || 'Naffa personnalisé'}</h4>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-white/70 text-sm mb-1">Solde disponible</p>
-                <div className="flex items-center space-x-4">
-                  <p className="text-3xl font-bold tracking-wide">
-                    {showBalance ? `${Number(selectedAccount.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
-                  </p>
+            <div className="relative z-20">
+              {/* Professional Card Layout */}
+              <div className="space-y-6">
+                {/* Top Section: Title and Eye Toggle */}
+                <div className="flex items-start justify-between">
+                  <div>
+                    <p className="text-sm text-white/70 mb-1">Compte d'épargne</p>
+                    <h4 className="text-2xl font-bold">{selectedAccount.productName || 'Naffa personnalisé'}</h4>
+                  </div>
                   <div
                     onClick={() => setShowBalance(prev => !prev)}
-                    className="text-white/80 hover:text-white transition-colors cursor-pointer"
+                    className="bg-white/10 backdrop-blur-sm rounded-full p-2 hover:bg-white/20 transition-all cursor-pointer"
                     role="button"
                     tabIndex={0}
                     aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
@@ -656,23 +670,32 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
                       }
                     }}
                   >
-                    {showBalance ? <EyeSlashIcon className="w-6 h-6" /> : <EyeIcon className="w-6 h-6" />}
+                    {showBalance ? <EyeSlashIcon className="w-6 h-6 text-white" /> : <EyeIcon className="w-6 h-6 text-white" />}
                   </div>
                 </div>
-              </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
-                  <p className="text-xs text-white/60 uppercase">N° d'association</p>
-                  <p className="font-mono text-sm">{selectedAccount.accountNumber}</p>
+                {/* Balance Section */}
+                <div className="py-4 border-y border-white/10">
+                  <p className="text-sm text-white/70 mb-2">Solde disponible</p>
+                  <p className="text-4xl font-bold tracking-tight">
+                    {showBalance ? `${Number(selectedAccount.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-xs text-white/60 uppercase">Taux d'intérêt</p>
-                  <p className="text-sm font-semibold">{selectedAccount.interestRate ?? 4.5}% annuel</p>
-                </div>
-                <div>
-                  <p className="text-xs text-white/60 uppercase">Statut</p>
-                  <p className="text-sm font-semibold capitalize">{selectedAccount.status.toLowerCase()}</p>
+
+                {/* Bottom Grid: Account Details */}
+                <div className="grid grid-cols-3 gap-6">
+                  <div>
+                    <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">N° d'association</p>
+                    <p className="font-mono text-sm font-medium">{selectedAccount.accountNumber}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">Statut</p>
+                    <p className="text-sm font-semibold capitalize">{selectedAccount.status.toLowerCase()}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-white/60 uppercase tracking-wide mb-1.5">Taux d'intérêt</p>
+                    <p className="text-sm font-semibold">{selectedAccount.interestRate ?? 4.5}% annuel</p>
+                  </div>
                 </div>
               </div>
             </div>

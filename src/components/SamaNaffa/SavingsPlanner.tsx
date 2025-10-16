@@ -158,46 +158,47 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
 
   // Main planner UI
   return (
-    <section id="savings-planner" className="relative w-full px-4 lg:px-[148px] bg-white">
+    <section id="savings-planner" className="relative w-full px-4 sm:px-6 lg:px-[148px] bg-white overflow-hidden">
       {/* Back to choice button */}
-      <div className="text-center mb-8">
+      <div className="text-center mb-6 lg:mb-8">
         <button
           onClick={() => setSimulationMode(null)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e8f5e8] text-[#30461f] font-semibold text-sm shadow hover:bg-[#cbead0] hover:text-[#243318] transition-all duration-200 border border-[#bfe2c2]"
+          className="inline-flex items-center gap-2 px-3 py-2 sm:px-4 rounded-lg bg-[#e8f5e8] text-[#30461f] font-semibold text-xs sm:text-sm shadow hover:bg-[#cbead0] hover:text-[#243318] transition-all duration-200 border border-[#bfe2c2]"
         >
-          <RefreshCw className="w-4 h-4" />
-            Changer ma méthode de simulation
+          <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4" />
+          <span className="hidden sm:inline">Changer ma méthode de simulation</span>
+          <span className="inline sm:hidden">Changer</span>
         </button>
       </div>
 
       {/* Mode-specific selector */}
       {simulationMode === 'objective' && (
         <>
-            <div className="text-center mb-8 lg:mb-12 flex flex-col items-center justify-center">
-                <h2 className="font-bold text-[#01081b] text-2xl lg:text-[38px] leading-tight lg:leading-7 animate-fade-in">
+            <div className="text-center mb-6 sm:mb-8 lg:mb-12 flex flex-col items-center justify-center px-4">
+                <h2 className="font-bold text-[#01081b] text-xl sm:text-2xl lg:text-[38px] leading-tight animate-fade-in">
                     Choisis ton objectif
                 </h2>
                 <p
-                    className="text-gray-600 text-base lg:text-lg mt-3 lg:mt-4 animate-fade-in px-4"
+                    className="text-gray-600 text-sm sm:text-base lg:text-lg mt-2 sm:mt-3 lg:mt-4 animate-fade-in max-w-2xl"
                     style={{ animationDelay: "0.2s" }}
                 >
                     Sélectionnez ce qui vous motive le plus à épargner
                 </p>
             </div>
-            <div className="flex justify-center mb-12 lg:mb-16">
-                <div className="grid grid-cols-2 lg:flex gap-4 lg:gap-8 max-w-4xl">
+            <div className="flex justify-center mb-8 sm:mb-12 lg:mb-16 px-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:flex gap-3 sm:gap-4 lg:gap-8 max-w-5xl w-full justify-items-center">
                     {objectives.map((objective, index) => (
                         <div
                             key={objective.id}
                             className={`group flex flex-col items-center cursor-pointer transition-all duration-500 hover:scale-105 ${selectedObjective === objective.id
                                     ? "opacity-100"
                                     : "opacity-70 hover:opacity-90"
-                                }`}
+                                } w-full max-w-[140px]`}
                             onClick={() => handleObjectiveClick(objective.id)}
                             style={{ animationDelay: `${index * 0.1}s` }}
                         >
                             <div
-                                className={`w-[120px] h-[120px] lg:w-[162px] lg:h-[162px] rounded-full relative mb-3 lg:mb-4 transition-all duration-500 group-hover:shadow-lg group-hover:-translate-y-2 ${selectedObjective === objective.id
+                                className={`w-[100px] h-[100px] sm:w-[120px] sm:h-[120px] lg:w-[162px] lg:h-[162px] rounded-full relative mb-2 sm:mb-3 lg:mb-4 transition-all duration-500 group-hover:shadow-lg group-hover:-translate-y-2 ${selectedObjective === objective.id
                                         ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-xl scale-110"
                                         : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#f0f8f0] group-hover:to-[#e8f5e8]"
                                     }`}
@@ -205,7 +206,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                 <Image
                                     width={86}
                                     height={86}
-                                    className="absolute w-[64px] h-[64px] lg:w-[86px] lg:h-[86px] top-[28px] lg:top-[38px] left-[28px] lg:left-[38px] object-cover transition-transform duration-500 group-hover:scale-110"
+                                    className="absolute w-[50px] h-[50px] sm:w-[64px] sm:h-[64px] lg:w-[86px] lg:h-[86px] top-[25px] sm:top-[28px] lg:top-[38px] left-[25px] sm:left-[28px] lg:left-[38px] object-cover transition-transform duration-500 group-hover:scale-110"
                                     alt={objective.name}
                                     src={objective.icon}
                                 />
@@ -214,7 +215,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                 )}
                             </div>
                             <span
-                                className={`font-medium text-lg lg:text-[26px] transition-all duration-300 text-center mb-1 lg:mb-2 ${selectedObjective === objective.id
+                                className={`font-medium text-sm sm:text-base lg:text-[22px] transition-all duration-300 text-center ${selectedObjective === objective.id
                                         ? "text-[#435933] font-bold"
                                         : "text-[#060606] group-hover:text-[#435933]"
                                     }`}
@@ -229,18 +230,18 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
       )}
 
       {/* --- SIMULATOR --- */}
-       <div className="flex justify-center mb-8 lg:mb-10 px-4">
-            <Card className="w-full max-w-[900px] rounded-2xl lg:rounded-[35px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                <CardContent className="p-4 lg:p-8">
-                    <div className="space-y-4 lg:space-y-6">
+       <div className="flex justify-center mb-6 sm:mb-8 lg:mb-10 px-2 sm:px-4">
+            <Card className="w-full max-w-[900px] rounded-xl sm:rounded-2xl lg:rounded-[35px] overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                <CardContent className="p-3 sm:p-4 lg:p-8">
+                    <div className="space-y-3 sm:space-y-4 lg:space-y-6">
                         {/* Objectif sélectionné avec message personnalisé - Responsive */}
-                        <div className="text-center p-3 lg:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                            <h3 className="text-lg lg:text-xl font-bold text-[#435933] mb-2">
+                        <div className="text-center p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-lg sm:rounded-xl border border-[#435933]/20">
+                            <h3 className="text-base sm:text-lg lg:text-xl font-bold text-[#435933] mb-1 sm:mb-2">
                                 {simulationMode === 'persona' && selectedPersonaData 
                                     ? selectedPersonaData.personalizedMessage.split("\n")[0]
                                     : currentObjective?.titre || "Définis ton plan"}
                             </h3>
-                            <p className="text-sm lg:text-base text-gray-600 mb-2 lg:mb-4">
+                            <p className="text-xs sm:text-sm lg:text-base text-gray-600">
                                {simulationMode === 'persona' && selectedPersonaData 
                                     ? selectedPersonaData.personalizedMessage.split("\n")[1]
                                     : currentObjective?.description || "Ajuste les curseurs pour simuler ton épargne"}
@@ -248,23 +249,36 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                         </div>
                         
                         {simulationMode === 'persona' && (
-                            <div className="space-y-2 lg:space-y-3">
-                                <label className="block text-base lg:text-lg font-medium text-[#060606]">
+                            <div className="space-y-2 sm:space-y-2 lg:space-y-3">
+                                <label className="block text-sm sm:text-base lg:text-lg font-medium text-[#060606] px-1">
                                     Je me reconnais dans ce profil :
                                 </label>
-                                <div className="w-full flex items-center">
+                                <div className="w-full flex items-center gap-1 sm:gap-2">
                                     <button
                                         type="button"
                                         aria-label="Précédent"
-                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        className="p-1 sm:p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
                                         onClick={() => {
                                             const container = document.getElementById('personas-scroll');
                                             if (container) container.scrollBy({ left: -120, behavior: 'smooth' });
                                         }}
                                     >
-                                        <ChevronLeft className="w-6 h-6 text-[#435933]" />
+                                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#435933]" />
                                     </button>
-                                    <div id="personas-scroll" className="flex items-center py-2 gap-4 lg:gap-6 px-2 overflow-x-auto scrollbar-hide w-full" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                                    <div 
+                                        id="personas-scroll" 
+                                        className="flex items-center py-2 gap-2 sm:gap-3 lg:gap-4 px-1 overflow-x-auto w-full"
+                                        style={{ 
+                                            scrollbarWidth: 'none', 
+                                            msOverflowStyle: 'none',
+                                            WebkitOverflowScrolling: 'touch'
+                                        }}
+                                    >
+                                        <style jsx>{`
+                                            #personas-scroll::-webkit-scrollbar {
+                                                display: none;
+                                            }
+                                        `}</style>
                                         {personas.map((persona) => (
                                             <button
                                                 key={persona.id}
@@ -272,14 +286,14 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                                 onClick={() => handlePersonaChange(persona.id)}
                                                 className={`group flex flex-col items-center cursor-pointer transition-all duration-300 ${selectedPersona === persona.id ? 'opacity-100' : 'opacity-80'} flex-shrink-0`}
                                                 aria-pressed={selectedPersona === persona.id}
-                                                style={{ minWidth: '80px' }}
+                                                style={{ minWidth: '70px', maxWidth: '90px' }}
                                             >
                                                 <Image
                                                     width={100}
                                                     height={100}
                                                     src={persona.icon}
                                                     alt={persona.name}
-                                                    className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full mb-2 lg:mb-3 transition-all duration-300 border border-solid ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
+                                                    className={`w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] lg:w-[90px] lg:h-[90px] rounded-full mb-1 sm:mb-2 lg:mb-3 transition-all duration-300 border border-solid ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2px] sm:border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
                                                     style={{objectFit: 'contain'}}
                                                 />
                                                 {(() => {
@@ -291,11 +305,11 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                                     }
                                                     return (
                                                         <>
-                                                            <span className={`font-medium text-xs lg:text-base transition-all duration-300 text-center mb-0 lg:mb-1 w-full block ${selectedPersona === persona.id ? 'text-[#435933] font-bold' : 'text-[#060606] group-hover:text-[#435933]'}`}>
+                                                            <span className={`font-medium text-[10px] sm:text-xs lg:text-sm transition-all duration-300 text-center w-full block leading-tight ${selectedPersona === persona.id ? 'text-[#435933] font-bold' : 'text-[#060606] group-hover:text-[#435933]'}`}>
                                                                 {prenom}
                                                             </span>
                                                             {qualification && (
-                                                                <span className="block text-[10px] lg:text-xs text-gray-500 text-center w-full mt-0.5 lg:mt-1 leading-tight">
+                                                                <span className="block text-[8px] sm:text-[9px] lg:text-[10px] text-gray-500 text-center w-full mt-0.5 leading-tight">
                                                                     {qualification.trim()}
                                                                 </span>
                                                             )}
@@ -308,25 +322,25 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                     <button
                                         type="button"
                                         aria-label="Suivant"
-                                        className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30"
+                                        className="p-1 sm:p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
                                         onClick={() => {
                                             const container = document.getElementById('personas-scroll');
                                             if (container) container.scrollBy({ left: 120, behavior: 'smooth' });
                                         }}
                                     >
-                                        <ChevronRight className="w-6 h-6 text-[#435933]" />
+                                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#435933]" />
                                     </button>
                                 </div>
                             </div>
                         )}
 
                         {/* Contrôles de montant et durée - Responsive */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-8">
                             {/* Montant mensuel - Responsive */}
                             <div className="space-y-2 lg:space-y-3">
-                                <label className="block text-base lg:text-lg font-medium text-[#060606]">
-                                    Montant mensuel d'épargne :{" "}
-                                    <span className="text-[#C38D1C] font-bold text-sm lg:text-base">
+                                <label className="block text-sm sm:text-base lg:text-lg font-medium text-[#060606]">
+                                    <span className="block sm:inline">Montant mensuel :</span>{" "}
+                                    <span className="text-[#C38D1C] font-bold text-sm sm:text-base lg:text-base">
                                         {formatCurrency(mensualite)}
                                     </span>
                                 </label>
@@ -337,22 +351,24 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                     step="1000"
                                     value={mensualite}
                                     onChange={(e) => setMensualite(Number(e.target.value))}
-                                    className="w-full h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
+                                    className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
                                     style={{
                                         background: `linear-gradient(to right, #435933 0%, #435933 ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb 100%)`,
                                     }}
                                 />
-                                <div className="flex justify-between text-xs lg:text-sm text-gray-500">
-                                    <span>1 000 FCFA</span>
-                                    <span>500 000 FCFA</span>
+                                <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm text-gray-500">
+                                    <span>1K</span>
+                                    <span className="hidden sm:inline">1 000 FCFA</span>
+                                    <span className="hidden sm:inline">500 000 FCFA</span>
+                                    <span>500K</span>
                                 </div>
                             </div>
 
                             {/* Durée - Responsive */}
                             <div className="space-y-2 lg:space-y-3">
-                                <label className="block text-base lg:text-lg font-medium text-[#060606]">
-                                    Durée d'épargne :{" "}
-                                    <span className="text-[#435933] font-bold text-sm lg:text-base">
+                                <label className="block text-sm sm:text-base lg:text-lg font-medium text-[#060606]">
+                                    <span className="block sm:inline">Durée d'épargne :</span>{" "}
+                                    <span className="text-[#435933] font-bold text-sm sm:text-base lg:text-base">
                                         {duree} mois
                                     </span>
                                 </label>
@@ -363,29 +379,30 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                     step="1"
                                     value={duree}
                                     onChange={(e) => setDuree(Number(e.target.value))}
-                                    className="w-full h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
+                                    className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
                                     style={{
                                         background: `linear-gradient(to right, #435933 0%, #435933 ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb 100%)`,
                                     }}
                                 />
-                                <div className="flex justify-between text-xs lg:text-sm text-gray-500">
+                                <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm text-gray-500">
                                     <span>6 mois</span>
-                                    <span>180 mois (15 ans)</span>
+                                    <span className="hidden sm:inline">180 mois</span>
+                                    <span>15 ans</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Indicateur de taux - Responsive */}
-                        <div className="p-3 lg:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-xl border border-[#435933]/20">
-                            <div className="flex flex-col lg:flex-row items-center justify-between gap-2 lg:gap-0">
-                                <span className="text-[#435933] font-medium text-base lg:text-lg text-center lg:text-left">
+                        <div className="p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-lg sm:rounded-xl border border-[#435933]/20">
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 lg:gap-0">
+                                <span className="text-[#435933] font-medium text-sm sm:text-base lg:text-lg text-center sm:text-left">
                                     Taux d'intérêt :{" "}
-                                    <span className="font-bold text-lg lg:text-xl">
+                                    <span className="font-bold text-base sm:text-lg lg:text-xl">
                                         {taux.toFixed(1)}%
                                     </span>{" "}
-                                    par an
+                                    <span className="hidden sm:inline">par an</span>
                                 </span>
-                                <div className="text-xs lg:text-sm text-gray-600">
+                                <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
                                     {duree <= 6 && "💡 Très court terme"}
                                     {duree > 6 && duree <= 12 && "📈 Court terme"}
                                     {duree > 12 && duree <= 36 && "🚀 Moyen terme"}
@@ -396,39 +413,39 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                         </div>
 
                         {/* Résultats - Responsive */}
-                        <div className="text-center space-y-3 lg:space-y-4 p-4 lg:p-6 bg-gradient-to-br from-[#F2F8F4] to-white rounded-xl">
-                            <h4 className="font-normal text-[#060606] text-lg lg:text-[24px] mb-2">
+                        <div className="text-center space-y-2 sm:space-y-3 lg:space-y-4 p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-[#F2F8F4] to-white rounded-lg sm:rounded-xl">
+                            <h4 className="font-normal text-[#060606] text-base sm:text-lg lg:text-[24px] mb-1 sm:mb-2">
                                 Capital final estimé
                             </h4>
-                            <div className="font-bold text-[#435933] text-2xl lg:text-[36px] mb-2">
+                            <div className="font-bold text-[#435933] text-xl sm:text-2xl lg:text-[36px] mb-1 sm:mb-2">
                                 {formatCurrency(Math.round(capitalFinal))}
                             </div>
-                            <div className="font-normal text-[#969696] text-sm lg:text-base mb-3 lg:mb-4">
+                            <div className="font-normal text-[#969696] text-xs sm:text-sm lg:text-base mb-2 sm:mb-3 lg:mb-4 px-2">
                                 Plan {Math.round((duree / 12) * 10) / 10} ans - Rendement{" "}
                                 {taux.toFixed(1)}% - {formatCurrency(mensualite)}/mois
                             </div>
-                            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 lg:gap-4 p-3 lg:p-4 bg-white rounded-lg shadow-sm">
+                            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 p-2 sm:p-3 lg:p-4 bg-white rounded-lg shadow-sm">
                                 <div className="text-center">
-                                    <div className="text-xs lg:text-sm text-gray-600 mb-1">
+                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600 mb-1">
                                         Total versé
                                     </div>
-                                    <div className="font-medium text-[#C38D1C] text-base lg:text-lg">
+                                    <div className="font-medium text-[#C38D1C] text-xs sm:text-sm lg:text-lg break-words">
                                         {formatCurrency(mensualite * duree)}
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-xs lg:text-sm text-gray-600 mb-1">
+                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600 mb-1">
                                         Intérêts gagnés
                                     </div>
-                                    <div className="font-bold text-[#435933] text-base lg:text-lg">
+                                    <div className="font-bold text-[#435933] text-xs sm:text-sm lg:text-lg break-words">
                                         +{formatCurrency(Math.round(interets))}
                                     </div>
                                 </div>
                                 <div className="text-center">
-                                    <div className="text-xs lg:text-sm text-gray-800 font-medium mb-1">
+                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-800 font-medium mb-1">
                                         Total final
                                     </div>
-                                    <div className="font-bold text-[#435933] text-lg lg:text-xl">
+                                    <div className="font-bold text-[#435933] text-sm sm:text-base lg:text-xl break-words">
                                         {formatCurrency(Math.round(capitalFinal))}
                                     </div>
                                 </div>
@@ -440,10 +457,10 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
         </div>
 
       {/* Bouton centré - Responsive */}
-      <div className="flex justify-center mb-12 lg:mb-16 px-4">
+      <div className="flex justify-center mb-8 sm:mb-12 lg:mb-16 px-4">
           <button
               onClick={handleStartSaving}
-              className="group relative px-6 lg:px-8 h-[50px] lg:h-[60px] bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] rounded-xl lg:rounded-2xl text-white text-base lg:text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 lg:gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 overflow-hidden w-full sm:w-auto max-w-sm"
+              className="group relative px-5 sm:px-6 lg:px-8 h-[48px] sm:h-[52px] lg:h-[60px] bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] rounded-lg sm:rounded-xl lg:rounded-2xl text-white text-sm sm:text-base lg:text-lg font-semibold transition-all duration-300 flex items-center justify-center gap-2 lg:gap-3 shadow-lg hover:shadow-xl transform hover:-translate-y-1 overflow-hidden w-full sm:w-auto max-w-md"
           >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
 

@@ -319,96 +319,104 @@ export default function Navigation() {
 
         {/* Mobile Menu */}
         {isMobileMenuOpen && (
-          <div className={`md:hidden border-t border-white/20 bg-white/95 backdrop-blur-md shadow-lg`}>
-            <div className="px-3 pt-3 pb-4 space-y-2">
-              <Link
-                href="/"
-                className="flex items-center w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-primary hover:sama-bg-light-green transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
-              >
-                <span className="tracking-wide">Accueil</span>
-              </Link>
-
-              <Link
-                href="/sama-naffa"
-                className="flex items-center space-x-4 w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-green hover:sama-bg-light-green transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
-              >
-                <DevicePhoneMobileIcon className="w-6 h-6 flex-shrink-0" />
-                <span className="tracking-wide">Sama Naffa</span>
-              </Link>
-
-              <Link
-                href="/ape"
-                className="flex items-center space-x-4 w-full text-left px-4 py-3 rounded-lg text-lg font-semibold sama-nav-text-secondary hover:sama-text-gold hover:bg-sama-accent-gold/10 transition-all duration-200 hover:translate-x-1 hover:drop-shadow-sm"
-              >
-                <BuildingLibraryIcon className="w-6 h-6 flex-shrink-0" />
-                <span className="tracking-wide">Emprunt Obligataire</span>
-              </Link>
-
-            </div>
-            
-            <div className={`border-t px-2 pt-3 pb-3 ${
-              isOverLightBackground
-                ? 'sama-border-light'
-                : isHomePage
-                  ? 'border-white/20'
-                  : 'sama-border-light'
-            }`}>
-              {isHydrated ? (
-                isAuthenticated ? (
-                <div className="space-y-2">
-                  <Link 
-                    href="/portal"
-                    className="flex items-center space-x-2 w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors"
+          <div className="md:hidden">
+            <div className="px-4 py-3 bg-white/95 backdrop-blur-md shadow-lg border-t border-timberwolf/20">
+              {/* Navigation Section */}
+              <div className="mb-3">
+                <p className="px-2 py-2 text-xs font-semibold text-night/50 uppercase tracking-wider">
+                  Navigation
+                </p>
+                <div className="space-y-1">
+                  <Link
+                    href="/"
+                    className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-timberwolf/10 hover:text-night transition-all duration-200"
                   >
-                    <UserIcon className="w-5 h-5" />
-                    <span>Mon Portail</span>
+                    <span>Accueil</span>
                   </Link>
-                  <Link 
-                    href="/portal"
-                    className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors overflow-hidden"
+
+                  <Link
+                    href="/sama-naffa"
+                    className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-sama-primary-green/10 hover:text-sama-primary-green transition-all duration-200"
                   >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    <span className="relative">Tableau de bord</span>
+                    <DevicePhoneMobileIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
+                    <span>Sama Naffa</span>
+                  </Link>
+
+                  <Link
+                    href="/ape"
+                    className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
+                  >
+                    <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
+                    <span>Emprunt Obligataire</span>
                   </Link>
                 </div>
-              ) : (
-                  <div className="space-y-2">
-                    <Link
+              </div>
+
+              {/* Divider */}
+              <div className="border-t border-timberwolf/10 my-3"></div>
+              
+              {/* Auth Section */}
+              <div className="space-y-2">
+                {isHydrated ? (
+                  isAuthenticated ? (
+                    <>
+                      <Link 
+                        href="/portal"
+                        className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-timberwolf/10 hover:text-night transition-all duration-200"
+                      >
+                        <UserIcon className="w-5 h-5" />
+                        <span>Mon Portail</span>
+                      </Link>
+                      <Link 
+                        href="/portal"
+                        className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                        <span className="relative">Tableau de bord</span>
+                      </Link>
+                    </>
+                  ) : (
+                    <>
+                      <Link
+                        href="/login"
+                        className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                        <span className="relative">Se connecter</span>
+                      </Link>
+                      {!isHomePage && (
+                        <Link
+                          href="/register"
+                          className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+                          <span className="relative">Ouvrir mon Naffa</span>
+                        </Link>
+                      )}
+                    </>
+                  )
+                ) : (
+                  // Render default state during SSR to match initial client render
+                  <>
+                    <Link 
                       href="/login"
-                      className="group relative w-full sama-gradient-primary text-white px-4 py-2 rounded-lg font-semibold hover:sama-gradient-primary-hover transition-colors text-center overflow-hidden"
+                      className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                       <span className="relative">Se connecter</span>
                     </Link>
                     {!isHomePage && (
-                      <Link
+                      <Link 
                         href="/register"
-                        className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors text-center overflow-hidden"
+                        className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
                         <span className="relative">Ouvrir mon Naffa</span>
                       </Link>
                     )}
-                  </div>
-                )
-              ) : (
-                // Render default state during SSR to match initial client render
-                <div className="space-y-2">
-                  <Link 
-                    href="/login"
-                    className="w-full text-left px-3 py-2 sama-text-secondary hover:sama-text-primary transition-colors font-medium"
-                  >
-                    Se connecter
-                  </Link>
-                  <Link 
-                    href="/register"
-                    className="group relative w-full sama-gradient-accent text-white px-4 py-2 rounded-lg font-semibold hover:sama-hover-accent transition-colors overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
-                    <span className="relative">Commencer</span>
-                  </Link>
-                </div>
-              )}
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}

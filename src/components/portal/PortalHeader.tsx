@@ -301,14 +301,14 @@ export default function PortalHeader({
       </div>
 
       {/* Mobile Layout */}
-      <div className="flex justify-between items-center h-20 md:hidden">
+      <div className="flex justify-between items-center h-16 md:hidden px-1">
         {/* Mobile Navigation - Left Side */}
         <div className="flex items-center">
           {/* Hamburger Menu Button */}
           <div className="relative" data-nav-dropdown>
             <button
               onClick={toggleNavDropdown}
-              className="flex items-center space-x-2 px-3 py-2 rounded-lg sama-text-secondary hover:bg-timberwolf/10 transition-colors"
+              className="flex items-center p-2 rounded-lg sama-text-secondary hover:bg-timberwolf/10 transition-colors"
               aria-label="Menu de navigation"
               aria-expanded={isNavDropdownOpen}
               aria-haspopup="true"
@@ -323,8 +323,8 @@ export default function PortalHeader({
             {/* Navigation Dropdown */}
             {isNavDropdownOpen && (
               <div className="absolute left-0 top-full mt-2 w-64 bg-white rounded-lg shadow-lg border border-timberwolf/20 py-2 z-50">
-                <div className="px-4 py-2 border-b border-timberwolf/10 mb-2">
-                  <p className="text-sm font-medium text-night">Navigation</p>
+                <div className="px-3 py-2 border-b border-timberwolf/10 mb-1">
+                  <p className="text-xs font-medium text-night">Navigation</p>
                 </div>
                 {navigationItems.map((item) => {
                   const IconComponent = item.icon;
@@ -335,7 +335,7 @@ export default function PortalHeader({
                       key={item.id}
                       onClick={() => handleTabChange(item.id, item.href, item.requiresKYC)}
                       onMouseEnter={handlePrefetchOnHover}
-                      className={`flex items-center space-x-3 w-full text-left px-4 py-3 transition-colors ${
+                      className={`flex items-center space-x-3 w-full text-left px-3 py-2.5 transition-colors ${
                         isActive
                           ? item.id === 'sama-naffa'
                             ? 'bg-sama-primary-green text-white'
@@ -345,10 +345,10 @@ export default function PortalHeader({
                       aria-label={item.ariaLabel}
                       aria-current={isActive ? 'page' : undefined}
                     >
-                      <IconComponent className={`w-5 h-5 flex-shrink-0 ${
+                      <IconComponent className={`w-4 h-4 flex-shrink-0 ${
                         isActive ? 'text-white' : 'text-night/70'
                       }`} />
-                      <span className="flex-1">{item.label}</span>
+                      <span className="flex-1 text-sm">{item.label}</span>
                       {isActive && (
                         <div className="w-1 h-4 bg-white rounded-sm"></div>
                       )}
@@ -361,23 +361,23 @@ export default function PortalHeader({
         </div>
 
         {/* Logo - Center */}
-        <div className="flex items-center">
+        <div className="flex items-center flex-shrink-0 mx-2">
           <button
             onClick={() => router.push('/portal/dashboard')}
-            className="transition-opacity hover:opacity-80"
+            className="transition-opacity hover:opacity-80 p-1"
           >
             <Image
               src="/sama_naffa_logo.png"
               alt="Sama Naffa"
-              width={120}
-              height={40}
+              width={100}
+              height={34}
               priority
             />
           </button>
         </div>
 
         {/* Mobile Actions - Right Side */}
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           {/* Notifications */}
           <NotificationBell />
           
@@ -385,25 +385,25 @@ export default function PortalHeader({
           <div className="relative" data-user-dropdown>
             <button
               onClick={toggleUserDropdown}
-              className="w-10 h-10 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0"
+              className="w-9 h-9 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0"
               aria-label="Menu utilisateur"
               aria-expanded={isUserDropdownOpen}
               aria-haspopup="true"
             >
-              <span className="text-white font-semibold text-sm">
+              <span className="text-white font-semibold text-xs">
                 {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
               </span>
             </button>
 
             {/* User Dropdown Menu */}
             {isUserDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-timberwolf/20 py-1 z-50">
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-timberwolf/20 py-1 z-50">
                 {/* Profile Option */}
                 <button
                   onClick={handleProfileClick}
-                  className="flex items-center w-full px-4 py-2 text-sm text-night/80 hover:bg-timberwolf/10 hover:text-night transition-colors"
+                  className="flex items-center w-full px-3 py-2 text-xs text-night/80 hover:bg-timberwolf/10 hover:text-night transition-colors"
                 >
-                  <UserIcon className="w-4 h-4 mr-3 flex-shrink-0 text-night/70" />
+                  <UserIcon className="w-4 h-4 mr-2 flex-shrink-0 text-night/70" />
                   <span className="flex-1 text-left">Mon profil</span>
                 </button>
 
@@ -413,9 +413,9 @@ export default function PortalHeader({
                 {/* Logout Option */}
                 <button
                   onClick={handleLogoutClick}
-                  className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
+                  className="flex items-center w-full px-3 py-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors"
                 >
-                  <XMarkIcon className="w-4 h-4 mr-3 flex-shrink-0" />
+                  <XMarkIcon className="w-4 h-4 mr-2 flex-shrink-0" />
                   <span className="flex-1 text-left">Déconnexion</span>
                 </button>
               </div>
