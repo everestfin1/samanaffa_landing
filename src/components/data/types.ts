@@ -5,7 +5,7 @@ export interface Persona {
   duration: number;
   description: string;
   personalizedMessage: string;
-  emoji: string;
+  icon: string;
   shortName: string;
   quote: string;
 }

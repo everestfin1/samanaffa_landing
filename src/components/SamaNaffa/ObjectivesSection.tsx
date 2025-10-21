@@ -278,8 +278,14 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                     onClick={() => setSelectedPersona(persona)}
                                                     style={{ animationDelay: `${index * 0.05}s` }}
                                                 >
-                                                    <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 flex items-center justify-center text-4xl lg:text-5xl transition-all duration-300 group-hover:shadow-lg ${selectedPersona?.id === persona.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4]"}`}>
-                                                        {persona.emoji}
+                                                    <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 flex items-center justify-center transition-all duration-300 group-hover:shadow-lg ${selectedPersona?.id === persona.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4]"}`}>
+                                                        <Image
+                                                            width={100}
+                                                            height={100}
+                                                            className="w-full h-full object-cover rounded-full"
+                                                            alt={persona.name}
+                                                            src={persona.icon}
+                                                        />
                                                         {selectedPersona?.id === persona.id && <div className="absolute inset-0 rounded-full bg-[#435933]/10 animate-subtle-pulse"></div>}
                                                     </div>
                                                     <span className={`font-medium text-sm lg:text-base transition-colors duration-300 text-center ${selectedPersona?.id === persona.id ? "text-[#435933] font-bold" : "text-gray-800"}`}>

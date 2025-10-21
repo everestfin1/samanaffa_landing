@@ -5,8 +5,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, TrendingUp, PlusIcon, ArrowDownIcon } from "lucide-react";
 import Link from "next/link";
-import Navigation from "@/components/Navigation";
-import Footer from "@/components/Footer";
 import { useSelection } from "@/lib/selection-context";
 import TransferModal from "@/components/modals/TransferModal";
 import KYCVerificationMessage from "@/components/kyc/KYCVerificationMessage";
@@ -155,7 +153,6 @@ export default function SouscrireAPEPage() {
   if (!session || isLoadingAccount) {
     return (
       <div className="min-h-screen bg-background">
-        <Navigation />
         <main className="py-20">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
@@ -165,14 +162,12 @@ export default function SouscrireAPEPage() {
             </div>
           </div>
         </main>
-        <Footer />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Navigation />
       <main>
         {/* Hero Section */}
         <section className="py-12 bg-card">
@@ -381,8 +376,6 @@ export default function SouscrireAPEPage() {
           onConfirm={handleTransferCompleted}
         />
       )}
-
-      <Footer />
     </div>
   );
 }

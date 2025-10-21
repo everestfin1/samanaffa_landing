@@ -129,12 +129,14 @@ function PaymentFailedContent() {
             >
               Retour au tableau de bord
             </button>
-            <button
-              onClick={() => router.push('/assistance')}
-              className="w-full text-sm text-gold-dark hover:text-gold-metallic font-medium py-2 transition-colors"
+            <a
+              href="https://wa.me/221770993382"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full text-center text-sm text-gold-dark hover:text-gold-metallic font-medium py-2 transition-colors block"
             >
               Contacter le support
-            </button>
+            </a>
           </div>
         </div>
       </div>
