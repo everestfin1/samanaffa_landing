@@ -89,9 +89,20 @@ export default function IntouchPayment({
   const paymentStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const merchantId = process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID;
-  const domain = process.env.NEXT_PUBLIC_INTOUCH_DOMAIN;
+  // Determine environment (test or production)
+  const isTestEnvironment = process.env.NODE_ENV !== 'production';
+
+  // Use test or production credentials based on environment
+  const merchantId = isTestEnvironment
+    ? process.env.NEXT_PUBLIC_INTOUCH_TEST_MERCHANT_ID
+    : process.env.NEXT_PUBLIC_INTOUCH_MERCHANT_ID;
+  
+  const domain = isTestEnvironment
+    ? process.env.NEXT_PUBLIC_INTOUCH_TEST_DOMAIN
+    : process.env.NEXT_PUBLIC_INTOUCH_DOMAIN;
+
   const [apiKey, setApiKey] = useState<string>('');
+  const [environment, setEnvironment] = useState<'test' | 'production'>('production');
 
   const resetPaymentState = useCallback(() => {
     paymentStartedRef.current = false;
@@ -175,7 +186,8 @@ export default function IntouchPayment({
     }
 
     if (!merchantId || !apiKey || !domain) {
-      console.log('Intouch configuration check:', {
+      console.log(`Intouch configuration check (${environment.toUpperCase()} mode):`, {
+        environment: environment,
         merchantId: merchantId ? 'SET' : 'MISSING',
         apiKey: apiKey ? 'SET' : 'MISSING',
         domain: domain ? 'SET' : 'MISSING',
@@ -184,7 +196,7 @@ export default function IntouchPayment({
         domainValue: domain
       });
       const message =
-        'Configuration Intouch manquante (merchantId, apiKey ou domain).';
+        `Configuration Intouch manquante pour l'environnement ${environment} (merchantId, apiKey ou domain).`;
       setStatusMessage(message);
       onError(message);
       return;
@@ -349,6 +361,9 @@ export default function IntouchPayment({
         const response = await fetch('/api/payments/intouch/config');
         const data = await response.json();
         setApiKey(data.apiKey);
+        setEnvironment(data.environment || 'production');
+        
+        console.log(`[InTouch Payment] Loaded ${data.environment?.toUpperCase()} configuration`);
       } catch (error) {
         console.error('Failed to fetch Intouch API key:', error);
         setLoadError('Erreur de configuration Intouch');
@@ -361,10 +376,11 @@ export default function IntouchPayment({
   }, []);
 
   useEffect(() => {
-    console.log('IntouchPayment component mounted - checking configuration:');
-    console.log('NEXT_PUBLIC_INTOUCH_MERCHANT_ID:', merchantId ? 'SET' : 'MISSING');
-    console.log('INTOUCH_API_KEY:', apiKey ? 'SET' : 'MISSING');
-    console.log('NEXT_PUBLIC_INTOUCH_DOMAIN:', domain ? 'SET' : 'MISSING');
+    console.log(`IntouchPayment component mounted - checking configuration (${isTestEnvironment ? 'TEST' : 'PRODUCTION'} mode):`);
+    console.log('Environment:', isTestEnvironment ? 'TEST/DEVELOPMENT' : 'PRODUCTION');
+    console.log('Merchant ID:', merchantId ? 'SET' : 'MISSING');
+    console.log('API Key:', apiKey ? 'SET' : 'MISSING');
+    console.log('Domain:', domain ? 'SET' : 'MISSING');
 
     if (typeof window === 'undefined') {
       return;
@@ -540,8 +556,15 @@ export default function IntouchPayment({
           <div className="w-12 h-12 bg-gold-metallic rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-lg">I</span>
           </div>
-          <div>
-            <h3 className="font-semibold text-gold-dark">Paiement via Intouch</h3>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-semibold text-gold-dark">Paiement via Intouch</h3>
+              {environment === 'test' && (
+                <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-medium">
+                  TEST
+                </span>
+              )}
+            </div>
             <p className="text-sm text-gold-dark/80">
               Montant: {amount.toLocaleString()} FCFA
             </p>

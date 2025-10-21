@@ -30,10 +30,19 @@ async function testCallback(config: CallbackTestConfig) {
   const {
     referenceNumber,
     paymentStatus,
-    baseUrl = 'https://samanaffa.com',
-    username = '***REMOVED***',
-    password = '***REMOVED***',
+    baseUrl = process.env.INTOUCH_CALLBACK_TEST_BASE_URL || 'https://samanaffa.com',
+    username = process.env.INTOUCH_BASIC_AUTH_USERNAME_TEST,
+    password = process.env.INTOUCH_BASIC_AUTH_PASSWORD_TEST,
   } = config;
+
+  // Validate required credentials
+  if (!username || !password) {
+    console.error('❌ Missing required environment variables:');
+    console.error('   INTOUCH_BASIC_AUTH_USERNAME_TEST');
+    console.error('   INTOUCH_BASIC_AUTH_PASSWORD_TEST');
+    console.error('\nPlease set these in your .env file or environment.');
+    process.exit(1);
+  }
 
   console.log('\n=== InTouch Callback Test ===\n');
 
