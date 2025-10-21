@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
-import { KycStatus, VerificationStatus } from '@prisma/client'
+import { KycStatus, VerificationStatus } from '@/lib/types'
 
 interface BatchUpdateRequest {
   updates: {

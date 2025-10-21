@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { Prisma } from '@prisma/client'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber } from '@/lib/utils'
@@ -73,12 +72,12 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     const accountTypeFilter = searchParams.get('accountType')
 
-    const whereClause: Prisma.UserAccountWhereInput = {
+    const whereClause: any = {
       userId: (session?.user as any).id
     }
 
     if (accountTypeFilter) {
-      whereClause.accountType = accountTypeFilter.toUpperCase() as any
+      whereClause.accountType = accountTypeFilter.toUpperCase()
     }
 
     const [accounts, total] = await Promise.all([
@@ -169,7 +168,7 @@ export async function POST(request: NextRequest) {
         ? metadata
         : product.metadata
     const metadataInput = mergedMetadata
-      ? (mergedMetadata as Prisma.InputJsonValue)
+      ? mergedMetadata
       : undefined
 
     const account = await prisma.userAccount.create({
@@ -180,7 +179,7 @@ export async function POST(request: NextRequest) {
         productCode: effectiveProductCode,
         productName: effectiveProductName,
         interestRate: effectiveInterestRate
-          ? new Prisma.Decimal(effectiveInterestRate.toFixed(2))
+          ? effectiveInterestRate.toFixed(2)
           : null,
         lockPeriodMonths: effectiveLockPeriodMonths ?? null,
         lockedUntil: effectiveLockedUntil,

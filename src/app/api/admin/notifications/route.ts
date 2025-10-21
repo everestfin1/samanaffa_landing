@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
-import { NotificationPriority, NotificationType } from '@prisma/client'
+import { NotificationPriority, NotificationType } from '@/lib/types'
 
 // GET /api/admin/notifications - Get all notifications (admin)
 export async function GET(request: NextRequest) {

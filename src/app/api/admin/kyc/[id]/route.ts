@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
-import { KycStatus, NotificationPriority, NotificationType } from '@prisma/client'
+import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types'
 
 export async function PUT(
   request: NextRequest,

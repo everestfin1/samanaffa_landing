@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client'
+import { db } from '../src/lib/db'
+import { adminUsers } from '../src/lib/db/schema'
+import { eq } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
-
-const prisma = new PrismaClient()
 
 const adminEmail = process.env.ADMIN_EMAIL || 'admin@samanaffa.com'
 const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'
@@ -11,20 +11,27 @@ async function main() {
 
   // Create admin user
   const adminPasswordHash = await bcrypt.hash(adminPassword, 12) // Increased salt rounds for better security
-  const admin = await prisma.adminUser.upsert({
-    where: { email: adminEmail },
-    update: {},
-    create: {
+  
+  // Check if admin already exists
+  const existingAdmin = await db.select()
+    .from(adminUsers)
+    .where(eq(adminUsers.email, adminEmail))
+    .limit(1)
+
+  if (existingAdmin.length > 0) {
+    console.log('✅ Admin user already exists:', adminEmail)
+  } else {
+    const [admin] = await db.insert(adminUsers).values({
       email: adminEmail,
       passwordHash: adminPasswordHash,
       name: 'Admin User',
       role: 'ADMIN',
       isActive: true,
       failedAttempts: 0,
-    },
-  })
+    }).returning()
 
-  console.log('✅ Admin user created:', admin.email)
+    console.log('✅ Admin user created:', admin.email)
+  }
 
   console.log('🎉 Database seed completed successfully!')
 }
@@ -34,6 +41,6 @@ main()
     console.error('❌ Error during seed:', e)
     process.exit(1)
   })
-  .finally(async () => {
-    await prisma.$disconnect()
+  .finally(() => {
+    process.exit(0)
   })

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { Prisma } from '@prisma/client';
+// Prisma types no longer needed with Drizzle
 import { prisma } from '@/lib/prisma';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
 

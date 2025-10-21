@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Prisma } from '@prisma/client'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber, normalizeInternationalPhone } from '@/lib/utils'
@@ -174,12 +173,12 @@ export async function POST(request: NextRequest) {
           accountNumber: generateAccountNumber('SN'),
           productCode: defaultNaffaProduct.productCode,
           productName: defaultNaffaProduct.name,
-          interestRate: new Prisma.Decimal(defaultNaffaProduct.interestRate.toFixed(2)),
+          interestRate: defaultNaffaProduct.interestRate.toFixed(2),
           lockPeriodMonths: naffaLockMonths,
           lockedUntil: naffaLockedUntil,
           allowAdditionalDeposits: defaultNaffaProduct.allowAdditionalDeposits,
           metadata: defaultNaffaProduct.metadata
-            ? (defaultNaffaProduct.metadata as Prisma.InputJsonValue)
+            ? defaultNaffaProduct.metadata
             : undefined,
         }
       })

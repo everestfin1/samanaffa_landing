@@ -1,5 +1,6 @@
 import { NextAuthOptions, User } from 'next-auth'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import { db } from './db'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
@@ -7,7 +8,7 @@ import { normalizeInternationalPhone } from './utils'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
+  adapter: DrizzleAdapter(db) as any,
   providers: [
     CredentialsProvider({
       name: 'credentials',
