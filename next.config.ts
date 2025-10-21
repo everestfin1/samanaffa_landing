@@ -21,6 +21,16 @@ const nextConfig: NextConfig = {
     ],
     unoptimized: true,
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Ensure Prisma client is properly bundled
+      config.externals = config.externals || [];
+      config.externals.push({
+        '.prisma/client/index-browser': '@prisma/client/index-browser',
+      });
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
