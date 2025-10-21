@@ -6,12 +6,25 @@ const nextConfig: NextConfig = {
     turbopackFileSystemCacheForDev: true,
   },
   images: {
-    domains: [
-      'localhost', 
-      'vercel.app', 
-      'lrq4w9dhzaifcdic.public.blob.vercel-storage.com'
-    ],
     remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.vercel.app',
+        port: '',
+        pathname: '/**',
+      },
       {
         protocol: 'https',
         hostname: '*.public.blob.vercel-storage.com',
@@ -20,16 +33,6 @@ const nextConfig: NextConfig = {
       },
     ],
     unoptimized: true,
-  },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      // Ensure Prisma client is properly bundled
-      config.externals = config.externals || [];
-      config.externals.push({
-        '.prisma/client/index-browser': '@prisma/client/index-browser',
-      });
-    }
-    return config;
   },
 };
 
