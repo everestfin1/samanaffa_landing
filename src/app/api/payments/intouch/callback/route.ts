@@ -191,8 +191,8 @@ export async function POST(request: NextRequest) {
 
   const webhookSecret = process.env.INTOUCH_WEBHOOK_SECRET;
   const allowUnsigned = process.env.INTOUCH_ALLOW_UNSIGNED_CALLBACKS === 'true';
-  const basicAuthUsername = process.env.INTOUCH_BASIC_AUTH_USERNAME;
-  const basicAuthPassword = process.env.INTOUCH_BASIC_AUTH_PASSWORD;
+  const basicAuthUsername = process.env.NODE_ENV === 'production' ? process.env.INTOUCH_BASIC_AUTH_USERNAME : process.env.INTOUCH_BASIC_AUTH_USERNAME_TEST;
+  const basicAuthPassword = process.env.NODE_ENV === 'production' ? process.env.INTOUCH_BASIC_AUTH_PASSWORD : process.env.INTOUCH_BASIC_AUTH_PASSWORD_TEST;
 
   // Verify Basic Authentication (InTouch API requirement)
   const authHeader = request.headers.get('authorization');

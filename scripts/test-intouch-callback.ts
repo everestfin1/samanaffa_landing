@@ -31,15 +31,20 @@ async function testCallback(config: CallbackTestConfig) {
     referenceNumber,
     paymentStatus,
     baseUrl = process.env.INTOUCH_CALLBACK_TEST_BASE_URL || 'https://samanaffa.com',
-    username = process.env.INTOUCH_TEST_USERNAME,
-    password = process.env.INTOUCH_TEST_PASSWORD,
+    username = process.env.INTOUCH_BASIC_AUTH_USERNAME_TEST,
+    password = process.env.INTOUCH_BASIC_AUTH_PASSWORD_TEST,
   } = config;
 
   // Validate required credentials
   if (!username || !password) {
     console.error('❌ Missing required environment variables:');
+<<<<<<< HEAD
     console.error('   INTOUCH_TEST_USERNAME');
     console.error('   INTOUCH_TEST_PASSWORD');
+=======
+    console.error('   INTOUCH_BASIC_AUTH_USERNAME_TEST');
+    console.error('   INTOUCH_BASIC_AUTH_PASSWORD_TEST');
+>>>>>>> main
     console.error('\nPlease set these in your .env file or environment.');
     process.exit(1);
   }

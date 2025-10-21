@@ -3,8 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export async function GET(request: NextRequest) {
   try {
     // Determine if we're in test environment
-    const isTestEnvironment = process.env.INTOUCH_ENVIRONMENT === 'test' || 
-                              process.env.NODE_ENV === 'development';
+    const isTestEnvironment = process.env.NODE_ENV !== 'production';
     
     // Use test credentials if in test environment, otherwise use production
     const apiKey = isTestEnvironment 

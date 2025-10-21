@@ -90,8 +90,7 @@ export default function IntouchPayment({
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Determine environment (test or production)
-  const isTestEnvironment = process.env.NEXT_PUBLIC_INTOUCH_ENVIRONMENT === 'test' || 
-                            process.env.NODE_ENV === 'development';
+  const isTestEnvironment = process.env.NODE_ENV !== 'production';
 
   // Use test or production credentials based on environment
   const merchantId = isTestEnvironment
