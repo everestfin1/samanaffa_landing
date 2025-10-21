@@ -152,7 +152,7 @@ export async function POST(request: NextRequest) {
       `${user.firstName} ${user.lastName}`,
       {
         type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
-        amount: transactionIntent.amount.toNumber ? transactionIntent.amount.toNumber() : Number(transactionIntent.amount),
+        amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
         accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',
@@ -170,7 +170,7 @@ export async function POST(request: NextRequest) {
         userEmail: user.email,
         userPhone: user.phone,
         type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
-        amount: transactionIntent.amount.toNumber ? transactionIntent.amount.toNumber() : Number(transactionIntent.amount),
+        amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
         accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',

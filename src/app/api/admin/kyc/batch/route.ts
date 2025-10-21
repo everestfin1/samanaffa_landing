@@ -49,7 +49,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Perform batch update using a transaction
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: any) => {
       const updatedDocuments = []
 
       for (const update of updates) {
@@ -85,9 +85,9 @@ export async function PUT(request: NextRequest) {
           where: { userId },
         })
 
-        const pendingDocs = allUserDocuments.filter(doc => doc.verificationStatus === 'PENDING')
-        const approvedDocs = allUserDocuments.filter(doc => doc.verificationStatus === 'APPROVED')
-        const rejectedDocs = allUserDocuments.filter(doc => doc.verificationStatus === 'REJECTED')
+        const pendingDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'PENDING')
+        const approvedDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'APPROVED')
+        const rejectedDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'REJECTED')
 
         // Determine new user KYC status
         if (approvedDocs.length > 0 && pendingDocs.length === 0 && rejectedDocs.length === 0) {
@@ -126,7 +126,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       message: `Successfully updated ${updates.length} KYC documents`,
       data: {
-        updatedDocuments: result.updatedDocuments.map(doc => ({
+        updatedDocuments: result.updatedDocuments.map((doc: any) => ({
           id: doc.id,
           documentType: doc.documentType,
           fileName: doc.fileName,

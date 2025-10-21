@@ -130,19 +130,22 @@ function appendAdminNote(existing: string | null | undefined, note: string): str
   return existing ? `${existing}\n${note}` : note;
 }
 
-function parseAmount(amount: unknown): Prisma.Decimal | null {
+function parseAmount(amount: unknown): string | null {
   try {
     if (amount === null || amount === undefined) return null;
-    if (amount instanceof Prisma.Decimal) return amount;
-    if (typeof amount === 'string' && amount.trim().length === 0) return null;
-    return new Prisma.Decimal(amount as Prisma.Decimal.Value);
+    if (typeof amount === 'string') {
+      if (amount.trim().length === 0) return null;
+      return parseFloat(amount).toFixed(2);
+    }
+    if (typeof amount === 'number') return amount.toFixed(2);
+    return String(amount);
   } catch {
     return null;
   }
 }
 
-function toJsonValue(payload: unknown): Prisma.InputJsonValue {
-  return payload as Prisma.InputJsonValue;
+function toJsonValue(payload: unknown): any {
+  return payload;
 }
 
 function pickFirst(body: Record<string, unknown>, keys: string[]): unknown {
@@ -164,18 +167,18 @@ function coerceString(value: unknown): string | null {
   return null;
 }
 
-function parseCustomerInfo(value: unknown): Prisma.InputJsonValue | undefined {
+function parseCustomerInfo(value: unknown): any | undefined {
   if (value === undefined || value === null) {
     return undefined;
   }
   if (typeof value === 'string') {
     try {
-      return JSON.parse(value) as Prisma.InputJsonValue;
+      return JSON.parse(value);
     } catch {
       return value;
     }
   }
-  return value as Prisma.InputJsonValue;
+  return value;
 }
 
 export async function POST(request: NextRequest) {
@@ -497,17 +500,17 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
     );
   }
 
-  if (!intent.amount.equals(callbackAmountDecimal)) {
+  if (parseFloat(intent.amount) !== parseFloat(callbackAmountDecimal)) {
     console.error('Amount mismatch between intent and callback', {
-      intentAmount: intent.amount.toString(),
-      callbackAmount: callbackAmountDecimal.toString(),
+      intentAmount: intent.amount,
+      callbackAmount: callbackAmountDecimal,
       reference: referenceNumber,
     });
     return NextResponse.json(
       {
         error: 'Callback amount does not match transaction intent amount',
-        intentAmount: intent.amount.toString(),
-        callbackAmount: callbackAmountDecimal.toString(),
+        intentAmount: intent.amount,
+        callbackAmount: callbackAmountDecimal,
       },
       { status: 400 },
     );
@@ -518,7 +521,7 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   const customerInfo = parseCustomerInfo(customerInfoRaw);
 
   try {
-    const transactionResult = await prisma.$transaction(async (tx) => {
+    const transactionResult = await prisma.$transaction(async (tx: any) => {
       const currentIntent = await tx.transactionIntent.findUnique({
         where: { id: intent.id },
         include: { account: true, user: true },
@@ -528,12 +531,12 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         throw new Error('INTENT_NOT_FOUND');
       }
 
-      if (!currentIntent.amount.equals(callbackAmountDecimal)) {
+      if (parseFloat(currentIntent.amount) !== parseFloat(callbackAmountDecimal)) {
         throw new Error('AMOUNT_MISMATCH');
       }
 
-      const currentBalance = new Prisma.Decimal(currentIntent.account.balance);
-      const transactionAmount = new Prisma.Decimal(currentIntent.amount);
+      const currentBalance = parseFloat(currentIntent.account.balance);
+      const transactionAmount = parseFloat(currentIntent.amount);
 
       let finalStatus: CallbackStatus = mappedStatus;
       let failureReason: string | null = null;
@@ -541,7 +544,7 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
       if (mappedStatus === 'COMPLETED') {
         if (currentIntent.intentType === 'WITHDRAWAL') {
-          if (currentBalance.lt(transactionAmount)) {
+          if (currentBalance < transactionAmount) {
             finalStatus = 'FAILED';
             failureReason = 'Insufficient funds for withdrawal';
           } else if (currentIntent.status !== 'COMPLETED') {
@@ -559,7 +562,7 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         `Intouch callback ${String(statusRaw)} (${providerTransactionId}) at ${callbackTimestamp.toISOString()}`,
       );
 
-      const updateData: Prisma.TransactionIntentUpdateInput = {
+      const updateData: any = {
         providerStatus: String(statusRaw),
         lastCallbackAt: callbackTimestamp,
         lastCallbackPayload: toJsonValue(parsedBody),
@@ -577,8 +580,11 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       const updatedIntent = await tx.transactionIntent.update({
         where: { id: currentIntent.id },
         data: updateData,
-        include: { account: true, user: true },
       });
+      
+      // Manually attach account and user since include doesn't work with Drizzle yet
+      updatedIntent.account = currentIntent.account;
+      updatedIntent.user = currentIntent.user;
 
       await tx.paymentCallbackLog.create({
         data: {
@@ -591,8 +597,8 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       if (shouldUpdateBalance && finalStatus === 'COMPLETED') {
         const newBalance =
           currentIntent.intentType === 'WITHDRAWAL'
-            ? currentBalance.sub(transactionAmount)
-            : currentBalance.add(transactionAmount);
+            ? (currentBalance - transactionAmount).toFixed(2)
+            : (currentBalance + transactionAmount).toFixed(2);
 
         await tx.userAccount.update({
           where: { id: updatedIntent.accountId },

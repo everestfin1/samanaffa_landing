@@ -34,10 +34,6 @@ export async function POST(request: NextRequest) {
         where: {
           accountId: account.id,
           status: 'COMPLETED'
-        },
-        select: {
-          intentType: true,
-          amount: true
         }
       })
 

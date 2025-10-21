@@ -32,7 +32,8 @@ async function testBatchKycApi() {
 
     console.log(`Found ${testDocuments.length} test documents:`)
     testDocuments.forEach((doc, i) => {
-      console.log(`${i + 1}. ${doc.documentType} - ${doc.user.firstName} ${doc.user.lastName} (${doc.user.kycStatus})`)
+      const user = (doc as any).user
+      console.log(`${i + 1}. ${doc.documentType} - ${user.firstName} ${user.lastName} (${user.kycStatus})`)
     })
 
     // Simulate batch update payload
@@ -43,7 +44,8 @@ async function testBatchKycApi() {
     }))
 
     console.log('\nSimulating batch update payload:')
-    console.log(JSON.stringify({ updates: batchUpdates, userId: testDocuments[0].user.id }, null, 2))
+    const firstUser = (testDocuments[0] as any).user
+    console.log(JSON.stringify({ updates: batchUpdates, userId: firstUser.id }, null, 2))
 
     console.log('\nBatch KYC API test completed successfully!')
     console.log('The API endpoint should handle this payload efficiently in a single transaction.')

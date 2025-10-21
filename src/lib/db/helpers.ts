@@ -47,7 +47,7 @@ export const user = {
     return results[0] || null;
   },
 
-  async findUnique(params: { where: { id?: string; email?: string; phone?: string }; include?: any }) {
+  async findUnique(params: { where: { id?: string; email?: string; phone?: string }; include?: any; select?: any }) {
     const { where } = params;
     let condition: SQL<unknown> | undefined;
 
@@ -99,7 +99,59 @@ export const user = {
     if (params?.skip) query = query.offset(params.skip) as any;
     if (params?.take) query = query.limit(params.take) as any;
 
-    return await query;
+    const users = await query;
+
+    // Handle includes
+    if (params?.include && users.length > 0) {
+      const userIds = users.map(u => u.id);
+      const enhancedUsers = await Promise.all(users.map(async (user) => {
+        const enhanced: any = { ...user };
+
+        if (params.include.accounts) {
+          enhanced.accounts = await db.select()
+            .from(schema.userAccounts)
+            .where(eq(schema.userAccounts.userId, user.id));
+        }
+
+        if (params.include.kycDocuments) {
+          let kycQuery = db.select().from(schema.kycDocuments).where(eq(schema.kycDocuments.userId, user.id));
+          if (params.include.kycDocuments.orderBy) {
+            const orderKey = Object.keys(params.include.kycDocuments.orderBy)[0];
+            const orderDir = params.include.kycDocuments.orderBy[orderKey];
+            const column = (schema.kycDocuments as any)[orderKey];
+            if (column) {
+              kycQuery = kycQuery.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+            }
+          }
+          if (params.include.kycDocuments.take) {
+            kycQuery = kycQuery.limit(params.include.kycDocuments.take) as any;
+          }
+          enhanced.kycDocuments = await kycQuery;
+        }
+
+        if (params.include._count) {
+          enhanced._count = {} as any;
+          if (params.include._count.select?.transactionIntents) {
+            const result = await db.select({ count: sql<number>`count(*)` })
+              .from(schema.transactionIntents)
+              .where(eq(schema.transactionIntents.userId, user.id));
+            enhanced._count.transactionIntents = Number(result[0].count);
+          }
+          if (params.include._count.select?.kycDocuments) {
+            const result = await db.select({ count: sql<number>`count(*)` })
+              .from(schema.kycDocuments)
+              .where(eq(schema.kycDocuments.userId, user.id));
+            enhanced._count.kycDocuments = Number(result[0].count);
+          }
+        }
+
+        return enhanced;
+      }));
+
+      return enhancedUsers;
+    }
+
+    return users;
   },
 
   async create(params: { data: any }) {
@@ -107,12 +159,58 @@ export const user = {
     return results[0];
   },
 
-  async update(params: { where: { id: string }; data: any }) {
+  async update(params: { where: { id: string }; data: any; include?: any }) {
     const results = await db.update(schema.users)
       .set({ ...params.data, updatedAt: new Date() })
       .where(eq(schema.users.id, params.where.id))
       .returning();
-    return results[0];
+    
+    const user = results[0];
+    if (!user) return null;
+
+    // Handle includes
+    if (params.include) {
+      const enhanced: any = { ...user };
+
+      if (params.include.accounts) {
+        enhanced.accounts = await db.select()
+          .from(schema.userAccounts)
+          .where(eq(schema.userAccounts.userId, user.id));
+      }
+
+      if (params.include.kycDocuments) {
+        let kycQuery = db.select().from(schema.kycDocuments).where(eq(schema.kycDocuments.userId, user.id));
+        if (params.include.kycDocuments.orderBy) {
+          const orderKey = Object.keys(params.include.kycDocuments.orderBy)[0];
+          const orderDir = params.include.kycDocuments.orderBy[orderKey];
+          const column = (schema.kycDocuments as any)[orderKey];
+          if (column) {
+            kycQuery = kycQuery.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+          }
+        }
+        enhanced.kycDocuments = await kycQuery;
+      }
+
+      if (params.include._count) {
+        enhanced._count = {} as any;
+        if (params.include._count.select?.transactionIntents) {
+          const result = await db.select({ count: sql<number>`count(*)` })
+            .from(schema.transactionIntents)
+            .where(eq(schema.transactionIntents.userId, user.id));
+          enhanced._count.transactionIntents = Number(result[0].count);
+        }
+        if (params.include._count.select?.kycDocuments) {
+          const result = await db.select({ count: sql<number>`count(*)` })
+            .from(schema.kycDocuments)
+            .where(eq(schema.kycDocuments.userId, user.id));
+          enhanced._count.kycDocuments = Number(result[0].count);
+        }
+      }
+
+      return enhanced;
+    }
+
+    return user;
   },
 
   async delete(params: { where: { id: string } }) {
@@ -170,29 +268,50 @@ export const userAccount = {
     const accounts = await query;
 
     // Handle includes
-    if (params?.include?.transactionIntents && accounts.length > 0) {
-      const accountIds = accounts.map(a => a.id);
-      const intents = await db.select()
-        .from(schema.transactionIntents)
-        .where(inArray(schema.transactionIntents.accountId, accountIds))
-        .orderBy(desc(schema.transactionIntents.createdAt))
-        .limit(params.include.transactionIntents.take || 5);
+    if (params?.include) {
+      const enhancedAccounts = await Promise.all(accounts.map(async (account) => {
+        const enhanced: any = { ...account };
 
-      return accounts.map(account => ({
-        ...account,
-        transactionIntents: intents.filter(i => i.accountId === account.id),
+        if (params.include.transactionIntents) {
+          const intents = await db.select()
+            .from(schema.transactionIntents)
+            .where(eq(schema.transactionIntents.accountId, account.id))
+            .orderBy(desc(schema.transactionIntents.createdAt))
+            .limit(params.include.transactionIntents.take || 5);
+          enhanced.transactionIntents = intents;
+        }
+
+        if (params.include.user) {
+          const users = await db.select()
+            .from(schema.users)
+            .where(eq(schema.users.id, account.userId))
+            .limit(1);
+          if (params.include.user.select) {
+            const selectKeys = Object.keys(params.include.user.select);
+            enhanced.user = selectKeys.reduce((obj: any, key) => {
+              obj[key] = (users[0] as any)[key];
+              return obj;
+            }, {});
+          } else {
+            enhanced.user = users[0];
+          }
+        }
+
+        return enhanced;
       }));
+
+      return enhancedAccounts;
     }
 
     return accounts;
   },
 
-  async create(params: { data: any }) {
+  async create(params: { data: any; include?: any }) {
     const results = await db.insert(schema.userAccounts).values(params.data).returning();
     
     // Handle includes if specified
     const account = results[0];
-    if (params.data.include?.transactionIntents) {
+    if (params.include?.transactionIntents) {
       const intents = await db.select()
         .from(schema.transactionIntents)
         .where(eq(schema.transactionIntents.accountId, account.id))
@@ -240,7 +359,49 @@ export const transactionIntent = {
       .where(condition)
       .limit(1);
 
-    return results[0] || null;
+    const intent = results[0] || null;
+    if (!intent) return null;
+
+    // Handle includes
+    if (params.include) {
+      const enhanced: any = { ...intent };
+
+      if (params.include.account) {
+        const accounts = await db.select()
+          .from(schema.userAccounts)
+          .where(eq(schema.userAccounts.id, intent.accountId))
+          .limit(1);
+        if (params.include.account.select) {
+          const selectKeys = Object.keys(params.include.account.select);
+          enhanced.account = selectKeys.reduce((obj: any, key) => {
+            obj[key] = (accounts[0] as any)?.[key];
+            return obj;
+          }, {});
+        } else {
+          enhanced.account = accounts[0];
+        }
+      }
+
+      if (params.include.user) {
+        const users = await db.select()
+          .from(schema.users)
+          .where(eq(schema.users.id, intent.userId))
+          .limit(1);
+        if (params.include.user.select) {
+          const selectKeys = Object.keys(params.include.user.select);
+          enhanced.user = selectKeys.reduce((obj: any, key) => {
+            obj[key] = (users[0] as any)?.[key];
+            return obj;
+          }, {});
+        } else {
+          enhanced.user = users[0];
+        }
+      }
+
+      return enhanced;
+    }
+
+    return intent;
   },
 
   async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number; include?: any }) {
@@ -266,16 +427,49 @@ export const transactionIntent = {
     const intents = await query;
 
     // Handle includes
-    if (params?.include?.account && intents.length > 0) {
-      const accountIds = intents.map(i => i.accountId);
-      const accounts = await db.select()
-        .from(schema.userAccounts)
-        .where(inArray(schema.userAccounts.id, accountIds));
+    if (params?.include && intents.length > 0) {
+      const accountIds = params.include.account ? [...new Set(intents.map(i => i.accountId))] : [];
+      const userIds = params.include.user ? [...new Set(intents.map(i => i.userId))] : [];
 
-      return intents.map(intent => ({
-        ...intent,
-        account: accounts.find(a => a.id === intent.accountId),
-      }));
+      const accounts = accountIds.length > 0 ? await db.select()
+        .from(schema.userAccounts)
+        .where(inArray(schema.userAccounts.id, accountIds)) : [];
+
+      const users = userIds.length > 0 ? await db.select()
+        .from(schema.users)
+        .where(inArray(schema.users.id, userIds)) : [];
+
+      return intents.map(intent => {
+        const enhanced: any = { ...intent };
+
+        if (params.include.account) {
+          const account = accounts.find(a => a.id === intent.accountId);
+          if (params.include.account.select) {
+            const selectKeys = Object.keys(params.include.account.select);
+            enhanced.account = selectKeys.reduce((obj: any, key) => {
+              obj[key] = (account as any)?.[key];
+              return obj;
+            }, {});
+          } else {
+            enhanced.account = account;
+          }
+        }
+
+        if (params.include.user) {
+          const user = users.find(u => u.id === intent.userId);
+          if (params.include.user.select) {
+            const selectKeys = Object.keys(params.include.user.select);
+            enhanced.user = selectKeys.reduce((obj: any, key) => {
+              obj[key] = (user as any)?.[key];
+              return obj;
+            }, {});
+          } else {
+            enhanced.user = user;
+          }
+        }
+
+        return enhanced;
+      });
     }
 
     return intents;
@@ -303,12 +497,55 @@ export const transactionIntent = {
     return results[0];
   },
 
-  async update(params: { where: { id: string }; data: any }) {
+  async update(params: { where: { id: string }; data: any; include?: any }) {
     const results = await db.update(schema.transactionIntents)
       .set({ ...params.data, updatedAt: new Date() })
       .where(eq(schema.transactionIntents.id, params.where.id))
       .returning();
-    return results[0];
+    
+    const intent = results[0];
+    if (!intent) return null;
+
+    // Handle includes
+    if (params.include) {
+      const enhanced: any = { ...intent };
+
+      if (params.include.account) {
+        const accounts = await db.select()
+          .from(schema.userAccounts)
+          .where(eq(schema.userAccounts.id, intent.accountId))
+          .limit(1);
+        if (params.include.account.select) {
+          const selectKeys = Object.keys(params.include.account.select);
+          enhanced.account = selectKeys.reduce((obj: any, key) => {
+            obj[key] = (accounts[0] as any)?.[key];
+            return obj;
+          }, {});
+        } else {
+          enhanced.account = accounts[0];
+        }
+      }
+
+      if (params.include.user) {
+        const users = await db.select()
+          .from(schema.users)
+          .where(eq(schema.users.id, intent.userId))
+          .limit(1);
+        if (params.include.user.select) {
+          const selectKeys = Object.keys(params.include.user.select);
+          enhanced.user = selectKeys.reduce((obj: any, key) => {
+            obj[key] = (users[0] as any)?.[key];
+            return obj;
+          }, {});
+        } else {
+          enhanced.user = users[0];
+        }
+      }
+
+      return enhanced;
+    }
+
+    return intent;
   },
 
   async count(params?: { where?: WhereClause }) {
@@ -355,6 +592,15 @@ export const otpCode = {
 
 // Prisma-compatible query builder for Registration Sessions
 export const registrationSession = {
+  async findUnique(params: { where: { id: string } }) {
+    const results = await db.select()
+      .from(schema.registrationSessions)
+      .where(eq(schema.registrationSessions.id, params.where.id))
+      .limit(1);
+    
+    return results[0] || null;
+  },
+
   async create(params: { data: any }) {
     const results = await db.insert(schema.registrationSessions).values(params.data).returning();
     return results[0];
@@ -383,10 +629,30 @@ export const kycDocument = {
       .where(eq(schema.kycDocuments.id, params.where.id))
       .limit(1);
 
-    return results[0] || null;
+    const doc = results[0] || null;
+    if (!doc) return null;
+
+    // Handle includes
+    if (params.include?.user) {
+      const users = await db.select()
+        .from(schema.users)
+        .where(eq(schema.users.id, doc.userId))
+        .limit(1);
+      if (params.include.user.select) {
+        const selectKeys = Object.keys(params.include.user.select);
+        (doc as any).user = selectKeys.reduce((obj: any, key) => {
+          obj[key] = (users[0] as any)[key];
+          return obj;
+        }, {});
+      } else {
+        (doc as any).user = users[0];
+      }
+    }
+
+    return doc;
   },
 
-  async findMany(params?: { where?: WhereClause; orderBy?: any; include?: any; take?: number; select?: any }) {
+  async findMany(params?: { where?: WhereClause; orderBy?: any; include?: any; take?: number; skip?: number; select?: any }) {
     let query = db.select().from(schema.kycDocuments);
 
     if (params?.where) {
@@ -403,7 +669,37 @@ export const kycDocument = {
       }
     }
 
-    return await query;
+    if (params?.skip) query = query.offset(params.skip) as any;
+    if (params?.take) query = query.limit(params.take) as any;
+
+    const docs = await query;
+
+    // Handle includes
+    if (params?.include?.user && docs.length > 0) {
+      const userIds = [...new Set(docs.map(d => d.userId))];
+      const users = await db.select()
+        .from(schema.users)
+        .where(inArray(schema.users.id, userIds));
+
+      const enhancedDocs = docs.map(doc => {
+        const user = users.find(u => u.id === doc.userId);
+        if (params.include.user.select) {
+          const selectKeys = Object.keys(params.include.user.select);
+          return {
+            ...doc,
+            user: selectKeys.reduce((obj: any, key) => {
+              obj[key] = (user as any)?.[key];
+              return obj;
+            }, {})
+          };
+        }
+        return { ...doc, user };
+      });
+
+      return enhancedDocs;
+    }
+
+    return docs;
   },
 
   async create(params: { data: any }) {
@@ -411,12 +707,33 @@ export const kycDocument = {
     return results[0];
   },
 
-  async update(params: { where: { id: string }; data: any }) {
+  async update(params: { where: { id: string }; data: any; include?: any }) {
     const results = await db.update(schema.kycDocuments)
       .set(params.data)
       .where(eq(schema.kycDocuments.id, params.where.id))
       .returning();
-    return results[0];
+    
+    const doc = results[0];
+    if (!doc) return null;
+
+    // Handle includes
+    if (params.include?.user) {
+      const users = await db.select()
+        .from(schema.users)
+        .where(eq(schema.users.id, doc.userId))
+        .limit(1);
+      if (params.include.user.select) {
+        const selectKeys = Object.keys(params.include.user.select);
+        (doc as any).user = selectKeys.reduce((obj: any, key) => {
+          obj[key] = (users[0] as any)[key];
+          return obj;
+        }, {});
+      } else {
+        (doc as any).user = users[0];
+      }
+    }
+
+    return doc;
   },
 
   async delete(params: { where: { id: string } }) {
@@ -434,7 +751,7 @@ export const kycDocument = {
 
 // Prisma-compatible query builder for Admin Users
 export const adminUser = {
-  async findUnique(params: { where: { id?: string; email?: string } }) {
+  async findUnique(params: { where: { id?: string; email?: string }; select?: any }) {
     const { where } = params;
     let condition: SQL<unknown> | undefined;
 
@@ -482,7 +799,24 @@ export const adminUser = {
 
 // Prisma-compatible query builder for Notifications
 export const notification = {
-  async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number }) {
+  async findFirst(params: { where: WhereClause; orderBy?: any }) {
+    const condition = buildWhereConditions(schema.notifications, params.where);
+    let query = db.select().from(schema.notifications).where(condition);
+
+    if (params.orderBy) {
+      const orderKey = Object.keys(params.orderBy)[0];
+      const orderDir = params.orderBy[orderKey];
+      const column = (schema.notifications as any)[orderKey];
+      if (column) {
+        query = query.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+      }
+    }
+
+    const results = await query.limit(1);
+    return results[0] || null;
+  },
+
+  async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number; include?: any; select?: any }) {
     let query = db.select().from(schema.notifications);
 
     if (params?.where) {
@@ -502,7 +836,34 @@ export const notification = {
     if (params?.skip) query = query.offset(params.skip) as any;
     if (params?.take) query = query.limit(params.take) as any;
 
-    return await query;
+    const notifications = await query;
+
+    // Handle includes
+    if (params?.include?.user && notifications.length > 0) {
+      const userIds = [...new Set(notifications.map(n => n.userId))];
+      const users = await db.select()
+        .from(schema.users)
+        .where(inArray(schema.users.id, userIds));
+
+      const enhancedNotifications = notifications.map(notification => {
+        const user = users.find(u => u.id === notification.userId);
+        if (params.include.user.select) {
+          const selectKeys = Object.keys(params.include.user.select);
+          return {
+            ...notification,
+            user: selectKeys.reduce((obj: any, key) => {
+              obj[key] = (user as any)?.[key];
+              return obj;
+            }, {})
+          };
+        }
+        return { ...notification, user };
+      });
+
+      return enhancedNotifications;
+    }
+
+    return notifications;
   },
 
   async create(params: { data: any }) {
@@ -525,6 +886,10 @@ export const notification = {
         .set({ ...params.data, updatedAt: new Date() })
         .where(condition);
     }
+  },
+
+  async delete(params: { where: { id: string } }) {
+    await db.delete(schema.notifications).where(eq(schema.notifications.id, params.where.id));
   },
 
   async count(params?: { where?: WhereClause }) {
@@ -595,11 +960,15 @@ export const session = {
 
 // Utility methods for Prisma compatibility
 const utils = {
-  async $transaction(operations: any[]) {
-    // Drizzle doesn't have the same transaction API
-    // Execute operations sequentially for now
+  async $transaction(callback: any) {
+    // If it's a callback function, execute it with prisma-compatible interface
+    if (typeof callback === 'function') {
+      // Execute the callback with the prisma-compatible interface
+      return await callback(prisma);
+    }
+    // If it's an array of operations, execute them sequentially
     const results = [];
-    for (const op of operations) {
+    for (const op of callback) {
       results.push(await op);
     }
     return results;
@@ -625,4 +994,3 @@ export const prisma = {
   $transaction: utils.$transaction,
   $disconnect: utils.$disconnect,
 };
-

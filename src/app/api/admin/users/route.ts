@@ -57,17 +57,17 @@ export async function GET(request: NextRequest) {
         phoneVerified: user.phoneVerified,
         kycStatus: user.kycStatus,
         createdAt: user.createdAt,
-        accounts: user.accounts.map(account => ({
+        accounts: (user as any).accounts.map((account: any) => ({
           id: account.id,
           accountType: account.accountType,
           accountNumber: account.accountNumber,
           balance: account.balance,
           status: account.status,
         })),
-        latestKycDocument: user.kycDocuments[0] || null,
+        latestKycDocument: (user as any).kycDocuments[0] || null,
         stats: {
-          totalTransactions: user._count.transactionIntents,
-          totalKycDocuments: user._count.kycDocuments,
+          totalTransactions: (user as any)._count.transactionIntents,
+          totalKycDocuments: (user as any)._count.kycDocuments,
         }
       })),
       pagination: {

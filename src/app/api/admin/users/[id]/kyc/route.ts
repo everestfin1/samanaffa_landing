@@ -58,27 +58,27 @@ export async function PUT(
     // Create in-app notification
     let title = ''
     let message = ''
-    let notificationType: NotificationType = NotificationType.KYC_STATUS
-    let priority: NotificationPriority = NotificationPriority.NORMAL
+    let notificationType: NotificationType = 'KYC_STATUS'
+    let priority: NotificationPriority = 'NORMAL'
 
     switch (kycStatus.toUpperCase()) {
       case 'APPROVED':
         title = 'KYC Approuvé'
         message = 'Félicitations ! Votre dossier KYC a été approuvé avec succès.'
-        notificationType = NotificationType.SUCCESS
-        priority = NotificationPriority.HIGH
+        notificationType = 'SUCCESS'
+        priority = 'HIGH'
         break
       case 'REJECTED':
         title = 'KYC Rejeté'
         message = 'Votre dossier KYC nécessite des corrections. Veuillez consulter les détails.'
-        notificationType = NotificationType.ERROR
-        priority = NotificationPriority.HIGH
+        notificationType = 'ERROR'
+        priority = 'HIGH'
         break
       case 'UNDER_REVIEW':
         title = 'KYC En Révision'
         message = 'Votre dossier KYC est actuellement en cours de révision.'
-        notificationType = NotificationType.WARNING
-        priority = NotificationPriority.NORMAL
+        notificationType = 'WARNING'
+        priority = 'NORMAL'
         break
     }
 

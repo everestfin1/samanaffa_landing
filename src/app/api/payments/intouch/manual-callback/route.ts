@@ -105,19 +105,19 @@ export async function POST(request: NextRequest) {
 
     // Verify amount if provided
     if (callbackAmount) {
-      const expectedAmount = new Prisma.Decimal(intent.amount);
-      const receivedAmount = new Prisma.Decimal(callbackAmount);
+      const expectedAmount = parseFloat(intent.amount);
+      const receivedAmount = parseFloat(callbackAmount);
       
-      if (!expectedAmount.equals(receivedAmount)) {
+      if (expectedAmount !== receivedAmount) {
         console.error('[Manual Callback] Amount mismatch:', {
-          expected: expectedAmount.toString(),
-          received: receivedAmount.toString(),
+          expected: expectedAmount,
+          received: receivedAmount,
         });
         return NextResponse.json(
           {
             error: 'Amount mismatch',
-            expected: expectedAmount.toString(),
-            received: receivedAmount.toString(),
+            expected: expectedAmount,
+            received: receivedAmount,
           },
           { status: 400 }
         );
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Process the transaction
-    const transactionResult = await prisma.$transaction(async (tx) => {
+    const transactionResult = await prisma.$transaction(async (tx: any) => {
       const currentIntent = await tx.transactionIntent.findUnique({
         where: { id: intent.id },
         include: { account: true, user: true },
@@ -135,8 +135,8 @@ export async function POST(request: NextRequest) {
         throw new Error('INTENT_NOT_FOUND');
       }
 
-      const currentBalance = new Prisma.Decimal(currentIntent.account.balance);
-      const transactionAmount = new Prisma.Decimal(currentIntent.amount);
+      const currentBalance = parseFloat(currentIntent.account.balance);
+      const transactionAmount = parseFloat(currentIntent.amount);
 
       let finalStatus: CallbackStatus = mappedStatus;
       let failureReason: string | null = null;
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
 
       if (mappedStatus === 'COMPLETED') {
         if (currentIntent.intentType === 'WITHDRAWAL') {
-          if (currentBalance.lt(transactionAmount)) {
+          if (currentBalance < transactionAmount) {
             finalStatus = 'FAILED';
             failureReason = 'Insufficient funds for withdrawal';
           } else if (currentIntent.status !== 'COMPLETED') {
@@ -163,7 +163,7 @@ export async function POST(request: NextRequest) {
         `Manual callback processed from redirect URL. Error code: ${errorCodeStr}${num_transaction_from_gu ? `, InTouch TX: ${num_transaction_from_gu}` : ''} at ${new Date().toISOString()}`
       );
 
-      const updateData: Prisma.TransactionIntentUpdateInput = {
+      const updateData: any = {
         providerStatus: errorCodeStr,
         lastCallbackAt: new Date(),
         adminNotes: adminNote,
@@ -188,7 +188,7 @@ export async function POST(request: NextRequest) {
         data: {
           transactionIntentId: updatedIntent.id,
           status: `MANUAL_${errorCodeStr}`,
-          payload: body as Prisma.InputJsonValue,
+          payload: body,
         },
       });
 
@@ -196,8 +196,8 @@ export async function POST(request: NextRequest) {
       if (shouldUpdateBalance && finalStatus === 'COMPLETED') {
         const newBalance =
           currentIntent.intentType === 'WITHDRAWAL'
-            ? currentBalance.sub(transactionAmount)
-            : currentBalance.add(transactionAmount);
+            ? (currentBalance - transactionAmount).toFixed(2)
+            : (currentBalance + transactionAmount).toFixed(2);
 
         await tx.userAccount.update({
           where: { id: updatedIntent.accountId },

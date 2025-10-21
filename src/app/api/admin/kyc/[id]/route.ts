@@ -55,10 +55,16 @@ export async function PUT(
       }
     })
 
+    if (!updatedDocument) {
+      return NextResponse.json(
+        { error: 'Failed to update KYC document' },
+        { status: 500 }
+      )
+    }
+
     // Check if we need to update user's overall KYC status
     const userDocuments = await prisma.kycDocument.findMany({
       where: { userId: updatedDocument.userId },
-      select: { verificationStatus: true }
     })
 
     const approvedDocs = userDocuments.filter(doc => doc.verificationStatus === 'APPROVED').length
@@ -81,7 +87,7 @@ export async function PUT(
     }
 
     // Update user KYC status if needed
-    if (newKycStatus && newKycStatus !== updatedDocument.user.kycStatus) {
+    if (newKycStatus && newKycStatus !== (updatedDocument as any).user.kycStatus) {
       await prisma.user.update({
         where: { id: updatedDocument.userId },
         data: { kycStatus: newKycStatus as KycStatus }
@@ -141,9 +147,10 @@ export async function PUT(
       // Send email notification if enabled
       if (shouldSendKYCEmail(newKycStatus as any, notificationSettings)) {
         try {
+          const user = (updatedDocument as any).user;
           await sendKYCStatusEmail(
-            updatedDocument.user.email,
-            `${updatedDocument.user.firstName} ${updatedDocument.user.lastName}`,
+            user.email,
+            `${user.firstName} ${user.lastName}`,
             newKycStatus as any
           )
         } catch (emailError) {
@@ -154,13 +161,15 @@ export async function PUT(
       // Send SMS notification if enabled and configured
       if (shouldSendKYCSMS(newKycStatus as any, notificationSettings)) {
         try {
-          await sendKYCStatusSMS(updatedDocument.user.phone, newKycStatus as any)
+          const user = (updatedDocument as any).user;
+          await sendKYCStatusSMS(user.phone, newKycStatus as any)
         } catch (smsError) {
           console.error('Error sending KYC status SMS:', smsError)
         }
       }
     }
 
+    const user = (updatedDocument as any).user;
     return NextResponse.json({
       success: true,
       message: 'KYC document verification status updated successfully',
@@ -173,11 +182,11 @@ export async function PUT(
         verificationStatus: updatedDocument.verificationStatus,
         adminNotes: updatedDocument.adminNotes,
         user: {
-          id: updatedDocument.user.id,
-          name: `${updatedDocument.user.firstName} ${updatedDocument.user.lastName}`,
-          email: updatedDocument.user.email,
-          phone: updatedDocument.user.phone,
-          kycStatus: updatedDocument.user.kycStatus,
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          phone: user.phone,
+          kycStatus: user.kycStatus,
         }
       }
     })

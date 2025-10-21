@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      kycDocuments: kycDocuments.map(doc => ({
+      kycDocuments: kycDocuments.map((doc: any) => ({
         id: doc.id,
         documentType: doc.documentType,
         fileName: doc.fileName,
