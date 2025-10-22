@@ -237,8 +237,34 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                             {simulationMode === 'objective' && (
                                 <div className="space-y-3 animate-fade-in flex flex-col items-center justify-center w-full">
                                     <p className="text-center text-gray-600 mb-6">Sélectionnez ce qui vous motive le plus à épargner.</p>
-                                    <div className="w-full">
-                                        <div className="flex items-center py-4 gap-4 lg:gap-6 px-4 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scrollbar-thumb-rounded-full">
+                                    <div className="w-full flex items-center gap-2">
+                                        <button
+                                            type="button"
+                                            aria-label="Précédent"
+                                            className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
+                                            onClick={() => {
+                                                const container = document.getElementById('objectives-scroll-section');
+                                                if (container) container.scrollBy({ left: -120, behavior: 'smooth' });
+                                            }}
+                                        >
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#435933]">
+                                                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        </button>
+                                        <div 
+                                            id="objectives-scroll-section"
+                                            className="flex items-center py-4 gap-4 lg:gap-6 px-2 overflow-x-auto w-full"
+                                            style={{ 
+                                                scrollbarWidth: 'none', 
+                                                msOverflowStyle: 'none',
+                                                WebkitOverflowScrolling: 'touch'
+                                            }}
+                                        >
+                                            <style jsx>{`
+                                                #objectives-scroll-section::-webkit-scrollbar {
+                                                    display: none;
+                                                }
+                                            `}</style>
                                             {objectives.map((objective, index) => (
                                                 <div
                                                     key={objective.id}
@@ -262,6 +288,19 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                 </div>
                                             ))}
                                         </div>
+                                        <button
+                                            type="button"
+                                            aria-label="Suivant"
+                                            className="p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
+                                            onClick={() => {
+                                                const container = document.getElementById('objectives-scroll-section');
+                                                if (container) container.scrollBy({ left: 120, behavior: 'smooth' });
+                                            }}
+                                        >
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#435933]">
+                                                <path d="M9 18L15 12L9 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        </button>
                                     </div>
                                 </div>
                             )}

@@ -226,6 +226,10 @@ html {
 
 /* Component Styles */
 /* Buttons */
+button {
+  cursor: pointer;
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

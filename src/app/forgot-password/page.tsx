@@ -297,16 +297,16 @@ function ForgotPasswordForm() {
           {step === 'email' ? (
             <form onSubmit={handleSendOTP} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-2">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-800 text-sm m-0 leading-relaxed">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                  <p className="text-green-800 text-sm">{success}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start space-x-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-green-800 text-sm m-0 leading-relaxed">{success}</p>
                 </div>
               )}
 
@@ -365,16 +365,16 @@ function ForgotPasswordForm() {
           ) : step === 'otp' ? (
             <form onSubmit={handleVerifyOTP} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-2">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-800 text-sm m-0 leading-relaxed">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                  <p className="text-green-800 text-sm">{success}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start space-x-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-green-800 text-sm m-0 leading-relaxed">{success}</p>
                 </div>
               )}
 
@@ -460,16 +460,16 @@ function ForgotPasswordForm() {
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-6">
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center space-x-2">
-                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />
-                  <p className="text-red-800 text-sm">{error}</p>
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start space-x-2">
+                  <ExclamationTriangleIcon className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-red-800 text-sm m-0 leading-relaxed">{error}</p>
                 </div>
               )}
 
               {success && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
-                  <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                  <p className="text-green-800 text-sm">{success}</p>
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start space-x-2">
+                  <CheckCircleIcon className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" />
+                  <p className="text-green-800 text-sm m-0 leading-relaxed">{success}</p>
                 </div>
               )}
 

@@ -224,8 +224,32 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                         {simulationMode === 'objective' && (
                             <div className="space-y-3 animate-fade-in flex flex-col items-center justify-center w-full">
                                 <p className="text-center text-gray-600 mb-3">Sélectionnez ce qui vous motive le plus à épargner.</p>
-                                <div className="w-full">
-                                    <div className="flex items-center justify-center py-4 gap-3 sm:gap-4 lg:gap-6 px-2 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 scrollbar-thumb-rounded-full">
+                                <div className="w-full flex items-center gap-1 sm:gap-2">
+                                    <button
+                                        type="button"
+                                        aria-label="Précédent"
+                                        className="p-1 sm:p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
+                                        onClick={() => {
+                                            const container = document.getElementById('objectives-scroll');
+                                            if (container) container.scrollBy({ left: -120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#435933]" />
+                                    </button>
+                                    <div 
+                                        id="objectives-scroll"
+                                        className="flex items-center py-2 gap-2 sm:gap-3 lg:gap-4 px-1 overflow-x-auto w-full"
+                                        style={{ 
+                                            scrollbarWidth: 'none', 
+                                            msOverflowStyle: 'none',
+                                            WebkitOverflowScrolling: 'touch'
+                                        }}
+                                    >
+                                        <style jsx>{`
+                                            #objectives-scroll::-webkit-scrollbar {
+                                                display: none;
+                                            }
+                                        `}</style>
                                         {objectives.map((objective, index) => (
                                             <div
                                                 key={objective.id}
@@ -264,6 +288,17 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                             </div>
                                         ))}
                                     </div>
+                                    <button
+                                        type="button"
+                                        aria-label="Suivant"
+                                        className="p-1 sm:p-2 rounded-full bg-white border border-gray-200 shadow-sm hover:bg-gray-100 transition disabled:opacity-30 flex-shrink-0"
+                                        onClick={() => {
+                                            const container = document.getElementById('objectives-scroll');
+                                            if (container) container.scrollBy({ left: 120, behavior: 'smooth' });
+                                        }}
+                                    >
+                                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 lg:w-6 lg:h-6 text-[#435933]" />
+                                    </button>
                                 </div>
                             </div>
                         )}

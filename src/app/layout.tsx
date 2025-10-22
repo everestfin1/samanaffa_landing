@@ -28,11 +28,11 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   icons: {
     icon: [
-      { url: "/sama_naffa_logo.png", sizes: "32x32", type: "image/png" },
-      { url: "/sama_naffa_logo.png", sizes: "16x16", type: "image/png" },
+      { url: "/fav-samanaffa.png", sizes: "32x32", type: "image/png" },
+      { url: "/fav-samanaffa.png", sizes: "16x16", type: "image/png" },
     ],
-    shortcut: "/sama_naffa_logo.png",
-    apple: "/sama_naffa_logo.png",
+    shortcut: "/fav-samanaffa.png",
+    apple: "/fav-samanaffa.png",
     other: [
       {
         rel: "android-chrome-192x192",
@@ -62,9 +62,9 @@ export default function RootLayout({
       <head>
         <link
           rel="apple-touch-icon"
-          href="/sama_naffa_logo.png"
+          href="/fav-samanaffa.png"
           type="image/<generated>"
-          sizes="<generated>"
+          sizes="180x180"
         />
       </head>
       <body className={`${geistSans.variable} antialiased`}>

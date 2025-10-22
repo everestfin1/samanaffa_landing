@@ -121,6 +121,63 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Handle password reset OTP
+    if (type === 'password_reset') {
+      if (!email && !phone) {
+        return NextResponse.json(
+          { error: 'Email ou numéro de téléphone requis' },
+          { status: 400 }
+        )
+      }
+
+      // Find user by email or phone
+      const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
+      let user = null
+
+      if (email) {
+        user = await prisma.user.findUnique({ where: { email } })
+      } else if (normalizedPhone) {
+        user = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { phone: normalizedPhone },
+              { phone: normalizedPhone.replace('+221', '') },
+              { phone: normalizedPhone.replace('+', '') },
+              { phone: `+221${normalizedPhone.replace('+221', '')}` }
+            ].filter((format, index, arr) => arr.indexOf(format) === index)
+          }
+        })
+      }
+
+      if (!user) {
+        return NextResponse.json(
+          { error: 'Utilisateur non trouvé' },
+          { status: 404 }
+        )
+      }
+
+      // Send OTP using the provided method (email or phone)
+      const otpResult = await sendOTP(
+        email || user.email,
+        phone || user.phone,
+        'login',
+        email ? 'email' : 'sms'
+      )
+
+      if (!otpResult.success) {
+        return NextResponse.json(
+          { error: otpResult.message },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Code OTP envoyé avec succès',
+        method: email ? 'email' : 'sms'
+      })
+    }
+
     return NextResponse.json(
       { error: 'Type de demande non supporté' },
       { status: 400 }

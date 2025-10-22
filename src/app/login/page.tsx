@@ -421,11 +421,11 @@ function LoginForm() {
                   required
                 />
 
-                <div className="text-center text-sm text-night/60 mt-3">
+                {/* <div className="text-center text-sm text-night/60 mt-3">
                   <p className="bg-gold-metallic/5 px-3 py-2 rounded-lg">
                     💡 Choisissez <strong>soit l'email</strong> soit <strong>le numéro de téléphone</strong> pour vous connecter
                   </p>
-                </div>
+                </div> */}
               </div>
 
               {/* Password Field */}
@@ -508,7 +508,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={() => router.push('/forgot-password')}
-                    className="text-timberwolf/60 hover:text-timberwolf transition-colors"
+                    className="sama-primary-green hover:text-sama-primary-green-light font-medium transition-colors"
                   >
                     Mot de passe oublié ?
                   </button>
