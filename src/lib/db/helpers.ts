@@ -68,9 +68,20 @@ export const user = {
       const included: any = { ...user };
 
       if (params.include.accounts) {
+        // Build account query with user ID filter
+        const accountConditions: SQL<unknown>[] = [eq(schema.userAccounts.userId, user.id)];
+        
+        // Add additional filters if specified in include.accounts.where
+        if (params.include.accounts.where) {
+          const additionalCondition = buildWhereConditions(schema.userAccounts, params.include.accounts.where);
+          if (additionalCondition) {
+            accountConditions.push(additionalCondition);
+          }
+        }
+        
         included.accounts = await db.select()
           .from(schema.userAccounts)
-          .where(eq(schema.userAccounts.userId, user.id));
+          .where(and(...accountConditions));
       }
 
       return included;
@@ -108,9 +119,20 @@ export const user = {
         const enhanced: any = { ...user };
 
         if (params.include.accounts) {
+          // Build account query with user ID filter
+          const accountConditions: SQL<unknown>[] = [eq(schema.userAccounts.userId, user.id)];
+          
+          // Add additional filters if specified in include.accounts.where
+          if (params.include.accounts.where) {
+            const additionalCondition = buildWhereConditions(schema.userAccounts, params.include.accounts.where);
+            if (additionalCondition) {
+              accountConditions.push(additionalCondition);
+            }
+          }
+          
           enhanced.accounts = await db.select()
             .from(schema.userAccounts)
-            .where(eq(schema.userAccounts.userId, user.id));
+            .where(and(...accountConditions));
         }
 
         if (params.include.kycDocuments) {
@@ -155,7 +177,13 @@ export const user = {
   },
 
   async create(params: { data: any }) {
-    const results = await db.insert(schema.users).values(params.data).returning();
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.users).values(dataWithTimestamps).returning();
     return results[0];
   },
 
@@ -493,7 +521,13 @@ export const transactionIntent = {
   },
 
   async create(params: { data: any }) {
-    const results = await db.insert(schema.transactionIntents).values(params.data).returning();
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.transactionIntents).values(dataWithTimestamps).returning();
     return results[0];
   },
 
@@ -867,7 +901,13 @@ export const notification = {
   },
 
   async create(params: { data: any }) {
-    const results = await db.insert(schema.notifications).values(params.data).returning();
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.notifications).values(dataWithTimestamps).returning();
     return results[0];
   },
 

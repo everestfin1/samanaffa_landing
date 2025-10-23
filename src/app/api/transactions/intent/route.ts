@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
   try {
     const {
       userId,
-      accountId,
+      accountId: rawAccountId,
       accountType,
       intentType,
       amount,
@@ -30,8 +30,27 @@ export async function POST(request: NextRequest) {
       providerTransactionId,
     } = await request.json()
 
+    // Normalize accountId - treat empty strings, "null", "undefined" as null
+    const accountId = rawAccountId && 
+                      rawAccountId !== 'null' && 
+                      rawAccountId !== 'undefined' && 
+                      rawAccountId.trim() !== '' 
+                      ? rawAccountId 
+                      : null;
+
     const normalizedAccountType = (accountType ?? '').toString().toLowerCase()
     const normalizedIntentType = (intentType ?? '').toString().toLowerCase()
+    
+    console.log('[Transaction Intent] Request params:', {
+      userId,
+      accountId,
+      rawAccountId,
+      accountType,
+      normalizedAccountType,
+      intentType,
+      normalizedIntentType,
+      amount
+    });
 
     // Validate required fields
     if (!userId || !normalizedAccountType || !normalizedIntentType || amount === undefined || amount === null || !paymentMethod) {
@@ -63,14 +82,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Get user and their account
+    const accountQuery = {
+      accountType: normalizedAccountType.toUpperCase(),
+      ...(accountId && { id: accountId })
+    };
+    
+    console.log('[Transaction Intent] Querying accounts with filter:', accountQuery);
+    
     const user = await prisma.user.findUnique({
       where: { id: userId },
       include: {
         accounts: {
-          where: {
-            accountType: normalizedAccountType.toUpperCase(),
-            ...(accountId && { id: accountId })
-          }
+          where: accountQuery
         }
       }
     })
@@ -94,12 +117,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    console.log('[Transaction Intent] User accounts found:', {
+      accountCount: user.accounts.length,
+      accounts: user.accounts.map(a => ({ id: a.id, type: a.accountType })),
+      requestedAccountId: accountId
+    });
+
     if (!user.accounts.length) {
-      return respondError('account_not_found', 'Account not found', 404)
+      return respondError('account_not_found', `Account not found for type ${normalizedAccountType.toUpperCase()}`, 404)
     }
 
     const account = user.accounts[0]
+    
+    console.log('[Transaction Intent] Selected account:', {
+      accountId: account.id,
+      accountType: account.accountType,
+      requestedAccountId: accountId,
+      idsMatch: account.id === accountId
+    });
+    
     if (accountId && account.id !== accountId) {
+      console.error('[Transaction Intent] Account ID mismatch!', {
+        foundAccountId: account.id,
+        requestedAccountId: accountId,
+        accountsAvailable: user.accounts.map(a => a.id)
+      });
       return respondError('account_mismatch', 'Selected account not found or does not match type', 400)
     }
     const now = new Date()
