@@ -310,6 +310,16 @@ export default function IntouchPayment({
         clientLastName: customerLastName,
         clientPhone: customerPhone
       });
+      
+      console.log('[InTouch Payment] ACTUAL VALUES (with sensitive data):', {
+        orderNumber: referenceNumber,
+        agencyCode: merchantId || 'MISSING',
+        secureCode: apiKey || 'MISSING',
+        domainName: domain || 'MISSING',
+        clientPhone: customerPhone || 'EMPTY',
+        email: customerEmail || 'EMPTY',
+        sessionUser: session?.user
+      });
 
       window.sendPaymentInfos(
         referenceNumber,
@@ -348,6 +358,7 @@ export default function IntouchPayment({
     amount,
     apiKey,
     domain,
+    environment,
     handleIntentError,
     intentType,
     investmentTerm,
@@ -447,7 +458,7 @@ export default function IntouchPayment({
       script.onload = null;
       script.onerror = null;
     };
-  }, [onError, apiKey, domain, merchantId]);
+  }, [onError, apiKey, domain, merchantId, isTestEnvironment]);
 
   useEffect(() => {
     if (scriptReady && !loadError && !configLoading && !paymentStartedRef.current) {

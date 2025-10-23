@@ -122,15 +122,52 @@ export const authOptions: NextAuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
+        // Fetch full user data to include in token
+        const fullUser = await prisma.user.findUnique({
+          where: { id: user.id }
+        });
+        if (fullUser) {
+          token.phone = fullUser.phone
+          token.firstName = fullUser.firstName
+          token.lastName = fullUser.lastName
+          token.email = fullUser.email
+        }
       }
+      
+      // Refresh user data on session update
+      if (trigger === 'update' && token.id) {
+        const fullUser = await prisma.user.findUnique({
+          where: { id: token.id as string }
+        });
+        if (fullUser) {
+          token.phone = fullUser.phone
+          token.firstName = fullUser.firstName
+          token.lastName = fullUser.lastName
+          token.email = fullUser.email
+        }
+      }
+      
       return token
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as User & { id: string }).id = token.id as string
+        (session.user as User & { 
+          id: string;
+          phone?: string;
+          firstName?: string;
+          lastName?: string;
+        }).id = token.id as string;
+        (session.user as any).phone = token.phone;
+        (session.user as any).firstName = token.firstName;
+        (session.user as any).lastName = token.lastName;
+        
+        // Update email if available from token
+        if (token.email) {
+          session.user.email = token.email as string;
+        }
       }
       return session
     }
