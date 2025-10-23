@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     console.log('[Transaction Intent] User accounts found:', {
       accountCount: user.accounts.length,
-      accounts: user.accounts.map(a => ({ id: a.id, type: a.accountType })),
+      accounts: user.accounts.map((a: any) => ({ id: a.id, type: a.accountType })),
       requestedAccountId: accountId
     });
 
@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
       console.error('[Transaction Intent] Account ID mismatch!', {
         foundAccountId: account.id,
         requestedAccountId: accountId,
-        accountsAvailable: user.accounts.map(a => a.id)
+        accountsAvailable: user.accounts.map((a: any) => a.id)
       });
       return respondError('account_mismatch', 'Selected account not found or does not match type', 400)
     }
