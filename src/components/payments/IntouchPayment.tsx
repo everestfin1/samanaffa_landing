@@ -89,8 +89,14 @@ export default function IntouchPayment({
   const paymentStartedRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Determine environment (test or production)
-  const isTestEnvironment = process.env.NODE_ENV !== 'production';
+  // Determine environment (test or production) based on deployment environment
+  // Use VERCEL_ENV if on Vercel, or a custom NEXT_PUBLIC_APP_ENV variable
+  const isTestEnvironment = 
+    process.env.NEXT_PUBLIC_APP_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_APP_ENV === 'test' ||
+    process.env.VERCEL_ENV === 'development' ||
+    process.env.VERCEL_ENV === 'preview' ||
+    (!process.env.NEXT_PUBLIC_APP_ENV && process.env.NODE_ENV !== 'production');
 
   // Use test or production credentials based on environment
   const merchantId = isTestEnvironment
