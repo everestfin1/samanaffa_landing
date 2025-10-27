@@ -277,41 +277,43 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Layout */}
-        <div className="flex justify-between items-center h-20 md:hidden">
+        <div className="flex justify-between items-center h-16 md:hidden">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center flex-1 min-w-0 py-3 pl-2">
             <div className="flex-shrink-0">
-              <Link 
+              <Link
                 href="/"
-                className="transition-opacity hover:opacity-80 "
+                className="transition-opacity hover:opacity-80 block"
               >
                 <Image
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
-                  width={150}
-                  height={50}
+                  width={120}
+                  height={38}
                   priority
+                  className="h-auto w-auto max-h-10"
                 />
               </Link>
             </div>
           </div>
 
           {/* Mobile Menu Button */}
-          <div>
+          <div className="flex items-center pr-2">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className={`p-2  transition-colors ${
+              className={`p-2.5 transition-colors ${
                 isOverLightBackground
                   ? 'sama-text-secondary hover:sama-text-primary'
                   : isHomePage
                     ? 'sama-text-primary hover:sama-text-gold'
                     : 'sama-text-secondary hover:sama-text-primary'
               }`}
+              aria-label={isMobileMenuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
             >
               {isMobileMenuOpen ? (
-                <XMarkIcon className="h-6 w-6" />
+                <XMarkIcon className="h-7 w-7" />
               ) : (
-                <Bars3Icon className="h-6 w-6" />
+                <Bars3Icon className="h-7 w-7" />
               )}
             </button>
           </div>
