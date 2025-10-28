@@ -44,6 +44,11 @@ export default function TransferModal({
   const [preflightMessage, setPreflightMessage] = useState<string>('');
   const withdrawBlocked = type === 'withdraw' && kycStatus !== 'APPROVED';
 
+  // Check if we're in production environment
+  const isProduction = process.env.NODE_ENV === 'production' && 
+                       process.env.NEXT_PUBLIC_APP_ENV !== 'development' && 
+                       process.env.NEXT_PUBLIC_APP_ENV !== 'test';
+
   const handleAmountChange = (value: string) => {
     setAmount(value);
     setError(''); // Clear error when user types
@@ -57,16 +62,17 @@ export default function TransferModal({
       return;
     }
 
-    // if (type === 'deposit') {
-    //   if (requestedAmount < 1000) {
-    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
-    //     return;
-    //   }
-    //   if (requestedAmount % 1000 !== 0) {
-    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
-    //     return;
-    //   }
-    // }
+    // Validate multiples of 1000 in production for both deposits and withdrawals
+    if (isProduction) {
+      if (requestedAmount < 1000) {
+        setError(`Le montant minimum pour un ${type === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`);
+        return;
+      }
+      if (requestedAmount % 1000 !== 0) {
+        setError(`Les ${type === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`);
+        return;
+      }
+    }
 
     if (type === 'withdraw' && requestedAmount > currentBalance) {
       setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
@@ -159,23 +165,23 @@ export default function TransferModal({
 
     const requestedAmount = parseFloat(amount);
     
+    // Validate multiples of 1000 in production for both deposits and withdrawals
+    if (isProduction) {
+      if (requestedAmount < 1000) {
+        setError(`Le montant minimum pour un ${type === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`);
+        return;
+      }
+      if (requestedAmount % 1000 !== 0) {
+        setError(`Les ${type === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`);
+        return;
+      }
+    }
+    
     // Additional validation for withdrawals
     if (type === 'withdraw' && requestedAmount > currentBalance) {
       setError(`Fonds insuffisants. Solde disponible: ${currentBalance.toLocaleString()} FCFA`);
       return;
     }
-
-    // if (type === 'deposit') {
-    //   if (requestedAmount < 1000) {
-    //     setError('Le montant minimum de dépôt est de 1000 FCFA');
-    //     return;
-    //   }
-    //   if (requestedAmount % 1000 !== 0) {
-    //     setError('Les dépôts doivent être par paliers de 1000 FCFA');
-    //     return;
-    //   }
-    // }
-
 
     // Handle Intouch payment
     if (method === 'intouch') {
@@ -337,10 +343,14 @@ export default function TransferModal({
                 type="number" 
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder={type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un multiple de 1000'}
-                // min={type === 'deposit' ? 1000 : 1}
-                // max={type === 'withdraw' ? currentBalance : undefined}
-                // step={type === 'deposit' ? 1000 : 1}
+                placeholder={
+                  isProduction 
+                    ? (type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()} (multiples de 1000)` : 'Entrer un multiple de 1000')
+                    : (type === 'withdraw' ? `Max: ${currentBalance.toLocaleString()}` : 'Entrer un montant')
+                }
+                min={isProduction ? 1000 : 1}
+                max={type === 'withdraw' ? currentBalance : undefined}
+                step={isProduction ? 1000 : 1}
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}

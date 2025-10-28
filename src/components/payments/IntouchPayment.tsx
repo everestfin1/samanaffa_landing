@@ -166,7 +166,11 @@ export default function IntouchPayment({
             break;
           case 'invalid_investment_term':
             errorMessage =
-              'Durée d’investissement invalide. Veuillez sélectionner une durée autorisée.';
+              "Durée d'investissement invalide. Veuillez sélectionner une durée autorisée.";
+            setStatusMessage(errorMessage);
+            break;
+          case 'invalid_amount':
+            errorMessage = payload.error || 'Montant invalide pour cette transaction.';
             setStatusMessage(errorMessage);
             break;
           default:

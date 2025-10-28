@@ -71,6 +71,31 @@ export async function POST(request: NextRequest) {
       return respondError('invalid_intent_type', 'Invalid intent type', 400)
     }
 
+    // Validate amount for deposits and withdrawals in production
+    const isProduction = process.env.NODE_ENV === 'production' && 
+                         process.env.NEXT_PUBLIC_APP_ENV !== 'development' && 
+                         process.env.NEXT_PUBLIC_APP_ENV !== 'test';
+    
+    if (isProduction && (normalizedIntentType === 'deposit' || normalizedIntentType === 'withdrawal')) {
+      const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+      
+      if (numericAmount < 1000) {
+        return respondError(
+          'invalid_amount', 
+          `Le montant minimum pour un ${normalizedIntentType === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`, 
+          400
+        )
+      }
+      
+      if (numericAmount % 1000 !== 0) {
+        return respondError(
+          'invalid_amount', 
+          `Les ${normalizedIntentType === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`, 
+          400
+        )
+      }
+    }
+
     // For APE investments, validate tranche and term
     if (normalizedAccountType === 'ape_investment' && normalizedIntentType === 'investment') {
       if (!investmentTranche || !['A', 'B', 'C', 'D'].includes(investmentTranche)) {
