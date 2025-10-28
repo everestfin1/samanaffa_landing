@@ -37,21 +37,6 @@ export default function Footer() {
               Une approche moderne de la finance traditionnelle.
             </p>
           </div>
-          
-          <div className="flex flex-wrap gap-6 items-center">
-            <div className="flex items-end gap-4">
-              <Image
-                src="/everestfin_logo.png"
-                alt="Everest Finance Logo"
-                width={120}
-                height={40}
-                className="opacity-90"
-              />
-              <span className="text-sm pb-3">
-                Agrément n° SGI /DA/2016/60
-              </span>
-            </div>
-          </div>
 
           {/* Solutions */}
           <div className="flex flex-col sm:flex-row gap-8 pt-8">
@@ -110,6 +95,20 @@ export default function Footer() {
                 <p className="text-white/50">Dakar, Sénégal BP: 11659-13000</p>
               </div>
             </div>
+          </div>
+
+          {/* Everest Finance Logo and Agrément */}
+          <div className="flex flex-col gap-3">
+            <Image
+              src="/everestfin_logo.png"
+              alt="Everest Finance Logo"
+              width={120}
+              height={40}
+              className="opacity-90"
+            />
+            <span className="text-sm text-white/60 font-light">
+              Agrément n° SGI /DA/2016/60
+            </span>
           </div>
         </div>
       </div>

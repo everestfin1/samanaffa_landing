@@ -471,10 +471,10 @@ export default function APEPortal({ kycStatus = 'APPROVED' }: APEPortalProps) {
         <div className="grid md:grid-cols-4 gap-6">
           {trancheOptions.map((option, index) => {
             const colors = [
-              { bg: 'bg-green-500', text: 'text-white' }, // Emission A - Green
-              { bg: 'bg-yellow-400', text: 'text-black' }, // Emission B - Yellow
-              { bg: 'bg-red-600', text: 'text-white' },    // Emission C - Red
-              { bg: 'bg-gray-700', text: 'text-white' }    // Emission D - Dark Gray
+              { bg: "bg-[#288645]", text: "text-white" }, // Emission A - Green
+              { bg: "bg-gold-metallic", text: "text-white" }, // Emission B - Gold
+              { bg: "bg-[#c42f30]", text: "text-white" }, // Emission C - Red
+              { bg: "bg-[#461D4C]", text: "text-white" }, // Emission D - Dark Purple
             ];
             const color = colors[index];
             

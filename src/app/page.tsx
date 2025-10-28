@@ -241,7 +241,7 @@ export default function Home() {
 
       {/* Hero Section */}
       <main id="main">
-        <section className="relative overflow-hidden bg-white h-screen -mt-32" aria-label="Hero">
+        <section className="relative overflow-hidden bg-white h-screen md:h-screen -mt-32 hero-section" aria-label="Hero">
           {/* Background Video */}
           <div className="absolute inset-0">
             <video
@@ -249,7 +249,7 @@ export default function Home() {
               autoPlay
               playsInline
               preload="auto"
-              className={`hero-video w-full h-full object-cover transition-opacity duration-1000 ${isVideoPaused ? 'opacity-0' : 'opacity-100'}`}
+              className={`hero-video hero-media-position w-full h-full object-cover transition-opacity duration-1000 ${isVideoPaused ? 'opacity-0' : 'opacity-100'}`}
               aria-label="Background video"
               poster="/sama-naffa_bg.jpg"
             >
@@ -261,17 +261,16 @@ export default function Home() {
                 src="/sama-naffa_bg.jpg"
                 alt="Hero background"
                 fill
-                className="object-cover"
+                className="hero-media-position object-cover"
                 priority
                 sizes="100vw"
-                style={{ objectFit: 'cover' }}
               />
             </div>
           </div>
 
           {/* Audio Control Button */}
           <motion.div
-            className="absolute bottom-6.5 right-22 z-20"
+            className="absolute bottom-6.5 right-22 z-20 [max-md]:hidden"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 1, duration: 0.5 }}
@@ -307,7 +306,7 @@ export default function Home() {
             </motion.button>
           </motion.div>
 
-          <div className="relative max-w-[600px] mx-auto px-6 h-full flex items-center pt-20">
+          <div className="relative max-w-[600px] mx-auto px-6 h-full flex pt-[18rem] md:items-center md:pt-20">
             <motion.div 
               className="text-center space-y-8 w-full"
               variants={containerVariants}
@@ -516,7 +515,7 @@ export default function Home() {
           <div className="max-w-6xl mx-auto px-6">
             <Link href="/register">
               <Image
-                src="/Banner-Créa-Diaspora-Bond.png"
+                src="/Créa-Diaspora-Bond-1.png"
                 alt="Diaspora Bonds - Appel Public à l'Épargne du Sénégal"
                 className="w-full h-auto hover:opacity-80 transition-all duration-300"
                 width={1000}

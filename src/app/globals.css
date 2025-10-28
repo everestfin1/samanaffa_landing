@@ -519,3 +519,25 @@ video {
   transition: opacity 0.15s ease-in;
 }
 
+/* Responsive object positioning for hero media */
+.hero-media-position {
+  object-position: left center;
+}
+
+@media (min-width: 768px) {
+  .hero-media-position {
+    object-position: center center;
+  }
+}
+
+/* Hero section responsive sizing */
+.hero-section {
+  height: 110vh;
+}
+
+@media (min-width: 768px) {
+  .hero-section {
+    height: 100vh;
+  }
+}
+

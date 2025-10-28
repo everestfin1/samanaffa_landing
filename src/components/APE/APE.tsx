@@ -135,37 +135,21 @@ export default function APE() {
       {/* Hero Section */}
       <main id="main">
         <section
-          className="relative pt-32 pb-20 overflow-hidden max-h-[50vh] flex items-center"
+          className="relative w-full bg-white"
           aria-label="APE Hero"
         >
           {/* Background Image */}
-          <div className="absolute inset-0">
+          <div className="relative w-full h-auto">
             <Image
-              src="/momar_bg.jpg"
+              src="/Créa-Diaspora-Bond-sans-cta.png"
               alt="APE - Emprunt Obligataire État du Sénégal"
-              fill
-              className="object-cover object-center"
+              width={1920}
+              height={600}
+              className="w-full h-auto object-contain"
               priority
               quality={90}
             />
           </div>
-
-          {/* Dark overlay for better text readability */}
-          {/* <div className="absolute inset-0 bg-gradient-to-br from-black/50 via-sama-accent-gold/50 to-sama-primary-green/50"></div> */}
-          {/* <div className="relative max-w-7xl mx-auto px-6 h-full flex items-center">
-            <div className="text-center w-full max-w-5xl mx-auto">
-            <h1 className="sama-heading-hero sama-text-primary mb-6 tracking-tight">
-                Emprunt Obligataire
-                <span className="block text-2xl lg:text-4xl sama-text-gold font-medium mt-3">
-                  Appel Public à l'Épargne
-                </span>
-              </h1>
-            </div>
-          </div> */}
-          {/* <p className="sama-body-large text-white/95 max-w-4xl mx-auto mb-8 leading-relaxed">
-                Investissement sécurisé dans les obligations d'État avec rendements fixes garantis.
-                Participez au financement des projets stratégiques du Sénégal.
-              </p>*/}
         </section>
 
         {/* Key Stats Section - Enhanced */}
@@ -237,10 +221,10 @@ export default function APE() {
               <div className="grid md:grid-cols-4 gap-6">
                 {trancheOptions.map((option, index) => {
                   const colors = [
-                    { bg: "bg-green-500", text: "text-white" }, // Emission A - Green
-                    { bg: "bg-yellow-400", text: "text-black" }, // Emission B - Yellow
-                    { bg: "bg-red-600", text: "text-white" }, // Emission C - Red
-                    { bg: "bg-gray-700", text: "text-white" }, // Emission D - Dark Gray
+                    { bg: "bg-[#288645]", text: "text-white" }, // Emission A - Green
+                    { bg: "bg-gold-metallic", text: "text-white" }, // Emission B - Gold
+                    { bg: "bg-[#c42f30]", text: "text-white" }, // Emission C - Red
+                    { bg: "bg-[#461D4C]", text: "text-white" }, // Emission D - Dark Purple
                   ];
                   const color = colors[index];
 
