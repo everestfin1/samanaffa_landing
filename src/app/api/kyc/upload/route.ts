@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { prisma } from '@/lib/prisma'
+import { checkKYCRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,6 +9,24 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File
     const userId = formData.get('userId') as string
     const documentType = formData.get('documentType') as string
+
+    // Check rate limiting for KYC uploads
+    if (userId) {
+      const rateLimit = checkKYCRateLimit(request, userId)
+      
+      if (!rateLimit.allowed) {
+        return NextResponse.json({
+          error: rateLimit.blocked 
+            ? `Trop de téléchargements de documents. Réessayez dans ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+            : 'Trop de téléchargements de documents. Veuillez réessayer plus tard.',
+          rateLimit: {
+            remaining: rateLimit.remaining,
+            resetTime: rateLimit.resetTime,
+            blocked: rateLimit.blocked
+          }
+        }, { status: 429 })
+      }
+    }
 
     if (!file) {
       return NextResponse.json(

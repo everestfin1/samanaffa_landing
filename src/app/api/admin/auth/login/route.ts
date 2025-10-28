@@ -3,11 +3,12 @@ import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
 import { createAuthResponse, createErrorResponse } from '@/lib/admin-auth'
 import { checkRateLimit, resetRateLimit } from '@/lib/rate-limit'
+import { logAdminLogin } from '@/lib/audit-logger'
 
 export async function POST(request: NextRequest) {
   try {
     // Check rate limiting
-    const rateLimit = checkRateLimit(request)
+    const rateLimit = checkRateLimit(request, 'admin')
     
     if (!rateLimit.allowed) {
       return NextResponse.json({
@@ -84,7 +85,10 @@ export async function POST(request: NextRequest) {
     })
 
     // Reset rate limit on successful login
-    resetRateLimit(request)
+    resetRateLimit(request, 'admin')
+
+    // Log admin login
+    await logAdminLogin(admin.id, request)
 
     // Create auth response
     return createAuthResponse({

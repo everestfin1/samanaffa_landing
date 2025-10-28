@@ -2,10 +2,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone } from '@/lib/utils'
+import { checkOTPRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
   try {
     const { email, phone, type, method, registrationData } = await request.json()
+
+    // Check rate limiting for OTP requests
+    const identifier = email || phone
+    if (identifier) {
+      const rateLimit = checkOTPRateLimit(request, identifier)
+      
+      if (!rateLimit.allowed) {
+        return NextResponse.json({
+          error: rateLimit.blocked 
+            ? `Trop de demandes de code OTP. Réessayez dans ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+            : 'Trop de demandes de code OTP. Veuillez réessayer plus tard.',
+          rateLimit: {
+            remaining: rateLimit.remaining,
+            resetTime: rateLimit.resetTime,
+            blocked: rateLimit.blocked
+          }
+        }, { status: 429 })
+      }
+    }
 
     // Handle registration data storage for deferred verification
     if (type === 'registration' && registrationData) {

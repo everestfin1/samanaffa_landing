@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
+import { logTransactionUpdate } from '@/lib/audit-logger'
 
 export async function PUT(
   request: NextRequest,
@@ -155,6 +156,15 @@ export async function PUT(
         }
       }
     })
+
+    // Log the transaction update
+    await logTransactionUpdate(
+      user.id,
+      id,
+      currentIntent.status,
+      status.toUpperCase(),
+      request
+    )
 
     return NextResponse.json({
       success: true,

@@ -969,6 +969,72 @@ export const paymentCallbackLog = {
   },
 };
 
+// Prisma-compatible query builder for Admin Audit Logs
+export const adminAuditLog = {
+  async create(params: { data: any }) {
+    const results = await db.insert(schema.adminAuditLogs).values(params.data).returning();
+    return results[0];
+  },
+
+  async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number; include?: any }) {
+    let query = db.select().from(schema.adminAuditLogs);
+
+    if (params?.where) {
+      const condition = buildWhereConditions(schema.adminAuditLogs, params.where);
+      if (condition) query = query.where(condition) as any;
+    }
+
+    if (params?.orderBy) {
+      const orderKey = Object.keys(params.orderBy)[0];
+      const orderDir = params.orderBy[orderKey];
+      const column = (schema.adminAuditLogs as any)[orderKey];
+      if (column) {
+        query = query.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+      }
+    }
+
+    if (params?.skip) query = query.offset(params.skip) as any;
+    if (params?.take) query = query.limit(params.take) as any;
+
+    const logs = await query;
+
+    // Handle includes
+    if (params?.include?.admin && logs.length > 0) {
+      const adminIds = [...new Set(logs.map(l => l.adminId))];
+      const admins = await db.select()
+        .from(schema.adminUsers)
+        .where(inArray(schema.adminUsers.id, adminIds));
+
+      const enhancedLogs = logs.map(log => {
+        const admin = admins.find(a => a.id === log.adminId);
+        if (params.include.admin.select) {
+          const selectKeys = Object.keys(params.include.admin.select);
+          return {
+            ...log,
+            admin: selectKeys.reduce((obj: any, key) => {
+              obj[key] = (admin as any)?.[key];
+              return obj;
+            }, {})
+          };
+        }
+        return { ...log, admin };
+      });
+
+      return enhancedLogs;
+    }
+
+    return logs;
+  },
+
+  async count(params?: { where?: WhereClause }) {
+    const condition = params?.where ? buildWhereConditions(schema.adminAuditLogs, params.where) : undefined;
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(schema.adminAuditLogs)
+      .where(condition);
+    return Number(result[0].count);
+  },
+};
+
 // Session helpers
 export const session = {
   async findUnique(params: { where: { sessionToken: string } }) {
@@ -1028,6 +1094,7 @@ export const prisma = {
   registrationSession,
   kycDocument,
   adminUser,
+  adminAuditLog,
   notification,
   paymentCallbackLog,
   session,

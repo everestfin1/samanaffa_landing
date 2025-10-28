@@ -20,10 +20,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate password strength
-    if (password.length < 8) {
+    // Validate password strength comprehensively
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumbers = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
+    if (password.length < 8 || !hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
       return NextResponse.json(
-        { error: 'Le mot de passe doit contenir au moins 8 caractères' },
+        { error: 'Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial' },
         { status: 400 }
       )
     }

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { generateReferenceNumber } from '@/lib/utils'
 import { sendTransactionIntentEmail, sendAdminNotificationEmail } from '@/lib/notifications'
+import { checkTransactionRateLimit } from '@/lib/rate-limit'
+import { sanitizeText, validateAmount } from '@/lib/sanitization'
 
 function respondError(code: string, message: string, status = 400) {
   return NextResponse.json(
@@ -30,6 +32,25 @@ export async function POST(request: NextRequest) {
       providerTransactionId,
     } = await request.json()
 
+    // Check rate limiting for transaction creation
+    if (userId) {
+      const rateLimit = checkTransactionRateLimit(request, userId)
+      
+      if (!rateLimit.allowed) {
+        return NextResponse.json({
+          success: false,
+          error: rateLimit.blocked 
+            ? `Trop de demandes de transaction. Réessayez dans ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+            : 'Trop de demandes de transaction. Veuillez réessayer plus tard.',
+          rateLimit: {
+            remaining: rateLimit.remaining,
+            resetTime: rateLimit.resetTime,
+            blocked: rateLimit.blocked
+          }
+        }, { status: 429 })
+      }
+    }
+
     // Normalize accountId - treat empty strings, "null", "undefined" as null
     const accountId = rawAccountId && 
                       rawAccountId !== 'null' && 
@@ -52,10 +73,19 @@ export async function POST(request: NextRequest) {
       amount
     });
 
-    // Validate required fields
-    if (!userId || !normalizedAccountType || !normalizedIntentType || amount === undefined || amount === null || !paymentMethod) {
-      return respondError('missing_fields', 'Missing required fields', 400)
+    // Validate and sanitize input
+    if (!userId || typeof userId !== 'string') {
+      return respondError('invalid_user_id', 'User ID is required and must be a string', 400)
     }
+
+    if (!validateAmount(amount)) {
+      return respondError('invalid_amount', 'Invalid amount provided', 400)
+    }
+
+    // Sanitize text inputs
+    const sanitizedUserNotes = userNotes ? sanitizeText(userNotes) : null
+    const sanitizedAccountType = sanitizeText(normalizedAccountType)
+    const sanitizedIntentType = sanitizeText(normalizedIntentType)
 
     if (providerTransactionId && typeof providerTransactionId !== 'string') {
       return respondError('invalid_provider_transaction_id', 'Invalid provider transaction identifier', 400)

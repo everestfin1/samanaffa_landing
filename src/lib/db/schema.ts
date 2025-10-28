@@ -51,6 +51,9 @@ export const users = pgTable('users', {
   signature: text('signature'),
   statutEmploi: text('statutEmploi'),
   termsAccepted: boolean('termsAccepted').notNull().default(false),
+  // Account lockout fields
+  failedAttempts: integer('failedAttempts').notNull().default(0),
+  lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
 });
 
 // Sessions table
@@ -160,6 +163,19 @@ export const adminUsers = pgTable('admin_users', {
   isActive: boolean('isActive').notNull().default(true),
   lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+// Admin Audit Logs table
+export const adminAuditLogs = pgTable('admin_audit_logs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  adminId: text('adminId').notNull().references(() => adminUsers.id, { onDelete: 'cascade' }),
+  action: text('action').notNull(), // e.g., 'KYC_APPROVED', 'USER_SUSPENDED', 'TRANSACTION_UPDATED'
+  resourceType: text('resourceType').notNull(), // e.g., 'user', 'transaction', 'kyc_document'
+  resourceId: text('resourceId'), // ID of the affected resource
+  details: json('details'), // Additional context about the action
+  ipAddress: text('ipAddress'),
+  userAgent: text('userAgent'),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
 });
 
 // Notifications table

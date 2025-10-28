@@ -1,16 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAdminAuth } from '@/lib/admin-auth'
+import { logAdminLogout } from '@/lib/audit-logger'
 
 export async function POST(request: NextRequest) {
   try {
     // Verify the token to ensure it's valid before logging out
-    const { error } = await verifyAdminAuth(request)
+    const { user, error } = await verifyAdminAuth(request)
     
     if (error) {
       return NextResponse.json({
         success: false,
         error: 'Invalid token'
       }, { status: 401 })
+    }
+
+    // Log admin logout
+    if (user) {
+      await logAdminLogout(user.id, request)
     }
 
     // In a more sophisticated setup, you might want to:

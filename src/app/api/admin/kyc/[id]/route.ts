@@ -4,15 +4,16 @@ import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
 import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types'
+import { logKYCApproval, logKYCRejection } from '@/lib/audit-logger'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   // Verify admin authentication
-  const { error, user } = await verifyAdminAuth(request)
+  const { error, user: adminUser } = await verifyAdminAuth(request)
 
-  if (error || !user) {
+  if (error || !adminUser) {
     return createErrorResponse('Unauthorized', 401)
   }
   try {
@@ -59,6 +60,24 @@ export async function PUT(
       return NextResponse.json(
         { error: 'Failed to update KYC document' },
         { status: 500 }
+      )
+    }
+
+    // Log KYC action
+    if (verificationStatus.toUpperCase() === 'APPROVED') {
+      await logKYCApproval(
+        adminUser.id,
+        updatedDocument.userId,
+        updatedDocument.id,
+        request
+      )
+    } else if (verificationStatus.toUpperCase() === 'REJECTED') {
+      await logKYCRejection(
+        adminUser.id,
+        updatedDocument.userId,
+        updatedDocument.id,
+        adminNotes || 'No reason provided',
+        request
       )
     }
 
@@ -144,13 +163,15 @@ export async function PUT(
       // Get notification settings
       const notificationSettings = getServerSideNotificationSettings()
 
+      // Get user data for notifications
+      const userData = (updatedDocument as any).user;
+
       // Send email notification if enabled
       if (shouldSendKYCEmail(newKycStatus as any, notificationSettings)) {
         try {
-          const user = (updatedDocument as any).user;
           await sendKYCStatusEmail(
-            user.email,
-            `${user.firstName} ${user.lastName}`,
+            userData.email,
+            `${userData.firstName} ${userData.lastName}`,
             newKycStatus as any
           )
         } catch (emailError) {
@@ -161,8 +182,7 @@ export async function PUT(
       // Send SMS notification if enabled and configured
       if (shouldSendKYCSMS(newKycStatus as any, notificationSettings)) {
         try {
-          const user = (updatedDocument as any).user;
-          await sendKYCStatusSMS(user.phone, newKycStatus as any)
+          await sendKYCStatusSMS(userData.phone, newKycStatus as any)
         } catch (smsError) {
           console.error('Error sending KYC status SMS:', smsError)
         }
