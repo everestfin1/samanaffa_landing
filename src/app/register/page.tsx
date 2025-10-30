@@ -211,26 +211,65 @@ export default function RegisterPage() {
         return '';
 
       case 'region':
-        if (!value || typeof value !== 'string' || value.trim() === '') return 'Région est requise';
+        // Only required for Senegal
+        if (formData.country === 'Senegal') {
+          if (!value || typeof value !== 'string' || value.trim() === '') return 'Région est requise';
+        }
         return '';
 
       case 'address':
         if (!value || typeof value !== 'string' || value.trim().length < 5) {
           return 'Adresse doit contenir au moins 5 caractères';
         }
+        
+        // Remove whitespace for validation checks
+        const trimmedAddress = value.trim();
+        
+        // Must contain at least one letter or digit (not just special characters)
+        if (!/[a-zA-Z0-9]/.test(trimmedAddress)) {
+          return 'L\'adresse doit contenir au moins une lettre ou un chiffre';
+        }
+        
+        // Check that it contains at least 2 alphanumeric characters (to avoid addresses like "a!" or "1!")
+        const alphanumericCount = (trimmedAddress.match(/[a-zA-Z0-9]/g) || []).length;
+        if (alphanumericCount < 2) {
+          return 'L\'adresse doit contenir au moins 2 caractères alphanumériques';
+        }
+        
+        // Check that the address doesn't consist mostly of special characters
+        // Allow common address characters: letters, numbers, spaces, commas, hyphens, apostrophes, periods, slashes
+        const validAddressPattern = /^[a-zA-Z0-9\s,\-'./àáâãäåèéêëìíîïòóôõöùúûüýÿÀÁÂÃÄÅÈÉÊËÌÍÎÏÒÓÔÕÖÙÚÛÜÝŸ]+$/;
+        if (!validAddressPattern.test(trimmedAddress)) {
+          return 'L\'adresse contient des caractères non autorisés';
+        }
+        
+        // Ensure the address doesn't have excessive special characters (>50% special chars)
+        // Count non-alphanumeric, non-space characters
+        const specialCharCount = (trimmedAddress.match(/[^a-zA-Z0-9\s]/g) || []).length;
+        const totalChars = trimmedAddress.length;
+        if (specialCharCount > totalChars * 0.5) {
+          return 'L\'adresse contient trop de caractères spéciaux';
+        }
+        
         return '';
 
       case 'department':
-        if (!value || typeof value !== 'string' || value.trim() === '') return 'Département est requis';
+        // Only required for Senegal
+        if (formData.country === 'Senegal') {
+          if (!value || typeof value !== 'string' || value.trim() === '') return 'Département est requis';
+        }
         return '';
 
       case 'arrondissement':
-        // Arrondissement is only required if the department has arrondissements
-        // This validation will be handled by the Step3Address component
+        // Arrondissement is only required if the department has arrondissements (for Senegal)
+        // This validation will be handled by the Step3Address component and validateStep
         return '';
 
       case 'district':
-        if (!value || typeof value !== 'string' || value.trim() === '') return 'District/Commune est requis';
+        // Only required for Senegal
+        if (formData.country === 'Senegal') {
+          if (!value || typeof value !== 'string' || value.trim() === '') return 'District/Commune est requis';
+        }
         return '';
 
 
@@ -410,7 +449,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'department', 'district', 'address'],
+      3: ['country', 'address'], // Only country and address are always required
       4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
@@ -444,11 +483,14 @@ export default function RegisterPage() {
       if (errors[field]) return false;
     }
 
-    // Special validation for step 3 (address) - check arrondissement requirement
+    // Additional validation for Senegal-specific fields (step 3)
     if (step === 3 && formData.country === 'Senegal') {
-      // Import the regions data to check if department has arrondissements
-      // This is a simplified check - in a real app, you might want to move this logic
-      // to a utility function or use the same functions from Step3Address
+      // For Senegal, region, department, and district are required
+      if (!formData.region || formData.region.trim() === '') return false;
+      if (!formData.department || formData.department.trim() === '') return false;
+      if (!formData.district || formData.district.trim() === '') return false;
+      
+      // Check arrondissement requirement if department has arrondissements
       try {
         const regionsSenegal = await import('../../../regions_senegal.json');
         const regionData = regionsSenegal.find((region: any) => 
@@ -484,7 +526,7 @@ export default function RegisterPage() {
     const stepFields = {
       1: step1Fields,
       2: ['nationality', 'idType', 'idNumber', 'idIssueDate', 'idExpiryDate', 'dateOfBirth', 'placeOfBirth'],
-      3: ['country', 'region', 'department', 'arrondissement', 'district', 'address'],
+      3: ['country', 'address'], // Only country and address are always required
       4: ['selfieImage', 'idFrontImage'],
       5: ['termsAccepted', 'privacyAccepted', 'signature']
     };
@@ -500,6 +542,30 @@ export default function RegisterPage() {
         [field]: error
       }));
     });
+    
+    // For step 3, mark Senegal-specific fields as touched if country is Senegal
+    if (currentStep === 3 && formData.country === 'Senegal') {
+      ['region', 'department', 'district'].forEach(field => {
+        newTouched[field] = true;
+        const value = formData[field as keyof FormData];
+        const error = validateField(field, value);
+        setErrors(prev => ({
+          ...prev,
+          [field]: error
+        }));
+      });
+      
+      // Also check arrondissement if needed
+      if (formData.department) {
+        newTouched['arrondissement'] = true;
+        const error = validateField('arrondissement', formData.arrondissement);
+        setErrors(prev => ({
+          ...prev,
+          arrondissement: error
+        }));
+      }
+    }
+    
     setTouched(newTouched);
 
     if (await validateStep(currentStep)) {

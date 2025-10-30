@@ -3,6 +3,7 @@
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
 import regionsSenegal from '../../../regions_senegal.json';
+import { useState, useRef, useEffect } from 'react';
 
 // Utility function to convert ALL CAPS text to Title Case
 const toTitleCase = (text: string): string => {
@@ -98,7 +99,7 @@ const toTitleCase = (text: string): string => {
     .join(' ');
 };
 
-// All Senegal regions (14 total) - with display names and JSON keys
+// All Senegal regions (14 total) - with display names and JSON keys, sorted alphabetically
 const senegalRegions = [
   { display: 'Dakar', value: 'DAKAR' },
   { display: 'Diourbel', value: 'DIOURBEL' },
@@ -114,7 +115,7 @@ const senegalRegions = [
   { display: 'Tambacounda', value: 'TAMBACOUNDA' },
   { display: 'Thiès', value: 'THIES' },
   { display: 'Ziguinchor', value: 'ZIGUINCHOR' }
-];
+].sort((a, b) => a.display.localeCompare(b.display, 'fr'));
 
 // Function to get region data by region name
 const getRegionData = (regionName: string) => {
@@ -126,10 +127,12 @@ const getDepartmentsForRegion = (regionName: string): Array<{value: string, disp
   const regionData = getRegionData(regionName);
   if (!regionData) return [];
   
-  return regionData.departements.map(dept => ({
-    value: dept.name,
-    display: toTitleCase(dept.name)
-  }));
+  return regionData.departements
+    .map(dept => ({
+      value: dept.name,
+      display: toTitleCase(dept.name)
+    }))
+    .sort((a, b) => a.display.localeCompare(b.display, 'fr'));
 };
 
 // Function to get arrondissements for a specific department
@@ -140,10 +143,12 @@ const getArrondissementsForDepartment = (regionName: string, departmentName: str
   const department = regionData.departements.find(dept => dept.name.toLowerCase() === departmentName.toLowerCase());
   if (!department || !department.arrondissements) return [];
   
-  return department.arrondissements.map(arr => ({
-    value: arr.name,
-    display: toTitleCase(arr.name)
-  }));
+  return department.arrondissements
+    .map(arr => ({
+      value: arr.name,
+      display: toTitleCase(arr.name)
+    }))
+    .sort((a, b) => a.display.localeCompare(b.display, 'fr'));
 };
 
 // Function to get direct communes for a specific department
@@ -154,10 +159,12 @@ const getDirectCommunesForDepartment = (regionName: string, departmentName: stri
   const department = regionData.departements.find(dept => dept.name.toLowerCase() === departmentName.toLowerCase());
   if (!department || !department.communes) return [];
   
-  return department.communes.map(commune => ({
-    value: commune.name,
-    display: toTitleCase(commune.name)
-  }));
+  return department.communes
+    .map(commune => ({
+      value: commune.name,
+      display: toTitleCase(commune.name)
+    }))
+    .sort((a, b) => a.display.localeCompare(b.display, 'fr'));
 };
 
 // Function to get communes for a specific arrondissement
@@ -171,10 +178,12 @@ const getCommunesForArrondissement = (regionName: string, departmentName: string
   const arrondissement = department.arrondissements.find(arr => arr.name.toLowerCase() === arrondissementName.toLowerCase());
   if (!arrondissement || !arrondissement.communes) return [];
   
-  return arrondissement.communes.map(commune => ({
-    value: commune.name,
-    display: toTitleCase(commune.name)
-  }));
+  return arrondissement.communes
+    .map(commune => ({
+      value: commune.name,
+      display: toTitleCase(commune.name)
+    }))
+    .sort((a, b) => a.display.localeCompare(b.display, 'fr'));
 };
 
 // Function to check if department has direct communes
@@ -212,12 +221,59 @@ export default function Step3Address({
   onInputChange,
   onBlur
 }: Step3AddressProps) {
+  const [isCountryDropdownOpen, setIsCountryDropdownOpen] = useState(false);
+  const [countrySearchTerm, setCountrySearchTerm] = useState('');
+  const countryDropdownRef = useRef<HTMLDivElement>(null);
+  const countryInputRef = useRef<HTMLInputElement>(null);
+
   const getFieldError = (fieldName: string): string => {
     return touched[fieldName] ? errors[fieldName] || '' : '';
   };
 
   const hasFieldError = (fieldName: string): boolean => {
     return touched[fieldName] && !!errors[fieldName];
+  };
+
+  // Filter countries based on search term
+  const filteredCountries = countries.filter(country =>
+    country.name.toLowerCase().includes(countrySearchTerm.toLowerCase()) ||
+    country.code.toLowerCase().includes(countrySearchTerm.toLowerCase())
+  );
+
+  // Get selected country display value
+  const selectedCountry = countries.find(c => c.name === formData.country);
+  const countryDisplayValue = selectedCountry ? `${selectedCountry.flag} ${selectedCountry.name}` : '';
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target as Node)) {
+        setIsCountryDropdownOpen(false);
+        setCountrySearchTerm('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Handle country selection
+  const handleCountrySelect = (countryName: string) => {
+    const event = {
+      target: { name: 'country', value: countryName }
+    } as React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+    
+    handleFieldChange(event);
+    setIsCountryDropdownOpen(false);
+    setCountrySearchTerm('');
+    
+    // Trigger blur event for validation
+    const blurEvent = {
+      target: { name: 'country', value: countryName }
+    } as React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+    onBlur(blurEvent);
   };
 
   // Handle changes and clear dependent fields
@@ -259,94 +315,110 @@ export default function Step3Address({
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Pays de résidence *</label>
-        <div className="relative">
-          <select 
-            name="country" 
-            value={formData.country} 
-            onChange={handleFieldChange} 
-            className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none" 
+        <div className="relative" ref={countryDropdownRef}>
+          {/* Hidden input for form submission */}
+          <input
+            type="hidden"
+            name="country"
+            value={formData.country}
             required
-          >
-            <option value="">Sélectionner un pays</option>
-            {countries.map((country) => (
-              <option key={country.code} value={country.name}>
-                {country.flag} {country.name}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-            <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-semibold text-night mb-2">Région *</label>
-        {formData.country === 'Senegal' ? (
+          />
+          
+          {/* Searchable dropdown */}
           <div className="relative">
-            <select
-              name="region"
-              value={formData.region}
-              onChange={handleFieldChange}
-              onBlur={onBlur}
-              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
-                hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+            <input
+              ref={countryInputRef}
+              type="text"
+              value={isCountryDropdownOpen ? countrySearchTerm : countryDisplayValue}
+              onChange={(e) => {
+                setCountrySearchTerm(e.target.value);
+                setIsCountryDropdownOpen(true);
+              }}
+              onFocus={() => {
+                setIsCountryDropdownOpen(true);
+                setCountrySearchTerm('');
+              }}
+              onBlur={(e) => {
+                // Delay to allow click on dropdown items
+                setTimeout(() => {
+                  if (!countryDropdownRef.current?.contains(document.activeElement)) {
+                    setIsCountryDropdownOpen(false);
+                    setCountrySearchTerm('');
+                    
+                    // Trigger blur event for validation if country is selected
+                    if (formData.country) {
+                      const blurEvent = {
+                        target: { name: 'country', value: formData.country }
+                      } as React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>;
+                      onBlur(blurEvent);
+                    }
+                  }
+                }, 200);
+              }}
+              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                hasFieldError('country') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
               }`}
+              placeholder={formData.country ? '' : 'Sélectionner un pays'}
               required
-            >
-              <option value="">Sélectionner une région</option>
-              {senegalRegions.map((region) => (
-                <option key={region.value} value={region.value}>
-                  {region.display}
-                </option>
-              ))}
-            </select>
+            />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
-        ) : (
-          <input
-            type="text"
-            name="region"
-            value={formData.region}
-            onChange={handleFieldChange}
-            onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-              hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-            }`}
-            placeholder="Ex: Dakar, Thiès, Paris, New York..."
-            required
-          />
-        )}
-        {getFieldError('region') && (
-          <p className="text-red-500 text-sm mt-1">{getFieldError('region')}</p>
+
+          {/* Dropdown options */}
+          {isCountryDropdownOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-timberwolf/30 rounded-xl shadow-lg max-h-60 overflow-auto">
+              {filteredCountries.length === 0 ? (
+                <div className="px-4 py-3 text-sm text-gray-500">
+                  Aucun pays trouvé
+                </div>
+              ) : (
+                filteredCountries.map((country) => (
+                  <button
+                    key={country.code}
+                    type="button"
+                    onClick={() => handleCountrySelect(country.name)}
+                    className={`w-full px-4 py-3 text-left hover:bg-gold-metallic/10 transition-colors duration-150 ${
+                      formData.country === country.name ? 'bg-gold-metallic/20 font-medium' : ''
+                    }`}
+                  >
+                    <span className="text-sm">
+                      {country.flag} {country.name}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+          )}
+        </div>
+        {getFieldError('country') && (
+          <p className="text-red-500 text-sm mt-1">{getFieldError('country')}</p>
         )}
       </div>
 
-      {formData.country === 'Senegal' && formData.region && (
-        <div>
-          <label className="block text-sm font-semibold text-night mb-2">Département *</label>
-          {getDepartmentsForRegion(formData.region).length > 0 ? (
+      {/* Only show Senegal-specific fields when country is Senegal */}
+      {formData.country === 'Senegal' && (
+        <>
+          <div>
+            <label className="block text-sm font-semibold text-night mb-2">Région *</label>
             <div className="relative">
               <select
-                name="department"
-                value={formData.department}
+                name="region"
+                value={formData.region}
                 onChange={handleFieldChange}
                 onBlur={onBlur}
                 className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
-                  hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                  hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                 }`}
                 required
               >
-                <option value="">Sélectionner un département</option>
-                {getDepartmentsForRegion(formData.region).map((department) => (
-                  <option key={department.value} value={department.value}>
-                    {department.display}
+                <option value="">Sélectionner une région</option>
+                {senegalRegions.map((region) => (
+                  <option key={region.value} value={region.value}>
+                    {region.display}
                   </option>
                 ))}
               </select>
@@ -356,90 +428,77 @@ export default function Step3Address({
                 </svg>
               </div>
             </div>
-          ) : (
-            <input
-              type="text"
-              name="department"
-              value={formData.department}
-              onChange={handleFieldChange}
-              onBlur={onBlur}
-              className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-                hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-              }`}
-              placeholder="Saisir le département"
-              required
-            />
-          )}
-          {getFieldError('department') && (
-            <p className="text-red-500 text-sm mt-1">{getFieldError('department')}</p>
-          )}
-        </div>
-      )}
-
-      {formData.country === 'Senegal' && formData.region && formData.department && departmentHasArrondissements(formData.region, formData.department) && (
-        <div>
-          <label className="block text-sm font-semibold text-night mb-2">Arrondissement *</label>
-          <div className="relative">
-            <select
-              name="arrondissement"
-              value={formData.arrondissement}
-              onChange={handleFieldChange}
-              onBlur={onBlur}
-              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
-                hasFieldError('arrondissement') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-              }`}
-              required
-            >
-              <option value="">Sélectionner un arrondissement</option>
-              {getArrondissementsForDepartment(formData.region, formData.department).map((arrondissement) => (
-                <option key={arrondissement.value} value={arrondissement.value}>
-                  {arrondissement.display}
-                </option>
-              ))}
-            </select>
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-              <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            </div>
+            {getFieldError('region') && (
+              <p className="text-red-500 text-sm mt-1">{getFieldError('region')}</p>
+            )}
           </div>
-          {getFieldError('arrondissement') && (
-            <p className="text-red-500 text-sm mt-1">{getFieldError('arrondissement')}</p>
-          )}
-        </div>
-      )}
 
-      <div>
-        <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
-        {formData.country === 'Senegal' && formData.region && formData.department ? (
-          (() => {
-            let communes: Array<{value: string, display: string}> = [];
-            
-            // If department has direct communes, use them
-            if (departmentHasDirectCommunes(formData.region, formData.department)) {
-              communes = getDirectCommunesForDepartment(formData.region, formData.department);
-            }
-            // If arrondissement is selected, get communes from arrondissement
-            else if (formData.arrondissement) {
-              communes = getCommunesForArrondissement(formData.region, formData.department, formData.arrondissement);
-            }
-            
-            return communes.length > 0 ? (
+          {formData.region && (
+            <div>
+              <label className="block text-sm font-semibold text-night mb-2">Département *</label>
+              {getDepartmentsForRegion(formData.region).length > 0 ? (
+                <div className="relative">
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleFieldChange}
+                    onBlur={onBlur}
+                    className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
+                      hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                    }`}
+                    required
+                  >
+                    <option value="">Sélectionner un département</option>
+                    {getDepartmentsForRegion(formData.region).map((department) => (
+                      <option key={department.value} value={department.value}>
+                        {department.display}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+              ) : (
+                <input
+                  type="text"
+                  name="department"
+                  value={formData.department}
+                  onChange={handleFieldChange}
+                  onBlur={onBlur}
+                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                    hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                  }`}
+                  placeholder="Saisir le département"
+                  required
+                />
+              )}
+              {getFieldError('department') && (
+                <p className="text-red-500 text-sm mt-1">{getFieldError('department')}</p>
+              )}
+            </div>
+          )}
+
+          {formData.region && formData.department && departmentHasArrondissements(formData.region, formData.department) && (
+            <div>
+              <label className="block text-sm font-semibold text-night mb-2">Arrondissement *</label>
               <div className="relative">
                 <select
-                  name="district"
-                  value={formData.district}
+                  name="arrondissement"
+                  value={formData.arrondissement}
                   onChange={handleFieldChange}
                   onBlur={onBlur}
                   className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
-                    hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                    hasFieldError('arrondissement') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                   }`}
                   required
                 >
-                  <option value="">Sélectionner une commune</option>
-                  {communes.map((commune) => (
-                    <option key={commune.value} value={commune.value}>
-                      {commune.display}
+                  <option value="">Sélectionner un arrondissement</option>
+                  {getArrondissementsForDepartment(formData.region, formData.department).map((arrondissement) => (
+                    <option key={arrondissement.value} value={arrondissement.value}>
+                      {arrondissement.display}
                     </option>
                   ))}
                 </select>
@@ -449,44 +508,79 @@ export default function Step3Address({
                   </svg>
                 </div>
               </div>
-            ) : (
-              <input
-                type="text"
-                name="district"
-                value={formData.district}
-                onChange={handleFieldChange}
-                onBlur={onBlur}
-                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-                  hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-                }`}
-                placeholder={
-                  departmentHasArrondissements(formData.region, formData.department) && !formData.arrondissement
-                    ? "Sélectionner d'abord un arrondissement"
-                    : "Saisir la commune"
+              {getFieldError('arrondissement') && (
+                <p className="text-red-500 text-sm mt-1">{getFieldError('arrondissement')}</p>
+              )}
+            </div>
+          )}
+
+          {formData.region && formData.department && (
+            <div>
+              <label className="block text-sm font-semibold text-night mb-2">Commune *</label>
+              {(() => {
+                let communes: Array<{value: string, display: string}> = [];
+                
+                // If department has direct communes, use them
+                if (departmentHasDirectCommunes(formData.region, formData.department)) {
+                  communes = getDirectCommunesForDepartment(formData.region, formData.department);
                 }
-                required
-                disabled={departmentHasArrondissements(formData.region, formData.department) && !formData.arrondissement}
-              />
-            );
-          })()
-        ) : (
-          <input
-            type="text"
-            name="district"
-            value={formData.district}
-            onChange={handleFieldChange}
-            onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
-              hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-            }`}
-            placeholder="Saisir la commune"
-            required
-          />
-        )}
-        {getFieldError('district') && (
-          <p className="text-red-500 text-sm mt-1">{getFieldError('district')}</p>
-        )}
-      </div>
+                // If arrondissement is selected, get communes from arrondissement
+                else if (formData.arrondissement) {
+                  communes = getCommunesForArrondissement(formData.region, formData.department, formData.arrondissement);
+                }
+                
+                return communes.length > 0 ? (
+                  <div className="relative">
+                    <select
+                      name="district"
+                      value={formData.district}
+                      onChange={handleFieldChange}
+                      onBlur={onBlur}
+                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 appearance-none ${
+                        hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                      }`}
+                      required
+                    >
+                      <option value="">Sélectionner une commune</option>
+                      {communes.map((commune) => (
+                        <option key={commune.value} value={commune.value}>
+                          {commune.display}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                ) : (
+                  <input
+                    type="text"
+                    name="district"
+                    value={formData.district}
+                    onChange={handleFieldChange}
+                    onBlur={onBlur}
+                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+                      hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                    }`}
+                    placeholder={
+                      departmentHasArrondissements(formData.region, formData.department) && !formData.arrondissement
+                        ? "Sélectionner d'abord un arrondissement"
+                        : "Saisir la commune"
+                    }
+                    required
+                    disabled={departmentHasArrondissements(formData.region, formData.department) && !formData.arrondissement}
+                  />
+                );
+              })()}
+              {getFieldError('district') && (
+                <p className="text-red-500 text-sm mt-1">{getFieldError('district')}</p>
+              )}
+            </div>
+          )}
+        </>
+      )}
 
       <div>
         <label className="block text-sm font-semibold text-night mb-2">Adresse complète *</label>
@@ -499,7 +593,7 @@ export default function Step3Address({
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 resize-none ${
             hasFieldError('address') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
-          placeholder="Ex: Villa 6550 Sicap Liberté 6, Rue de la République..."
+          placeholder="Ex: 1, Rue de la République..."
           required
         />
         {getFieldError('address') && (
