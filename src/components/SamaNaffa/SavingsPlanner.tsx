@@ -93,6 +93,12 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
   const [duree, setDuree] = useState(12);
   const [mensualite, setMensualite] = useState(25000);
   const [taux, setTaux] = useState(tauxParDuree(12));
+  
+  // Input validation and feedback states
+  const [mensualiteError, setMensualiteError] = useState<string | null>(null);
+  const [dureeError, setDureeError] = useState<string | null>(null);
+  const [mensualiteTouched, setMensualiteTouched] = useState(false);
+  const [dureeTouched, setDureeTouched] = useState(false);
 
   // --- DERIVED STATE & EFFECTS ---
   const { capitalFinal, interets } = calculerCapitalFinal(mensualite, duree, taux);
@@ -120,6 +126,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
   }, [selectedPersona, simulationMode, selectedPersonaData]);
 
 
+
   // --- HANDLERS ---
   const handleModeSelect = (mode: "objective" | "persona") => {
     setSimulationMode(mode);
@@ -139,6 +146,53 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
   
   const handlePersonaChange = (personaId: string) => {
     setSelectedPersona(personaId);
+  };
+
+  const handleMensualiteChange = (value: number) => {
+    setMensualite(value);
+    setMensualiteError(null); // Clear error when user types
+    
+    if (isNaN(value) || value < 1000) {
+      setMensualiteError('Le montant minimum est de 1 000 FCFA');
+      return;
+    }
+    
+    if (value > 500000) {
+      setMensualiteError('Le montant maximum est de 500 000 FCFA');
+      return;
+    }
+    
+    if (value % 1000 !== 0) {
+      setMensualiteError('Le montant doit être un multiple de 1 000 FCFA');
+      return;
+    }
+  };
+
+  const handleDureeChange = (value: number) => {
+    setDuree(value);
+    setDureeError(null); // Clear error when user types
+    
+    if (isNaN(value) || value < 6) {
+      setDureeError('La durée minimum est de 6 mois');
+      return;
+    }
+    
+    if (value > 180) {
+      setDureeError('La durée maximum est de 180 mois (15 ans)');
+      return;
+    }
+  };
+
+  const handleMensualiteBlur = () => {
+    setMensualiteTouched(true);
+    // Re-validate on blur
+    handleMensualiteChange(mensualite);
+  };
+
+  const handleDureeBlur = () => {
+    setDureeTouched(true);
+    // Re-validate on blur
+    handleDureeChange(duree);
   };
 
   const handleStartSaving = () => {
@@ -411,29 +465,35 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                     <span className="block sm:inline">Montant mensuel</span>
                                 </label>
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        min="1000"
-                                        max="500000"
-                                        step="1000"
-                                        value={mensualite}
-                                        onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            if (val >= 1000 && val <= 500000) {
-                                                setMensualite(val);
-                                            }
-                                        }}
-                                        className="w-32 px-3 py-2 border border-gray-300 rounded-lg text-sm sm:text-base font-bold text-[#C38D1C] focus:ring-2 focus:ring-[#435933] focus:border-transparent"
-                                    />
-                                    <span className="text-sm text-gray-600">FCFA</span>
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="number"
+                                            min="1000"
+                                            max="500000"
+                                            step="1000"
+                                            value={mensualite}
+                                            onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                handleMensualiteChange(val);
+                                            }}
+                                            onBlur={handleMensualiteBlur}
+                                            className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#C38D1C] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
+                                                mensualiteError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                            }`}
+                                        />
+                                    </div>
+                                    <span className="text-sm text-gray-600 whitespace-nowrap">FCFA</span>
                                 </div>
+                                {mensualiteError && (
+                                    <p className="text-sm text-red-600">{mensualiteError}</p>
+                                )}
                                 <input
                                     type="range"
                                     min="1000"
                                     max="500000"
                                     step="1000"
                                     value={mensualite}
-                                    onChange={(e) => setMensualite(Number(e.target.value))}
+                                    onChange={(e) => handleMensualiteChange(Number(e.target.value))}
                                     className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
                                     style={{
                                         background: `linear-gradient(to right, #435933 0%, #435933 ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb 100%)`,
@@ -453,29 +513,35 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                     <span className="block sm:inline">Durée d'épargne</span>
                                 </label>
                                 <div className="flex items-center gap-2">
-                                    <input
-                                        type="number"
-                                        min="6"
-                                        max="180"
-                                        step="1"
-                                        value={duree}
-                                        onChange={(e) => {
-                                            const val = Number(e.target.value);
-                                            if (val >= 6 && val <= 180) {
-                                                setDuree(val);
-                                            }
-                                        }}
-                                        className="w-20 px-3 py-2 border border-gray-300 rounded-lg text-sm sm:text-base font-bold text-[#435933] focus:ring-2 focus:ring-[#435933] focus:border-transparent"
-                                    />
-                                    <span className="text-sm text-gray-600">mois</span>
+                                    <div className="relative flex-1">
+                                        <input
+                                            type="number"
+                                            min="6"
+                                            max="180"
+                                            step="1"
+                                            value={duree}
+                                            onChange={(e) => {
+                                                const val = Number(e.target.value);
+                                                handleDureeChange(val);
+                                            }}
+                                            onBlur={handleDureeBlur}
+                                            className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#435933] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
+                                                dureeError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                            }`}
+                                        />
+                                    </div>
+                                    <span className="text-sm text-gray-600 whitespace-nowrap">mois</span>
                                 </div>
+                                {dureeError && (
+                                    <p className="text-sm text-red-600">{dureeError}</p>
+                                )}
                                 <input
                                     type="range"
                                     min="6"
                                     max="180"
                                     step="1"
                                     value={duree}
-                                    onChange={(e) => setDuree(Number(e.target.value))}
+                                    onChange={(e) => handleDureeChange(Number(e.target.value))}
                                     className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
                                     style={{
                                         background: `linear-gradient(to right, #435933 0%, #435933 ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb 100%)`,

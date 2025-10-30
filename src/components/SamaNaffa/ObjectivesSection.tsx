@@ -142,6 +142,10 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
 }) => {
   // --- STATE MANAGEMENT ---
   // All state is lifted to LandingPage.tsx
+  
+  // Input validation and feedback states
+  const [mensualiteError, setMensualiteError] = useState<string | null>(null);
+  const [dureeError, setDureeError] = useState<string | null>(null);
 
   // --- DERIVED STATE & EFFECTS ---
   const animatedCapitalFinal = useAnimatedCounter(capitalFinal);
@@ -181,6 +185,51 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
 
   const adjustValue = (setter: React.Dispatch<React.SetStateAction<number>>, currentValue: number, change: number, min: number, max: number) => {
     setter(Math.max(min, Math.min(max, currentValue + change)));
+  };
+
+  const handleMensualiteChange = (value: number) => {
+    setMensualite(value);
+    setMensualiteError(null); // Clear error when user types
+    
+    if (isNaN(value) || value < 1000) {
+      setMensualiteError('Le montant minimum est de 1 000 FCFA');
+      return;
+    }
+    
+    if (value > 500000) {
+      setMensualiteError('Le montant maximum est de 500 000 FCFA');
+      return;
+    }
+    
+    if (value % 1000 !== 0) {
+      setMensualiteError('Le montant doit être un multiple de 1 000 FCFA');
+      return;
+    }
+  };
+
+  const handleDureeChange = (value: number) => {
+    setDuree(value);
+    setDureeError(null); // Clear error when user types
+    
+    if (isNaN(value) || value < 6) {
+      setDureeError('La durée minimum est de 6 mois');
+      return;
+    }
+    
+    if (value > 180) {
+      setDureeError('La durée maximum est de 180 mois (15 ans)');
+      return;
+    }
+  };
+
+  const handleMensualiteBlur = () => {
+    // Re-validate on blur
+    handleMensualiteChange(mensualite);
+  };
+
+  const handleDureeBlur = () => {
+    // Re-validate on blur
+    handleDureeChange(duree);
   };
 
   return (
@@ -349,19 +398,48 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                     <label className="block text-base lg:text-lg font-medium text-[#060606]">
                                         Montant mensuel : <span className="text-[#C38D1C] font-bold">{formatCurrency(mensualite)}</span>
                                     </label>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="number"
+                                                min="1000"
+                                                max="500000"
+                                                step="1000"
+                                                value={mensualite}
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value);
+                                                    handleMensualiteChange(val);
+                                                }}
+                                                onBlur={handleMensualiteBlur}
+                                                className={`w-full px-3 py-2 border rounded-lg text-sm font-bold text-[#C38D1C] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
+                                                    mensualiteError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                }`}
+                                            />
+                                        </div>
+                                        <span className="text-sm text-gray-600 whitespace-nowrap">FCFA</span>
+                                    </div>
+                                    {mensualiteError && (
+                                        <p className="text-sm text-red-600">{mensualiteError}</p>
+                                    )}
                                     <div className="flex items-center gap-3">
-                                        <button onClick={() => adjustValue(setMensualite, mensualite, -1000, 1000, 500000)} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">-</button>
+                                        <button onClick={() => {
+                                            const newValue = Math.max(1000, mensualite - 1000);
+                                            handleMensualiteChange(newValue);
+                                        }} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">-</button>
                                         <input
                                             type="range"
                                             min="1000"
                                             max="500000"
                                             step="1000"
                                             value={mensualite}
-                                            onChange={(e) => setMensualite(Number(e.target.value))}
+                                            onChange={(e) => handleMensualiteChange(Number(e.target.value))}
                                             className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer slider"
                                             style={{ background: `linear-gradient(to right, #435933 0%, #435933 ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb 100%)` }}
                                         />
-                                         <button onClick={() => adjustValue(setMensualite, mensualite, 1000, 1000, 500000)} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">+</button>
+                                         <button onClick={() => {
+                                            const newValue = Math.min(500000, mensualite + 1000);
+                                            handleMensualiteChange(newValue);
+                                        }} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">+</button>
                                     </div>
                                 </div>
 
@@ -370,19 +448,48 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                     <label className="block text-base lg:text-lg font-medium text-[#060606]">
                                         Durée d'épargne : <span className="text-[#435933] font-bold">{duree} mois</span>
                                     </label>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="relative flex-1">
+                                            <input
+                                                type="number"
+                                                min="6"
+                                                max="180"
+                                                step="1"
+                                                value={duree}
+                                                onChange={(e) => {
+                                                    const val = Number(e.target.value);
+                                                    handleDureeChange(val);
+                                                }}
+                                                onBlur={handleDureeBlur}
+                                                className={`w-full px-3 py-2 border rounded-lg text-sm font-bold text-[#435933] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
+                                                    dureeError ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                                                }`}
+                                            />
+                                        </div>
+                                        <span className="text-sm text-gray-600 whitespace-nowrap">mois</span>
+                                    </div>
+                                    {dureeError && (
+                                        <p className="text-sm text-red-600">{dureeError}</p>
+                                    )}
                                     <div className="flex items-center gap-3">
-                                    <button onClick={() => adjustValue(setDuree, duree, -1, 6, 180)} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">-</button>
+                                    <button onClick={() => {
+                                        const newValue = Math.max(6, duree - 1);
+                                        handleDureeChange(newValue);
+                                    }} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">-</button>
                                         <input
                                             type="range"
                                             min="6"
                                             max="180"
                                             step="1"
                                             value={duree}
-                                            onChange={(e) => setDuree(Number(e.target.value))}
+                                            onChange={(e) => handleDureeChange(Number(e.target.value))}
                                             className="w-full h-2 bg-gray-200 rounded-full appearance-none cursor-pointer slider"
                                             style={{ background: `linear-gradient(to right, #435933 0%, #435933 ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb 100%)` }}
                                         />
-                                        <button onClick={() => adjustValue(setDuree, duree, 1, 6, 180)} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">+</button>
+                                        <button onClick={() => {
+                                            const newValue = Math.min(180, duree + 1);
+                                            handleDureeChange(newValue);
+                                        }} className="w-8 h-8 rounded-full bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors">+</button>
                                     </div>
                                 </div>
                             </div>
