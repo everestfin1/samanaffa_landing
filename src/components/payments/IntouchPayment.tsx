@@ -62,8 +62,10 @@ declare global {
   }
 }
 
-const INTOUCH_SCRIPT_URL =
-  'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+// Script URL from Intouch team template (EVEREST FINANCE.html)
+const INTOUCH_SCRIPT_URL = 'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+// CryptoJS is required by Intouch script - must be loaded first
+const CRYPTOJS_SCRIPT_URL = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';
 
 export default function IntouchPayment({
   amount,
@@ -189,24 +191,33 @@ export default function IntouchPayment({
   );
 
   const handlePayment = useCallback(async () => {
-    console.log('handlePayment called - starting payment process');
+    console.log('=== handlePayment called ===');
+    console.log('Payment started ref:', paymentStartedRef.current);
+    console.log('Config loading:', configLoading);
+    console.log('Script ready:', scriptReady);
+    
     if (paymentStartedRef.current) {
       console.log('Payment already started, returning');
       return;
     }
 
+    // Check if config is still loading
+    if (configLoading) {
+      console.log('Config still loading, waiting...');
+      return;
+    }
+
+    // Detailed configuration check
+    console.log('=== Configuration Check ===');
+    console.log('Environment:', environment);
+    console.log('Merchant ID:', merchantId || 'MISSING');
+    console.log('API Key:', apiKey ? `SET (length: ${apiKey.length})` : 'MISSING');
+    console.log('Domain:', domain || 'MISSING');
+
     if (!merchantId || !apiKey || !domain) {
-      console.log(`Intouch configuration check (${environment.toUpperCase()} mode):`, {
-        environment: environment,
-        merchantId: merchantId ? 'SET' : 'MISSING',
-        apiKey: apiKey ? 'SET' : 'MISSING',
-        domain: domain ? 'SET' : 'MISSING',
-        merchantIdValue: merchantId,
-        apiKeyValue: apiKey ? '***' : 'MISSING',
-        domainValue: domain
-      });
       const message =
-        `Configuration Intouch manquante pour l'environnement ${environment} (merchantId, apiKey ou domain).`;
+        `Configuration Intouch manquante (merchantId: ${merchantId ? 'OK' : 'MISSING'}, apiKey: ${apiKey ? 'OK' : 'MISSING'}, domain: ${domain ? 'OK' : 'MISSING'})`;
+      console.error(message);
       setStatusMessage(message);
       onError(message);
       return;
@@ -278,67 +289,32 @@ export default function IntouchPayment({
         );
       }
 
-      const customerFirstName = (session?.user as any)?.firstName || session?.user?.name?.split(' ')[0] || 'Client';
-      const customerLastName = (session?.user as any)?.lastName || session?.user?.name?.split(' ')[1] || 'Sama Naffa';
-      const customerEmail = session?.user?.email || '';
-      const customerPhone = (session?.user as any)?.phone || '';
+      console.log('[InTouch Payment] === CALLING SENDPAYMENTINFOS ===');
+      console.log('[InTouch Payment] Reference Number:', referenceNumber);
+      console.log('[InTouch Payment] Merchant ID:', merchantId);
+      console.log('[InTouch Payment] API Key:', apiKey ? 'SET (length: ' + apiKey.length + ')' : 'MISSING');
+      console.log('[InTouch Payment] Domain:', domain);
+      console.log('[InTouch Payment] Amount:', amount);
+      console.log('[InTouch Payment] Transaction ID:', transactionId);
 
-      // Construct redirect URLs with query parameters
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://samanaffa.com';
-      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`;
-      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`;
-
-      console.log('[InTouch Payment] Constructing redirect URLs');
-      console.log('[InTouch Payment] Success URL:', successUrl);
-      console.log('[InTouch Payment] Failed URL:', failedUrl);
-      console.log('[InTouch Payment] Transaction Details:', {
-        transactionId,
-        referenceNumber,
-        amount,
-        accountType,
-        intentType,
-        userId,
-      });
-
-      console.log('[InTouch Payment] Calling sendPaymentInfos with parameters:', {
-        orderNumber: referenceNumber,
-        agencyCode: merchantId,
-        secureCode: apiKey ? '***' : 'MISSING',
-        domainName: domain,
-        urlRedirectionSuccess: successUrl,
-        urlRedirectionFailed: failedUrl,
-        amount: Number(amount),
-        city: 'Dakar',
-        email: customerEmail,
-        clientFirstName: customerFirstName,
-        clientLastName: customerLastName,
-        clientPhone: customerPhone
-      });
-      
-      console.log('[InTouch Payment] ACTUAL VALUES (with sensitive data):', {
-        orderNumber: referenceNumber,
-        agencyCode: merchantId || 'MISSING',
-        secureCode: apiKey || 'MISSING',
-        domainName: domain || 'MISSING',
-        clientPhone: customerPhone || 'EMPTY',
-        email: customerEmail || 'EMPTY',
-        sessionUser: session?.user
-      });
-
+      // Call sendPaymentInfos exactly like the working template (EVEREST FINANCE.html)
+      // Using EMPTY strings for redirect URLs and customer info like the template
       window.sendPaymentInfos(
-        referenceNumber,
-        merchantId,
-        apiKey,
-        domain,
-        successUrl,
-        failedUrl,
-        Number(amount),
-        'Dakar',
-        customerEmail,
-        customerFirstName,
-        customerLastName,
-        customerPhone
+        referenceNumber,     // order number (like new Date().getTime() in template)
+        merchantId,          // agency code (like 'EVE26795')
+        apiKey,              // secure code (the long API key)
+        domain,              // domain (like 'dev.samanaffa.com')
+        '',                  // url success - EMPTY like template
+        '',                  // url failed - EMPTY like template
+        Number(amount),      // amount
+        'Dakar',             // city
+        '',                  // email - EMPTY like template
+        '',                  // firstName - EMPTY like template
+        '',                  // lastName - EMPTY like template
+        ''                   // phone - EMPTY like template
       );
+
+      console.log('[InTouch Payment] sendPaymentInfos executed - waiting for Intouch portal...');
     } catch (error) {
       console.error('Intouch payment error:', error);
       const message =
@@ -361,6 +337,7 @@ export default function IntouchPayment({
     accountId,
     amount,
     apiKey,
+    configLoading,
     domain,
     environment,
     handleIntentError,
@@ -371,25 +348,34 @@ export default function IntouchPayment({
     onError,
     referenceNumber,
     resetPaymentState,
-    session?.user,
+    scriptReady,
     userId,
   ]);
 
   // Fetch API key from server
   useEffect(() => {
     const fetchApiKey = async () => {
+      console.log('[InTouch Payment] Fetching API configuration...');
       try {
         const response = await fetch('/api/payments/intouch/config');
         const data = await response.json();
+        
+        console.log('[InTouch Payment] Configuration received:', {
+          environment: data.environment,
+          apiKeyLength: data.apiKey ? data.apiKey.length : 0,
+          hasApiKey: !!data.apiKey
+        });
+        
         setApiKey(data.apiKey);
         setEnvironment(data.environment || 'production');
         
-        console.log(`[InTouch Payment] Loaded ${data.environment?.toUpperCase()} configuration`);
+        console.log(`[InTouch Payment] ✓ Loaded ${data.environment?.toUpperCase()} configuration successfully`);
       } catch (error) {
-        console.error('Failed to fetch Intouch API key:', error);
+        console.error('[InTouch Payment] ✗ Failed to fetch Intouch API key:', error);
         setLoadError('Erreur de configuration Intouch');
       } finally {
         setConfigLoading(false);
+        console.log('[InTouch Payment] Config loading complete');
       }
     };
 
@@ -407,60 +393,136 @@ export default function IntouchPayment({
       return;
     }
 
-    if (typeof window.sendPaymentInfos === 'function') {
+    // Check if both CryptoJS and sendPaymentInfos are available
+    const cryptoJSLoaded = typeof (window as any).CryptoJS !== 'undefined';
+    const intouchLoaded = typeof window.sendPaymentInfos === 'function';
+
+    if (intouchLoaded && cryptoJSLoaded) {
       setScriptReady(true);
       return;
     }
 
-    const existingScript = document.querySelector<HTMLScriptElement>(
+    const existingCryptoScript = document.querySelector<HTMLScriptElement>(
+      'script[data-cryptojs-script="true"]'
+    );
+    const existingIntouchScript = document.querySelector<HTMLScriptElement>(
       'script[data-intouch-script="true"]'
     );
 
-    const handleLoad = () => {
+    const handleIntouchLoad = () => {
       console.log('Intouch script loaded successfully');
-      setLoadError(null);
-      setScriptReady(true);
+      
+      // Wait a bit for sendPaymentInfos to be available
+      const checkFunction = (attempts = 0) => {
+        if (typeof window.sendPaymentInfos === 'function') {
+          console.log('sendPaymentInfos function is available');
+          setLoadError(null);
+          setScriptReady(true);
+        } else if (attempts < 10) {
+          // Retry up to 10 times (1 second total)
+          setTimeout(() => checkFunction(attempts + 1), 100);
+        } else {
+          console.error('sendPaymentInfos function not found after script load');
+          handleError('sendPaymentInfos function not available');
+        }
+      };
+      
+      checkFunction();
     };
 
-    const handleError = () => {
-      console.log('Intouch script failed to load');
+    const handleError = (errorEvent?: Event | string) => {
+      console.error('Intouch script failed to load');
+      console.error('Script URL attempted:', INTOUCH_SCRIPT_URL);
+      console.error('Error details:', errorEvent);
       const message =
-        'Erreur lors du chargement du système de paiement Intouch.';
+        'Erreur lors du chargement du système de paiement Intouch. Vérifiez votre connexion ou contactez le support.';
       setLoadError(message);
       setStatusMessage(message);
       onError(message);
     };
 
-    if (existingScript) {
-      if (existingScript.getAttribute('data-loaded') === 'true') {
-        handleLoad();
-      } else {
-        existingScript.addEventListener('load', handleLoad);
-        existingScript.addEventListener('error', handleError);
+    // Function to load Intouch script (called after CryptoJS is loaded)
+    const loadIntouchScript = () => {
+      if (existingIntouchScript) {
+        if (existingIntouchScript.getAttribute('data-loaded') === 'true') {
+          handleIntouchLoad();
+        } else {
+          existingIntouchScript.addEventListener('load', handleIntouchLoad);
+          existingIntouchScript.addEventListener('error', handleError);
+        }
+        return;
       }
 
-      return () => {
-        existingScript.removeEventListener('load', handleLoad);
-        existingScript.removeEventListener('error', handleError);
+      console.log('[InTouch Payment] Loading Intouch script:', INTOUCH_SCRIPT_URL);
+      
+      const script = document.createElement('script');
+      script.src = INTOUCH_SCRIPT_URL;
+      script.type = 'text/javascript';
+      script.dataset.intouchScript = 'true';
+      script.onload = () => {
+        console.log('[InTouch Payment] Script onload event fired');
+        script.setAttribute('data-loaded', 'true');
+        handleIntouchLoad();
       };
+      script.onerror = (error) => {
+        console.error('[InTouch Payment] Script onerror event fired:', error);
+        handleError(error);
+      };
+
+      document.head.appendChild(script);
+      console.log('[InTouch Payment] Script element appended to head');
+    };
+
+    // Function to load CryptoJS
+    const loadCryptoJS = () => {
+      if (existingCryptoScript) {
+        if (existingCryptoScript.getAttribute('data-loaded') === 'true') {
+          console.log('[InTouch Payment] CryptoJS already loaded');
+          loadIntouchScript();
+        } else {
+          existingCryptoScript.addEventListener('load', () => {
+            console.log('[InTouch Payment] CryptoJS loaded');
+            loadIntouchScript();
+          });
+          existingCryptoScript.addEventListener('error', (error) => {
+            console.error('[InTouch Payment] CryptoJS failed to load:', error);
+            handleError('CryptoJS loading failed');
+          });
+        }
+        return;
+      }
+
+      console.log('[InTouch Payment] Loading CryptoJS:', CRYPTOJS_SCRIPT_URL);
+      
+      const cryptoScript = document.createElement('script');
+      cryptoScript.src = CRYPTOJS_SCRIPT_URL;
+      cryptoScript.type = 'text/javascript';
+      cryptoScript.dataset.cryptojsScript = 'true';
+      cryptoScript.onload = () => {
+        console.log('[InTouch Payment] CryptoJS loaded successfully');
+        cryptoScript.setAttribute('data-loaded', 'true');
+        loadIntouchScript();
+      };
+      cryptoScript.onerror = (error) => {
+        console.error('[InTouch Payment] CryptoJS onerror event fired:', error);
+        handleError('CryptoJS loading failed');
+      };
+
+      document.head.appendChild(cryptoScript);
+      console.log('[InTouch Payment] CryptoJS script element appended to head');
+    };
+
+    // Start loading process
+    if (cryptoJSLoaded) {
+      // CryptoJS already available, load Intouch script
+      loadIntouchScript();
+    } else {
+      // Load CryptoJS first
+      loadCryptoJS();
     }
 
-    const script = document.createElement('script');
-    script.src = INTOUCH_SCRIPT_URL;
-    script.type = 'text/javascript';
-    script.async = true;
-    script.dataset.intouchScript = 'true';
-    script.onload = () => {
-      script.setAttribute('data-loaded', 'true');
-      handleLoad();
-    };
-    script.onerror = handleError;
-
-    document.head.appendChild(script);
-
     return () => {
-      script.onload = null;
-      script.onerror = null;
+      // Cleanup if needed
     };
   }, [onError, apiKey, domain, merchantId, isTestEnvironment]);
 
