@@ -8,38 +8,16 @@
  *   npx tsx scripts/check-pending-transactions.ts
  */
 
-import { PrismaClient, Prisma } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
-
-// Define types for query results
-type PendingIntentWithRelations = Prisma.TransactionIntentGetPayload<{
-  include: {
-    user: true;
-    account: true;
-    paymentCallbacks: true;
-  };
-}>;
-
-type PendingIntentWithUserAndCallbacks = Prisma.TransactionIntentGetPayload<{
-  include: {
-    user: true;
-    paymentCallbacks: true;
-  };
-}>;
-
-type IntentWithUser = Prisma.TransactionIntentGetPayload<{
-  include: {
-    user: true;
-  };
-}>;
 
 async function checkPendingTransactions() {
   console.log('\n=== Checking Pending Transactions ===\n');
 
   // Find all pending transactions
   console.log('📊 Fetching pending transaction intents...\n');
-  const pendingIntents: PendingIntentWithRelations[] = await prisma.transactionIntent.findMany({
+  const pendingIntents = await prisma.transactionIntent.findMany({
     where: {
       status: 'PENDING',
     },
@@ -63,7 +41,7 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${pendingIntents.length} pending transaction(s):\n`);
 
-    pendingIntents.forEach((intent, index) => {
+    pendingIntents.forEach((intent: typeof pendingIntents[0], index) => {
       console.log(`${index + 1}. Transaction Intent ID: ${intent.id}`);
       console.log(`   Reference Number: ${intent.referenceNumber}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
@@ -89,7 +67,7 @@ async function checkPendingTransactions() {
 
   // Find transactions with callbacks but still pending
   console.log('🔍 Checking transactions that received callbacks but are still pending...\n');
-  const pendingWithCallbacks: PendingIntentWithUserAndCallbacks[] = await prisma.transactionIntent.findMany({
+  const pendingWithCallbacks = await prisma.transactionIntent.findMany({
     where: {
       status: 'PENDING',
       lastCallbackAt: {
@@ -111,7 +89,7 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${pendingWithCallbacks.length} pending transaction(s) with callbacks:\n`);
 
-    pendingWithCallbacks.forEach((intent, index) => {
+    pendingWithCallbacks.forEach((intent: typeof pendingWithCallbacks[0], index) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Last Callback: ${intent.lastCallbackAt?.toISOString()}`);
       console.log(`   Provider Status: ${intent.providerStatus || 'N/A'}`);
@@ -127,7 +105,7 @@ async function checkPendingTransactions() {
 
   // Find transactions missing provider transaction ID
   console.log('🔍 Checking transactions missing provider transaction ID...\n');
-  const missingProviderId: IntentWithUser[] = await prisma.transactionIntent.findMany({
+  const missingProviderId = await prisma.transactionIntent.findMany({
     where: {
       paymentMethod: 'intouch',
       providerTransactionId: null,
@@ -148,7 +126,7 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${missingProviderId.length} InTouch transaction(s) missing provider ID:\n`);
 
-    missingProviderId.forEach((intent, index) => {
+    missingProviderId.forEach((intent: typeof missingProviderId[0], index) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Status: ${intent.status}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
@@ -161,7 +139,7 @@ async function checkPendingTransactions() {
 
   // Recent completed transactions (for comparison)
   console.log('✅ Recent completed transactions (last 5):\n');
-  const completedIntents: IntentWithUser[] = await prisma.transactionIntent.findMany({
+  const completedIntents = await prisma.transactionIntent.findMany({
     where: {
       status: 'COMPLETED',
       paymentMethod: 'intouch',
@@ -178,7 +156,7 @@ async function checkPendingTransactions() {
   if (completedIntents.length === 0) {
     console.log('No completed InTouch transactions found\n');
   } else {
-    completedIntents.forEach((intent, index) => {
+    completedIntents.forEach((intent: typeof completedIntents[0], index) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
       console.log(`   Completed: ${intent.updatedAt.toISOString()}`);
