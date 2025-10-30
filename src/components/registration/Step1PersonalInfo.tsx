@@ -208,7 +208,7 @@ export default function Step1PersonalInfo({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">
+        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
           Civilité *
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -218,7 +218,7 @@ export default function Step1PersonalInfo({
           ].map((option) => (
             <label
               key={option.value}
-              className="flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-gold-metallic/10"
+              className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-sama-bg-light-green ${formData.civilite === option.value ? 'bg-sama-bg-light-green' : ''} ${formData.civilite === option.value ? 'text-sama-primary-green' : 'text-sama-text-secondary'}`}
             >
               <input
                 type="radio"
@@ -231,8 +231,8 @@ export default function Step1PersonalInfo({
               <span
                 className={`font-medium ${
                   formData.civilite === option.value
-                    ? "text-gold-metallic"
-                    : "text-night/70"
+                    ? "text-sama-primary-green"
+                    : "text-sama-text-secondary"
                 }`}
               >
                 {option.label}
@@ -244,7 +244,7 @@ export default function Step1PersonalInfo({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-night mb-2">
+          <label className="block text-sm font-semibold text-sama-text-primary mb-2">
             Prénom *
           </label>
           <input
@@ -253,10 +253,10 @@ export default function Step1PersonalInfo({
             value={formData.firstName}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
               hasFieldError("firstName")
                 ? "border-red-400 bg-red-50"
-                : "border-timberwolf/30"
+                : "border-sama-border-light"
             }`}
             placeholder="Amadou"
             required
@@ -268,7 +268,7 @@ export default function Step1PersonalInfo({
           )}
         </div>
         <div>
-          <label className="block text-sm font-semibold text-night mb-2">
+          <label className="block text-sm font-semibold text-sama-text-primary mb-2">
             Nom *
           </label>
           <input
@@ -277,10 +277,10 @@ export default function Step1PersonalInfo({
             value={formData.lastName}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
               hasFieldError("lastName")
                 ? "border-red-400 bg-red-50"
-                : "border-timberwolf/30"
+                : "border-sama-border-light"
             }`}
             placeholder="Diallo"
             required
@@ -305,7 +305,7 @@ export default function Step1PersonalInfo({
       />
 
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">
+        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
           Adresse email *
         </label>
         <input
@@ -314,10 +314,10 @@ export default function Step1PersonalInfo({
           value={formData.email}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
             hasFieldError("email")
               ? "border-red-400 bg-red-50"
-              : "border-timberwolf/30"
+              : "border-sama-border-light"
           }`}
           placeholder="amadou.diallo@email.com"
           required
@@ -329,7 +329,7 @@ export default function Step1PersonalInfo({
 
 
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">
+        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
           Statut d'emploi *
         </label>
         <select
@@ -337,10 +337,10 @@ export default function Step1PersonalInfo({
           value={formData.statutEmploi}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
             hasFieldError("statutEmploi")
               ? "border-red-400 bg-red-50"
-              : "border-timberwolf/30"
+              : "border-sama-border-light"
           }`}
           required
         >
@@ -358,7 +358,7 @@ export default function Step1PersonalInfo({
         )}
       </div>
       <div>
-        <label className="block text-sm font-semibold text-night mb-2">
+        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
           Métier *
         </label>
         <select
@@ -366,10 +366,10 @@ export default function Step1PersonalInfo({
           value={formData.metiers}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
             hasFieldError("metiers")
               ? "border-red-400 bg-red-50"
-              : "border-timberwolf/30"
+              : "border-sama-border-light"
           }`}
           required
           disabled={!formData.statutEmploi}

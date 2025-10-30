@@ -392,12 +392,36 @@ export default function RegisterPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
     const file = e.target.files?.[0] || null;
+    
+    // Validate file type if file is selected
+    if (file) {
+      const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+      const allowedExtensions = ['.png', '.jpeg', '.jpg', '.webp'];
+      const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase();
+      const isValidType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+      
+      if (!isValidType) {
+        // Clear the file input
+        e.target.value = '';
+        // Set error message
+        setErrors(prev => ({
+          ...prev,
+          [fieldName]: 'Seuls les fichiers PNG, JPEG, JPG et WebP sont autorisés.'
+        }));
+        setTouched(prev => ({
+          ...prev,
+          [fieldName]: true
+        }));
+        return;
+      }
+    }
+    
     setFormData(prev => ({
       ...prev,
       [fieldName]: file
     }));
 
-    // Clear error for this field
+    // Clear error for this field if file is valid
     setErrors(prev => ({
       ...prev,
       [fieldName]: ''
@@ -643,10 +667,10 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-night mb-2">
+          <h1 className="text-3xl font-bold text-sama-text-primary mb-2">
             Créer votre compte
           </h1>
-          <p className="text-night/70">
+          <p className="text-sama-text-secondary">
             Rejoignez Sama Naffa et commencez votre parcours financier
           </p>
         </div>
@@ -657,23 +681,23 @@ export default function RegisterPage() {
             <div className="w-full max-w-2xl">
               {/* Progress Bar */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 bg-timberwolf/20 rounded-full h-2 mr-4">
+                <div className="flex-1 bg-sama-border-light rounded-full h-2 mr-4">
                   <div 
-                    className="bg-gradient-to-r from-gold-dark to-gold-metallic h-2 rounded-full transition-all duration-500 ease-out"
+                    className="bg-gradient-to-r from-sama-secondary-green to-sama-primary-green h-2 rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                   />
                 </div>
-                <div className="text-sm font-medium text-night/70">
+                <div className="text-sm font-medium text-sama-text-secondary">
                   Étape {currentStep} sur {steps.length}
                 </div>
               </div>
               
               {/* Current Step Title */}
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-night">
+                <h3 className="text-lg font-semibold text-sama-text-primary">
                   {steps[currentStep - 1].title}
                 </h3>
-                <p className="text-sm text-night/60 mt-1">
+                <p className="text-sm text-sama-text-muted mt-1">
                   {steps[currentStep - 1].description}
                 </p>
               </div>
@@ -682,7 +706,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-timberwolf/10">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-sama-border-light">
 
           {currentStep === 1 && (
             <Step1PersonalInfo
@@ -773,14 +797,14 @@ export default function RegisterPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-timberwolf/20">
+          <div className="flex justify-between mt-8 pt-6 border-t border-sama-border-light">
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
               className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
                 currentStep === 1
-                  ? 'text-timberwolf/50 cursor-not-allowed'
-                  : 'text-night hover:bg-timberwolf/10 hover:shadow-sm'
+                  ? 'text-sama-text-muted cursor-not-allowed'
+                  : 'text-sama-text-primary hover:bg-sama-bg-light-green hover:shadow-sm'
               }`}
             >
               <ArrowLeftIcon className="w-5 h-5" />
@@ -793,8 +817,8 @@ export default function RegisterPage() {
                 disabled={uploadingFiles || isLoading}
                 className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
                   !uploadingFiles && !isLoading
-                    ? 'bg-gradient-to-r from-gold-dark to-gold-metallic text-white hover:shadow-lg hover:-translate-y-0.5'
-                    : 'bg-timberwolf/30 text-timberwolf/50 cursor-not-allowed'
+                    ? 'bg-gradient-to-r from-sama-secondary-green to-sama-primary-green text-white hover:shadow-lg hover:-translate-y-0.5'
+                    : 'bg-sama-border-light text-sama-text-muted cursor-not-allowed'
                 }`}
               >
                 {uploadingFiles ? (
@@ -820,11 +844,11 @@ export default function RegisterPage() {
 
         {/* Sign In Link */}
         <div className="mt-8 text-center">
-          <p className="text-night/70 text-sm">
+          <p className="text-sama-text-secondary text-sm">
             Déjà un Naffa?{' '}
             <button
               onClick={() => router.push('/login')}
-              className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
+              className="text-sama-primary-green hover:text-sama-primary-green-dark font-medium transition-colors"
             >
               Se connecter
             </button>
