@@ -190,7 +190,6 @@ export default function Step4Documents({
               <input
                 type="file"
                 accept="image/*"
-                capture="user"
                 onChange={(e) => onFileChange(e, 'selfieImage')}
                 className="hidden"
                 id="selfie-replace"
@@ -227,7 +226,6 @@ export default function Step4Documents({
                 <input
                   type="file"
                   accept="image/*"
-                  capture="user"
                   onChange={(e) => onFileChange(e, 'selfieImage')}
                   className="hidden"
                   id="selfie-upload"
@@ -320,11 +318,23 @@ export default function Step4Documents({
               </div>
               
               {/* Replace button */}
-              <div className="text-center">
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                {/* Webcam button (desktop/supported devices) */}
+                {isWebcamSupported() && (
+                  <button
+                    type="button"
+                    onClick={() => openWebcam('idFront')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200"
+                  >
+                    <CameraIcon className="w-3.5 h-3.5" />
+                    Caméra
+                  </button>
+                )}
+                
+                {/* File upload button */}
                 <input
                   type="file"
                   accept="image/*"
-                  capture="environment"
                   onChange={(e) => onFileChange(e, 'idFrontImage')}
                   className="hidden"
                   id="idFront-replace"
@@ -334,29 +344,47 @@ export default function Step4Documents({
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gold-metallic bg-gold-metallic/10 border border-gold-metallic/30 rounded-lg hover:bg-gold-metallic/20 hover:border-gold-metallic/50 cursor-pointer transition-all duration-200"
                 >
                   <CameraIcon className="w-3.5 h-3.5" />
-                  Changer
+                  Galerie
                 </label>
               </div>
             </div>
           ) : (
             // Show upload area when no image is selected
-            <div className="relative">
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={(e) => onFileChange(e, 'idFrontImage')}
-                className="hidden"
-                id="idFront-upload"
-              />
-              <label
-                htmlFor="idFront-upload"
-                className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-gold-metallic/50 bg-gold-metallic/10 hover:bg-gold-metallic/20 text-night/70"
-              >
-                <CameraIcon className="w-6 h-6 mb-1" />
-                <span className="text-xs font-medium">Télécharger le recto</span>
-                <span className="text-xs text-center">Photo nette et claire</span>
-              </label>
+            <div className="space-y-3">
+              {/* Upload options */}
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                {/* Webcam button (desktop/supported devices) */}
+                {isWebcamSupported() && (
+                  <button
+                    type="button"
+                    onClick={() => openWebcam('idFront')}
+                    className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-gold-metallic border-2 border-gold-metallic rounded-xl hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200 min-h-[100px]"
+                  >
+                    <CameraIcon className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-medium">Caméra</span>
+                    <span className="text-xs text-center opacity-90">Prendre une photo</span>
+                  </button>
+                )}
+                
+                {/* File upload option */}
+                <div className="flex-1 sm:flex-initial">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onFileChange(e, 'idFrontImage')}
+                    className="hidden"
+                    id="idFront-upload"
+                  />
+                  <label
+                    htmlFor="idFront-upload"
+                    className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-gold-metallic/50 bg-gold-metallic/10 hover:bg-gold-metallic/20 text-night/70 min-h-[100px]"
+                  >
+                    <DocumentTextIcon className="w-6 h-6 mb-1" />
+                    <span className="text-xs font-medium">Galerie</span>
+                    <span className="text-xs text-center">Télécharger depuis votre appareil</span>
+                  </label>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -411,11 +439,23 @@ export default function Step4Documents({
                 </div>
                 
                 {/* Replace button */}
-                <div className="text-center">
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                  {/* Webcam button (desktop/supported devices) */}
+                  {isWebcamSupported() && (
+                    <button
+                      type="button"
+                      onClick={() => openWebcam('idBack')}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200"
+                    >
+                      <CameraIcon className="w-3.5 h-3.5" />
+                      Caméra
+                    </button>
+                  )}
+                  
+                  {/* File upload button */}
                   <input
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     onChange={(e) => onFileChange(e, 'idBackImage')}
                     className="hidden"
                     id="idBack-replace"
@@ -425,29 +465,47 @@ export default function Step4Documents({
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gold-metallic bg-gold-metallic/10 border border-gold-metallic/30 rounded-lg hover:bg-gold-metallic/20 hover:border-gold-metallic/50 cursor-pointer transition-all duration-200"
                   >
                     <CameraIcon className="w-3.5 h-3.5" />
-                    Changer
+                    Galerie
                   </label>
                 </div>
               </div>
             ) : (
               // Show upload area when no image is selected
-              <div className="relative">
-                <input
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={(e) => onFileChange(e, 'idBackImage')}
-                  className="hidden"
-                  id="idBack-upload"
-                />
-                <label
-                  htmlFor="idBack-upload"
-                  className="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-gold-metallic/50 bg-gold-metallic/10 hover:bg-gold-metallic/20 text-night/70"
-                >
-                  <DocumentTextIcon className="w-6 h-6 mb-1" />
-                  <span className="text-xs font-medium">Télécharger le verso</span>
-                  <span className="text-xs text-center">Photo de l'arrière</span>
-                </label>
+              <div className="space-y-3">
+                {/* Upload options */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                  {/* Webcam button (desktop/supported devices) */}
+                  {isWebcamSupported() && (
+                    <button
+                      type="button"
+                      onClick={() => openWebcam('idBack')}
+                      className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-gold-metallic border-2 border-gold-metallic rounded-xl hover:bg-gold-metallic/90 cursor-pointer transition-all duration-200 min-h-[100px]"
+                    >
+                      <CameraIcon className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Caméra</span>
+                      <span className="text-xs text-center opacity-90">Prendre une photo</span>
+                    </button>
+                  )}
+                  
+                  {/* File upload option */}
+                  <div className="flex-1 sm:flex-initial">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => onFileChange(e, 'idBackImage')}
+                      className="hidden"
+                      id="idBack-upload"
+                    />
+                    <label
+                      htmlFor="idBack-upload"
+                      className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-gold-metallic/50 bg-gold-metallic/10 hover:bg-gold-metallic/20 text-night/70 min-h-[100px]"
+                    >
+                      <DocumentTextIcon className="w-6 h-6 mb-1" />
+                      <span className="text-xs font-medium">Galerie</span>
+                      <span className="text-xs text-center">Télécharger depuis votre appareil</span>
+                    </label>
+                  </div>
+                </div>
               </div>
             )}
           </div>
