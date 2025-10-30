@@ -12,8 +12,49 @@ export function buildWhereConditions(table: any, where: WhereClause): SQL<unknow
   if (!where || Object.keys(where).length === 0) return undefined;
 
   const conditions: SQL<unknown>[] = [];
-
+  const topLevelConditions: SQL<unknown>[] = [];
+  
+  // First, handle special operators at the top level
   for (const [key, value] of Object.entries(where)) {
+    // Handle special operators: OR, AND, NOT
+    if (key === 'OR' && Array.isArray(value)) {
+      // Recursively build OR conditions
+      const orConditions = value
+        .map(orClause => buildWhereConditions(table, orClause))
+        .filter(Boolean) as SQL<unknown>[];
+      if (orConditions.length > 0) {
+        topLevelConditions.push(or(...orConditions)!);
+      }
+      continue;
+    }
+
+    if (key === 'AND' && Array.isArray(value)) {
+      // Recursively build AND conditions
+      const andConditions = value
+        .map(andClause => buildWhereConditions(table, andClause))
+        .filter(Boolean) as SQL<unknown>[];
+      if (andConditions.length > 0) {
+        topLevelConditions.push(and(...andConditions)!);
+      }
+      continue;
+    }
+
+    if (key === 'NOT') {
+      // Handle NOT clause - recursively process the nested condition
+      const notCondition = buildWhereConditions(table, value);
+      if (notCondition) {
+        topLevelConditions.push(not(notCondition));
+      }
+      continue;
+    }
+  }
+
+  // Then, handle regular column conditions
+  for (const [key, value] of Object.entries(where)) {
+    // Skip special operators (already processed above)
+    if (key === 'OR' || key === 'AND' || key === 'NOT') continue;
+
+    // Regular column conditions
     const column = table[key];
     if (!column) continue;
 
@@ -25,14 +66,26 @@ export function buildWhereConditions(table: any, where: WhereClause): SQL<unknow
       if ('gte' in value) conditions.push(gte(column, value.gte));
       if ('lt' in value) conditions.push(lt(column, value.lt));
       if ('lte' in value) conditions.push(lte(column, value.lte));
-      if ('not' in value) conditions.push(not(eq(column, value.not)));
+      if ('not' in value) {
+        // Handle NOT operator for column values
+        if (typeof value.not === 'object' && !Array.isArray(value.not)) {
+          const notCondition = buildWhereConditions(table, { [key]: value.not });
+          if (notCondition) {
+            conditions.push(not(notCondition));
+          }
+        } else {
+          conditions.push(not(eq(column, value.not)));
+        }
+      }
       if ('in' in value) conditions.push(inArray(column, value.in));
     } else {
       conditions.push(eq(column, value));
     }
   }
 
-  return conditions.length > 0 ? and(...conditions) : undefined;
+  // Combine all conditions: top-level special operators AND regular conditions
+  const allConditions = [...topLevelConditions, ...conditions];
+  return allConditions.length > 0 ? and(...allConditions) : undefined;
 }
 
 // Prisma-compatible query builder for Users
@@ -243,6 +296,13 @@ export const user = {
 
   async delete(params: { where: { id: string } }) {
     await db.delete(schema.users).where(eq(schema.users.id, params.where.id));
+  },
+
+  async deleteMany(params: { where: WhereClause }) {
+    const condition = buildWhereConditions(schema.users, params.where);
+    if (condition) {
+      await db.delete(schema.users).where(condition);
+    }
   },
 
   async count(params?: { where?: WhereClause }) {

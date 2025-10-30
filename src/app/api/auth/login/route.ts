@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { normalizeInternationalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkLoginRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { sanitizeText, validateEmail } from '@/lib/sanitization'
 import bcrypt from 'bcryptjs'
@@ -66,12 +66,7 @@ export async function POST(request: NextRequest) {
 
     if (!user && normalizedPhone) {
       // Try multiple phone number formats for lookup
-      const phoneFormats = [
-        normalizedPhone, // normalized format (should be +221XXXXXXXXX)
-        normalizedPhone.replace('+221', ''), // without country code
-        normalizedPhone.replace('+', ''), // without + sign
-        `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
-      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+      const phoneFormats = generatePhoneFormats(normalizedPhone)
 
       for (const phoneFormat of phoneFormats) {
         user = await prisma.user.findFirst({

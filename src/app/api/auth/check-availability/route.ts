@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { normalizeInternationalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,12 +40,7 @@ export async function POST(request: NextRequest) {
         checks.errors.push('Format de numéro de téléphone invalide.')
       } else {
         // Check multiple phone formats for existing users
-        const phoneFormats = [
-          normalizedPhone, // normalized format (+221XXXXXXXXX)
-          normalizedPhone.replace('+221', ''), // without country code
-          normalizedPhone.replace('+', ''), // without + sign
-          `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
-        ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+        const phoneFormats = generatePhoneFormats(normalizedPhone)
 
         console.log('🔍 Checking phone availability for formats:', phoneFormats)
 

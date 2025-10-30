@@ -4,7 +4,7 @@ import { db } from './db'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
-import { normalizeInternationalPhone } from './utils'
+import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import bcrypt from 'bcryptjs'
 
 export const authOptions: NextAuthOptions = {
@@ -39,12 +39,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user && normalizedPhone) {
           // Try multiple phone number formats for lookup
-          const phoneFormats = [
-            normalizedPhone, // normalized format (should be +221XXXXXXXXX)
-            normalizedPhone.replace('+221', ''), // without country code
-            normalizedPhone.replace('+', ''), // without + sign
-            `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
-          ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+          const phoneFormats = generatePhoneFormats(normalizedPhone)
 
           for (const phoneFormat of phoneFormats) {
             user = await prisma.user.findFirst({

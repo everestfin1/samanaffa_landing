@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
-import { addMonths, generateAccountNumber } from '@/lib/utils'
+import { db, users } from '@/lib/db'
+import { or, eq, and, not, inArray } from 'drizzle-orm'
+import { addMonths, generateAccountNumber, generatePhoneFormats } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
 
 export async function POST(request: NextRequest) {
@@ -57,22 +59,75 @@ export async function POST(request: NextRequest) {
     const userData = JSON.parse(registrationSession.data)
 
     // Final safety check: Ensure email and phone are still unique
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: userData.email },
-          { phone: userData.phone }
-        ]
-      }
-    })
+    // Exclude temporary users that were created during OTP sending
+    // Check multiple phone formats for better compatibility
+    const phoneFormats = generatePhoneFormats(userData.phone)
 
-    if (existingUser) {
+    console.log('🔍 Checking for existing users with:');
+    console.log('Email:', userData.email);
+    console.log('Phone formats:', phoneFormats);
+    
+    // Use raw Drizzle queries to properly handle OR/NOT clauses
+    // Find ALL users with matching email or phone
+    const allMatchingUsers = await db.select()
+      .from(users)
+      .where(
+        or(
+          eq(users.email, userData.email),
+          ...phoneFormats.map(format => eq(users.phone, format))
+        )!
+      )
+
+    console.log('🔍 Found matching users:', allMatchingUsers.length);
+    allMatchingUsers.forEach(user => {
+      console.log('  -', {
+        email: user.email,
+        phone: user.phone,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isTemporary: user.firstName === 'Temporary' && user.lastName === 'User'
+      });
+    });
+
+    // Filter out temporary users - find real users only
+    const existingRealUser = allMatchingUsers.find(
+      user => !(user.firstName === 'Temporary' && user.lastName === 'User')
+    );
+
+    console.log('🔍 Found existing real user?', !!existingRealUser);
+    if (existingRealUser) {
+      console.log('🔍 Existing real user details:', {
+        id: existingRealUser.id,
+        email: existingRealUser.email,
+        phone: existingRealUser.phone,
+        firstName: existingRealUser.firstName,
+        lastName: existingRealUser.lastName
+      });
+      
       // Clean up session
       await prisma.registrationSession.delete({ where: { id: sessionId } })
       return NextResponse.json(
         { error: 'Un utilisateur avec ces informations existe déjà' },
         { status: 409 }
       )
+    }
+
+    // Delete temporary users if any exist
+    const temporaryUsers = allMatchingUsers.filter(
+      user => user.firstName === 'Temporary' && user.lastName === 'User'
+    );
+
+    if (temporaryUsers.length > 0) {
+      console.log('🧹 Deleting', temporaryUsers.length, 'temporary users');
+      if (temporaryUsers.length === 1) {
+        await prisma.user.delete({ where: { id: temporaryUsers[0].id } })
+      } else {
+        // Use raw Drizzle for deleteMany since helpers might not support it
+        await db.delete(users)
+          .where(
+            or(...temporaryUsers.map(u => eq(users.id, u.id)))!
+          )
+      }
     }
 
     // Hash password if provided (for future password auth)

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
-import { addMonths, generateAccountNumber, normalizeInternationalPhone } from '@/lib/utils'
+import { addMonths, generateAccountNumber, normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
 
 export async function POST(request: NextRequest) {
@@ -40,12 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (!user && normalizedPhone) {
       // Try multiple phone number formats for lookup
-      const phoneFormats = [
-        normalizedPhone, // normalized format (should be +221XXXXXXXXX)
-        normalizedPhone.replace('+221', ''), // without country code
-        normalizedPhone.replace('+', ''), // without + sign
-        `+221${normalizedPhone.replace('+221', '')}`, // ensure +221 prefix
-      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+      const phoneFormats = generatePhoneFormats(normalizedPhone)
 
       console.log('🔍 Phone lookup formats to try:', phoneFormats)
 
@@ -101,12 +96,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if another user was created with same phone (race condition protection)
-      const phoneFormats = [
-        finalNormalizedPhone,
-        finalNormalizedPhone.replace('+221', ''),
-        finalNormalizedPhone.replace('+', ''),
-        `+221${finalNormalizedPhone.replace('+221', '')}`
-      ].filter((format, index, arr) => arr.indexOf(format) === index);
+      const phoneFormats = generatePhoneFormats(finalNormalizedPhone);
 
       let duplicatePhoneUser = null;
       for (const phoneFormat of phoneFormats) {

@@ -1,5 +1,6 @@
 import { prisma } from './prisma'
 import { sendEmailOTP, sendSMSOTP } from './notifications'
+import { generatePhoneFormats } from './utils'
 
 export async function generateOTP(userId: string, type: 'email' | 'sms'): Promise<string> {
   // Generate 6-digit OTP
@@ -115,12 +116,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
 
       if (!user && phone) {
         // Try multiple phone number formats for lookup
-        const phoneFormats = [
-          phone, // normalized format (should be +221XXXXXXXXX)
-          phone.replace('+221', ''), // without country code
-          phone.replace('+', ''), // without + sign
-          `+221${phone.replace('+221', '')}`, // ensure +221 prefix
-        ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+        const phoneFormats = generatePhoneFormats(phone)
 
         console.log('🔍 Phone lookup formats to try:', phoneFormats)
 
@@ -159,12 +155,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
           }
 
           // Check if phone is already taken (try multiple formats)
-          const phoneFormats = [
-            phone, // normalized format (should be +221XXXXXXXXX)
-            phone.replace('+221', ''), // without country code
-            phone.replace('+', ''), // without + sign
-            `+221${phone.replace('+221', '')}`, // ensure +221 prefix
-          ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+          const phoneFormats = generatePhoneFormats(phone)
 
           for (const phoneFormat of phoneFormats) {
             const existingPhoneUser = await prisma.user.findFirst({

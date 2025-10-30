@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
-import { normalizeInternationalPhone } from '@/lib/utils'
+import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkOTPRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
@@ -107,14 +107,10 @@ export async function POST(request: NextRequest) {
       if (email) {
         user = await prisma.user.findUnique({ where: { email } })
       } else if (normalizedPhone) {
+        const phoneFormats = generatePhoneFormats(normalizedPhone)
         user = await prisma.user.findFirst({
           where: {
-            OR: [
-              { phone: normalizedPhone },
-              { phone: normalizedPhone.replace('+221', '') },
-              { phone: normalizedPhone.replace('+', '') },
-              { phone: `+221${normalizedPhone.replace('+221', '')}` }
-            ].filter((format, index, arr) => arr.indexOf(format) === index)
+            OR: phoneFormats.map(format => ({ phone: format }))
           }
         })
       }
@@ -157,14 +153,10 @@ export async function POST(request: NextRequest) {
       if (email) {
         user = await prisma.user.findUnique({ where: { email } })
       } else if (normalizedPhone) {
+        const phoneFormats = generatePhoneFormats(normalizedPhone)
         user = await prisma.user.findFirst({
           where: {
-            OR: [
-              { phone: normalizedPhone },
-              { phone: normalizedPhone.replace('+221', '') },
-              { phone: normalizedPhone.replace('+', '') },
-              { phone: `+221${normalizedPhone.replace('+221', '')}` }
-            ].filter((format, index, arr) => arr.indexOf(format) === index)
+            OR: phoneFormats.map(format => ({ phone: format }))
           }
         })
       }

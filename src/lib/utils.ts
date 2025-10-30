@@ -243,6 +243,42 @@ export function normalizeInternationalPhone(phone: string): string | null {
   return `${countryCode}${localNumber}`
 }
 
+/**
+ * Generates multiple phone format variants for database lookups
+ * Intelligently handles different country codes instead of always assuming +221
+ * @param phone - Normalized phone number (e.g., +18193182192 or +221771234567)
+ * @returns Array of phone format variants to check in database (without duplicates)
+ */
+export function generatePhoneFormats(phone: string): string[] {
+  if (!phone) return []
+
+  const formats: string[] = []
+  const cleaned = phone.replace(/[^\d+]/g, '')
+
+  // Extract country code and local number
+  const match = cleaned.match(/^\+(\d{1,4})(\d+)$/)
+  if (!match) {
+    // If no country code, return as-is
+    formats.push(phone)
+    return formats
+  }
+
+  const countryCode = `+${match[1]}`
+  const localNumber = match[2]
+
+  // Always include the normalized format
+  formats.push(phone)
+
+  // Add format without country code (local number only)
+  formats.push(localNumber)
+
+  // Add format without + sign (country code + local number without +)
+  formats.push(`${countryCode}${localNumber}`.replace('+', ''))
+
+  // Remove duplicates and return
+  return [...new Set(formats)]
+}
+
 export function sanitizeInput(input: string): string {
   return input.trim().replace(/[<>]/g, '')
 }
