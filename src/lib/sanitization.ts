@@ -1,4 +1,6 @@
-import DOMPurify from 'isomorphic-dompurify'
+// Note: DOMPurify is not imported on server-side to avoid jsdom dependency issues
+// jsdom requires CSS files that aren't available in production builds
+// Server-side sanitization uses sanitizeText() which doesn't require DOMPurify
 
 // HTML sanitization options
 const sanitizeOptions = {
@@ -12,7 +14,11 @@ export function sanitizeHTML(input: string): string {
     return ''
   }
   
-  return DOMPurify.sanitize(input, sanitizeOptions)
+  // On server-side, use regex-based sanitization to avoid jsdom dependency
+  // On client-side, we could use DOMPurify, but for consistency and to avoid
+  // bundling issues, we use the same regex-based approach everywhere
+  // This is safe since sanitizeText removes all HTML tags anyway
+  return sanitizeText(input)
 }
 
 export function sanitizeText(input: string): string {
