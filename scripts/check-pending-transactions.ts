@@ -8,16 +8,38 @@
  *   npx tsx scripts/check-pending-transactions.ts
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
+// Define types for query results
+type PendingIntentWithRelations = Prisma.TransactionIntentGetPayload<{
+  include: {
+    user: true;
+    account: true;
+    paymentCallbacks: true;
+  };
+}>;
+
+type PendingIntentWithUserAndCallbacks = Prisma.TransactionIntentGetPayload<{
+  include: {
+    user: true;
+    paymentCallbacks: true;
+  };
+}>;
+
+type IntentWithUser = Prisma.TransactionIntentGetPayload<{
+  include: {
+    user: true;
+  };
+}>;
 
 async function checkPendingTransactions() {
   console.log('\n=== Checking Pending Transactions ===\n');
 
   // Find all pending transactions
   console.log('📊 Fetching pending transaction intents...\n');
-  const pendingIntents = await prisma.transactionIntent.findMany({
+  const pendingIntents: PendingIntentWithRelations[] = await prisma.transactionIntent.findMany({
     where: {
       status: 'PENDING',
     },
@@ -67,7 +89,7 @@ async function checkPendingTransactions() {
 
   // Find transactions with callbacks but still pending
   console.log('🔍 Checking transactions that received callbacks but are still pending...\n');
-  const pendingWithCallbacks = await prisma.transactionIntent.findMany({
+  const pendingWithCallbacks: PendingIntentWithUserAndCallbacks[] = await prisma.transactionIntent.findMany({
     where: {
       status: 'PENDING',
       lastCallbackAt: {
@@ -105,7 +127,7 @@ async function checkPendingTransactions() {
 
   // Find transactions missing provider transaction ID
   console.log('🔍 Checking transactions missing provider transaction ID...\n');
-  const missingProviderId = await prisma.transactionIntent.findMany({
+  const missingProviderId: IntentWithUser[] = await prisma.transactionIntent.findMany({
     where: {
       paymentMethod: 'intouch',
       providerTransactionId: null,
@@ -139,7 +161,7 @@ async function checkPendingTransactions() {
 
   // Recent completed transactions (for comparison)
   console.log('✅ Recent completed transactions (last 5):\n');
-  const completedIntents = await prisma.transactionIntent.findMany({
+  const completedIntents: IntentWithUser[] = await prisma.transactionIntent.findMany({
     where: {
       status: 'COMPLETED',
       paymentMethod: 'intouch',
