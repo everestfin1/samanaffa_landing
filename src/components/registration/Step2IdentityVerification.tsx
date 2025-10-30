@@ -2,6 +2,7 @@
 
 import { IdentificationIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
+import { isUEMOACountry } from '@/lib/utils';
 
 interface FormData {
   nationality: string;
@@ -42,6 +43,17 @@ export default function Step2IdentityVerification({
     const eighteenYearsAgo = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
     return eighteenYearsAgo.toISOString().split('T')[0];
   };
+
+  // Calculate min date for expiry date (should be after today)
+  const getMinExpiryDate = () => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    return tomorrow.toISOString().split('T')[0];
+  };
+
+  // Check if current nationality is UEMOA
+  const isUEMOA = isUEMOACountry(formData.nationality);
 
   return (
     <div className="space-y-6">
@@ -100,26 +112,42 @@ export default function Step2IdentityVerification({
           name="idNumber"
           value={formData.idNumber}
           onChange={(e) => {
-            const maxLength = formData.idType === 'cni' ? 13 : 9;
-            if (e.target.value.length <= maxLength) {
+            // For UEMOA countries (especially Senegal), apply length restrictions
+            if (isUEMOA && formData.nationality === 'Senegal') {
+              const maxLength = formData.idType === 'cni' ? 13 : 9;
+              if (e.target.value.length <= maxLength) {
+                onInputChange(e);
+              }
+            } else {
+              // For non-UEMOA countries, allow any length and characters
               onInputChange(e);
             }
           }}
           onBlur={onBlur}
-          maxLength={formData.idType === 'cni' ? 13 : 9}
+          maxLength={isUEMOA && formData.nationality === 'Senegal' ? (formData.idType === 'cni' ? 13 : 9) : undefined}
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
             hasFieldError('idNumber') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
-          placeholder={formData.idType === 'cni' ? "13 caractères max" : "9 caractères max"}
+          placeholder={isUEMOA && formData.nationality === 'Senegal' 
+            ? (formData.idType === 'cni' ? "13 caractères max" : "9 caractères max")
+            : "Numéro de pièce d'identité"}
           required
         />
         <div className="flex justify-between items-center mt-1">
-          <span className="text-xs text-night/60">
-            {formData.idType === 'cni' ? 'CNI (13 caractères)' : 'Passeport (9 caractères)'}
-          </span>
-          <span className={`text-xs ${formData.idNumber.length >= (formData.idType === 'cni' ? 13 : 9) ? 'text-red-500 font-medium' : 'text-night/60'}`}>
-            {formData.idNumber.length}/{formData.idType === 'cni' ? 13 : 9}
-          </span>
+          {isUEMOA && formData.nationality === 'Senegal' ? (
+            <>
+              <span className="text-xs text-night/60">
+                {formData.idType === 'cni' ? 'CNI (13 caractères)' : 'Passeport (9 caractères)'}
+              </span>
+              <span className={`text-xs ${formData.idNumber.length >= (formData.idType === 'cni' ? 13 : 9) ? 'text-green-500 font-medium' : 'text-red-500'}`}>
+                {formData.idNumber.length}/{formData.idType === 'cni' ? 13 : 9}
+              </span>
+            </>
+          ) : (
+            <span className="text-xs text-night/60">
+              Saisissez le numéro tel qu'il apparaît sur votre document
+            </span>
+          )}
         </div>
         {getFieldError('idNumber') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('idNumber')}</p>
@@ -152,15 +180,21 @@ export default function Step2IdentityVerification({
             value={formData.idExpiryDate}
             onChange={onInputChange}
             onBlur={onBlur}
-            readOnly
-            className={`w-full px-4 py-3 border rounded-xl bg-gray-50 text-gray-600 cursor-not-allowed ${
+            min={getMinExpiryDate()}
+            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-all duration-200 ${
               hasFieldError('idExpiryDate') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
             }`}
             required
           />
-          <p className="text-xs text-night/60 mt-1">
-            Calculée automatiquement ({formData.idType === 'cni' ? '10 ans' : '5 ans'} après la date d'émission)
-          </p>
+          {isUEMOA && formData.nationality === 'Senegal' && formData.idIssueDate ? (
+            <p className="text-xs text-night/60 mt-1">
+              Suggestion: {formData.idType === 'cni' ? '10 ans' : '5 ans'} après la date d'émission. Vous pouvez modifier si nécessaire.
+            </p>
+          ) : (
+            <p className="text-xs text-night/60 mt-1">
+              La date d'expiration doit être postérieure à aujourd'hui
+            </p>
+          )}
           {getFieldError('idExpiryDate') && (
             <p className="text-red-500 text-sm mt-1">{getFieldError('idExpiryDate')}</p>
           )}

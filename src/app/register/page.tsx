@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { validateInternationalPhone } from '@/lib/utils';
+import { validateInternationalPhone, isUEMOACountry } from '@/lib/utils';
 import {
   UserIcon,
   IdentificationIcon,
@@ -127,8 +127,8 @@ export default function RegisterPage() {
       case 'idNumber':
         if (!value || typeof value !== 'string') return 'Numéro de pièce est requis';
 
-        // Specific validation for Senegalese IDs
-        if (formData.nationality === 'Senegal') {
+        // Specific validation for UEMOA countries (especially Senegal)
+        if (isUEMOACountry(formData.nationality) && formData.nationality === 'Senegal') {
           if (formData.idType === 'cni') {
             // National ID card: must be exactly 13 digits
             if (!/^[0-9]{13}$/.test(value)) {
@@ -141,9 +141,9 @@ export default function RegisterPage() {
             }
           }
         } else {
-          // For other nationalities, keep basic validation
-          if (value.length < 5) {
-            return 'Numéro de pièce trop court';
+          // For non-UEMOA countries, allow any characters but require minimum length
+          if (value.trim().length < 3) {
+            return 'Numéro de pièce trop court (minimum 3 caractères)';
           }
         }
         return '';
@@ -157,14 +157,15 @@ export default function RegisterPage() {
 
         const expiryDate = new Date(value);
         const now = new Date();
+        now.setHours(0, 0, 0, 0); // Reset time to compare dates only
 
-        // Expiry date must be in the future to ensure document validity
+        // Expiry date must be in the future to ensure document validity (for all countries)
         if (expiryDate <= now) {
           return 'La date d\'expiration doit être postérieure à la date actuelle (document non expiré)';
         }
 
-        // Specific validity period checks for Senegalese IDs - calculate based on issue date
-        if (formData.nationality === 'Senegal') {
+        // Specific validity period checks for UEMOA countries (especially Senegal)
+        if (isUEMOACountry(formData.nationality) && formData.nationality === 'Senegal') {
           if (formData.idIssueDate) {
             const issueDate = new Date(formData.idIssueDate);
 
@@ -183,10 +184,9 @@ export default function RegisterPage() {
                 return 'Le passeport ne peut pas être valide plus de 5 ans après sa date d\'émission';
               }
             }
-          } else {
-            return 'Veuillez d\'abord saisir la date d\'émission';
           }
         }
+        // For non-UEMOA countries, only check that expiry date is in the future (already checked above)
 
         return '';
 
@@ -287,16 +287,40 @@ export default function RegisterPage() {
         newData.district = '';
       }
 
-      // Auto-calculate expiry date when ID type or issue date changes
+      // Handle nationality change: clear expiry date when switching from UEMOA to non-UEMOA
+      // or auto-calculate when switching to Senegal
+      if (name === 'nationality') {
+        const wasUEMOA = isUEMOACountry(prev.nationality);
+        const isNowUEMOA = isUEMOACountry(value);
+        // If switching from UEMOA to non-UEMOA, clear auto-calculated expiry date
+        if (wasUEMOA && !isNowUEMOA) {
+          newData.idExpiryDate = '';
+        }
+        // If switching to Senegal and issue date is already set, auto-calculate expiry date
+        else if (value === 'Senegal' && prev.idIssueDate && prev.idType) {
+          const issueDate = new Date(prev.idIssueDate);
+          const validityYears = prev.idType === 'cni' ? 10 : 5;
+          const expiryDate = new Date(issueDate);
+          expiryDate.setFullYear(expiryDate.getFullYear() + validityYears);
+          expiryDate.setDate(expiryDate.getDate() - 1); // Subtract 1 day
+          newData.idExpiryDate = expiryDate.toISOString().split('T')[0];
+        }
+      }
+
+      // Auto-calculate expiry date when ID type or issue date changes (only for Senegal)
       if (name === 'idType' || name === 'idIssueDate') {
         const currentIdType = name === 'idType' ? value : prev.idType;
         const currentIssueDate = name === 'idIssueDate' ? value : prev.idIssueDate;
+        const currentNationality = prev.nationality;
         
-        if (currentIssueDate && currentIdType) {
+        // Only auto-calculate for Senegal
+        if (currentIssueDate && currentIdType && currentNationality === 'Senegal') {
           const issueDate = new Date(currentIssueDate);
           const validityYears = currentIdType === 'cni' ? 10 : 5; // 10 years for CNI, 5 years for passport
           const expiryDate = new Date(issueDate);
           expiryDate.setFullYear(expiryDate.getFullYear() + validityYears);
+          // Subtract 1 day from the expiry date (flat day minus 1)
+          expiryDate.setDate(expiryDate.getDate() - 1);
           
           newData.idExpiryDate = expiryDate.toISOString().split('T')[0];
         }

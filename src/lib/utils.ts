@@ -311,3 +311,26 @@ export function calculateAccountBalance(
   
   return balance
 }
+
+/**
+ * Checks if a country is a member of UEMOA (West African Economic and Monetary Union)
+ * UEMOA members: Benin, Burkina Faso, Côte d'Ivoire, Guinea-Bissau, Mali, Niger, Senegal, Togo
+ * @param countryName - Name of the country
+ * @returns true if the country is a UEMOA member, false otherwise
+ */
+export function isUEMOACountry(countryName: string): boolean {
+  const uemoaCountries = [
+    'Benin',
+    'Burkina Faso',
+    'Côte d\'Ivoire',
+    'Ivory Coast',
+    'Guinea-Bissau',
+    'Mali',
+    'Niger',
+    'Senegal',
+    'Togo'
+  ]
+  return uemoaCountries.some(country => 
+    country.toLowerCase() === countryName.toLowerCase()
+  )
+}
