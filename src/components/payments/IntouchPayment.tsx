@@ -289,6 +289,11 @@ export default function IntouchPayment({
         );
       }
 
+      // Construct redirect URLs - Intouch NEEDS these to redirect back after payment
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://samanaffa.com';
+      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`;
+      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`;
+
       console.log('[InTouch Payment] === CALLING SENDPAYMENTINFOS ===');
       console.log('[InTouch Payment] Reference Number:', referenceNumber);
       console.log('[InTouch Payment] Merchant ID:', merchantId);
@@ -296,22 +301,23 @@ export default function IntouchPayment({
       console.log('[InTouch Payment] Domain:', domain);
       console.log('[InTouch Payment] Amount:', amount);
       console.log('[InTouch Payment] Transaction ID:', transactionId);
+      console.log('[InTouch Payment] Success URL:', successUrl);
+      console.log('[InTouch Payment] Failed URL:', failedUrl);
 
-      // Call sendPaymentInfos exactly like the working template (EVEREST FINANCE.html)
-      // Using EMPTY strings for redirect URLs and customer info like the template
+      // Call sendPaymentInfos with proper redirect URLs
       window.sendPaymentInfos(
-        referenceNumber,     // order number (like new Date().getTime() in template)
-        merchantId,          // agency code (like 'EVE26795')
-        apiKey,              // secure code (the long API key)
-        domain,              // domain (like 'dev.samanaffa.com')
-        '',                  // url success - EMPTY like template
-        '',                  // url failed - EMPTY like template
+        referenceNumber,     // order number
+        merchantId,          // agency code
+        apiKey,              // secure code
+        domain,              // domain name
+        successUrl,          // url success - REQUIRED for redirect
+        failedUrl,           // url failed - REQUIRED for redirect
         Number(amount),      // amount
         'Dakar',             // city
-        '',                  // email - EMPTY like template
-        '',                  // firstName - EMPTY like template
-        '',                  // lastName - EMPTY like template
-        ''                   // phone - EMPTY like template
+        '',                  // email - optional
+        '',                  // firstName - optional
+        '',                  // lastName - optional
+        ''                   // phone - optional
       );
 
       console.log('[InTouch Payment] sendPaymentInfos executed - waiting for Intouch portal...');
