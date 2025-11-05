@@ -4,6 +4,24 @@ import { getToken } from 'next-auth/jwt';
 import { checkCSRFToken } from '@/lib/csrf';
 
 export async function proxy(request: NextRequest) {
+  // ==================== MAINTENANCE MODE ====================
+  // Set to true to enable maintenance mode (redirects all traffic to /maintenance)
+  // Set to false to disable maintenance mode and restore normal operation
+    const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+  
+  if (MAINTENANCE_MODE) {
+    // Exclude the maintenance page itself and static assets
+    const isMaintenancePage = request.nextUrl.pathname === '/maintenance';
+    const isStaticAsset = request.nextUrl.pathname.startsWith('/_next/') || 
+                          request.nextUrl.pathname.startsWith('/static/') ||
+                          request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js)$/);
+    
+    if (!isMaintenancePage && !isStaticAsset) {
+      return NextResponse.redirect(new URL('/maintenance', request.url));
+    }
+  }
+  // =========================================================
+
   // Force HTTPS in production
   if (process.env.NODE_ENV === 'production' && request.headers.get('x-forwarded-proto') !== 'https') {
     return NextResponse.redirect(`https://${request.headers.get('host')}${request.nextUrl.pathname}`, 301);

@@ -25,6 +25,7 @@ export default function Navigation() {
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
+  const isMaintenancePage = pathname === '/maintenance';
 
   // Check authentication status on mount - client-side only
   useEffect(() => {
@@ -120,9 +121,9 @@ export default function Navigation() {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  // Hide navigation on portal page or admin pages (including during auth flow)
+  // Hide navigation on portal page, admin pages (including during auth flow), or maintenance page
   // For admin pages, hide immediately if it's not the login page, or if loading
-  const shouldHideNavigation = isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading));
+  const shouldHideNavigation = isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading)) || isMaintenancePage;
 
   if (shouldHideNavigation) {
     return null;
