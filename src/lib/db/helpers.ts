@@ -1133,7 +1133,7 @@ const utils = {
       return await callback(prisma);
     }
     // If it's an array of operations, execute them sequentially
-    const results = [];
+    const results: any[] = [];
     for (const op of callback) {
       results.push(await op);
     }

@@ -26,7 +26,21 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    const results = []
+    const results: Array<{
+      accountId: string;
+      accountNumber: string;
+      accountType: string;
+      user: {
+        id: string;
+        firstName: string | null;
+        lastName: string | null;
+        email: string;
+      };
+      oldBalance: number;
+      newBalance: number;
+      difference: number;
+      transactionCount: number;
+    }> = []
 
     for (const account of accounts) {
       // Get all completed transactions for this account

@@ -154,7 +154,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
 
   // Upload KYC files to Vercel Blob
   const uploadKYCFiles = async (userId: string) => {
-    const uploadPromises = [];
+    const uploadPromises: Promise<Response>[] = [];
 
     // Upload selfie
     if (formData.selfieImage) {

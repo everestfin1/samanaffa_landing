@@ -50,7 +50,7 @@ export async function PUT(request: NextRequest) {
 
     // Perform batch update using a transaction
     const result = await prisma.$transaction(async (tx: any) => {
-      const updatedDocuments = []
+      const updatedDocuments: any[] = []
 
       for (const update of updates) {
         const updatedDocument = await tx.kycDocument.update({
