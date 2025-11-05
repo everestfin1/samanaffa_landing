@@ -60,7 +60,7 @@ console.log('=' .repeat(80));
 let passed = 0;
 let failed = 0;
 
-testCases.forEach((testCase, index) => {
+testCases.forEach((testCase: typeof testCases[number], index: number) => {
   const result = validateInternationalPhone(testCase.phone, testCase.country);
   const success = result === testCase.expected;
   

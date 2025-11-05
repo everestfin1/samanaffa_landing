@@ -31,13 +31,13 @@ async function testBatchKycApi() {
     }
 
     console.log(`Found ${testDocuments.length} test documents:`)
-    testDocuments.forEach((doc, i) => {
+    testDocuments.forEach((doc: typeof testDocuments[number], i: number) => {
       const user = (doc as any).user
       console.log(`${i + 1}. ${doc.documentType} - ${user.firstName} ${user.lastName} (${user.kycStatus})`)
     })
 
     // Simulate batch update payload
-    const batchUpdates = testDocuments.map(doc => ({
+    const batchUpdates = testDocuments.map((doc: typeof testDocuments[number]) => ({
       documentId: doc.id,
       verificationStatus: 'APPROVED',
       adminNotes: 'Batch test approval'

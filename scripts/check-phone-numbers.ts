@@ -32,7 +32,7 @@ async function checkPhoneNumbers() {
 
     console.log(`📱 Found ${usersWithPhones.length} users with phone numbers:\n`)
 
-    usersWithPhones.forEach((user, index) => {
+    usersWithPhones.forEach((user: typeof usersWithPhones[number], index: number) => {
       console.log(`${index + 1}. User: ${user.firstName} ${user.lastName}`)
       console.log(`   Email: ${user.email}`)
       console.log(`   Phone: "${user.phone}"`)

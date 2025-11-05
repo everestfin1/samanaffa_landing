@@ -41,7 +41,7 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${pendingIntents.length} pending transaction(s):\n`);
 
-    pendingIntents.forEach((intent, index) => {
+    pendingIntents.forEach((intent: typeof pendingIntents[number], index: number) => {
       console.log(`${index + 1}. Transaction Intent ID: ${intent.id}`);
       console.log(`   Reference Number: ${intent.referenceNumber}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
@@ -89,14 +89,14 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${pendingWithCallbacks.length} pending transaction(s) with callbacks:\n`);
 
-    pendingWithCallbacks.forEach((intent, index) => {
+    pendingWithCallbacks.forEach((intent: typeof pendingWithCallbacks[number], index: number) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Last Callback: ${intent.lastCallbackAt?.toISOString()}`);
       console.log(`   Provider Status: ${intent.providerStatus || 'N/A'}`);
       console.log(`   Number of Callbacks: ${intent.paymentCallbacks.length}`);
       
       if (intent.paymentCallbacks.length > 0) {
-        console.log(`   Callback Statuses: ${intent.paymentCallbacks.map(cb => cb.status).join(', ')}`);
+        console.log(`   Callback Statuses: ${intent.paymentCallbacks.map((cb: typeof intent.paymentCallbacks[number]) => cb.status).join(', ')}`);
       }
       
       console.log();
@@ -126,7 +126,7 @@ async function checkPendingTransactions() {
   } else {
     console.log(`⚠️  Found ${missingProviderId.length} InTouch transaction(s) missing provider ID:\n`);
 
-    missingProviderId.forEach((intent, index) => {
+    missingProviderId.forEach((intent: typeof missingProviderId[number], index: number) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Status: ${intent.status}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
@@ -156,7 +156,7 @@ async function checkPendingTransactions() {
   if (completedIntents.length === 0) {
     console.log('No completed InTouch transactions found\n');
   } else {
-    completedIntents.forEach((intent, index) => {
+    completedIntents.forEach((intent: typeof completedIntents[number], index: number) => {
       console.log(`${index + 1}. Reference: ${intent.referenceNumber}`);
       console.log(`   Amount: ${intent.amount.toString()} FCFA`);
       console.log(`   Completed: ${intent.updatedAt.toISOString()}`);
@@ -179,7 +179,7 @@ async function checkPendingTransactions() {
   });
 
   console.log('InTouch Transactions by Status:');
-  stats.forEach(stat => {
+  stats.forEach((stat: typeof stats[number]) => {
     console.log(`   ${stat.status}: ${stat._count.id}`);
   });
   console.log();

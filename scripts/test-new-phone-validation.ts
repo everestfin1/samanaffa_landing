@@ -40,7 +40,7 @@ console.log('=' .repeat(80));
 let passed = 0;
 let failed = 0;
 
-testCases.forEach((testCase, index) => {
+testCases.forEach((testCase: typeof testCases[number], index: number) => {
   let result: boolean;
   
   if (testCase.country) {
@@ -93,7 +93,7 @@ const edgeCases = [
   { phone: '+221 (77) 123-45-67', description: 'Senegal with mixed formatting' },
 ];
 
-edgeCases.forEach((testCase, index) => {
+edgeCases.forEach((testCase: typeof edgeCases[number], index: number) => {
   try {
     const isValid = isValidPhoneNumber(testCase.phone);
     const isPossible = isPossiblePhoneNumber(testCase.phone);

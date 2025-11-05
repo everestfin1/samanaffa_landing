@@ -197,7 +197,7 @@ const additionalTests = [
   { mensuel: 100000, duree: 36, taux: 6.0, label: '36 months @ 6.0%' },
 ];
 
-additionalTests.forEach((test) => {
+additionalTests.forEach((test: typeof additionalTests[number]) => {
   const result = calculerCapitalFinal(test.mensuel, test.duree, test.taux);
   const deposited = test.mensuel * test.duree;
   const effectiveRate = ((result.interets / deposited) * 100).toFixed(2);
