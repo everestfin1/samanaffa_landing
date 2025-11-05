@@ -4,6 +4,7 @@ import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkLoginRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { sanitizeText, validateEmail } from '@/lib/sanitization'
 import bcrypt from 'bcryptjs'
+import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
     const normalizedPhone = sanitizedPhone ? normalizeInternationalPhone(sanitizedPhone) : null
 
     // Find user by email or phone (try multiple phone formats for better compatibility)
-    let user = null
+    let user: User | null = null
 
     if (sanitizedEmail) {
       // First try email lookup

@@ -3,6 +3,7 @@ import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber, normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
+import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
 
     // Find user - try multiple phone formats for better compatibility
-    let user = null
+    let user: User | null = null
 
     if (email) {
       // First try email lookup
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
       // Check if another user was created with same phone (race condition protection)
       const phoneFormats = generatePhoneFormats(finalNormalizedPhone);
 
-      let duplicatePhoneUser = null;
+      let duplicatePhoneUser: User | null = null;
       for (const phoneFormat of phoneFormats) {
         duplicatePhoneUser = await prisma.user.findFirst({
           where: { 

@@ -6,6 +6,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { generateOTP, verifyOTP } from './otp'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import bcrypt from 'bcryptjs'
+import type { User as PrismaUser } from './db/schema'
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db) as any,
@@ -28,7 +29,7 @@ export const authOptions: NextAuthOptions = {
         const normalizedPhone = credentials.phone ? normalizeInternationalPhone(credentials.phone) : null
 
         // Find user - try multiple phone formats for better compatibility
-        let user = null
+        let user: PrismaUser | null = null
 
         if (credentials.email) {
           // First try email lookup

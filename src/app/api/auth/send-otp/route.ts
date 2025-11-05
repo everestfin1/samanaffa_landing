@@ -3,6 +3,7 @@ import { sendOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkOTPRateLimit } from '@/lib/rate-limit'
+import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
@@ -102,7 +103,7 @@ export async function POST(request: NextRequest) {
 
       // Find user and send OTP
       const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
-      let user = null
+      let user: User | null = null
 
       if (email) {
         user = await prisma.user.findUnique({ where: { email } })
@@ -148,7 +149,7 @@ export async function POST(request: NextRequest) {
 
       // Find user by email or phone
       const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
-      let user = null
+      let user: User | null = null
 
       if (email) {
         user = await prisma.user.findUnique({ where: { email } })

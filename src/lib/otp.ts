@@ -1,6 +1,7 @@
 import { prisma } from './prisma'
 import { sendEmailOTP, sendSMSOTP } from './notifications'
 import { generatePhoneFormats } from './utils'
+import type { User } from './db/schema'
 
 export async function generateOTP(userId: string, type: 'email' | 'sms'): Promise<string> {
   // Generate 6-digit OTP
@@ -67,7 +68,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       return { success: false, message: 'Email ou numéro de téléphone requis' }
     }
 
-    let user = null
+    let user: User | null = null
 
     // For registration sessions, we don't need to find/create a user yet
     if (registrationSessionId) {
