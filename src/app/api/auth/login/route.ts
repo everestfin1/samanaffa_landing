@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       const failedAttempts = (user.failedAttempts || 0) + 1
       const maxAttempts = 3
       
-      let lockedUntil = null
+      let lockedUntil: Date | null = null
       if (failedAttempts >= maxAttempts) {
         lockedUntil = new Date(Date.now() + 30 * 60 * 1000) // Lock for 30 minutes
       }

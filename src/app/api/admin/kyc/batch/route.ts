@@ -77,7 +77,7 @@ export async function PUT(request: NextRequest) {
 
       // If userId is provided, check and update user KYC status
       let userKycStatusUpdated = false
-      let newUserKycStatus = null
+      let newUserKycStatus: string | null = null
 
       if (userId) {
         // Fetch all user's KYC documents to determine overall status

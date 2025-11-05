@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       const failedAttempts = admin.failedAttempts + 1
       const maxAttempts = 5
       
-      let lockedUntil = null
+      let lockedUntil: Date | null = null
       if (failedAttempts >= maxAttempts) {
         lockedUntil = new Date(Date.now() + 60 * 60 * 1000) // Lock for 1 hour
       }

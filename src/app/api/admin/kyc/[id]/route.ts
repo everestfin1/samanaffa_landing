@@ -90,7 +90,7 @@ export async function PUT(
     const rejectedDocs = userDocuments.filter(doc => doc.verificationStatus === 'REJECTED').length
     const pendingDocs = userDocuments.filter(doc => doc.verificationStatus === 'PENDING').length
 
-    let newKycStatus = null
+    let newKycStatus: string | null = null
     
     // If all documents are approved, approve user KYC
     if (approvedDocs > 0 && pendingDocs === 0 && rejectedDocs === 0) {
