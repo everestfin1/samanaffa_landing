@@ -1095,6 +1095,84 @@ export const adminAuditLog = {
   },
 };
 
+// Prisma-compatible query builder for APE Subscriptions
+export const apeSubscription = {
+  async findUnique(params: { where: { id?: string; referenceNumber?: string } }) {
+    const { where } = params;
+    let condition: SQL<unknown> | undefined;
+
+    if (where.id) condition = eq(schema.apeSubscriptions.id, where.id);
+    else if (where.referenceNumber) condition = eq(schema.apeSubscriptions.referenceNumber, where.referenceNumber);
+
+    if (!condition) return null;
+
+    const results = await db.select()
+      .from(schema.apeSubscriptions)
+      .where(condition)
+      .limit(1);
+
+    return results[0] || null;
+  },
+
+  async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number }) {
+    let query = db.select().from(schema.apeSubscriptions);
+
+    if (params?.where) {
+      const condition = buildWhereConditions(schema.apeSubscriptions, params.where);
+      if (condition) query = query.where(condition) as any;
+    }
+
+    if (params?.orderBy) {
+      const orderKey = Object.keys(params.orderBy)[0];
+      const orderDir = params.orderBy[orderKey];
+      const column = (schema.apeSubscriptions as any)[orderKey];
+      if (column) {
+        query = query.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+      }
+    }
+
+    if (params?.skip) query = query.offset(params.skip) as any;
+    if (params?.take) query = query.limit(params.take) as any;
+
+    return await query;
+  },
+
+  async create(params: { data: any }) {
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.apeSubscriptions).values(dataWithTimestamps).returning();
+    return results[0];
+  },
+
+  async update(params: { where: { id?: string; referenceNumber?: string }; data: any }) {
+    const { where } = params;
+    let condition: SQL<unknown> | undefined;
+
+    if (where.id) condition = eq(schema.apeSubscriptions.id, where.id);
+    else if (where.referenceNumber) condition = eq(schema.apeSubscriptions.referenceNumber, where.referenceNumber);
+
+    if (!condition) return null;
+
+    const results = await db.update(schema.apeSubscriptions)
+      .set({ ...params.data, updatedAt: new Date() })
+      .where(condition)
+      .returning();
+    return results[0];
+  },
+
+  async count(params?: { where?: WhereClause }) {
+    const condition = params?.where ? buildWhereConditions(schema.apeSubscriptions, params.where) : undefined;
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(schema.apeSubscriptions)
+      .where(condition);
+    return Number(result[0].count);
+  },
+};
+
 // Session helpers
 export const session = {
   async findUnique(params: { where: { sessionToken: string } }) {
@@ -1158,6 +1236,7 @@ export const prisma = {
   notification,
   paymentCallbackLog,
   session,
+  apeSubscription,
   $transaction: utils.$transaction,
   $disconnect: utils.$disconnect,
 };

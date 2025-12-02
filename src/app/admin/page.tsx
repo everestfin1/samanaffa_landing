@@ -29,7 +29,9 @@ import {
   Edit,
   Shield,
   Ban,
-  RotateCcw
+  RotateCcw,
+  FileSpreadsheet,
+  Filter
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -88,6 +90,39 @@ interface KycDocument {
   }
 }
 
+interface ApeSubscription {
+  id: string
+  referenceNumber: string
+  civilite: string
+  prenom: string
+  nom: string
+  email: string
+  telephone: string
+  paysResidence: string
+  ville: string
+  categorieSocioprofessionnelle: string
+  trancheInteresse: string
+  montantCfa: string
+  codeParrainage?: string
+  status: string
+  providerTransactionId?: string
+  providerStatus?: string
+  paymentInitiatedAt?: string
+  paymentCompletedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface ApeStats {
+  total: number
+  pending: number
+  paymentInitiated: number
+  paymentSuccess: number
+  paymentFailed: number
+  cancelled: number
+  totalAmount: number
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
@@ -102,7 +137,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -124,6 +159,18 @@ export default function AdminDashboard() {
   const [statusChangeNotes, setStatusChangeNotes] = useState('')
   const [updatingDocuments, setUpdatingDocuments] = useState<Set<string>>(new Set())
   const [bulkOperationProgress, setBulkOperationProgress] = useState<{ current: number; total: number } | null>(null)
+  const [apeSubscriptions, setApeSubscriptions] = useState<ApeSubscription[]>([])
+  const [apeStats, setApeStats] = useState<ApeStats>({
+    total: 0,
+    pending: 0,
+    paymentInitiated: 0,
+    paymentSuccess: 0,
+    paymentFailed: 0,
+    cancelled: 0,
+    totalAmount: 0
+  })
+  const [apeStatusFilter, setApeStatusFilter] = useState<string>('')
+  const [exportingApe, setExportingApe] = useState(false)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -218,6 +265,15 @@ export default function AdminDashboard() {
       
       if (kycData.success) {
         setKycDocuments(kycData.kycDocuments)
+      }
+
+      // Fetch APE subscriptions
+      const apeResponse = await fetch('/api/admin/ape-subscriptions', { headers })
+      const apeData = await apeResponse.json()
+      
+      if (apeData.success) {
+        setApeSubscriptions(apeData.subscriptions)
+        setApeStats(apeData.stats)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -747,6 +803,7 @@ export default function AdminDashboard() {
               { id: 'users', label: 'Users', icon: Users },
               { id: 'transactions', label: 'Transactions', icon: CreditCard },
               { id: 'kyc', label: 'KYC Review', icon: FileText },
+              { id: 'apeSubscriptions', label: 'APE Subscriptions', icon: FileSpreadsheet },
               { id: 'notifications', label: 'Notifications', icon: MessageSquare },
               { id: 'settings', label: 'Settings', icon: Shield },
             ].map((tab) => (
@@ -1614,6 +1671,276 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* APE Subscriptions Tab */}
+        {activeTab === 'apeSubscriptions' && (
+          <div className="space-y-6">
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('')}>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-gray-900">{apeStats.total}</p>
+                    <p className="text-xs text-gray-500">Total</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PENDING')}>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-yellow-600">{apeStats.pending}</p>
+                    <p className="text-xs text-gray-500">En attente</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_INITIATED')}>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-blue-600">{apeStats.paymentInitiated}</p>
+                    <p className="text-xs text-gray-500">Paiement initié</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_SUCCESS')}>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-600">{apeStats.paymentSuccess}</p>
+                    <p className="text-xs text-gray-500">Payé</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_FAILED')}>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-red-600">{apeStats.paymentFailed}</p>
+                    <p className="text-xs text-gray-500">Échoué</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="pt-4">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold text-green-700">{apeStats.totalAmount.toLocaleString('fr-FR')}</p>
+                    <p className="text-xs text-gray-500">FCFA collectés</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Export and Filter Controls */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="flex items-center space-x-2">
+                    <FileSpreadsheet className="h-5 w-5" />
+                    <span>Souscriptions APE</span>
+                    {apeStatusFilter && (
+                      <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                        Filtre: {apeStatusFilter}
+                        <button 
+                          onClick={() => setApeStatusFilter('')}
+                          className="ml-1 text-blue-600 hover:text-blue-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    )}
+                  </CardTitle>
+                  <div className="flex space-x-2">
+                    <Button
+                      onClick={async () => {
+                        setExportingApe(true)
+                        try {
+                          const token = localStorage.getItem('admin_token')
+                          const statusParam = apeStatusFilter ? `&status=${apeStatusFilter}` : ''
+                          const response = await fetch(`/api/admin/ape-subscriptions?format=csv${statusParam}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          })
+                          const data = await response.json()
+                          if (data.success) {
+                            // Generate CSV
+                            const headers = ['Référence', 'Civilité', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pays', 'Ville', 'Catégorie', 'Tranche', 'Montant (FCFA)', 'Code Parrainage', 'Statut', 'Date création']
+                            const rows = data.subscriptions.map((sub: ApeSubscription) => [
+                              sub.referenceNumber,
+                              sub.civilite,
+                              sub.prenom,
+                              sub.nom,
+                              sub.email,
+                              sub.telephone,
+                              sub.paysResidence,
+                              sub.ville,
+                              sub.categorieSocioprofessionnelle,
+                              sub.trancheInteresse,
+                              sub.montantCfa,
+                              sub.codeParrainage || '',
+                              sub.status,
+                              new Date(sub.createdAt).toLocaleDateString('fr-FR')
+                            ])
+                            const csvContent = [headers, ...rows].map(row => row.map((cell: string | number) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\n')
+                            const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
+                            const url = URL.createObjectURL(blob)
+                            const link = document.createElement('a')
+                            link.href = url
+                            link.download = `ape-subscriptions-${new Date().toISOString().split('T')[0]}.csv`
+                            link.click()
+                            URL.revokeObjectURL(url)
+                          }
+                        } catch (error) {
+                          console.error('Export error:', error)
+                          alert('Erreur lors de l\'export')
+                        } finally {
+                          setExportingApe(false)
+                        }
+                      }}
+                      disabled={exportingApe}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      {exportingApe ? 'Export...' : 'Export CSV'}
+                    </Button>
+                    <Button
+                      onClick={async () => {
+                        setExportingApe(true)
+                        try {
+                          const token = localStorage.getItem('admin_token')
+                          const statusParam = apeStatusFilter ? `&status=${apeStatusFilter}` : ''
+                          const response = await fetch(`/api/admin/ape-subscriptions?format=xlsx${statusParam}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                          })
+                          const data = await response.json()
+                          if (data.success) {
+                            // Generate XLSX using simple tab-separated format that Excel can open
+                            const headers = ['Référence', 'Civilité', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pays', 'Ville', 'Catégorie', 'Tranche', 'Montant (FCFA)', 'Code Parrainage', 'Statut', 'Transaction ID', 'Date création', 'Date paiement']
+                            const rows = data.subscriptions.map((sub: ApeSubscription) => [
+                              sub.referenceNumber,
+                              sub.civilite,
+                              sub.prenom,
+                              sub.nom,
+                              sub.email,
+                              sub.telephone,
+                              sub.paysResidence,
+                              sub.ville,
+                              sub.categorieSocioprofessionnelle,
+                              sub.trancheInteresse,
+                              sub.montantCfa,
+                              sub.codeParrainage || '',
+                              sub.status,
+                              sub.providerTransactionId || '',
+                              new Date(sub.createdAt).toLocaleDateString('fr-FR'),
+                              sub.paymentCompletedAt ? new Date(sub.paymentCompletedAt).toLocaleDateString('fr-FR') : ''
+                            ])
+                            // Use tab-separated values for Excel compatibility
+                            const tsvContent = [headers, ...rows].map(row => row.join('\t')).join('\n')
+                            const blob = new Blob(['\ufeff' + tsvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' })
+                            const url = URL.createObjectURL(blob)
+                            const link = document.createElement('a')
+                            link.href = url
+                            link.download = `ape-subscriptions-${new Date().toISOString().split('T')[0]}.xls`
+                            link.click()
+                            URL.revokeObjectURL(url)
+                          }
+                        } catch (error) {
+                          console.error('Export error:', error)
+                          alert('Erreur lors de l\'export')
+                        } finally {
+                          setExportingApe(false)
+                        }
+                      }}
+                      disabled={exportingApe}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      <FileSpreadsheet className="h-4 w-4 mr-2" />
+                      {exportingApe ? 'Export...' : 'Export Excel'}
+                    </Button>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Souscripteur</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Localisation</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tranche</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parrainage</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {apeSubscriptions
+                        .filter(sub => !apeStatusFilter || sub.status === apeStatusFilter)
+                        .map((sub) => (
+                        <tr key={sub.id} className="hover:bg-gray-50">
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                            {sub.referenceNumber}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {sub.civilite} {sub.prenom} {sub.nom}
+                              </div>
+                              <div className="text-xs text-gray-500">{sub.categorieSocioprofessionnelle}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm text-gray-900">{sub.email}</div>
+                              <div className="text-xs text-gray-500">{sub.telephone}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm text-gray-900">{sub.ville}</div>
+                              <div className="text-xs text-gray-500">{sub.paysResidence}</div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                            {sub.trancheInteresse}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                            {parseFloat(sub.montantCfa).toLocaleString('fr-FR')} FCFA
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {sub.codeParrainage || '-'}
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap">
+                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              sub.status === 'PAYMENT_SUCCESS' ? 'bg-green-100 text-green-800' :
+                              sub.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                              sub.status === 'PAYMENT_INITIATED' ? 'bg-blue-100 text-blue-800' :
+                              sub.status === 'PAYMENT_FAILED' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {sub.status === 'PAYMENT_SUCCESS' ? 'Payé' :
+                               sub.status === 'PENDING' ? 'En attente' :
+                               sub.status === 'PAYMENT_INITIATED' ? 'Initié' :
+                               sub.status === 'PAYMENT_FAILED' ? 'Échoué' :
+                               sub.status === 'CANCELLED' ? 'Annulé' : sub.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {new Date(sub.createdAt).toLocaleDateString('fr-FR')}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {apeSubscriptions.filter(sub => !apeStatusFilter || sub.status === apeStatusFilter).length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <p>Aucune souscription APE trouvée</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </div>
         )}
 
