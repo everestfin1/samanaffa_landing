@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { XCircleIcon, ArrowPathIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ const errorMessages: Record<string, string> = {
   default: 'Une erreur est survenue lors du paiement',
 };
 
-export default function ApePaymentFailedPage() {
+function PaymentFailedContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [countdown, setCountdown] = useState(15);
@@ -153,5 +153,17 @@ export default function ApePaymentFailedPage() {
         </p>
       </div>
     </div>
+  );
+}
+
+export default function ApePaymentFailedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gradient-to-b from-red-50 to-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+      </div>
+    }>
+      <PaymentFailedContent />
+    </Suspense>
   );
 }
