@@ -31,7 +31,12 @@ import {
   Ban,
   RotateCcw,
   FileSpreadsheet,
-  Filter
+  Filter,
+  RefreshCw,
+  LogOut,
+  LayoutDashboard,
+  Wallet,
+  X
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -752,10 +757,10 @@ export default function AdminDashboard() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Checking authentication...</p>
+          <div className="admin-spinner mx-auto"></div>
+          <p className="mt-4 text-[var(--admin-text-muted)]">Vérification de l'authentification...</p>
         </div>
       </div>
     )
@@ -763,60 +768,67 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <div className="admin-spinner mx-auto"></div>
+          <p className="mt-4 text-[var(--admin-text-muted)]">Chargement du tableau de bord...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen admin-page-enter relative z-10">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="text-gray-600">Sama Naffa Platform Management</p>
+      <header className="admin-header">
+        <div className="admin-header-inner">
+          <div className="admin-logo">
+            <div className="admin-logo-icon">
+              <Shield className="w-5 h-5 text-white" />
             </div>
-            <div className="flex space-x-4">
-              <Button onClick={fetchDashboardData} className="bg-blue-600 hover:bg-blue-700">
-                Refresh Data
-              </Button>
-              <Button onClick={handleLogout} className="bg-red-600 hover:bg-red-700">
-                Logout
-              </Button>
-            </div>
+            <span className="admin-logo-text">Sama Naffa</span>
+            <span className="admin-logo-badge">Admin</span>
+          </div>
+          <div className="admin-header-actions">
+            <button 
+              onClick={fetchDashboardData} 
+              className="admin-btn admin-btn-secondary"
+              title="Actualiser"
+            >
+              <RefreshCw className="w-4 h-4" />
+              <span className="hidden sm:inline">Actualiser</span>
+            </button>
+            <button 
+              onClick={handleLogout} 
+              className="admin-btn admin-btn-ghost"
+              title="Déconnexion"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Déconnexion</span>
+            </button>
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="admin-container py-8">
         {/* Navigation Tabs */}
         <div className="mb-8">
-          <nav className="flex space-x-8">
+          <nav className="admin-nav">
             {[
-              { id: 'overview', label: 'Overview', icon: TrendingUp },
-              { id: 'users', label: 'Users', icon: Users },
+              { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
+              { id: 'users', label: 'Utilisateurs', icon: Users },
               { id: 'transactions', label: 'Transactions', icon: CreditCard },
-              { id: 'kyc', label: 'KYC Review', icon: FileText },
-              { id: 'apeSubscriptions', label: 'APE Subscriptions', icon: FileSpreadsheet },
+              { id: 'kyc', label: 'KYC', icon: FileText },
+              { id: 'apeSubscriptions', label: 'APE', icon: FileSpreadsheet },
               { id: 'notifications', label: 'Notifications', icon: MessageSquare },
-              { id: 'settings', label: 'Settings', icon: Shield },
+              { id: 'settings', label: 'Paramètres', icon: Shield },
             ].map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
+                className={`admin-nav-item ${activeTab === tab.id ? 'active' : ''}`}
               >
-                <tab.icon className="h-5 w-5" />
+                <tab.icon className="admin-nav-icon" />
                 <span>{tab.label}</span>
               </button>
             ))}
@@ -825,235 +837,234 @@ export default function AdminDashboard() {
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.totalUsers}</div>
-                </CardContent>
-              </Card>
+            <div className="admin-grid admin-grid-5">
+              <div className="admin-stat-card admin-animate-in" data-color="gold">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Utilisateurs</span>
+                  <div className="admin-stat-icon">
+                    <Users className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="admin-stat-value">{stats.totalUsers}</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending KYC</CardTitle>
-                  <AlertCircle className="h-4 w-4 text-yellow-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-yellow-600">{stats.pendingKyc}</div>
-                </CardContent>
-              </Card>
+              <div className="admin-stat-card admin-animate-in" data-color="amber">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">KYC en attente</span>
+                  <div className="admin-stat-icon">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="admin-stat-value colored">{stats.pendingKyc}</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Under Review</CardTitle>
-                  <Clock className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.underReviewKyc}</div>
-                </CardContent>
-              </Card>
+              <div className="admin-stat-card admin-animate-in" data-color="sky">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En révision</span>
+                  <div className="admin-stat-icon">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="admin-stat-value colored">{stats.underReviewKyc}</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Pending Transactions</CardTitle>
-                  <Clock className="h-4 w-4 text-orange-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-orange-600">{stats.pendingTransactions}</div>
-                </CardContent>
-              </Card>
+              <div className="admin-stat-card admin-animate-in" data-color="violet">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Trans. en attente</span>
+                  <div className="admin-stat-icon">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="admin-stat-value colored">{stats.pendingTransactions}</div>
+              </div>
 
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Completed Transactions</CardTitle>
-                  <CheckCircle className="h-4 w-4 text-green-500" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">{stats.completedTransactions}</div>
-                </CardContent>
-              </Card>
+              <div className="admin-stat-card admin-animate-in" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Trans. complétées</span>
+                  <div className="admin-stat-icon">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
+                </div>
+                <div className="admin-stat-value colored">{stats.completedTransactions}</div>
+              </div>
             </div>
 
             {/* Financial Summary */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <DollarSign className="h-5 w-5" />
-                    <span>Total Deposits</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-green-600">
-                    {stats.totalDeposits.toLocaleString()} FCFA
+            <div className="admin-grid admin-grid-2">
+              <div className="admin-card admin-animate-in" style={{ animationDelay: '300ms' }}>
+                <div className="admin-card-header">
+                  <h3 className="admin-card-title">
+                    <Wallet className="admin-card-title-icon" />
+                    Total Dépôts
+                  </h3>
+                </div>
+                <div className="admin-card-content">
+                  <div className="text-3xl font-bold text-[var(--admin-emerald)]">
+                    {stats.totalDeposits.toLocaleString('fr-FR')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5" />
-                    <span>Total Investments</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-bold text-blue-600">
-                    {stats.totalInvestments.toLocaleString()} FCFA
+              <div className="admin-card admin-animate-in" style={{ animationDelay: '350ms' }}>
+                <div className="admin-card-header">
+                  <h3 className="admin-card-title">
+                    <TrendingUp className="admin-card-title-icon" />
+                    Total Investissements
+                  </h3>
+                </div>
+                <div className="admin-card-content">
+                  <div className="text-3xl font-bold text-[var(--admin-sky)]">
+                    {stats.totalInvestments.toLocaleString('fr-FR')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
 
             {/* Admin Tools */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Shield className="h-5 w-5" />
-                  <span>Admin Tools</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex space-x-4">
-                  <Button
+            <div className="admin-card admin-animate-in" style={{ animationDelay: '400ms' }}>
+              <div className="admin-card-header">
+                <h3 className="admin-card-title">
+                  <Shield className="admin-card-title-icon" />
+                  Outils d'administration
+                </h3>
+              </div>
+              <div className="admin-card-content">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                  <button
                     onClick={handleRecalculateBalances}
                     disabled={loading}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    className="admin-btn admin-btn-primary"
                   >
-                    {loading ? 'Recalculating...' : 'Recalculate All Balances'}
-                  </Button>
-                  <p className="text-sm text-gray-600 flex items-center">
-                    Use this tool to ensure all account balances match their completed transactions
+                    {loading ? 'Recalcul en cours...' : 'Recalculer tous les soldes'}
+                  </button>
+                  <p className="text-sm text-[var(--admin-text-muted)]">
+                    Utilisez cet outil pour synchroniser les soldes avec les transactions complétées
                   </p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Users Tab */}
         {activeTab === 'users' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>User Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto min-h-[50vh]">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+          <div className="admin-card admin-animate-in">
+            <div className="admin-card-header">
+              <h3 className="admin-card-title">
+                <Users className="admin-card-title-icon" />
+                Gestion des utilisateurs
+              </h3>
+            </div>
+            <div className="admin-card-content p-0">
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">KYC Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Transactions</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th>Utilisateur</th>
+                      <th>Statut KYC</th>
+                      <th>Transactions</th>
+                      <th>Inscription</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
                     {users.map((user) => (
                       <tr key={user.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="admin-table-cell-primary">
                               {user.firstName} {user.lastName}
                             </div>
-                            <div className="text-sm text-gray-500">{user.email}</div>
+                            <div className="text-xs text-[var(--admin-text-muted)]">{user.email}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.kycStatus === 'APPROVED' ? 'bg-green-100 text-green-800' :
-                            user.kycStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                            user.kycStatus === 'UNDER_REVIEW' ? 'bg-blue-100 text-blue-800' :
-                            'bg-red-100 text-red-800'
+                        <td>
+                          <span className={`admin-badge ${
+                            user.kycStatus === 'APPROVED' ? 'admin-badge-success' :
+                            user.kycStatus === 'PENDING' ? 'admin-badge-warning' :
+                            user.kycStatus === 'UNDER_REVIEW' ? 'admin-badge-info' :
+                            'admin-badge-danger'
                           }`}>
-                            {user.kycStatus === 'UNDER_REVIEW' ? 'UNDER REVIEW' : user.kycStatus}
+                            <span className="admin-badge-dot"></span>
+                            {user.kycStatus === 'UNDER_REVIEW' ? 'En révision' : 
+                             user.kycStatus === 'APPROVED' ? 'Approuvé' :
+                             user.kycStatus === 'PENDING' ? 'En attente' : 'Rejeté'}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <td className="admin-table-cell-primary">
                           {user.stats.totalTransactions}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(user.createdAt).toLocaleDateString()}
+                        <td className="admin-table-cell-mono">
+                          {new Date(user.createdAt).toLocaleDateString('fr-FR')}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="relative">
+                        <td>
+                          <div className="admin-dropdown">
                             <button
                               onClick={() => setShowUserActions(showUserActions === user.id ? null : user.id)}
-                              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900"
+                              className="admin-btn admin-btn-ghost admin-btn-sm"
                             >
                               <span>Actions</span>
-                              <MoreVertical className="h-4 w-4" />
+                              <MoreVertical className="w-4 h-4" />
                             </button>
                             
                             {showUserActions === user.id && (
-                              <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border">
-                                <div className="py-1">
-                                  {/* KYC Actions */}
-                                  <button
-                                    onClick={() => {
-                                      handleReviewKyc(user)
-                                      setShowUserActions(null)
-                                    }}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-blue-700 hover:bg-blue-50"
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                    <span>Review KYC</span>
-                                  </button>
-                                  
-                                  {/* Divider */}
-                                  <div className="border-t border-gray-100 my-1"></div>
-                                  
-                                  {/* User Management Actions */}
-                                  <button
-                                    onClick={() => handleUserAction(user, 'edit')}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                                  >
-                                    <Edit className="h-4 w-4" />
-                                    <span>Edit User</span>
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => handleUserAction(user, 'activate')}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50"
-                                  >
-                                    <UserCheck className="h-4 w-4" />
-                                    <span>Activate Account</span>
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => handleUserAction(user, 'suspend')}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
-                                  >
-                                    <Ban className="h-4 w-4" />
-                                    <span>Suspend Account</span>
-                                  </button>
-                                  
-                                  <button
-                                    onClick={() => handleUserAction(user, 'archive')}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-orange-700 hover:bg-orange-50"
-                                  >
-                                    <Archive className="h-4 w-4" />
-                                    <span>Archive Account</span>
-                                  </button>
-                                  
-                                  {/* Divider */}
-                                  <div className="border-t border-gray-100 my-1"></div>
-                                  
-                                  {/* Destructive Actions */}
-                                  <button
-                                    onClick={() => handleUserAction(user, 'delete')}
-                                    className="flex items-center space-x-2 w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                    <span>Delete User</span>
-                                  </button>
-                                </div>
+                              <div className="admin-dropdown-menu">
+                                <button
+                                  onClick={() => {
+                                    handleReviewKyc(user)
+                                    setShowUserActions(null)
+                                  }}
+                                  className="admin-dropdown-item"
+                                >
+                                  <Eye className="w-4 h-4 text-[var(--admin-sky)]" />
+                                  <span>Réviser KYC</span>
+                                </button>
+                                
+                                <div className="admin-dropdown-divider"></div>
+                                
+                                <button
+                                  onClick={() => handleUserAction(user, 'edit')}
+                                  className="admin-dropdown-item"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                  <span>Modifier</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleUserAction(user, 'activate')}
+                                  className="admin-dropdown-item"
+                                >
+                                  <UserCheck className="w-4 h-4 text-[var(--admin-emerald)]" />
+                                  <span>Activer</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleUserAction(user, 'suspend')}
+                                  className="admin-dropdown-item"
+                                >
+                                  <Ban className="w-4 h-4 text-[var(--admin-amber)]" />
+                                  <span>Suspendre</span>
+                                </button>
+                                
+                                <button
+                                  onClick={() => handleUserAction(user, 'archive')}
+                                  className="admin-dropdown-item"
+                                >
+                                  <Archive className="w-4 h-4 text-[var(--admin-violet)]" />
+                                  <span>Archiver</span>
+                                </button>
+                                
+                                <div className="admin-dropdown-divider"></div>
+                                
+                                <button
+                                  onClick={() => handleUserAction(user, 'delete')}
+                                  className="admin-dropdown-item admin-dropdown-item-danger"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                  <span>Supprimer</span>
+                                </button>
                               </div>
                             )}
                           </div>
@@ -1063,97 +1074,107 @@ export default function AdminDashboard() {
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Transactions Tab */}
         {activeTab === 'transactions' && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaction Management</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+          <div className="admin-card admin-animate-in">
+            <div className="admin-card-header">
+              <h3 className="admin-card-title">
+                <CreditCard className="admin-card-title-icon" />
+                Gestion des transactions
+              </h3>
+            </div>
+            <div className="admin-card-content p-0">
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reference</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      <th>Référence</th>
+                      <th>Utilisateur</th>
+                      <th>Type</th>
+                      <th>Montant</th>
+                      <th>Statut</th>
+                      <th>Date</th>
+                      <th>Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody>
                     {transactions.map((transaction) => (
                       <tr key={transaction.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        <td className="admin-table-cell-mono">
                           {transaction.referenceNumber}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
+                        <td>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{transaction.user.name}</div>
-                            <div className="text-sm text-gray-500">{transaction.user.email}</div>
+                            <div className="admin-table-cell-primary">{transaction.user.name}</div>
+                            <div className="text-xs text-[var(--admin-text-muted)]">{transaction.user.email}</div>
                           </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {transaction.intentType}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {transaction.amount.toLocaleString()} FCFA
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            transaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                            transaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                            transaction.status === 'PROCESSING' ? 'bg-blue-100 text-blue-800' :
-                            'bg-red-100 text-red-800'
+                        <td>
+                          <span className={`admin-badge ${
+                            transaction.intentType === 'DEPOSIT' ? 'admin-badge-gold' : 'admin-badge-info'
                           }`}>
-                            {transaction.status}
+                            {transaction.intentType === 'DEPOSIT' ? 'Dépôt' : 
+                             transaction.intentType === 'INVESTMENT' ? 'Investissement' : transaction.intentType}
                           </span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(transaction.createdAt).toLocaleDateString()}
+                        <td className="admin-table-cell-primary font-semibold">
+                          {transaction.amount.toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                          {transaction.status === 'PENDING' && (
-                            <>
-                              <Button
-                                size="sm"
-                                onClick={() => updateTransactionStatus(transaction.id, 'PROCESSING')}
-                                className="bg-blue-600 hover:bg-blue-700"
-                              >
-                                Process
-                              </Button>
-                              <Button
-                                size="sm"
+                        <td>
+                          <span className={`admin-badge ${
+                            transaction.status === 'COMPLETED' ? 'admin-badge-success' :
+                            transaction.status === 'PENDING' ? 'admin-badge-warning' :
+                            transaction.status === 'PROCESSING' ? 'admin-badge-info' :
+                            'admin-badge-danger'
+                          }`}>
+                            <span className="admin-badge-dot"></span>
+                            {transaction.status === 'COMPLETED' ? 'Complété' :
+                             transaction.status === 'PENDING' ? 'En attente' :
+                             transaction.status === 'PROCESSING' ? 'En cours' : 'Échoué'}
+                          </span>
+                        </td>
+                        <td className="admin-table-cell-mono">
+                          {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
+                        </td>
+                        <td>
+                          <div className="flex gap-2">
+                            {transaction.status === 'PENDING' && (
+                              <>
+                                <button
+                                  onClick={() => updateTransactionStatus(transaction.id, 'PROCESSING')}
+                                  className="admin-btn admin-btn-secondary admin-btn-sm"
+                                >
+                                  Traiter
+                                </button>
+                                <button
+                                  onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
+                                  className="admin-btn admin-btn-success admin-btn-sm"
+                                >
+                                  Compléter
+                                </button>
+                              </>
+                            )}
+                            {transaction.status === 'PROCESSING' && (
+                              <button
                                 onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
-                                className="bg-green-600 hover:bg-green-700"
+                                className="admin-btn admin-btn-success admin-btn-sm"
                               >
-                                Complete
-                              </Button>
-                            </>
-                          )}
-                          {transaction.status === 'PROCESSING' && (
-                            <Button
-                              size="sm"
-                              onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
-                              className="bg-green-600 hover:bg-green-700"
-                            >
-                              Complete
-                            </Button>
-                          )}
+                                Compléter
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* KYC Tab */}
@@ -1676,80 +1697,117 @@ export default function AdminDashboard() {
 
         {/* APE Subscriptions Tab */}
         {activeTab === 'apeSubscriptions' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* Stats Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('')}>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-gray-900">{apeStats.total}</p>
-                    <p className="text-xs text-gray-500">Total</p>
+            <div className="admin-grid admin-grid-6">
+              <div 
+                className={`admin-stat-card admin-animate-in ${!apeStatusFilter ? 'active' : ''}`} 
+                data-color="gold"
+                onClick={() => setApeStatusFilter('')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total</span>
+                  <div className="admin-stat-icon">
+                    <FileSpreadsheet className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PENDING')}>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-yellow-600">{apeStats.pending}</p>
-                    <p className="text-xs text-gray-500">En attente</p>
+                </div>
+                <div className="admin-stat-value">{apeStats.total}</div>
+              </div>
+              
+              <div 
+                className={`admin-stat-card admin-animate-in ${apeStatusFilter === 'PENDING' ? 'active' : ''}`}
+                data-color="amber"
+                onClick={() => setApeStatusFilter('PENDING')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En attente</span>
+                  <div className="admin-stat-icon">
+                    <Clock className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_INITIATED')}>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-blue-600">{apeStats.paymentInitiated}</p>
-                    <p className="text-xs text-gray-500">Paiement initié</p>
+                </div>
+                <div className="admin-stat-value colored">{apeStats.pending}</div>
+              </div>
+              
+              <div 
+                className={`admin-stat-card admin-animate-in ${apeStatusFilter === 'PAYMENT_INITIATED' ? 'active' : ''}`}
+                data-color="sky"
+                onClick={() => setApeStatusFilter('PAYMENT_INITIATED')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Initié</span>
+                  <div className="admin-stat-icon">
+                    <CreditCard className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_SUCCESS')}>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-600">{apeStats.paymentSuccess}</p>
-                    <p className="text-xs text-gray-500">Payé</p>
+                </div>
+                <div className="admin-stat-value colored">{apeStats.paymentInitiated}</div>
+              </div>
+              
+              <div 
+                className={`admin-stat-card admin-animate-in ${apeStatusFilter === 'PAYMENT_SUCCESS' ? 'active' : ''}`}
+                data-color="emerald"
+                onClick={() => setApeStatusFilter('PAYMENT_SUCCESS')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Payé</span>
+                  <div className="admin-stat-icon">
+                    <CheckCircle className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-              <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setApeStatusFilter('PAYMENT_FAILED')}>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-red-600">{apeStats.paymentFailed}</p>
-                    <p className="text-xs text-gray-500">Échoué</p>
+                </div>
+                <div className="admin-stat-value colored">{apeStats.paymentSuccess}</div>
+              </div>
+              
+              <div 
+                className={`admin-stat-card admin-animate-in ${apeStatusFilter === 'PAYMENT_FAILED' ? 'active' : ''}`}
+                data-color="rose"
+                onClick={() => setApeStatusFilter('PAYMENT_FAILED')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Échoué</span>
+                  <div className="admin-stat-icon">
+                    <AlertCircle className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="pt-4">
-                  <div className="text-center">
-                    <p className="text-2xl font-bold text-green-700">{apeStats.totalAmount.toLocaleString('fr-FR')}</p>
-                    <p className="text-xs text-gray-500">FCFA collectés</p>
+                </div>
+                <div className="admin-stat-value colored">{apeStats.paymentFailed}</div>
+              </div>
+              
+              <div className="admin-stat-card admin-animate-in" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Collecté</span>
+                  <div className="admin-stat-icon">
+                    <Wallet className="w-5 h-5" />
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+                <div className="admin-stat-value colored text-xl">{apeStats.totalAmount.toLocaleString('fr-FR')}</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">FCFA</div>
+              </div>
             </div>
 
             {/* Export and Filter Controls */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center space-x-2">
-                    <FileSpreadsheet className="h-5 w-5" />
-                    <span>Souscriptions APE</span>
+            <div className="admin-card admin-animate-in" style={{ animationDelay: '300ms' }}>
+              <div className="admin-card-header">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+                  <div className="flex items-center gap-3">
+                    <h3 className="admin-card-title">
+                      <FileSpreadsheet className="admin-card-title-icon" />
+                      Souscriptions APE
+                    </h3>
                     {apeStatusFilter && (
-                      <span className="ml-2 px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                        Filtre: {apeStatusFilter}
+                      <span className="admin-filter-chip">
+                        Filtre: {apeStatusFilter === 'PAYMENT_SUCCESS' ? 'Payé' :
+                                 apeStatusFilter === 'PENDING' ? 'En attente' :
+                                 apeStatusFilter === 'PAYMENT_INITIATED' ? 'Initié' :
+                                 apeStatusFilter === 'PAYMENT_FAILED' ? 'Échoué' : apeStatusFilter}
                         <button 
                           onClick={() => setApeStatusFilter('')}
-                          className="ml-1 text-blue-600 hover:text-blue-800"
+                          className="admin-filter-chip-close"
                         >
-                          ×
+                          <X className="w-3 h-3" />
                         </button>
                       </span>
                     )}
-                  </CardTitle>
-                  <div className="flex space-x-2">
-                    <Button
+                  </div>
+                  <div className="flex gap-2">
+                    <button
                       onClick={async () => {
                         setExportingApe(true)
                         try {
@@ -1795,12 +1853,12 @@ export default function AdminDashboard() {
                         }
                       }}
                       disabled={exportingApe}
-                      className="bg-green-600 hover:bg-green-700"
+                      className="admin-btn admin-btn-success"
                     >
-                      <Download className="h-4 w-4 mr-2" />
-                      {exportingApe ? 'Export...' : 'Export CSV'}
-                    </Button>
-                    <Button
+                      <Download className="w-4 h-4" />
+                      {exportingApe ? 'Export...' : 'CSV'}
+                    </button>
+                    <button
                       onClick={async () => {
                         setExportingApe(true)
                         try {
@@ -1811,7 +1869,6 @@ export default function AdminDashboard() {
                           })
                           const data = await response.json()
                           if (data.success) {
-                            // Generate XLSX using simple tab-separated format that Excel can open
                             const headers = ['Référence', 'Civilité', 'Prénom', 'Nom', 'Email', 'Téléphone', 'Pays', 'Ville', 'Catégorie', 'Tranche', 'Montant (FCFA)', 'Code Parrainage', 'Statut', 'Transaction ID', 'Date création', 'Date paiement']
                             const rows = data.subscriptions.map((sub: ApeSubscription) => [
                               sub.referenceNumber,
@@ -1831,7 +1888,6 @@ export default function AdminDashboard() {
                               new Date(sub.createdAt).toLocaleDateString('fr-FR'),
                               sub.paymentCompletedAt ? new Date(sub.paymentCompletedAt).toLocaleDateString('fr-FR') : ''
                             ])
-                            // Use tab-separated values for Excel compatibility
                             const tsvContent = [headers, ...rows].map(row => row.join('\t')).join('\n')
                             const blob = new Blob(['\ufeff' + tsvContent], { type: 'application/vnd.ms-excel;charset=utf-8;' })
                             const url = URL.createObjectURL(blob)
@@ -1849,75 +1905,76 @@ export default function AdminDashboard() {
                         }
                       }}
                       disabled={exportingApe}
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="admin-btn admin-btn-primary"
                     >
-                      <FileSpreadsheet className="h-4 w-4 mr-2" />
-                      {exportingApe ? 'Export...' : 'Export Excel'}
-                    </Button>
+                      <FileSpreadsheet className="w-4 h-4" />
+                      {exportingApe ? 'Export...' : 'Excel'}
+                    </button>
                   </div>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+              </div>
+              <div className="admin-card-content p-0">
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
                       <tr>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Référence</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Souscripteur</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Localisation</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tranche</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Montant</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parrainage</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut</th>
-                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                        <th>Référence</th>
+                        <th>Souscripteur</th>
+                        <th>Contact</th>
+                        <th>Localisation</th>
+                        <th>Tranche</th>
+                        <th>Montant</th>
+                        <th>Parrainage</th>
+                        <th>Statut</th>
+                        <th>Date</th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody>
                       {apeSubscriptions
                         .filter(sub => !apeStatusFilter || sub.status === apeStatusFilter)
                         .map((sub) => (
-                        <tr key={sub.id} className="hover:bg-gray-50">
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+                        <tr key={sub.id}>
+                          <td className="admin-table-cell-mono">
                             {sub.referenceNumber}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
+                          <td>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">
+                              <div className="admin-table-cell-primary">
                                 {sub.civilite} {sub.prenom} {sub.nom}
                               </div>
-                              <div className="text-xs text-gray-500">{sub.categorieSocioprofessionnelle}</div>
+                              <div className="text-xs text-[var(--admin-text-muted)]">{sub.categorieSocioprofessionnelle}</div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
+                          <td>
                             <div>
-                              <div className="text-sm text-gray-900">{sub.email}</div>
-                              <div className="text-xs text-gray-500">{sub.telephone}</div>
+                              <div className="text-[var(--admin-text-secondary)]">{sub.email}</div>
+                              <div className="text-xs text-[var(--admin-text-muted)]">{sub.telephone}</div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
+                          <td>
                             <div>
-                              <div className="text-sm text-gray-900">{sub.ville}</div>
-                              <div className="text-xs text-gray-500">{sub.paysResidence}</div>
+                              <div className="text-[var(--admin-text-secondary)]">{sub.ville}</div>
+                              <div className="text-xs text-[var(--admin-text-muted)]">{sub.paysResidence}</div>
                             </div>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <td className="text-[var(--admin-text-secondary)]">
                             {sub.trancheInteresse}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                            {parseFloat(sub.montantCfa).toLocaleString('fr-FR')} FCFA
+                          <td className="admin-table-cell-primary font-semibold">
+                            {parseFloat(sub.montantCfa).toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="admin-table-cell-mono">
                             {sub.codeParrainage || '-'}
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              sub.status === 'PAYMENT_SUCCESS' ? 'bg-green-100 text-green-800' :
-                              sub.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                              sub.status === 'PAYMENT_INITIATED' ? 'bg-blue-100 text-blue-800' :
-                              sub.status === 'PAYMENT_FAILED' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
+                          <td>
+                            <span className={`admin-badge ${
+                              sub.status === 'PAYMENT_SUCCESS' ? 'admin-badge-success' :
+                              sub.status === 'PENDING' ? 'admin-badge-warning' :
+                              sub.status === 'PAYMENT_INITIATED' ? 'admin-badge-info' :
+                              sub.status === 'PAYMENT_FAILED' ? 'admin-badge-danger' :
+                              'admin-badge-neutral'
                             }`}>
+                              <span className="admin-badge-dot"></span>
                               {sub.status === 'PAYMENT_SUCCESS' ? 'Payé' :
                                sub.status === 'PENDING' ? 'En attente' :
                                sub.status === 'PAYMENT_INITIATED' ? 'Initié' :
@@ -1925,7 +1982,7 @@ export default function AdminDashboard() {
                                sub.status === 'CANCELLED' ? 'Annulé' : sub.status}
                             </span>
                           </td>
-                          <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                          <td className="admin-table-cell-mono">
                             {new Date(sub.createdAt).toLocaleDateString('fr-FR')}
                           </td>
                         </tr>
@@ -1933,14 +1990,15 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                   {apeSubscriptions.filter(sub => !apeStatusFilter || sub.status === apeStatusFilter).length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileSpreadsheet className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p>Aucune souscription APE trouvée</p>
+                    <div className="admin-empty">
+                      <FileSpreadsheet className="admin-empty-icon" />
+                      <p className="admin-empty-title">Aucune souscription APE trouvée</p>
+                      <p className="admin-empty-text">Les souscriptions apparaîtront ici une fois créées</p>
                     </div>
                   )}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 
