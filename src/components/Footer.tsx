@@ -9,8 +9,9 @@ export default function Footer() {
     const router = useRouter();
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
-    // Hide footer on portal pages
-    if (pathname.startsWith('/portal') || isAdminPage) {
+    const isApePage = pathname.startsWith('/ape');
+    // Hide footer on portal pages, admin pages, and APE pages (APE has its own footer)
+    if (pathname.startsWith('/portal') || isAdminPage || isApePage) {
         return null;
     }
     const currentYear = new Date().getFullYear();

@@ -25,6 +25,7 @@ export default function Navigation() {
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
+  const isApePage = pathname.startsWith('/ape');
 
   // Check authentication status on mount - client-side only
   useEffect(() => {
@@ -125,6 +126,11 @@ export default function Navigation() {
   const shouldHideNavigation = isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading));
 
   if (shouldHideNavigation) {
+    return null;
+  }
+
+  // Hide navigation on APE pages (they have their own header)
+  if (isApePage) {
     return null;
   }
 
