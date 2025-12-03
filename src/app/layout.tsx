@@ -8,6 +8,7 @@ import { SelectionProvider } from "../lib/selection-context";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import QueryProvider from "@/components/providers/QueryProvider";
+import { Analytics } from "@vercel/analytics/next"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -92,6 +93,7 @@ export default function RootLayout({
             </SelectionProvider>
           </SessionProvider>
         </QueryProvider>
+        <Analytics />
       </body>
     </html>
   );
