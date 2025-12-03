@@ -16,6 +16,14 @@ export async function GET(request: NextRequest) {
       ? process.env.INTOUCH_TEST_API_KEY 
       : process.env.INTOUCH_API_KEY;
 
+    const merchantId = isTestEnvironment
+      ? process.env.INTOUCH_TEST_MERCHANT_ID
+      : process.env.INTOUCH_MERCHANT_ID;
+
+    const domain = isTestEnvironment
+      ? (process.env.INTOUCH_TEST_DOMAIN || 'dev.samanaffa.com')
+      : (process.env.INTOUCH_DOMAIN || 'samanaffa.com');
+
     if (!apiKey) {
       const missingVar = isTestEnvironment ? 'INTOUCH_TEST_API_KEY' : 'INTOUCH_API_KEY';
       console.error(`${missingVar} not found in environment variables`);
@@ -26,10 +34,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    if (!merchantId) {
+      const missingVar = isTestEnvironment ? 'INTOUCH_TEST_MERCHANT_ID' : 'INTOUCH_MERCHANT_ID';
+      console.error(`${missingVar} not found in environment variables`);
+      return NextResponse.json(
+        { error: `Intouch merchant ID not configured (${missingVar})` },
+        { status: 500 }
+      );
+    }
+
     console.log(`[InTouch Config] Using ${isTestEnvironment ? 'TEST' : 'PRODUCTION'} credentials`);
 
     return NextResponse.json({
-      apiKey: apiKey,
+      apiKey,
+      merchantId,
+      domain,
       environment: isTestEnvironment ? 'test' : 'production',
     });
   } catch (error) {

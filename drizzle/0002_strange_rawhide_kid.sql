@@ -1,0 +1,25 @@
+CREATE TYPE "public"."ApeSubscriptionStatus" AS ENUM('PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED');--> statement-breakpoint
+CREATE TABLE "ape_subscriptions" (
+	"id" text PRIMARY KEY NOT NULL,
+	"referenceNumber" text NOT NULL,
+	"civilite" text NOT NULL,
+	"prenom" text NOT NULL,
+	"nom" text NOT NULL,
+	"email" text NOT NULL,
+	"telephone" text NOT NULL,
+	"paysResidence" text NOT NULL,
+	"ville" text NOT NULL,
+	"categorieSocioprofessionnelle" text NOT NULL,
+	"trancheInteresse" text NOT NULL,
+	"montantCfa" numeric(15, 2) NOT NULL,
+	"codeParrainage" text,
+	"status" "ApeSubscriptionStatus" DEFAULT 'PENDING' NOT NULL,
+	"providerTransactionId" text,
+	"providerStatus" text,
+	"paymentCallbackPayload" json,
+	"paymentInitiatedAt" timestamp,
+	"paymentCompletedAt" timestamp,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp DEFAULT now() NOT NULL,
+	CONSTRAINT "ape_subscriptions_referenceNumber_unique" UNIQUE("referenceNumber")
+);
