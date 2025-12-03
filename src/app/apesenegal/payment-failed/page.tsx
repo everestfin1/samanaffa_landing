@@ -25,7 +25,38 @@ function PaymentFailedContent() {
   const referenceNumber = searchParams.get('referenceNumber');
   const reason = searchParams.get('reason');
 
-  // Status is already updated by Intouch callback - no need to PATCH here
+  // Update status as fallback if callback hasn't processed it yet
+  useEffect(() => {
+    if (!referenceNumber) return;
+
+    const updateFailedStatus = async () => {
+      try {
+        // Fetch current status
+        const res = await fetch(`/api/ape/subscribe?referenceNumber=${encodeURIComponent(referenceNumber)}`);
+        const data = await res.json();
+        
+        if (data.success && data.subscription) {
+          // If status is still PAYMENT_INITIATED or PENDING, update to FAILED
+          if (data.subscription.status === 'PAYMENT_INITIATED' || data.subscription.status === 'PENDING') {
+            console.log('[APE Failed] Callback not received yet, updating status via fallback');
+            await fetch('/api/ape/subscribe', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                referenceNumber,
+                status: 'PAYMENT_FAILED',
+                providerStatus: reason || 'failed_redirect',
+              }),
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Error updating subscription status:', err);
+      }
+    };
+
+    updateFailedStatus();
+  }, [referenceNumber, reason]);
 
   // Auto-redirect countdown
   useEffect(() => {

@@ -14,25 +14,51 @@ function PaymentSuccessContent() {
     nom?: string;
     trancheInteresse?: string;
     montantCfa?: string;
+    status?: string;
   } | null>(null);
 
   const referenceNumber = searchParams.get('referenceNumber');
   const amount = searchParams.get('amount');
   const transactionId = searchParams.get('transactionId');
 
-  // Fetch subscription details (status is already updated by Intouch callback)
+  // Fetch subscription details and update status if callback hasn't processed it yet
   useEffect(() => {
-    if (referenceNumber) {
-      fetch(`/api/ape/subscribe?referenceNumber=${encodeURIComponent(referenceNumber)}`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.success && data.subscription) {
-            setSubscriptionData(data.subscription);
+    if (!referenceNumber) return;
+
+    const fetchAndUpdateSubscription = async () => {
+      try {
+        // First, fetch current subscription status
+        const res = await fetch(`/api/ape/subscribe?referenceNumber=${encodeURIComponent(referenceNumber)}`);
+        const data = await res.json();
+        
+        if (data.success && data.subscription) {
+          setSubscriptionData(data.subscription);
+          
+          // If status is still PAYMENT_INITIATED, the callback hasn't arrived yet
+          // Update it as a fallback (user landed on success page = payment succeeded)
+          if (data.subscription.status === 'PAYMENT_INITIATED' || data.subscription.status === 'PENDING') {
+            console.log('[APE Success] Callback not received yet, updating status via fallback');
+            await fetch('/api/ape/subscribe', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                referenceNumber,
+                status: 'PAYMENT_SUCCESS',
+                providerTransactionId: transactionId || undefined,
+                providerStatus: 'success_redirect',
+              }),
+            });
+            // Update local state
+            setSubscriptionData(prev => prev ? { ...prev, status: 'PAYMENT_SUCCESS' } : prev);
           }
-        })
-        .catch(err => console.error('Error fetching subscription:', err));
-    }
-  }, [referenceNumber]);
+        }
+      } catch (err) {
+        console.error('Error fetching/updating subscription:', err);
+      }
+    };
+
+    fetchAndUpdateSubscription();
+  }, [referenceNumber, transactionId]);
 
   // Auto-redirect countdown
   useEffect(() => {
