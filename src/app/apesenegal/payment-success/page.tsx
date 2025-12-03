@@ -20,7 +20,7 @@ function PaymentSuccessContent() {
   const amount = searchParams.get('amount');
   const transactionId = searchParams.get('transactionId');
 
-  // Fetch subscription details
+  // Fetch subscription details (status is already updated by Intouch callback)
   useEffect(() => {
     if (referenceNumber) {
       fetch(`/api/ape/subscribe?referenceNumber=${encodeURIComponent(referenceNumber)}`)
@@ -31,19 +31,8 @@ function PaymentSuccessContent() {
           }
         })
         .catch(err => console.error('Error fetching subscription:', err));
-
-      // Update subscription status to success
-      fetch('/api/ape/subscribe', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          referenceNumber,
-          status: 'PAYMENT_SUCCESS',
-          providerTransactionId: transactionId,
-        }),
-      }).catch(err => console.error('Error updating subscription status:', err));
     }
-  }, [referenceNumber, transactionId]);
+  }, [referenceNumber]);
 
   // Auto-redirect countdown
   useEffect(() => {

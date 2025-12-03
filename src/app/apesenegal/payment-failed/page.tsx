@@ -24,22 +24,8 @@ function PaymentFailedContent() {
 
   const referenceNumber = searchParams.get('referenceNumber');
   const reason = searchParams.get('reason');
-  const status = searchParams.get('status');
 
-  // Update subscription status to failed
-  useEffect(() => {
-    if (referenceNumber) {
-      fetch('/api/ape/subscribe', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          referenceNumber,
-          status: 'PAYMENT_FAILED',
-          providerStatus: status || 'failed',
-        }),
-      }).catch(err => console.error('Error updating subscription status:', err));
-    }
-  }, [referenceNumber, status]);
+  // Status is already updated by Intouch callback - no need to PATCH here
 
   // Auto-redirect countdown
   useEffect(() => {
