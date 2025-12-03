@@ -71,6 +71,10 @@ export default function DocumentationSection() {
                   src={doc.previewImage}
                   alt={`Aperçu ${doc.title}`}
                   fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  loading="lazy"
+                  placeholder="blur"
+                  blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIhAAAgEDBAMBAAAAAAAAAAAAAQIDAAQRBQYSIRMxQVH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8AzXb+oXNhqMN1bSFJYmDKR9BrQ7TfN7cWkMrRQBnQMQB0CRSlKVlxjqxBPZ//2Q=="
                   className="object-cover transition-transform duration-500 ease-out group-hover:scale-110"
                 />
               </div>
