@@ -33,7 +33,7 @@ function PaymentFailedContent() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/ape');
+          router.push('/apesenegal');
           return 0;
         }
         return prev - 1;
@@ -114,7 +114,7 @@ function PaymentFailedContent() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
-              href="/ape"
+              href="/apesenegal"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gold-metallic text-white font-medium rounded-lg hover:bg-gold-dark transition-colors"
             >
               <ArrowPathIcon className="w-4 h-4 mr-2" />

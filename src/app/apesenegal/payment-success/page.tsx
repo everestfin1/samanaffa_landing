@@ -149,7 +149,7 @@ function PaymentSuccessContent() {
               <ArrowRightIcon className="w-4 h-4 ml-2" />
             </Link>
             <Link
-              href="/ape"
+              href="/apesenegal"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               Nouvelle souscription
