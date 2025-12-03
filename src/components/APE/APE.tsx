@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   ArrowTrendingUpIcon,
   BanknotesIcon,
@@ -8,13 +8,22 @@ import {
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
-import { motion, useReducedMotion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useContactForm } from "../../hooks/useContactForm";
-import { ContactForm } from "./ContactForm";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import DocumentationSection from "./DocumentationSection";
 import { countries } from "../data/countries";
+
+// Dynamically import ContactForm to reduce initial bundle size
+const ContactForm = dynamic(() => import("./ContactForm").then(mod => ({ default: mod.ContactForm })), {
+  loading: () => (
+    <div className="flex items-center justify-center p-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
+    </div>
+  ),
+  ssr: false,
+});
 
 // Custom hook for count-up animation
 const useCountUp = (end: number, duration: number): number => {
@@ -47,77 +56,21 @@ const useCountUp = (end: number, duration: number): number => {
   return value;
 };
 
-// Animated background for Investment Tranches section
-type InvestmentTranchesBackgroundProps = {
-  prefersReducedMotion: boolean;
-};
-
-const InvestmentTranchesBackground = ({ prefersReducedMotion }: InvestmentTranchesBackgroundProps): React.ReactElement => {
-  const shouldAnimate = !prefersReducedMotion;
-
-  const waves = [
-    { path: "M 0 200 Q 120 40 240 200 T 480 200 T 720 200 T 960 200 T 1200 200 T 1440 200", opacity: 0.14, strokeWidth: 0.8, duration: 16 },
-    { path: "M 0 230 Q 120 70 240 230 T 480 230 T 720 230 T 960 230 T 1200 230 T 1440 230", opacity: 0.16, strokeWidth: 0.8, duration: 17 },
-    { path: "M 0 260 Q 120 100 240 260 T 480 260 T 720 260 T 960 260 T 1200 260 T 1440 260", opacity: 0.18, strokeWidth: 0.8, duration: 18 },
-    { path: "M 0 290 Q 120 130 240 290 T 480 290 T 720 290 T 960 290 T 1200 290 T 1440 290", opacity: 0.20, strokeWidth: 0.8, duration: 19 },
-    { path: "M 0 320 Q 120 160 240 320 T 480 320 T 720 320 T 960 320 T 1200 320 T 1440 320", opacity: 0.22, strokeWidth: 0.8, duration: 20 },
-    { path: "M 0 350 Q 120 190 240 350 T 480 350 T 720 350 T 960 350 T 1200 350 T 1440 350", opacity: 0.24, strokeWidth: 0.8, duration: 21 },
-    { path: "M 0 380 Q 120 220 240 380 T 480 380 T 720 380 T 960 380 T 1200 380 T 1440 380", opacity: 0.26, strokeWidth: 0.8, duration: 22 },
-    { path: "M 0 410 Q 120 250 240 410 T 480 410 T 720 410 T 960 410 T 1200 410 T 1440 410", opacity: 0.28, strokeWidth: 0.8, duration: 23 },
-    { path: "M 0 440 Q 120 280 240 440 T 480 440 T 720 440 T 960 440 T 1200 440 T 1440 440", opacity: 0.30, strokeWidth: 0.8, duration: 24 },
-    { path: "M 0 470 Q 120 310 240 470 T 480 470 T 720 470 T 960 470 T 1200 470 T 1440 470", opacity: 0.32, strokeWidth: 0.8, duration: 25 },
-    { path: "M 0 500 Q 120 340 240 500 T 480 500 T 720 500 T 960 500 T 1200 500 T 1440 500", opacity: 0.34, strokeWidth: 0.8, duration: 26 },
-    { path: "M 0 530 Q 120 370 240 530 T 480 530 T 720 530 T 960 530 T 1200 530 T 1440 530", opacity: 0.36, strokeWidth: 0.8, duration: 27 },
-  ];
-
+// Static background for Investment Tranches section - uses optimized image
+const InvestmentTranchesBackground = (): React.ReactElement => {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-b from-[#3b0b8a] via-[#23054a] to-black" />
-      <svg
-        className="absolute inset-0 h-full w-full"
-        viewBox="0 0 1440 600"
-        preserveAspectRatio="xMidYMid slice"
-      >
-        <defs>
-          <linearGradient id="tranche-line-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#C4A1FF" />
-            <stop offset="45%" stopColor="#E5D4FF" />
-            <stop offset="100%" stopColor="#A855F7" />
-          </linearGradient>
-          <pattern id="tranche-grid" width="80" height="80" patternUnits="userSpaceOnUse">
-            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-          </pattern>
-          <filter id="tranche-glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-            <feColorMatrix in="blur" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.4 0" result="coloredBlur" />
-            <feMerge>
-              <feMergeNode in="coloredBlur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-        <rect x="0" y="0" width="1440" height="600" fill="url(#tranche-grid)" opacity="0.18" />
-        <g transform="rotate(-14 720 320)">
-          {waves.map((wave, index) => (
-            <motion.path
-              key={index}
-              d={wave.path}
-              fill="none"
-              stroke="url(#tranche-line-gradient)"
-              strokeWidth={wave.strokeWidth}
-              opacity={wave.opacity}
-              filter="url(#tranche-glow)"
-              initial={shouldAnimate ? { pathLength: 0, opacity: 0 } : undefined}
-              animate={shouldAnimate ? { pathLength: 1, opacity: wave.opacity, x: ["-2%", "2%", "-2%"] } : undefined}
-              transition={shouldAnimate ? {
-                pathLength: { duration: 2.4 + index * 0.5, ease: "easeOut" },
-                x: { duration: wave.duration, repeat: Infinity, ease: "easeInOut" },
-              } : undefined}
-            />
-          ))}
-        </g>
-      </svg>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <Image
+        src="/new-daba-bg.png"
+        alt=""
+        fill
+        sizes="100vw"
+        className="object-cover"
+        priority={false}
+        quality={85}
+      />
+      {/* Subtle overlay for better text contrast */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
     </div>
   );
 };
@@ -128,8 +81,6 @@ export default function APE() {
   const [paymentPending, setPaymentPending] = useState(false);
   const [subscriptionRef, setSubscriptionRef] = useState<string | null>(null);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const prefersReducedMotion = useReducedMotion();
-
   // Animation values
   const animationDuration = 1800;
   const animatedProgrammeTotal = useCountUp(400, animationDuration);
@@ -261,6 +212,8 @@ export default function APE() {
   const scrollToFormWithTranche = (trancheId: string) => {
     setTrancheInteret(`Tranche ${trancheId}`);
     setIsFormOpen(true);
+    // Load payment scripts when form opens (deferred loading)
+    loadPaymentScripts();
   };
 
   // Disable body scroll when modal is open
@@ -368,9 +321,10 @@ export default function APE() {
     }
   };
 
-  // Load Intouch scripts on mount
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
+  // Load payment scripts on demand (deferred until form opens)
+  const loadPaymentScripts = useCallback(() => {
+    if (typeof window === 'undefined') return Promise.resolve();
+    if ((window as any).sendPaymentInfos) return Promise.resolve();
 
     // Load CryptoJS first (required by Intouch)
     const loadCryptoJS = () => {
@@ -397,7 +351,6 @@ export default function APE() {
         const script = document.createElement('script');
         script.src = 'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
         script.onload = () => {
-          // Wait a bit for the function to be available
           setTimeout(() => {
             if ((window as any).sendPaymentInfos) {
               resolve();
@@ -411,7 +364,7 @@ export default function APE() {
       });
     };
 
-    loadCryptoJS()
+    return loadCryptoJS()
       .then(() => loadIntouch())
       .then(() => console.log('[APE] Intouch payment scripts loaded'))
       .catch(err => console.error('[APE] Error loading payment scripts:', err));
@@ -481,9 +434,12 @@ export default function APE() {
               alt="APE - Emprunt Obligataire État du Sénégal"
               width={1920}
               height={600}
+              sizes="100vw"
               className="w-full h-auto object-contain"
               priority
-              quality={100}
+              quality={85}
+              placeholder="blur"
+              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAGABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIRAAAgEEAQUBAAAAAAAAAAAAAQIDAAQFESEGEhMxQVH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8AzLpzqK9w2QjuLaRlKnTKT2sD8I+VoGN6/wAhkMfBcSRQq0qBiEBIBI3wTSlKy4x1YgnstYlmWf/Z"
             />
           </div>
         </section>
@@ -541,7 +497,7 @@ export default function APE() {
 
         {/* Investment Tranches - Main Content with animated background */}
         <section className="relative py-16 sm:py-20" aria-label="Tranches d'investissement APE">
-          <InvestmentTranchesBackground prefersReducedMotion={!!prefersReducedMotion} />
+          <InvestmentTranchesBackground />
           <div className="relative max-w-7xl mx-auto px-6">
             <div className="text-center text-white mb-10">
               <h2 className="sama-heading-section mb-4 !text-white">
