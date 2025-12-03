@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    let transaction = null;
+    let transaction: any = null;
 
     if (referenceNumber) {
       console.log('[API /transactions] Looking up transaction by reference:', referenceNumber);

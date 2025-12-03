@@ -26,6 +26,7 @@ export default function Navigation() {
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
   const isApePage = pathname.startsWith('/apesenegal');
+  const isMaintenancePage = pathname === '/maintenance';
 
   // Check authentication status on mount - client-side only
   useEffect(() => {
