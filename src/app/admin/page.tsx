@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import Button from '@/components/common/Button'
 import NotificationManagement from '@/components/admin/NotificationManagement'
 import NotificationSettings from '@/components/admin/NotificationSettings'
+import AdminSidebar from '@/components/admin/AdminSidebar'
+import AdminHeader from '@/components/admin/AdminHeader'
 import { 
   Users, 
   FileText, 
@@ -36,6 +38,7 @@ import {
   LogOut,
   LayoutDashboard,
   Wallet,
+  Settings,
   X
 } from 'lucide-react'
 import Image from 'next/image'
@@ -145,6 +148,7 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [userKycDocuments, setUserKycDocuments] = useState<KycDocument[]>([])
   const [showUserActions, setShowUserActions] = useState<string | null>(null)
@@ -176,6 +180,18 @@ export default function AdminDashboard() {
   })
   const [apeStatusFilter, setApeStatusFilter] = useState<string>('')
   const [exportingApe, setExportingApe] = useState(false)
+  
+  // Transaction filters
+  const [transactionStatusFilter, setTransactionStatusFilter] = useState<string>('')
+  const [transactionTypeFilter, setTransactionTypeFilter] = useState<string>('')
+  
+  // APE Status Update Modal
+  const [showApeStatusModal, setShowApeStatusModal] = useState(false)
+  const [selectedApeSubscription, setSelectedApeSubscription] = useState<ApeSubscription | null>(null)
+  const [newApeStatus, setNewApeStatus] = useState<string>('')
+  const [apeProviderTransactionId, setApeProviderTransactionId] = useState('')
+  const [apeStatusNotes, setApeStatusNotes] = useState('')
+  const [updatingApeStatus, setUpdatingApeStatus] = useState(false)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -250,10 +266,10 @@ export default function AdminDashboard() {
         const completedTransactions = transactionsData.transactionIntents.filter((t: Transaction) => t.status === 'COMPLETED').length
         const totalDeposits = transactionsData.transactionIntents
           .filter((t: Transaction) => t.intentType === 'DEPOSIT' && t.status === 'COMPLETED')
-          .reduce((sum: number, t: Transaction) => sum + t.amount, 0)
+          .reduce((sum: number, t: Transaction) => sum + (Number(t.amount) || 0), 0)
         const totalInvestments = transactionsData.transactionIntents
           .filter((t: Transaction) => t.intentType === 'INVESTMENT' && t.status === 'COMPLETED')
-          .reduce((sum: number, t: Transaction) => sum + t.amount, 0)
+          .reduce((sum: number, t: Transaction) => sum + (Number(t.amount) || 0), 0)
         
         setStats(prev => ({
           ...prev,
@@ -755,6 +771,100 @@ export default function AdminDashboard() {
     }
   }
 
+  // APE Status Update Handlers
+  const openApeStatusModal = (subscription: ApeSubscription) => {
+    setSelectedApeSubscription(subscription)
+    setNewApeStatus(subscription.status)
+    setApeProviderTransactionId(subscription.providerTransactionId || '')
+    setApeStatusNotes('')
+    setShowApeStatusModal(true)
+  }
+
+  const handleUpdateApeStatus = async () => {
+    if (!selectedApeSubscription || !newApeStatus) return
+
+    setUpdatingApeStatus(true)
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch(`/api/admin/ape-subscriptions/${selectedApeSubscription.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          status: newApeStatus,
+          providerTransactionId: apeProviderTransactionId || undefined,
+          adminNotes: apeStatusNotes || undefined,
+        }),
+      })
+
+      const data = await response.json()
+      
+      if (data.success) {
+        // Update local state
+        setApeSubscriptions(prev => 
+          prev.map(sub => 
+            sub.id === selectedApeSubscription.id 
+              ? { 
+                  ...sub, 
+                  status: newApeStatus, 
+                  providerTransactionId: apeProviderTransactionId || sub.providerTransactionId,
+                  paymentCompletedAt: (newApeStatus === 'PAYMENT_SUCCESS' || newApeStatus === 'PAYMENT_FAILED') 
+                    ? new Date().toISOString() 
+                    : sub.paymentCompletedAt
+                }
+              : sub
+          )
+        )
+        // Update stats
+        setApeStats(prev => {
+          const oldStatus = selectedApeSubscription.status
+          const newStats = { ...prev }
+          
+          // Decrement old status count
+          if (oldStatus === 'PENDING') newStats.pending--
+          else if (oldStatus === 'PAYMENT_INITIATED') newStats.paymentInitiated--
+          else if (oldStatus === 'PAYMENT_SUCCESS') {
+            newStats.paymentSuccess--
+            newStats.totalAmount -= parseFloat(selectedApeSubscription.montantCfa)
+          }
+          else if (oldStatus === 'PAYMENT_FAILED') newStats.paymentFailed--
+          else if (oldStatus === 'CANCELLED') newStats.cancelled--
+          
+          // Increment new status count
+          if (newApeStatus === 'PENDING') newStats.pending++
+          else if (newApeStatus === 'PAYMENT_INITIATED') newStats.paymentInitiated++
+          else if (newApeStatus === 'PAYMENT_SUCCESS') {
+            newStats.paymentSuccess++
+            newStats.totalAmount += parseFloat(selectedApeSubscription.montantCfa)
+          }
+          else if (newApeStatus === 'PAYMENT_FAILED') newStats.paymentFailed++
+          else if (newApeStatus === 'CANCELLED') newStats.cancelled++
+          
+          return newStats
+        })
+        
+        setShowApeStatusModal(false)
+      } else {
+        alert(data.error || 'Erreur lors de la mise à jour')
+      }
+    } catch (error) {
+      console.error('Error updating APE status:', error)
+      alert('Erreur lors de la mise à jour du statut')
+    } finally {
+      setUpdatingApeStatus(false)
+    }
+  }
+
+  const APE_STATUS_CONFIG = {
+    PENDING: { label: 'En attente', color: 'amber', description: 'Souscription créée, paiement non initié' },
+    PAYMENT_INITIATED: { label: 'Paiement initié', color: 'sky', description: 'Paiement en cours de traitement' },
+    PAYMENT_SUCCESS: { label: 'Payé', color: 'emerald', description: 'Paiement confirmé avec succès' },
+    PAYMENT_FAILED: { label: 'Échoué', color: 'rose', description: 'Le paiement a échoué' },
+    CANCELLED: { label: 'Annulé', color: 'neutral', description: 'Souscription annulée' },
+  }
+
   if (!authenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -777,65 +887,46 @@ export default function AdminDashboard() {
     )
   }
 
+  // Get tab title for header
+  const getTabTitle = () => {
+    switch (activeTab) {
+      case 'overview': return 'Vue d\'ensemble'
+      case 'kyc': return 'Vérification KYC'
+      case 'apeSubscriptions': return 'APE Sénégal'
+      case 'users': return 'Utilisateurs'
+      case 'transactions': return 'Transactions'
+      case 'notifications': return 'Notifications'
+      case 'settings': return 'Paramètres'
+      default: return 'Administration'
+    }
+  }
+
   return (
-    <div className="min-h-screen admin-page-enter relative z-10">
-      {/* Header */}
-      <header className="admin-header">
-        <div className="admin-header-inner">
-          <div className="admin-logo">
-            <div className="admin-logo-icon">
-              <Shield className="w-5 h-5 text-white" />
-            </div>
-            <span className="admin-logo-text">Sama Naffa</span>
-            <span className="admin-logo-badge">Admin</span>
-          </div>
-          <div className="admin-header-actions">
-            <button 
-              onClick={fetchDashboardData} 
-              className="admin-btn admin-btn-secondary"
-              title="Actualiser"
-            >
-              <RefreshCw className="w-4 h-4" />
-              <span className="hidden sm:inline">Actualiser</span>
-            </button>
-            <button 
-              onClick={handleLogout} 
-              className="admin-btn admin-btn-ghost"
-              title="Déconnexion"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Déconnexion</span>
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <div className="admin-container py-8">
-        {/* Navigation Tabs */}
-        <div className="mb-8">
-          <nav className="admin-nav">
-            {[
-              { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-              { id: 'users', label: 'Utilisateurs', icon: Users },
-              { id: 'transactions', label: 'Transactions', icon: CreditCard },
-              { id: 'kyc', label: 'KYC', icon: FileText },
-              { id: 'apeSubscriptions', label: 'APE', icon: FileSpreadsheet },
-              { id: 'notifications', label: 'Notifications', icon: MessageSquare },
-              { id: 'settings', label: 'Paramètres', icon: Shield },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as any)}
-                className={`admin-nav-item ${activeTab === tab.id ? 'active' : ''}`}
-              >
-                <tab.icon className="admin-nav-icon" />
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        {/* Overview Tab */}
+    <div className="admin-layout" data-sidebar-collapsed={sidebarCollapsed}>
+      {/* Sidebar Navigation */}
+      <AdminSidebar 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        collapsed={sidebarCollapsed}
+        onCollapsedChange={setSidebarCollapsed}
+        stats={{
+          pendingKyc: stats.pendingKyc,
+          pendingTransactions: stats.pendingTransactions,
+          paymentInitiated: apeStats.paymentInitiated,
+        }}
+      />
+      
+      {/* Main Content */}
+      <main className="admin-main">
+        <AdminHeader 
+          title={getTabTitle()}
+          subtitle="Tableau de bord administrateur"
+          onRefresh={fetchDashboardData}
+          loading={loading}
+        />
+        
+        <div className="admin-main-content">
+          {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
             {/* Stats Cards */}
@@ -902,7 +993,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="admin-card-content">
                   <div className="text-3xl font-bold text-[var(--admin-emerald)]">
-                    {stats.totalDeposits.toLocaleString('fr-FR')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
+                    {Math.round(stats.totalDeposits).toLocaleString('fr-SN')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
                 </div>
               </div>
@@ -916,7 +1007,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="admin-card-content">
                   <div className="text-3xl font-bold text-[var(--admin-sky)]">
-                    {stats.totalInvestments.toLocaleString('fr-FR')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
+                    {Math.round(stats.totalInvestments).toLocaleString('fr-SN')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
                 </div>
               </div>
@@ -1080,98 +1171,193 @@ export default function AdminDashboard() {
 
         {/* Transactions Tab */}
         {activeTab === 'transactions' && (
-          <div className="admin-card admin-animate-in">
-            <div className="admin-card-header">
-              <h3 className="admin-card-title">
-                <CreditCard className="admin-card-title-icon" />
-                Gestion des transactions
-              </h3>
+          <div className="space-y-6">
+            {/* Stats Row */}
+            <div className="admin-grid admin-grid-4">
+              <button 
+                className={`admin-stat-card ${!transactionStatusFilter ? 'active' : ''}`}
+                data-color="gold"
+                onClick={() => { setTransactionStatusFilter(''); setTransactionTypeFilter(''); }}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total</span>
+                  <div className="admin-stat-icon"><CreditCard className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{transactions.length}</div>
+              </button>
+              <button 
+                className={`admin-stat-card ${transactionStatusFilter === 'PENDING' ? 'active' : ''}`}
+                data-color="amber"
+                onClick={() => setTransactionStatusFilter(transactionStatusFilter === 'PENDING' ? '' : 'PENDING')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En attente</span>
+                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'PENDING').length}</div>
+              </button>
+              <button 
+                className={`admin-stat-card ${transactionStatusFilter === 'PROCESSING' ? 'active' : ''}`}
+                data-color="sky"
+                onClick={() => setTransactionStatusFilter(transactionStatusFilter === 'PROCESSING' ? '' : 'PROCESSING')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En cours</span>
+                  <div className="admin-stat-icon"><TrendingUp className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'PROCESSING').length}</div>
+              </button>
+              <button 
+                className={`admin-stat-card ${transactionStatusFilter === 'COMPLETED' ? 'active' : ''}`}
+                data-color="emerald"
+                onClick={() => setTransactionStatusFilter(transactionStatusFilter === 'COMPLETED' ? '' : 'COMPLETED')}
+              >
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Complétées</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'COMPLETED').length}</div>
+              </button>
             </div>
-            <div className="admin-card-content p-0">
-              <div className="admin-table-wrapper">
-                <table className="admin-table">
-                  <thead>
-                    <tr>
-                      <th>Référence</th>
-                      <th>Utilisateur</th>
-                      <th>Type</th>
-                      <th>Montant</th>
-                      <th>Statut</th>
-                      <th>Date</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {transactions.map((transaction) => (
-                      <tr key={transaction.id}>
-                        <td className="admin-table-cell-mono">
-                          {transaction.referenceNumber}
-                        </td>
-                        <td>
-                          <div>
-                            <div className="admin-table-cell-primary">{transaction.user.name}</div>
-                            <div className="text-xs text-[var(--admin-text-muted)]">{transaction.user.email}</div>
-                          </div>
-                        </td>
-                        <td>
-                          <span className={`admin-badge ${
-                            transaction.intentType === 'DEPOSIT' ? 'admin-badge-gold' : 'admin-badge-info'
-                          }`}>
-                            {transaction.intentType === 'DEPOSIT' ? 'Dépôt' : 
-                             transaction.intentType === 'INVESTMENT' ? 'Investissement' : transaction.intentType}
-                          </span>
-                        </td>
-                        <td className="admin-table-cell-primary font-semibold">
-                          {transaction.amount.toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
-                        </td>
-                        <td>
-                          <span className={`admin-badge ${
-                            transaction.status === 'COMPLETED' ? 'admin-badge-success' :
-                            transaction.status === 'PENDING' ? 'admin-badge-warning' :
-                            transaction.status === 'PROCESSING' ? 'admin-badge-info' :
-                            'admin-badge-danger'
-                          }`}>
-                            <span className="admin-badge-dot"></span>
-                            {transaction.status === 'COMPLETED' ? 'Complété' :
-                             transaction.status === 'PENDING' ? 'En attente' :
-                             transaction.status === 'PROCESSING' ? 'En cours' : 'Échoué'}
-                          </span>
-                        </td>
-                        <td className="admin-table-cell-mono">
-                          {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
-                        </td>
-                        <td>
-                          <div className="flex gap-2">
-                            {transaction.status === 'PENDING' && (
-                              <>
-                                <button
-                                  onClick={() => updateTransactionStatus(transaction.id, 'PROCESSING')}
-                                  className="admin-btn admin-btn-secondary admin-btn-sm"
-                                >
-                                  Traiter
-                                </button>
+
+            {/* Table Card */}
+            <div className="admin-card admin-animate-in">
+              <div className="admin-card-header">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+                  <div className="flex items-center gap-3">
+                    <h3 className="admin-card-title">
+                      <CreditCard className="admin-card-title-icon" />
+                      Gestion des transactions
+                    </h3>
+                    {(transactionStatusFilter || transactionTypeFilter) && (
+                      <span className="admin-filter-chip">
+                        {transactionStatusFilter && `Statut: ${
+                          transactionStatusFilter === 'COMPLETED' ? 'Complété' :
+                          transactionStatusFilter === 'PENDING' ? 'En attente' :
+                          transactionStatusFilter === 'PROCESSING' ? 'En cours' : transactionStatusFilter
+                        }`}
+                        {transactionTypeFilter && ` Type: ${transactionTypeFilter === 'DEPOSIT' ? 'Dépôt' : 'Investissement'}`}
+                        <button 
+                          onClick={() => { setTransactionStatusFilter(''); setTransactionTypeFilter(''); }}
+                          className="admin-filter-chip-close"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={transactionTypeFilter}
+                      onChange={(e) => setTransactionTypeFilter(e.target.value)}
+                      className="admin-select"
+                    >
+                      <option value="">Tous les types</option>
+                      <option value="DEPOSIT">Dépôts</option>
+                      <option value="INVESTMENT">Investissements</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="admin-card-content p-0">
+                <div className="admin-table-wrapper">
+                  <table className="admin-table">
+                    <thead>
+                      <tr>
+                        <th>Référence</th>
+                        <th>Utilisateur</th>
+                        <th>Type</th>
+                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {transactions
+                        .filter(t => !transactionStatusFilter || t.status === transactionStatusFilter)
+                        .filter(t => !transactionTypeFilter || t.intentType === transactionTypeFilter)
+                        .map((transaction) => (
+                        <tr key={transaction.id}>
+                          <td className="admin-table-cell-mono">
+                            {transaction.referenceNumber}
+                          </td>
+                          <td>
+                            <div>
+                              <div className="admin-table-cell-primary">{transaction.user.name}</div>
+                              <div className="text-xs text-[var(--admin-text-muted)]">{transaction.user.email}</div>
+                            </div>
+                          </td>
+                          <td>
+                            <span className={`admin-badge ${
+                              transaction.intentType === 'DEPOSIT' ? 'admin-badge-gold' : 'admin-badge-info'
+                            }`}>
+                              {transaction.intentType === 'DEPOSIT' ? 'Dépôt' : 
+                               transaction.intentType === 'INVESTMENT' ? 'Investissement' : transaction.intentType}
+                            </span>
+                          </td>
+                          <td className="admin-table-cell-primary font-semibold">
+                            {transaction.amount.toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
+                          </td>
+                          <td>
+                            <span className={`admin-badge ${
+                              transaction.status === 'COMPLETED' ? 'admin-badge-success' :
+                              transaction.status === 'PENDING' ? 'admin-badge-warning' :
+                              transaction.status === 'PROCESSING' ? 'admin-badge-info' :
+                              'admin-badge-danger'
+                            }`}>
+                              <span className="admin-badge-dot"></span>
+                              {transaction.status === 'COMPLETED' ? 'Complété' :
+                               transaction.status === 'PENDING' ? 'En attente' :
+                               transaction.status === 'PROCESSING' ? 'En cours' : 'Échoué'}
+                            </span>
+                          </td>
+                          <td className="admin-table-cell-mono">
+                            {new Date(transaction.createdAt).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td>
+                            <div className="flex gap-2">
+                              {transaction.status === 'PENDING' && (
+                                <>
+                                  <button
+                                    onClick={() => updateTransactionStatus(transaction.id, 'PROCESSING')}
+                                    className="admin-btn admin-btn-secondary admin-btn-sm"
+                                  >
+                                    Traiter
+                                  </button>
+                                  <button
+                                    onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
+                                    className="admin-btn admin-btn-success admin-btn-sm"
+                                  >
+                                    Compléter
+                                  </button>
+                                </>
+                              )}
+                              {transaction.status === 'PROCESSING' && (
                                 <button
                                   onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
                                   className="admin-btn admin-btn-success admin-btn-sm"
                                 >
                                   Compléter
                                 </button>
-                              </>
-                            )}
-                            {transaction.status === 'PROCESSING' && (
-                              <button
-                                onClick={() => updateTransactionStatus(transaction.id, 'COMPLETED')}
-                                className="admin-btn admin-btn-success admin-btn-sm"
-                              >
-                                Compléter
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {transactions
+                    .filter(t => !transactionStatusFilter || t.status === transactionStatusFilter)
+                    .filter(t => !transactionTypeFilter || t.intentType === transactionTypeFilter)
+                    .length === 0 && (
+                    <div className="admin-empty">
+                      <CreditCard className="admin-empty-icon" />
+                      <p className="admin-empty-title">Aucune transaction trouvée</p>
+                      <p className="admin-empty-text">Les transactions apparaîtront ici</p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1180,98 +1366,161 @@ export default function AdminDashboard() {
         {/* KYC Tab */}
         {activeTab === 'kyc' && (
           <div className="space-y-6">
+            {/* Stats Row */}
+            <div className="admin-grid admin-grid-4">
+              <div className="admin-stat-card" data-color="gold">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total documents</span>
+                  <div className="admin-stat-icon"><FileText className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{kycDocuments.length}</div>
+              </div>
+              <div className="admin-stat-card" data-color="amber">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En attente</span>
+                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{kycDocuments.filter(d => d.verificationStatus === 'PENDING').length}</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Approuvés</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{kycDocuments.filter(d => d.verificationStatus === 'APPROVED').length}</div>
+              </div>
+              <div className="admin-stat-card" data-color="rose">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Rejetés</span>
+                  <div className="admin-stat-icon"><XCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{kycDocuments.filter(d => d.verificationStatus === 'REJECTED').length}</div>
+              </div>
+            </div>
+
             {/* Header with user selection */}
             {selectedUser && (
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle className="flex items-center space-x-2">
-                        <Eye className="h-5 w-5" />
-                        <span>KYC Review - {selectedUser.firstName} {selectedUser.lastName}</span>
-                      </CardTitle>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {selectedUser.email} • {selectedUser.phone}
-                      </p>
+              <div className="admin-card admin-animate-in">
+                <div className="admin-card-header">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[var(--admin-primary-bg)] flex items-center justify-center">
+                        <Eye className="w-5 h-5 text-[var(--admin-primary)]" />
+                      </div>
+                      <div>
+                        <h3 className="admin-card-title mb-0">
+                          {selectedUser.firstName} {selectedUser.lastName}
+                        </h3>
+                        <p className="text-sm text-[var(--admin-text-muted)]">
+                          {selectedUser.email} • {selectedUser.phone}
+                        </p>
+                      </div>
                     </div>
-                    <div className="flex space-x-2">
-                      <Button
+                    <div className="flex gap-2">
+                      <button
                         onClick={() => setSelectedUser(null)}
-                        className="bg-gray-600 hover:bg-gray-700"
+                        className="admin-btn admin-btn-secondary"
                       >
-                        View All Users
-                      </Button>
+                        Voir tous les utilisateurs
+                      </button>
                       {userKycDocuments.some(doc => doc.verificationStatus === 'PENDING') && (
-                        <Button
+                        <button
                           onClick={() => handleBulkValidate(selectedUser.id, 'APPROVED')}
                           disabled={bulkValidating}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="admin-btn admin-btn-success"
                         >
                           {bulkValidating ? (
-                            <div className="flex items-center space-x-2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>
-                                {bulkOperationProgress
-                                  ? `Validating... (${bulkOperationProgress.current}/${bulkOperationProgress.total})`
-                                  : 'Validating...'
-                                }
-                              </span>
-                            </div>
+                            <>
+                              <RotateCcw className="w-4 h-4 animate-spin" />
+                              {bulkOperationProgress
+                                ? `${bulkOperationProgress.current}/${bulkOperationProgress.total}`
+                                : 'Validation...'
+                              }
+                            </>
                           ) : (
-                            'Validate All'
+                            'Tout valider'
                           )}
-                        </Button>
+                        </button>
                       )}
                     </div>
                   </div>
-                </CardHeader>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* User selection or document list */}
             {!selectedUser ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>KYC Document Review</CardTitle>
-                  <p className="text-sm text-gray-600">Select a user to review their KYC documents</p>
-                </CardHeader>
-                <CardContent>
+              <div className="admin-card admin-animate-in">
+                <div className="admin-card-header">
+                  <h3 className="admin-card-title">
+                    <FileText className="admin-card-title-icon" />
+                    Vérification des documents KYC
+                  </h3>
+                </div>
+                <div className="admin-card-content">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {users.filter(user => user.stats.totalKycDocuments > 0).map((user) => (
-                      <div key={user.id} className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium text-gray-900">{user.firstName} {user.lastName}</h3>
-                            <p className="text-sm text-gray-500">{user.email}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                              {user.stats.totalKycDocuments} document(s) • {user.kycStatus === 'UNDER_REVIEW' ? 'UNDER REVIEW' : user.kycStatus}
-                            </p>
+                      <div 
+                        key={user.id} 
+                        className="p-4 rounded-lg border border-[var(--admin-border-light)] hover:border-[var(--admin-primary)] hover:bg-[var(--admin-bg-tertiary)] transition-all cursor-pointer"
+                        onClick={() => handleReviewKyc(user)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium text-[var(--admin-text-primary)]">
+                              {user.firstName} {user.lastName}
+                            </h4>
+                            <p className="text-sm text-[var(--admin-text-muted)]">{user.email}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <span className="text-xs text-[var(--admin-text-muted)]">
+                                {user.stats.totalKycDocuments} document(s)
+                              </span>
+                              <span className={`admin-badge admin-badge-sm ${
+                                user.kycStatus === 'APPROVED' ? 'admin-badge-success' :
+                                user.kycStatus === 'REJECTED' ? 'admin-badge-danger' :
+                                user.kycStatus === 'UNDER_REVIEW' ? 'admin-badge-info' :
+                                'admin-badge-warning'
+                              }`}>
+                                {user.kycStatus === 'UNDER_REVIEW' ? 'En révision' : 
+                                 user.kycStatus === 'APPROVED' ? 'Approuvé' :
+                                 user.kycStatus === 'REJECTED' ? 'Rejeté' :
+                                 user.kycStatus === 'PENDING' ? 'En attente' : user.kycStatus}
+                              </span>
+                            </div>
                           </div>
-                          <Button
-                            size="sm"
-                            onClick={() => handleReviewKyc(user)}
-                            className="bg-blue-600 hover:bg-blue-700"
-                          >
-                            Review
-                          </Button>
+                          <button className="admin-btn admin-btn-primary admin-btn-sm">
+                            Réviser
+                          </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
+                  {users.filter(user => user.stats.totalKycDocuments > 0).length === 0 && (
+                    <div className="admin-empty">
+                      <FileText className="admin-empty-icon" />
+                      <p className="admin-empty-title">Aucun document KYC</p>
+                      <p className="admin-empty-text">Les documents KYC apparaîtront ici</p>
+                    </div>
+                  )}
+                </div>
+              </div>
             ) : (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Documents for {selectedUser.firstName} {selectedUser.lastName}</CardTitle>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <span>Total: {userKycDocuments.length}</span>
-                    <span>Pending: {userKycDocuments.filter(doc => doc.verificationStatus === 'PENDING').length}</span>
-                    <span>Approved: {userKycDocuments.filter(doc => doc.verificationStatus === 'APPROVED').length}</span>
-                    <span>Rejected: {userKycDocuments.filter(doc => doc.verificationStatus === 'REJECTED').length}</span>
+              <div className="admin-card admin-animate-in">
+                <div className="admin-card-header">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 w-full">
+                    <h3 className="admin-card-title">
+                      <FileText className="admin-card-title-icon" />
+                      Documents de {selectedUser.firstName} {selectedUser.lastName}
+                    </h3>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-[var(--admin-text-muted)]">Total: <strong>{userKycDocuments.length}</strong></span>
+                      <span className="text-[var(--admin-amber)]">En attente: <strong>{userKycDocuments.filter(doc => doc.verificationStatus === 'PENDING').length}</strong></span>
+                      <span className="text-[var(--admin-emerald)]">Approuvés: <strong>{userKycDocuments.filter(doc => doc.verificationStatus === 'APPROVED').length}</strong></span>
+                      <span className="text-[var(--admin-rose)]">Rejetés: <strong>{userKycDocuments.filter(doc => doc.verificationStatus === 'REJECTED').length}</strong></span>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
+                </div>
+                <div className="admin-card-content">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {userKycDocuments.map((doc) => (
                       <div key={doc.id} className="border rounded-lg p-4">
@@ -1404,13 +1653,14 @@ export default function AdminDashboard() {
                   </div>
 
                   {userKycDocuments.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                      <p>No KYC documents found for this user</p>
+                    <div className="admin-empty">
+                      <FileText className="admin-empty-icon" />
+                      <p className="admin-empty-title">Aucun document KYC</p>
+                      <p className="admin-empty-text">Les documents de cet utilisateur apparaîtront ici</p>
                     </div>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -1927,6 +2177,7 @@ export default function AdminDashboard() {
                         <th>Parrainage</th>
                         <th>Statut</th>
                         <th>Date</th>
+                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1985,6 +2236,22 @@ export default function AdminDashboard() {
                           <td className="admin-table-cell-mono">
                             {new Date(sub.createdAt).toLocaleDateString('fr-FR')}
                           </td>
+                          <td>
+                            <button
+                              onClick={() => openApeStatusModal(sub)}
+                              className={`admin-btn admin-btn-sm ${
+                                sub.status === 'PAYMENT_INITIATED' 
+                                  ? 'admin-btn-warning' 
+                                  : 'admin-btn-ghost'
+                              }`}
+                              title="Modifier le statut"
+                            >
+                              <Edit className="w-4 h-4" />
+                              {sub.status === 'PAYMENT_INITIATED' && (
+                                <span className="hidden sm:inline ml-1">Réconcilier</span>
+                              )}
+                            </button>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -2005,27 +2272,223 @@ export default function AdminDashboard() {
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MessageSquare className="h-5 w-5" />
-                  <span>Send KYC Status Notification</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {/* Stats Row */}
+            <div className="admin-grid admin-grid-3">
+              <div className="admin-stat-card" data-color="sky">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Notifications envoyées</span>
+                  <div className="admin-stat-icon"><MessageSquare className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">-</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">Aujourd&apos;hui</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Taux de livraison</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">-</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">Moyenne</div>
+              </div>
+              <div className="admin-stat-card" data-color="amber">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">En attente</span>
+                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">-</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">À envoyer</div>
+              </div>
+            </div>
+
+            {/* Notification Management Card */}
+            <div className="admin-card admin-animate-in">
+              <div className="admin-card-header">
+                <h3 className="admin-card-title">
+                  <MessageSquare className="admin-card-title-icon" />
+                  Envoyer une notification KYC
+                </h3>
+              </div>
+              <div className="admin-card-content">
                 <NotificationManagement />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <div className="space-y-6">
-            <NotificationSettings />
+            {/* Settings Header */}
+            <div className="admin-grid admin-grid-2">
+              <div className="admin-stat-card" data-color="gold">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Configuration</span>
+                  <div className="admin-stat-icon"><Settings className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value text-lg">Notifications</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">Paramètres système</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Statut</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored text-lg">Actif</div>
+                <div className="text-xs text-[var(--admin-text-muted)] mt-1">Système opérationnel</div>
+              </div>
+            </div>
+
+            {/* Settings Card */}
+            <div className="admin-card admin-animate-in">
+              <div className="admin-card-header">
+                <h3 className="admin-card-title">
+                  <Settings className="admin-card-title-icon" />
+                  Paramètres des notifications
+                </h3>
+              </div>
+              <div className="admin-card-content">
+                <NotificationSettings />
+              </div>
+            </div>
           </div>
         )}
-      </div>
+
+        {/* APE Status Update Modal */}
+        {showApeStatusModal && selectedApeSubscription && (
+          <div className="admin-modal-overlay" onClick={() => setShowApeStatusModal(false)}>
+            <div className="admin-modal" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <h3 className="admin-modal-title">
+                  {selectedApeSubscription.status === 'PAYMENT_INITIATED' 
+                    ? 'Réconciliation Intouch' 
+                    : 'Modifier le statut'}
+                </h3>
+                <button 
+                  onClick={() => setShowApeStatusModal(false)}
+                  className="admin-modal-close"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="admin-modal-body">
+                {/* Subscription Info */}
+                <div className="mb-4 p-3 bg-[var(--admin-bg-tertiary)] rounded-lg">
+                  <div className="text-sm font-medium text-[var(--admin-text-primary)]">
+                    {selectedApeSubscription.civilite} {selectedApeSubscription.prenom} {selectedApeSubscription.nom}
+                  </div>
+                  <div className="text-xs text-[var(--admin-text-muted)] mt-1">
+                    Réf: {selectedApeSubscription.referenceNumber}
+                  </div>
+                  <div className="text-xs text-[var(--admin-text-muted)]">
+                    Montant: {parseFloat(selectedApeSubscription.montantCfa).toLocaleString('fr-FR')} FCFA
+                  </div>
+                  <div className="text-xs text-[var(--admin-text-muted)]">
+                    Statut actuel: <span className={`font-medium ${
+                      selectedApeSubscription.status === 'PAYMENT_SUCCESS' ? 'text-[var(--admin-emerald)]' :
+                      selectedApeSubscription.status === 'PAYMENT_INITIATED' ? 'text-[var(--admin-sky)]' :
+                      selectedApeSubscription.status === 'PAYMENT_FAILED' ? 'text-[var(--admin-rose)]' :
+                      'text-[var(--admin-amber)]'
+                    }`}>
+                      {APE_STATUS_CONFIG[selectedApeSubscription.status as keyof typeof APE_STATUS_CONFIG]?.label || selectedApeSubscription.status}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Status Selection */}
+                <div className="mb-4">
+                  <label className="admin-label">Nouveau statut</label>
+                  <div className="admin-status-select">
+                    {Object.entries(APE_STATUS_CONFIG).map(([status, config]) => (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => setNewApeStatus(status)}
+                        className={`admin-status-option ${newApeStatus === status ? 'selected' : ''}`}
+                      >
+                        <div 
+                          className="admin-status-option-icon"
+                          style={{ 
+                            background: `var(--admin-${config.color}-bg)`,
+                            color: `var(--admin-${config.color})`
+                          }}
+                        >
+                          {status === 'PENDING' && <Clock className="w-5 h-5" />}
+                          {status === 'PAYMENT_INITIATED' && <CreditCard className="w-5 h-5" />}
+                          {status === 'PAYMENT_SUCCESS' && <CheckCircle className="w-5 h-5" />}
+                          {status === 'PAYMENT_FAILED' && <AlertCircle className="w-5 h-5" />}
+                          {status === 'CANCELLED' && <XCircle className="w-5 h-5" />}
+                        </div>
+                        <div className="admin-status-option-content">
+                          <div className="admin-status-option-label">{config.label}</div>
+                          <div className="admin-status-option-desc">{config.description}</div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Provider Transaction ID */}
+                <div className="mb-4">
+                  <label className="admin-label" htmlFor="apeProviderTransactionId">
+                    Transaction ID Intouch (optionnel)
+                  </label>
+                  <input
+                    type="text"
+                    id="apeProviderTransactionId"
+                    value={apeProviderTransactionId}
+                    onChange={(e) => setApeProviderTransactionId(e.target.value)}
+                    placeholder="Ex: TXN123456789"
+                    className="admin-input"
+                  />
+                  <p className="text-xs text-[var(--admin-text-muted)] mt-1">
+                    Récupérez cet ID depuis le back-office Intouch pour la réconciliation
+                  </p>
+                </div>
+
+                {/* Admin Notes */}
+                <div className="mb-4">
+                  <label className="admin-label" htmlFor="apeStatusNotes">
+                    Notes (optionnel)
+                  </label>
+                  <textarea
+                    id="apeStatusNotes"
+                    value={apeStatusNotes}
+                    onChange={(e) => setApeStatusNotes(e.target.value)}
+                    placeholder="Raison de la modification..."
+                    className="admin-input"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <div className="admin-modal-footer">
+                <button
+                  onClick={() => setShowApeStatusModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleUpdateApeStatus}
+                  disabled={updatingApeStatus || newApeStatus === selectedApeSubscription.status}
+                  className="admin-btn admin-btn-primary"
+                >
+                  {updatingApeStatus ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 animate-spin" />
+                      Mise à jour...
+                    </>
+                  ) : (
+                    'Mettre à jour'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        </div>
+      </main>
     </div>
   )
 }
