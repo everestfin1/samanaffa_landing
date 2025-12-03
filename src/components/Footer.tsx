@@ -9,9 +9,9 @@ export default function Footer() {
     const router = useRouter();
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
-    const isMaintenancePage = pathname === '/maintenance';
-    // Hide footer on portal pages, admin pages, and maintenance page
-    if (pathname.startsWith('/portal') || isAdminPage || isMaintenancePage) {
+    const isApePage = pathname.startsWith('/apesenegal');
+    // Hide footer on portal pages, admin pages, and APE Senegal pages (APE has its own footer)
+    if (pathname.startsWith('/portal') || isAdminPage || isApePage) {
         return null;
     }
     const currentYear = new Date().getFullYear();
@@ -51,7 +51,7 @@ export default function Footer() {
                   SAMA NAFFA • Épargne Inclusive
                 </button>
                 <button 
-                  onClick={() => router.push('/ape')} 
+                  onClick={() => router.push('/apesenegal')} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
                   Emprunt Obligataire • Appel Public à l’Epargne

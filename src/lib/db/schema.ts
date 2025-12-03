@@ -13,6 +13,7 @@ export const adminRoleEnum = pgEnum('AdminRole', ['ADMIN', 'MANAGER', 'SUPPORT']
 export const sessionTypeEnum = pgEnum('SessionType', ['REGISTRATION', 'LOGIN']);
 export const notificationTypeEnum = pgEnum('NotificationType', ['KYC_STATUS', 'SUCCESS', 'ERROR', 'WARNING', 'TRANSACTION', 'SECURITY']);
 export const notificationPriorityEnum = pgEnum('NotificationPriority', ['LOW', 'NORMAL', 'HIGH', 'URGENT']);
+export const apeSubscriptionStatusEnum = pgEnum('ApeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
 
 // Users table
 export const users = pgTable('users', {
@@ -192,6 +193,36 @@ export const notifications = pgTable('notifications', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+// APE Subscriptions table - stores subscription data before user account creation
+export const apeSubscriptions = pgTable('ape_subscriptions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  referenceNumber: text('referenceNumber').notNull().unique(),
+  // Personal info
+  civilite: text('civilite').notNull(),
+  prenom: text('prenom').notNull(),
+  nom: text('nom').notNull(),
+  email: text('email').notNull(),
+  telephone: text('telephone').notNull(),
+  paysResidence: text('paysResidence').notNull(),
+  ville: text('ville').notNull(),
+  categorieSocioprofessionnelle: text('categorieSocioprofessionnelle').notNull(),
+  // Investment info
+  trancheInteresse: text('trancheInteresse').notNull(),
+  montantCfa: decimal('montantCfa', { precision: 15, scale: 2 }).notNull(),
+  // Marketing tracking
+  codeParrainage: text('codeParrainage'),
+  // Payment info
+  status: apeSubscriptionStatusEnum('status').notNull().default('PENDING'),
+  providerTransactionId: text('providerTransactionId'),
+  providerStatus: text('providerStatus'),
+  paymentCallbackPayload: json('paymentCallbackPayload'),
+  paymentInitiatedAt: timestamp('paymentInitiatedAt', { mode: 'date' }),
+  paymentCompletedAt: timestamp('paymentCompletedAt', { mode: 'date' }),
+  // Timestamps
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
@@ -286,4 +317,6 @@ export type RegistrationSession = typeof registrationSessions.$inferSelect;
 export type NewRegistrationSession = typeof registrationSessions.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+export type ApeSubscription = typeof apeSubscriptions.$inferSelect;
+export type NewApeSubscription = typeof apeSubscriptions.$inferInsert;
 

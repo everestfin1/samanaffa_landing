@@ -628,7 +628,7 @@ export default function Home() {
                   </div>
                   
                   <Link 
-                    href="/ape"
+                    href="/apesenegal"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
                     <span className="text-lg">Explorer l'APE</span>

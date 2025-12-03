@@ -25,7 +25,7 @@ export default function Navigation() {
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
-  const isMaintenancePage = pathname === '/maintenance';
+  const isApePage = pathname.startsWith('/apesenegal');
 
   // Check authentication status on mount - client-side only
   useEffect(() => {
@@ -129,6 +129,11 @@ export default function Navigation() {
     return null;
   }
 
+  // Hide navigation on APE pages (they have their own header)
+  if (isApePage) {
+    return null;
+  }
+
   return (
     <header
       className={`${
@@ -173,7 +178,7 @@ export default function Navigation() {
               </Link>
 
               <Link
-                href="/ape"
+                href="/apesenegal"
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
@@ -346,7 +351,7 @@ export default function Navigation() {
                   </Link>
 
                   <Link
-                    href="/ape"
+                    href="/apesenegal"
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
