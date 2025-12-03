@@ -313,8 +313,8 @@ export default function APE() {
     if (typeof window !== 'undefined' && typeof (window as any).sendPaymentInfos === 'function') {
       // Construct redirect URLs
       const baseUrl = window.location.origin;
-      const successUrl = `${baseUrl}/ape/payment-success?referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
-      const failedUrl = `${baseUrl}/ape/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
+      const successUrl = `${baseUrl}/apesenegal/payment-success?referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
+      const failedUrl = `${baseUrl}/apesenegal/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
 
       console.log('[APE Payment] Initiating Intouch payment:', {
         referenceNumber,

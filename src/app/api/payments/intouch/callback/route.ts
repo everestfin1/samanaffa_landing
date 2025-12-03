@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
 // Prisma types no longer needed with Drizzle
 import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { apeSubscriptions } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
 
 type CallbackStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -471,10 +474,41 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
     },
   });
 
+  // If no transactionIntent found, check if this is an APE subscription
   if (!intent) {
-    console.error('[Intouch Callback] Transaction intent NOT FOUND for reference:', referenceNumber);
+    console.log('[Intouch Callback] Transaction intent not found, checking APE subscriptions...');
+    
+    // Check APE subscriptions table
+    const [apeSubscription] = await db
+      .select()
+      .from(apeSubscriptions)
+      .where(eq(apeSubscriptions.referenceNumber, String(referenceNumber)))
+      .limit(1);
+
+    if (apeSubscription) {
+      console.log('[Intouch Callback] Found APE subscription:', {
+        id: apeSubscription.id,
+        referenceNumber: apeSubscription.referenceNumber,
+        currentStatus: apeSubscription.status,
+        amount: apeSubscription.montantCfa,
+      });
+
+      // Process APE subscription callback
+      return processApeSubscriptionCallback(
+        apeSubscription,
+        parsedBody,
+        mappedStatus,
+        transactionId,
+        statusRaw,
+        callbackAmountDecimal,
+        paymentMethod,
+        timestampRaw
+      );
+    }
+
+    console.error('[Intouch Callback] Neither transaction intent nor APE subscription found for reference:', referenceNumber);
     console.error('[Intouch Callback] Full callback payload:', parsedBody);
-    return NextResponse.json({ error: 'Transaction intent not found' }, { status: 404 });
+    return NextResponse.json({ error: 'Transaction not found' }, { status: 404 });
   }
 
   console.log('[Intouch Callback] Transaction intent found:', {
@@ -694,6 +728,152 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       );
     }
 
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+// Process APE subscription callback
+async function processApeSubscriptionCallback(
+  apeSubscription: typeof apeSubscriptions.$inferSelect,
+  parsedBody: Record<string, unknown>,
+  mappedStatus: CallbackStatus,
+  transactionId: string,
+  statusRaw: string,
+  callbackAmountDecimal: string,
+  paymentMethod: string | null,
+  timestampRaw: string | null
+) {
+  const providerTransactionId = String(transactionId);
+  const callbackTimestamp = timestampRaw ? new Date(Number(timestampRaw)) : new Date();
+
+  // Validate amount matches (APE stores amount as string)
+  const subscriptionAmount = parseFloat(apeSubscription.montantCfa);
+  const callbackAmount = parseFloat(callbackAmountDecimal);
+  
+  if (Math.abs(subscriptionAmount - callbackAmount) > 1) {
+    console.error('[Intouch Callback] APE amount mismatch:', {
+      subscriptionAmount,
+      callbackAmount,
+      referenceNumber: apeSubscription.referenceNumber,
+    });
+    return NextResponse.json(
+      {
+        error: 'Callback amount does not match subscription amount',
+        subscriptionAmount,
+        callbackAmount,
+      },
+      { status: 400 }
+    );
+  }
+
+  // Check for duplicate provider transaction ID
+  if (apeSubscription.providerTransactionId && apeSubscription.providerTransactionId !== providerTransactionId) {
+    console.error('[Intouch Callback] APE provider transaction ID conflict:', {
+      existingProviderTransactionId: apeSubscription.providerTransactionId,
+      incomingTransactionId: providerTransactionId,
+      referenceNumber: apeSubscription.referenceNumber,
+    });
+    return NextResponse.json(
+      {
+        error: 'Subscription already linked to a different provider transaction ID',
+        providerTransactionId: apeSubscription.providerTransactionId,
+      },
+      { status: 409 }
+    );
+  }
+
+  // Map callback status to APE subscription status
+  type ApeStatus = 'PENDING' | 'PAYMENT_INITIATED' | 'PAYMENT_SUCCESS' | 'PAYMENT_FAILED' | 'CANCELLED';
+  let apeStatus: ApeStatus;
+  switch (mappedStatus) {
+    case 'COMPLETED':
+      apeStatus = 'PAYMENT_SUCCESS';
+      break;
+    case 'FAILED':
+      apeStatus = 'PAYMENT_FAILED';
+      break;
+    case 'CANCELLED':
+      apeStatus = 'CANCELLED';
+      break;
+    case 'PENDING':
+    default:
+      apeStatus = 'PAYMENT_INITIATED';
+      break;
+  }
+
+  try {
+    // Update APE subscription
+    const [updatedSubscription] = await db
+      .update(apeSubscriptions)
+      .set({
+        status: apeStatus,
+        providerTransactionId: providerTransactionId,
+        providerStatus: String(statusRaw),
+        paymentCallbackPayload: parsedBody,
+        paymentCompletedAt: apeStatus === 'PAYMENT_SUCCESS' || apeStatus === 'PAYMENT_FAILED' ? callbackTimestamp : null,
+        updatedAt: new Date(),
+      })
+      .where(eq(apeSubscriptions.referenceNumber, apeSubscription.referenceNumber))
+      .returning();
+
+    console.log('[Intouch Callback] APE subscription updated:', {
+      id: updatedSubscription.id,
+      referenceNumber: updatedSubscription.referenceNumber,
+      oldStatus: apeSubscription.status,
+      newStatus: apeStatus,
+      providerTransactionId,
+    });
+
+    // Send email notification for completed payments
+    if (apeStatus === 'PAYMENT_SUCCESS' && apeSubscription.status !== 'PAYMENT_SUCCESS') {
+      console.log('[Intouch Callback] Sending APE confirmation email to:', updatedSubscription.email);
+      
+      try {
+        await sendTransactionIntentEmail(
+          updatedSubscription.email,
+          `${updatedSubscription.prenom} ${updatedSubscription.nom}`,
+          {
+            type: 'investment',
+            amount: Number(updatedSubscription.montantCfa),
+            paymentMethod: paymentMethod || 'Intouch',
+            referenceNumber: updatedSubscription.referenceNumber,
+            accountType: 'ape_investment',
+            investmentTranche: updatedSubscription.trancheInteresse as 'A' | 'B' | 'C' | 'D' | undefined,
+            userNotes: `APE Subscription - ${updatedSubscription.trancheInteresse}`,
+          }
+        );
+        console.log('[Intouch Callback] APE confirmation email sent successfully');
+      } catch (emailError) {
+        console.error('[Intouch Callback] Failed to send APE confirmation email:', emailError);
+        // Don't fail the callback if email fails
+      }
+    } else if (apeStatus === 'PAYMENT_FAILED' && apeSubscription.status !== 'PAYMENT_FAILED') {
+      console.log('[Intouch Callback] APE payment failed for:', updatedSubscription.email);
+      // TODO: Send failure notification email
+    }
+
+    const responsePayload: Record<string, unknown> = {
+      success: apeStatus === 'PAYMENT_SUCCESS',
+      subscriptionId: updatedSubscription.id,
+      status: apeStatus,
+      providerTransactionId,
+      message:
+        apeStatus === 'PAYMENT_SUCCESS'
+          ? 'APE subscription payment completed successfully'
+          : `APE subscription payment ${apeStatus.toLowerCase().replace('_', ' ')}`,
+    };
+
+    // Return 200 for success, 420 for failure (as per Intouch docs)
+    const statusCode = apeStatus === 'PAYMENT_SUCCESS' ? 200 : 420;
+    console.log('[Intouch Callback] APE callback response:', {
+      statusCode,
+      apeStatus,
+      subscriptionId: updatedSubscription.id,
+    });
+    
+    return NextResponse.json(responsePayload, { status: statusCode });
+  } catch (error) {
+    console.error('[Intouch Callback] Error processing APE subscription callback:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
