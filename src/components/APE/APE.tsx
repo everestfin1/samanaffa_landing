@@ -13,6 +13,7 @@ import { useContactForm } from "../../hooks/useContactForm";
 import { ContactForm } from "./ContactForm";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import DocumentationSection from "./DocumentationSection";
 import { countries } from "../data/countries";
 
 // Custom hook for count-up animation
@@ -630,6 +631,9 @@ export default function APE() {
             </div>
           </div>
         </section>
+
+        {/* Documentation Section */}
+        <DocumentationSection />
       </main>
 
       {/* Contact Form Modal */}
