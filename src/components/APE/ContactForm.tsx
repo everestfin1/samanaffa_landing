@@ -2,6 +2,8 @@
 
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import React from "react";
+
+const MIN_APE_INVESTMENT_CFA = Number(process.env.NEXT_PUBLIC_APE_MIN_INVESTMENT_CFA ?? '10000');
 import { Button } from "../ui/button";
 import { Card, CardContent } from "../ui/card";
 import { CountrySelector } from "../ui/country-selector";
@@ -375,7 +377,7 @@ export const ContactForm = ({
                     }
                     value={formData.montant_cfa}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    placeholder="Ex: Minimum 10 000 FCFA"
+                    placeholder={`Ex: Minimum ${MIN_APE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA`}
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("montant_cfa")}`}
                     required
                   />
