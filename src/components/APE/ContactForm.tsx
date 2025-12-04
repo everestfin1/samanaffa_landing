@@ -1,7 +1,7 @@
 "use client";
 
-import { ChevronRightIcon } from "@heroicons/react/24/outline";
-import React from "react";
+import { ChevronRightIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import React, { useState, useCallback } from "react";
 
 const MIN_APE_INVESTMENT_CFA = Number(process.env.NEXT_PUBLIC_APE_MIN_INVESTMENT_CFA ?? '10000');
 import { Button } from "../ui/button";
@@ -63,6 +63,72 @@ export const ContactForm = ({
   const inputErrorClasses = (field: keyof FormData) =>
     getFieldError(field) ? "border-red-500 focus-visible:ring-red-500" : "";
   const errorId = (field: keyof FormData) => `${field}-error`;
+
+  // Sponsor code verification state
+  const [sponsorCodeStatus, setSponsorCodeStatus] = useState<'idle' | 'verifying' | 'valid' | 'invalid'>('idle');
+  const [sponsorCodeMessage, setSponsorCodeMessage] = useState<string>('');
+  const [verificationTimeout, setVerificationTimeout] = useState<NodeJS.Timeout | null>(null);
+
+  // Verify sponsor code with debounce
+  const verifySponsorCode = useCallback(async (code: string) => {
+    if (!code || code.length < 3) {
+      setSponsorCodeStatus('idle');
+      setSponsorCodeMessage('');
+      return;
+    }
+
+    setSponsorCodeStatus('verifying');
+    setSponsorCodeMessage('');
+
+    try {
+      const response = await fetch('/api/ape/verify-sponsor-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+      });
+
+      const data = await response.json();
+
+      if (data.valid) {
+        setSponsorCodeStatus('valid');
+        setSponsorCodeMessage(data.message || 'Code valide');
+      } else {
+        setSponsorCodeStatus('invalid');
+        setSponsorCodeMessage(data.error || 'Code invalide');
+      }
+    } catch (error) {
+      setSponsorCodeStatus('invalid');
+      setSponsorCodeMessage('Erreur de vérification');
+    }
+  }, []);
+
+  // Handle sponsor code change with debounce
+  const handleSponsorCodeChange = useCallback((value: string) => {
+    const upperValue = value.toUpperCase();
+    updateFormData("code_parrainage", upperValue);
+
+    // Clear previous timeout
+    if (verificationTimeout) {
+      clearTimeout(verificationTimeout);
+    }
+
+    // Reset status if empty
+    if (!upperValue || upperValue.length < 3) {
+      setSponsorCodeStatus('idle');
+      setSponsorCodeMessage('');
+      return;
+    }
+
+    // Debounce verification
+    const timeout = setTimeout(() => {
+      verifySponsorCode(upperValue);
+    }, 500);
+    setVerificationTimeout(timeout);
+  }, [updateFormData, verifySponsorCode, verificationTimeout]);
+
+  // Check if form can be submitted (sponsor code must be valid if provided)
+  const canSubmit = !isSubmitting && !paymentPending && 
+    (sponsorCodeStatus === 'idle' || sponsorCodeStatus === 'valid' || !formData.code_parrainage);
 
   return (
     <section id="contact-form" className="py-12 lg:py-20">
@@ -400,18 +466,46 @@ export const ContactForm = ({
                 >
                   Code de parrainage (optionnel)
                 </Label>
-                <Input
-                  id="code_parrainage"
-                  value={formData.code_parrainage}
-                  onChange={(e) =>
-                    updateFormData("code_parrainage", e.target.value.toUpperCase())
-                  }
-                  placeholder="Entrez votre code de parrainage"
-                  className="h-14 mt-2 bg-gray-50 text-base"
-                />
-                <p className="mt-1 text-xs text-gray-500">
-                  Si vous avez été recommandé par quelqu'un, entrez son code ici.
-                </p>
+                <div className="relative">
+                  <Input
+                    id="code_parrainage"
+                    value={formData.code_parrainage}
+                    onChange={(e) => handleSponsorCodeChange(e.target.value)}
+                    placeholder="Entrez votre code de parrainage"
+                    className={`h-14 mt-2 bg-gray-50 text-base pr-12 font-mono uppercase ${
+                      sponsorCodeStatus === 'valid' ? 'border-green-500 focus-visible:ring-green-500' :
+                      sponsorCodeStatus === 'invalid' ? 'border-red-500 focus-visible:ring-red-500' : ''
+                    }`}
+                  />
+                  {/* Verification status indicator */}
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 mt-1">
+                    {sponsorCodeStatus === 'verifying' && (
+                      <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    )}
+                    {sponsorCodeStatus === 'valid' && (
+                      <CheckCircleIcon className="h-5 w-5 text-green-500" />
+                    )}
+                    {sponsorCodeStatus === 'invalid' && (
+                      <XCircleIcon className="h-5 w-5 text-red-500" />
+                    )}
+                  </div>
+                </div>
+                {/* Verification message */}
+                {sponsorCodeMessage && (
+                  <p className={`mt-1 text-sm ${
+                    sponsorCodeStatus === 'valid' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {sponsorCodeMessage}
+                  </p>
+                )}
+                {!sponsorCodeMessage && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Si vous avez été recommandé par quelqu&apos;un, entrez son code ici.
+                  </p>
+                )}
               </div>
 
               {/* Submit message */}
@@ -440,14 +534,18 @@ export const ContactForm = ({
 
               <Button
                 type="submit"
-                disabled={isSubmitting || paymentPending}
+                disabled={!canSubmit}
                 className="w-full sm:w-auto px-10 h-16 bg-[#b3830f] hover:bg-[#9a7010] rounded font-normal text-white text-lg disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {paymentPending 
                   ? "Redirection..." 
                   : isSubmitting 
                     ? "Traitement..." 
-                    : "Procéder au paiement"}
+                    : sponsorCodeStatus === 'verifying'
+                      ? "Vérification du code..."
+                      : sponsorCodeStatus === 'invalid' && formData.code_parrainage
+                        ? "Code de parrainage invalide"
+                        : "Procéder au paiement"}
                 <ChevronRightIcon className="ml-2 h-4 w-4" />
               </Button>
             </form>

@@ -1095,6 +1095,95 @@ export const adminAuditLog = {
   },
 };
 
+// Prisma-compatible query builder for APE Sponsor Codes
+export const apeSponsorCode = {
+  async findUnique(params: { where: { id?: string; code?: string } }) {
+    const { where } = params;
+    let condition: SQL<unknown> | undefined;
+
+    if (where.id) condition = eq(schema.apeSponsorCodes.id, where.id);
+    else if (where.code) condition = eq(schema.apeSponsorCodes.code, where.code);
+
+    if (!condition) return null;
+
+    const results = await db.select()
+      .from(schema.apeSponsorCodes)
+      .where(condition)
+      .limit(1);
+
+    return results[0] || null;
+  },
+
+  async findMany(params?: { where?: WhereClause; orderBy?: any; take?: number; skip?: number; include?: any }) {
+    let query = db.select().from(schema.apeSponsorCodes);
+
+    if (params?.where) {
+      const condition = buildWhereConditions(schema.apeSponsorCodes, params.where);
+      if (condition) query = query.where(condition) as any;
+    }
+
+    if (params?.orderBy) {
+      const orderKey = Object.keys(params.orderBy)[0];
+      const orderDir = params.orderBy[orderKey];
+      const column = (schema.apeSponsorCodes as any)[orderKey];
+      if (column) {
+        query = query.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+      }
+    }
+
+    if (params?.skip) query = query.offset(params.skip) as any;
+    if (params?.take) query = query.limit(params.take) as any;
+
+    const codes = await query;
+
+    // Handle includes for admin user
+    if (params?.include?.createdByAdmin && codes.length > 0) {
+      const adminIds = [...new Set(codes.map(c => c.createdBy))];
+      const admins = await db.select()
+        .from(schema.adminUsers)
+        .where(inArray(schema.adminUsers.id, adminIds));
+
+      return codes.map(code => ({
+        ...code,
+        createdByAdmin: admins.find(a => a.id === code.createdBy)
+      }));
+    }
+
+    return codes;
+  },
+
+  async create(params: { data: any }) {
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.apeSponsorCodes).values(dataWithTimestamps).returning();
+    return results[0];
+  },
+
+  async update(params: { where: { id: string }; data: any }) {
+    const results = await db.update(schema.apeSponsorCodes)
+      .set({ ...params.data, updatedAt: new Date() })
+      .where(eq(schema.apeSponsorCodes.id, params.where.id))
+      .returning();
+    return results[0];
+  },
+
+  async delete(params: { where: { id: string } }) {
+    await db.delete(schema.apeSponsorCodes).where(eq(schema.apeSponsorCodes.id, params.where.id));
+  },
+
+  async count(params?: { where?: WhereClause }) {
+    const condition = params?.where ? buildWhereConditions(schema.apeSponsorCodes, params.where) : undefined;
+    const result = await db.select({ count: sql<number>`count(*)` })
+      .from(schema.apeSponsorCodes)
+      .where(condition);
+    return Number(result[0].count);
+  },
+};
+
 // Prisma-compatible query builder for APE Subscriptions
 export const apeSubscription = {
   async findUnique(params: { where: { id?: string; referenceNumber?: string } }) {
@@ -1237,6 +1326,7 @@ export const prisma = {
   paymentCallbackLog,
   session,
   apeSubscription,
+  apeSponsorCode,
   $transaction: utils.$transaction,
   $disconnect: utils.$disconnect,
 };
