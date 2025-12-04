@@ -5,21 +5,20 @@ import { checkCSRFToken } from '@/lib/csrf';
 
 export async function proxy(request: NextRequest) {
   // ==================== MAINTENANCE MODE ====================
-  // Set to true to enable maintenance mode (redirects all traffic to /maintenance)
+  // Set to true to enable maintenance mode (redirects all traffic to /apesenegal)
   // Set to false to disable maintenance mode and restore normal operation
     const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
   
   if (MAINTENANCE_MODE) {
-    // Exclude the maintenance page itself, static assets, and specific allowed routes
-    const isMaintenancePage = request.nextUrl.pathname === '/maintenance';
+    // Exclude static assets, admin routes, and apesenegal routes (to avoid redirect loop)
     const isStaticAsset = request.nextUrl.pathname.startsWith('/_next/') || 
                           request.nextUrl.pathname.startsWith('/static/') ||
                           request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js)$/);
-    const isAllowedRoute = request.nextUrl.pathname.startsWith('/apesenegal') ||
-                          request.nextUrl.pathname.startsWith('/admin');
+    const isAllowedRoute = request.nextUrl.pathname.startsWith('/admin') ||
+                          request.nextUrl.pathname.startsWith('/apesenegal');
     
-    if (!isMaintenancePage && !isStaticAsset && !isAllowedRoute) {
-      return NextResponse.redirect(new URL('/maintenance', request.url));
+    if (!isStaticAsset && !isAllowedRoute) {
+      return NextResponse.redirect(new URL('/apesenegal', request.url));
     }
   }
   // =========================================================
