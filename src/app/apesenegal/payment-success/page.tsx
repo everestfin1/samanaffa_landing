@@ -66,7 +66,7 @@ function PaymentSuccessContent() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/');
+          router.push('/apesenegal');
           return 0;
         }
         return prev - 1;
@@ -166,20 +166,20 @@ function PaymentSuccessContent() {
           </p>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
-              href="/"
+              href="/apesenegal"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gold-metallic text-white font-medium rounded-lg hover:bg-gold-dark transition-colors"
             >
               Retour à l'accueil
               <ArrowRightIcon className="w-4 h-4 ml-2" />
             </Link>
-            <Link
+            {/* <Link
               href="/apesenegal"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
             >
               Nouvelle souscription
-            </Link>
+            </Link> */}
           </div>
         </div>
 

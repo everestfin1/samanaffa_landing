@@ -10,13 +10,15 @@ export async function proxy(request: NextRequest) {
     const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
   
   if (MAINTENANCE_MODE) {
-    // Exclude the maintenance page itself and static assets
+    // Exclude the maintenance page itself, static assets, and specific allowed routes
     const isMaintenancePage = request.nextUrl.pathname === '/maintenance';
     const isStaticAsset = request.nextUrl.pathname.startsWith('/_next/') || 
                           request.nextUrl.pathname.startsWith('/static/') ||
                           request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js)$/);
+    const isAllowedRoute = request.nextUrl.pathname.startsWith('/apesenegal') ||
+                          request.nextUrl.pathname.startsWith('/admin');
     
-    if (!isMaintenancePage && !isStaticAsset) {
+    if (!isMaintenancePage && !isStaticAsset && !isAllowedRoute) {
       return NextResponse.redirect(new URL('/maintenance', request.url));
     }
   }
