@@ -3,6 +3,8 @@ import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 
+const MIN_APE_INVESTMENT_CFA = Number(process.env.APE_MIN_INVESTMENT_CFA ?? '10000');
+
 // Generate a unique reference number for APE subscriptions
 function generateReferenceNumber(): string {
   const timestamp = Date.now();
@@ -89,9 +91,12 @@ export async function POST(request: NextRequest) {
 
     // Parse and validate amount
     const amount = parseAmount(montant_cfa);
-    if (isNaN(amount) || amount < 10000) {
+    if (isNaN(amount) || amount < MIN_APE_INVESTMENT_CFA) {
       return NextResponse.json(
-        { success: false, error: 'Le montant minimum est de 10 000 FCFA' },
+        {
+          success: false,
+          error: `Le montant minimum est de ${MIN_APE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA`,
+        },
         { status: 400 }
       );
     }

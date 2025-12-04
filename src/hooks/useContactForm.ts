@@ -2,6 +2,8 @@
 
 import { useState, useCallback } from 'react';
 
+const MIN_APE_INVESTMENT_CFA = Number(process.env.NEXT_PUBLIC_APE_MIN_INVESTMENT_CFA ?? '10000');
+
 export interface FormData {
   civilite: 'Mr' | 'Mme' | '';
   prenom: string;
@@ -97,8 +99,8 @@ export function useContactForm() {
       newErrors.montant_cfa = 'Le montant est requis';
     } else {
       const numericAmount = parseInt(formData.montant_cfa.replace(/\s/g, ''), 10);
-      if (isNaN(numericAmount) || numericAmount < 10000) {
-        newErrors.montant_cfa = 'Le montant minimum est de 10 000 FCFA';
+      if (isNaN(numericAmount) || numericAmount < MIN_APE_INVESTMENT_CFA) {
+        newErrors.montant_cfa = `Le montant minimum est de ${MIN_APE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA`;
       }
     }
 
