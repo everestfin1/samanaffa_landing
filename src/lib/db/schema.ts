@@ -15,6 +15,9 @@ export const notificationTypeEnum = pgEnum('NotificationType', ['KYC_STATUS', 'S
 export const notificationPriorityEnum = pgEnum('NotificationPriority', ['LOW', 'NORMAL', 'HIGH', 'URGENT']);
 export const apeSubscriptionStatusEnum = pgEnum('ApeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
 
+// Sponsor code status enum
+export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
+
 // Users table
 export const users = pgTable('users', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -193,6 +196,20 @@ export const notifications = pgTable('notifications', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+// APE Sponsor Codes table - stores sponsor/referral codes created by admin
+export const apeSponsorCodes = pgTable('ape_sponsor_codes', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  code: text('code').notNull().unique(),
+  description: text('description'),
+  createdBy: text('createdBy').notNull().references(() => adminUsers.id, { onDelete: 'cascade' }),
+  status: sponsorCodeStatusEnum('status').notNull().default('ACTIVE'),
+  usageCount: integer('usageCount').notNull().default(0),
+  maxUsage: integer('maxUsage'), // null means unlimited
+  expiresAt: timestamp('expiresAt', { mode: 'date' }),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
 // APE Subscriptions table - stores subscription data before user account creation
 export const apeSubscriptions = pgTable('ape_subscriptions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
@@ -319,4 +336,5 @@ export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
 export type ApeSubscription = typeof apeSubscriptions.$inferSelect;
 export type NewApeSubscription = typeof apeSubscriptions.$inferInsert;
-
+export type ApeSponsorCode = typeof apeSponsorCodes.$inferSelect;
+export type NewApeSponsorCode = typeof apeSponsorCodes.$inferInsert;

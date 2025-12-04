@@ -39,7 +39,8 @@ import {
   LayoutDashboard,
   Wallet,
   Settings,
-  X
+  X,
+  Gift
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -131,6 +132,31 @@ interface ApeStats {
   totalAmount: number
 }
 
+interface SponsorCode {
+  id: string
+  code: string
+  description?: string
+  status: string
+  usageCount: number
+  maxUsage?: number
+  expiresAt?: string
+  createdAt: string
+  updatedAt: string
+  createdBy: string
+  createdByAdmin?: {
+    id: string
+    name: string
+    email: string
+  }
+}
+
+interface SponsorCodeStats {
+  total: number
+  active: number
+  inactive: number
+  expired: number
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
@@ -145,7 +171,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -192,6 +218,26 @@ export default function AdminDashboard() {
   const [apeProviderTransactionId, setApeProviderTransactionId] = useState('')
   const [apeStatusNotes, setApeStatusNotes] = useState('')
   const [updatingApeStatus, setUpdatingApeStatus] = useState(false)
+
+  // Sponsor Codes State
+  const [sponsorCodes, setSponsorCodes] = useState<SponsorCode[]>([])
+  const [sponsorCodeStats, setSponsorCodeStats] = useState<SponsorCodeStats>({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    expired: 0
+  })
+  const [sponsorCodeStatusFilter, setSponsorCodeStatusFilter] = useState<string>('')
+  const [showCreateCodeModal, setShowCreateCodeModal] = useState(false)
+  const [showEditCodeModal, setShowEditCodeModal] = useState(false)
+  const [selectedSponsorCode, setSelectedSponsorCode] = useState<SponsorCode | null>(null)
+  const [newCodeData, setNewCodeData] = useState({
+    code: '',
+    description: '',
+    maxUsage: '',
+    expiresAt: ''
+  })
+  const [savingSponsorCode, setSavingSponsorCode] = useState(false)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -295,6 +341,15 @@ export default function AdminDashboard() {
       if (apeData.success) {
         setApeSubscriptions(apeData.subscriptions)
         setApeStats(apeData.stats)
+      }
+
+      // Fetch Sponsor Codes
+      const sponsorCodesResponse = await fetch('/api/admin/sponsor-codes', { headers })
+      const sponsorCodesData = await sponsorCodesResponse.json()
+      
+      if (sponsorCodesData.success) {
+        setSponsorCodes(sponsorCodesData.codes)
+        setSponsorCodeStats(sponsorCodesData.stats)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -855,6 +910,181 @@ export default function AdminDashboard() {
     } finally {
       setUpdatingApeStatus(false)
     }
+  }
+
+  // Sponsor Code CRUD Functions
+  const handleCreateSponsorCode = async () => {
+    if (!newCodeData.code.trim()) {
+      alert('Le code est requis')
+      return
+    }
+
+    setSavingSponsorCode(true)
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/sponsor-codes', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          code: newCodeData.code,
+          description: newCodeData.description,
+          maxUsage: newCodeData.maxUsage || null,
+          expiresAt: newCodeData.expiresAt || null,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSponsorCodes(prev => [data.sponsorCode, ...prev])
+        setSponsorCodeStats(prev => ({
+          ...prev,
+          total: prev.total + 1,
+          active: prev.active + 1
+        }))
+        setShowCreateCodeModal(false)
+        setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
+      } else {
+        alert(data.error || 'Erreur lors de la création')
+      }
+    } catch (error) {
+      console.error('Error creating sponsor code:', error)
+      alert('Erreur lors de la création du code')
+    } finally {
+      setSavingSponsorCode(false)
+    }
+  }
+
+  const handleUpdateSponsorCode = async () => {
+    if (!selectedSponsorCode) return
+
+    setSavingSponsorCode(true)
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/sponsor-codes', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: selectedSponsorCode.id,
+          description: newCodeData.description,
+          maxUsage: newCodeData.maxUsage || null,
+          expiresAt: newCodeData.expiresAt || null,
+          status: selectedSponsorCode.status,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSponsorCodes(prev =>
+          prev.map(code =>
+            code.id === selectedSponsorCode.id
+              ? { ...code, ...data.sponsorCode }
+              : code
+          )
+        )
+        setShowEditCodeModal(false)
+        setSelectedSponsorCode(null)
+        setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
+      } else {
+        alert(data.error || 'Erreur lors de la mise à jour')
+      }
+    } catch (error) {
+      console.error('Error updating sponsor code:', error)
+      alert('Erreur lors de la mise à jour du code')
+    } finally {
+      setSavingSponsorCode(false)
+    }
+  }
+
+  const handleToggleSponsorCodeStatus = async (code: SponsorCode) => {
+    const newStatus = code.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+    
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/sponsor-codes', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: code.id,
+          status: newStatus,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSponsorCodes(prev =>
+          prev.map(c =>
+            c.id === code.id ? { ...c, status: newStatus } : c
+          )
+        )
+        setSponsorCodeStats(prev => ({
+          ...prev,
+          active: newStatus === 'ACTIVE' ? prev.active + 1 : prev.active - 1,
+          inactive: newStatus === 'INACTIVE' ? prev.inactive + 1 : prev.inactive - 1,
+        }))
+      } else {
+        alert(data.error || 'Erreur lors de la mise à jour')
+      }
+    } catch (error) {
+      console.error('Error toggling sponsor code status:', error)
+      alert('Erreur lors du changement de statut')
+    }
+  }
+
+  const handleDeleteSponsorCode = async (code: SponsorCode) => {
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le code "${code.code}" ?`)) return
+
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch(`/api/admin/sponsor-codes?id=${code.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setSponsorCodes(prev => prev.filter(c => c.id !== code.id))
+        setSponsorCodeStats(prev => ({
+          ...prev,
+          total: prev.total - 1,
+          active: code.status === 'ACTIVE' ? prev.active - 1 : prev.active,
+          inactive: code.status === 'INACTIVE' ? prev.inactive - 1 : prev.inactive,
+          expired: code.status === 'EXPIRED' ? prev.expired - 1 : prev.expired,
+        }))
+      } else {
+        alert(data.error || 'Erreur lors de la suppression')
+      }
+    } catch (error) {
+      console.error('Error deleting sponsor code:', error)
+      alert('Erreur lors de la suppression du code')
+    }
+  }
+
+  const openEditCodeModal = (code: SponsorCode) => {
+    setSelectedSponsorCode(code)
+    setNewCodeData({
+      code: code.code,
+      description: code.description || '',
+      maxUsage: code.maxUsage?.toString() || '',
+      expiresAt: code.expiresAt ? new Date(code.expiresAt).toISOString().split('T')[0] : '',
+    })
+    setShowEditCodeModal(true)
+  }
+
+  const SPONSOR_CODE_STATUS_CONFIG = {
+    ACTIVE: { label: 'Actif', color: 'emerald' },
+    INACTIVE: { label: 'Inactif', color: 'neutral' },
+    EXPIRED: { label: 'Expiré', color: 'rose' },
   }
 
   const APE_STATUS_CONFIG = {
@@ -2269,6 +2499,187 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Sponsor Codes Tab */}
+        {activeTab === 'sponsorCodes' && (
+          <div className="space-y-8">
+            {/* Stats Cards */}
+            <div className="admin-grid admin-grid-4">
+              <div className="admin-stat-card" data-color="sky">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total codes</span>
+                  <div className="admin-stat-icon"><Gift className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{sponsorCodeStats.total}</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Codes actifs</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{sponsorCodeStats.active}</div>
+              </div>
+              <div className="admin-stat-card" data-color="neutral">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Codes inactifs</span>
+                  <div className="admin-stat-icon"><XCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{sponsorCodeStats.inactive}</div>
+              </div>
+              <div className="admin-stat-card" data-color="rose">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Codes expirés</span>
+                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{sponsorCodeStats.expired}</div>
+              </div>
+            </div>
+
+            {/* Sponsor Codes Table */}
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h3 className="admin-card-title">Codes de parrainage</h3>
+                  <p className="admin-card-subtitle">Gérez les codes de parrainage pour APE Sénégal</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <select
+                    value={sponsorCodeStatusFilter}
+                    onChange={(e) => setSponsorCodeStatusFilter(e.target.value)}
+                    className="admin-select"
+                  >
+                    <option value="">Tous les statuts</option>
+                    <option value="ACTIVE">Actifs</option>
+                    <option value="INACTIVE">Inactifs</option>
+                    <option value="EXPIRED">Expirés</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
+                      setShowCreateCodeModal(true)
+                    }}
+                    className="admin-btn admin-btn-primary"
+                  >
+                    <Gift className="w-4 h-4 mr-2" />
+                    Nouveau code
+                  </button>
+                </div>
+              </div>
+              <div className="admin-card-body p-0">
+                <div className="admin-table-container">
+                  {sponsorCodes.filter(code => !sponsorCodeStatusFilter || code.status === sponsorCodeStatusFilter).length > 0 ? (
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Code</th>
+                          <th>Description</th>
+                          <th>Statut</th>
+                          <th>Utilisations</th>
+                          <th>Limite</th>
+                          <th>Expiration</th>
+                          <th>Créé par</th>
+                          <th>Date création</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sponsorCodes
+                          .filter(code => !sponsorCodeStatusFilter || code.status === sponsorCodeStatusFilter)
+                          .map((code) => {
+                            const statusConfig = SPONSOR_CODE_STATUS_CONFIG[code.status as keyof typeof SPONSOR_CODE_STATUS_CONFIG] || { label: code.status, color: 'neutral' }
+                            return (
+                              <tr key={code.id}>
+                                <td>
+                                  <span className="font-mono font-semibold text-[var(--admin-primary)]">{code.code}</span>
+                                </td>
+                                <td>
+                                  <span className="text-sm text-[var(--admin-text-muted)]">
+                                    {code.description || '-'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className={`admin-badge admin-badge-${statusConfig.color}`}>
+                                    {statusConfig.label}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="font-medium">{code.usageCount}</span>
+                                </td>
+                                <td>
+                                  <span className="text-sm">
+                                    {code.maxUsage ? code.maxUsage : 'Illimité'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="text-sm">
+                                    {code.expiresAt 
+                                      ? new Date(code.expiresAt).toLocaleDateString('fr-FR')
+                                      : 'Jamais'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="text-sm">
+                                    {code.createdByAdmin?.name || '-'}
+                                  </span>
+                                </td>
+                                <td>
+                                  <span className="text-sm text-[var(--admin-text-muted)]">
+                                    {new Date(code.createdAt).toLocaleDateString('fr-FR')}
+                                  </span>
+                                </td>
+                                <td>
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      onClick={() => openEditCodeModal(code)}
+                                      className="admin-btn admin-btn-ghost admin-btn-sm"
+                                      title="Modifier"
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={() => handleToggleSponsorCodeStatus(code)}
+                                      className={`admin-btn admin-btn-ghost admin-btn-sm ${code.status === 'ACTIVE' ? 'text-amber-600' : 'text-emerald-600'}`}
+                                      title={code.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
+                                      disabled={code.status === 'EXPIRED'}
+                                    >
+                                      {code.status === 'ACTIVE' ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+                                    </button>
+                                    <button
+                                      onClick={() => handleDeleteSponsorCode(code)}
+                                      className="admin-btn admin-btn-ghost admin-btn-sm text-rose-600"
+                                      title="Supprimer"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            )
+                          })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="admin-empty-state">
+                      <Gift className="admin-empty-icon" />
+                      <p className="admin-empty-title">Aucun code de parrainage</p>
+                      <p className="admin-empty-text">Créez votre premier code de parrainage</p>
+                      <button
+                        onClick={() => {
+                          setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
+                          setShowCreateCodeModal(true)
+                        }}
+                        className="admin-btn admin-btn-primary mt-4"
+                      >
+                        <Gift className="w-4 h-4 mr-2" />
+                        Créer un code
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div className="space-y-6">
@@ -2481,6 +2892,211 @@ export default function AdminDashboard() {
                     </>
                   ) : (
                     'Mettre à jour'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Create Sponsor Code Modal */}
+        {showCreateCodeModal && (
+          <div className="admin-modal-overlay" onClick={() => setShowCreateCodeModal(false)}>
+            <div className="admin-modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <h3 className="admin-modal-title">Nouveau code de parrainage</h3>
+                <button onClick={() => setShowCreateCodeModal(false)} className="admin-modal-close">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="admin-modal-body">
+                <div className="mb-4">
+                  <label className="admin-label" htmlFor="newCode">
+                    Code *
+                  </label>
+                  <input
+                    id="newCode"
+                    type="text"
+                    value={newCodeData.code}
+                    onChange={(e) => setNewCodeData(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
+                    placeholder="Ex: PARRAIN2024"
+                    className="admin-input font-mono"
+                    maxLength={20}
+                  />
+                  <p className="text-xs text-[var(--admin-text-muted)] mt-1">
+                    Le code sera automatiquement converti en majuscules
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="admin-label" htmlFor="codeDescription">
+                    Description (optionnel)
+                  </label>
+                  <input
+                    id="codeDescription"
+                    type="text"
+                    value={newCodeData.description}
+                    onChange={(e) => setNewCodeData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Ex: Code pour la campagne diaspora"
+                    className="admin-input"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="admin-label" htmlFor="maxUsage">
+                      Limite d&apos;utilisation
+                    </label>
+                    <input
+                      id="maxUsage"
+                      type="number"
+                      min="1"
+                      value={newCodeData.maxUsage}
+                      onChange={(e) => setNewCodeData(prev => ({ ...prev, maxUsage: e.target.value }))}
+                      placeholder="Illimité"
+                      className="admin-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="admin-label" htmlFor="expiresAt">
+                      Date d&apos;expiration
+                    </label>
+                    <input
+                      id="expiresAt"
+                      type="date"
+                      value={newCodeData.expiresAt}
+                      onChange={(e) => setNewCodeData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                      className="admin-input"
+                      min={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="admin-modal-footer">
+                <button
+                  onClick={() => setShowCreateCodeModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleCreateSponsorCode}
+                  disabled={savingSponsorCode || !newCodeData.code.trim()}
+                  className="admin-btn admin-btn-primary"
+                >
+                  {savingSponsorCode ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 animate-spin" />
+                      Création...
+                    </>
+                  ) : (
+                    <>
+                      <Gift className="w-4 h-4 mr-2" />
+                      Créer le code
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Sponsor Code Modal */}
+        {showEditCodeModal && selectedSponsorCode && (
+          <div className="admin-modal-overlay" onClick={() => setShowEditCodeModal(false)}>
+            <div className="admin-modal" style={{ maxWidth: '480px' }} onClick={e => e.stopPropagation()}>
+              <div className="admin-modal-header">
+                <h3 className="admin-modal-title">Modifier le code</h3>
+                <button onClick={() => setShowEditCodeModal(false)} className="admin-modal-close">
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              
+              <div className="admin-modal-body">
+                <div className="mb-4">
+                  <label className="admin-label">
+                    Code
+                  </label>
+                  <div className="admin-input bg-[var(--admin-bg-tertiary)] font-mono cursor-not-allowed">
+                    {selectedSponsorCode.code}
+                  </div>
+                  <p className="text-xs text-[var(--admin-text-muted)] mt-1">
+                    Le code ne peut pas être modifié
+                  </p>
+                </div>
+
+                <div className="mb-4">
+                  <label className="admin-label" htmlFor="editDescription">
+                    Description
+                  </label>
+                  <input
+                    id="editDescription"
+                    type="text"
+                    value={newCodeData.description}
+                    onChange={(e) => setNewCodeData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Ex: Code pour la campagne diaspora"
+                    className="admin-input"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="admin-label" htmlFor="editMaxUsage">
+                      Limite d&apos;utilisation
+                    </label>
+                    <input
+                      id="editMaxUsage"
+                      type="number"
+                      min="1"
+                      value={newCodeData.maxUsage}
+                      onChange={(e) => setNewCodeData(prev => ({ ...prev, maxUsage: e.target.value }))}
+                      placeholder="Illimité"
+                      className="admin-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="admin-label" htmlFor="editExpiresAt">
+                      Date d&apos;expiration
+                    </label>
+                    <input
+                      id="editExpiresAt"
+                      type="date"
+                      value={newCodeData.expiresAt}
+                      onChange={(e) => setNewCodeData(prev => ({ ...prev, expiresAt: e.target.value }))}
+                      className="admin-input"
+                    />
+                  </div>
+                </div>
+
+                <div className="p-3 bg-[var(--admin-bg-tertiary)] rounded-lg">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[var(--admin-text-muted)]">Utilisations actuelles:</span>
+                    <span className="font-medium">{selectedSponsorCode.usageCount}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="admin-modal-footer">
+                <button
+                  onClick={() => setShowEditCodeModal(false)}
+                  className="admin-btn admin-btn-secondary"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleUpdateSponsorCode}
+                  disabled={savingSponsorCode}
+                  className="admin-btn admin-btn-primary"
+                >
+                  {savingSponsorCode ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 animate-spin" />
+                      Mise à jour...
+                    </>
+                  ) : (
+                    'Enregistrer'
                   )}
                 </button>
               </div>
