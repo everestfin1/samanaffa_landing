@@ -961,8 +961,11 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       responsePayload.customer = customerInfo;
     }
 
-    // Return 200 for success, 420 for failure (as per Intouch docs)
-    const statusCode = finalStatus === 'COMPLETED' ? 200 : 420;
+    // Return 200 for success OR pending states (Intouch needs 200 to continue sending updates)
+    // Only return 420 for explicit failures (FAILED, CANCELLED)
+    // Per Intouch docs: 200 = "transaction is initiated and validated in our system"
+    //                   420 = "transaction failed on the system"
+    const statusCode = (finalStatus === 'COMPLETED' || finalStatus === 'PENDING') ? 200 : 420;
     console.log('[Intouch Callback] Returning response:', {
       statusCode,
       finalStatus,
@@ -1127,8 +1130,11 @@ async function processApeSubscriptionCallback(
           : `APE subscription payment ${apeStatus.toLowerCase().replace('_', ' ')}`,
     };
 
-    // Return 200 for success, 420 for failure (as per Intouch docs)
-    const statusCode = apeStatus === 'PAYMENT_SUCCESS' ? 200 : 420;
+    // Return 200 for success OR pending states (Intouch needs 200 to continue sending updates)
+    // Only return 420 for explicit failures (FAILED, CANCELLED)
+    // Per Intouch docs: 200 = "transaction is initiated and validated in our system"
+    //                   420 = "transaction failed on the system"
+    const statusCode = (apeStatus === 'PAYMENT_SUCCESS' || apeStatus === 'PAYMENT_INITIATED') ? 200 : 420;
     console.log('[Intouch Callback] APE callback response:', {
       statusCode,
       apeStatus,

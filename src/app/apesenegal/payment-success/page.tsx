@@ -17,6 +17,7 @@ function PaymentSuccessContent() {
     status?: string;
   } | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
+  const [isPaymentConfirmed, setIsPaymentConfirmed] = useState(false);
 
   const referenceNumber = searchParams.get('referenceNumber');
   const amount = searchParams.get('amount');
@@ -41,12 +42,16 @@ function PaymentSuccessContent() {
             currentStatus: data.subscription.status,
             transactionId,
             amount,
-            redirectParams: { referenceNumber, transactionId, amount, status }
           });
 
           // Check if payment is actually confirmed
           if (data.subscription.status === 'PAYMENT_SUCCESS') {
             setIsProcessing(false);
+            setIsPaymentConfirmed(true);
+          } else if (data.subscription.status === 'PAYMENT_FAILED' || data.subscription.status === 'CANCELLED') {
+            // Payment failed or cancelled - stop processing
+            setIsProcessing(false);
+            setIsPaymentConfirmed(false);
           } else {
             // Still processing - status will be updated by callback
             setIsProcessing(true);
@@ -60,21 +65,25 @@ function PaymentSuccessContent() {
 
     fetchSubscription();
 
-    // Set up polling to check for status updates (every 3 seconds for 30 seconds)
+    // Set up polling to check for status updates (every 3 seconds for 60 seconds)
+    // Extended from 30s to 60s to give more time for Intouch callbacks
     const pollInterval = setInterval(fetchSubscription, 3000);
     const pollTimeout = setTimeout(() => {
       clearInterval(pollInterval);
-      setIsProcessing(false); // Stop polling after 30 seconds
-    }, 30000);
+      setIsProcessing(false); // Stop polling after 60 seconds
+    }, 60000);
 
     return () => {
       clearInterval(pollInterval);
       clearTimeout(pollTimeout);
     };
-  }, [referenceNumber, transactionId, amount, status]);
+  }, [referenceNumber, transactionId, amount]);
 
-  // Auto-redirect countdown
+  // Auto-redirect countdown - ONLY starts after payment is confirmed
   useEffect(() => {
+    // Don't start countdown until payment is confirmed
+    if (!isPaymentConfirmed) return;
+
     const timer = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
@@ -87,7 +96,7 @@ function PaymentSuccessContent() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router]);
+  }, [router, isPaymentConfirmed]);
 
   const formatAmount = (value: string | null) => {
     if (!value) return '—';
@@ -146,7 +155,7 @@ function PaymentSuccessContent() {
 
             {/* Support Info */}
             <p className="text-sm text-gray-500 mb-6">
-              Si cette page reste affichée plus de 30 secondes, veuillez contacter notre support.
+              Si cette page reste affichée plus de 60 secondes, veuillez contacter notre support.
             </p>
 
             {/* Action Buttons */}
