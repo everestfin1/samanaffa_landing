@@ -224,7 +224,7 @@ export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCS
                <div className="flex justify-between gap-4 items-end">
                 <span className="text-sm">+221 33 822 87 00</span>
                 <span className="text-sm">ou</span>
-                <span className="text-sm">+221 33 822 87 01</span>
+                <span className="text-sm"></span>
               </div>
               </div>
             </div>

@@ -86,7 +86,7 @@ export default function Footer() {
             <div className="space-y-4 text-white/60 font-light">
               <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
                 <p className="text-lg">+221 33 822 87 00</p>
-                <p className="text-lg">+221 33 822 87 01</p>
+                <p className="text-lg"></p>
               </div>
               <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
                 <p className="text-lg">contact@everestfin.com</p>

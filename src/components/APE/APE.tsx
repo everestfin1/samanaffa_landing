@@ -13,6 +13,7 @@ import { useContactForm } from "../../hooks/useContactForm";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import DocumentationSection from "./DocumentationSection";
+import InvestmentSimulator from "./InvestmentSimulator";
 import { countries } from "../data/countries";
 
 // Dynamically import ContactForm to reduce initial bundle size
@@ -587,6 +588,9 @@ export default function APE() {
             </div>
           </div>
         </section>
+
+        {/* Investment Simulator Section */}
+        <InvestmentSimulator />
 
         {/* Documentation Section */}
         <DocumentationSection />
