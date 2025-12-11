@@ -1,11 +1,206 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
 // Prisma types no longer needed with Drizzle
 import { prisma } from '@/lib/prisma';
 import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
+
+// Payment request validation middleware
+function validatePaymentRequest(request: NextRequest, body: Record<string, unknown>): { isValid: boolean; error?: string } {
+  try {
+    // Check for required headers
+    const userAgent = request.headers.get('user-agent');
+    const contentType = request.headers.get('content-type');
+
+    // Basic request validation
+    if (!userAgent) {
+      return { isValid: false, error: 'Missing User-Agent header' };
+    }
+
+    // Validate content type for POST requests
+    if (request.method === 'POST' && !contentType) {
+      return { isValid: false, error: 'Missing Content-Type header' };
+    }
+
+    // Check for suspicious patterns in request data
+    const suspiciousPatterns = [
+      /<script/i, /javascript:/i, /onload=/i, /onerror=/i,
+      /eval\(/i, /document\./i, /window\./i
+    ];
+
+    const bodyString = JSON.stringify(body);
+    for (const pattern of suspiciousPatterns) {
+      if (pattern.test(bodyString)) {
+        console.warn('[Payment Security] Suspicious pattern detected in request body');
+        return { isValid: false, error: 'Invalid request data' };
+      }
+    }
+
+    // Validate request size (prevent oversized payloads)
+    const maxPayloadSize = Number(process.env.PAYMENT_MAX_PAYLOAD_SIZE || '10240'); // Default: 10KB
+    if (bodyString.length > maxPayloadSize) {
+      console.warn(`[Payment Security] Payload size ${bodyString.length} exceeds limit ${maxPayloadSize}`);
+      return { isValid: false, error: 'Request payload too large' };
+    }
+
+    return { isValid: true };
+  } catch (error) {
+    console.error('[Payment Security] Request validation error:', error);
+    return { isValid: false, error: 'Request validation failed' };
+  }
+}
+
+// Payment security utilities
+class PaymentSecurity {
+private static idempotencyStore = new Map<string, { timestamp: number; data: any }>();
+private static readonly IDEMPOTENCY_TTL = Number(process.env.PAYMENT_IDEMPOTENCY_TTL || '86400000'); // Default: 24 hours
+
+  // Rate limiting for payment endpoints (configurable via environment)
+  private static rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+  private static readonly RATE_LIMIT_WINDOW = Number(process.env.PAYMENT_RATE_LIMIT_WINDOW || '900000'); // Default: 15 minutes
+  private static readonly RATE_LIMIT_MAX_REQUESTS = Number(process.env.PAYMENT_RATE_LIMIT_MAX_REQUESTS || '10'); // Default: 10 requests
+
+  static generateIdempotencyKey(): string {
+    return randomBytes(16).toString('hex');
+  }
+
+  static validateIdempotencyKey(key: string, data: any): boolean {
+    if (!key || typeof key !== 'string') return false;
+
+    const existing = this.idempotencyStore.get(key);
+    if (existing) {
+      // Check if data matches (prevent replay with different data)
+      const dataMatches = JSON.stringify(existing.data) === JSON.stringify(data);
+      if (!dataMatches) {
+        console.warn('[Payment Security] Idempotency key used with different data:', key);
+        return false;
+      }
+      return true; // Allow same request
+    }
+
+    // Store new idempotency key
+    this.idempotencyStore.set(key, {
+      timestamp: Date.now(),
+      data: JSON.parse(JSON.stringify(data)) // Deep clone
+    });
+
+    // Clean up expired keys
+    this.cleanupExpiredKeys();
+
+    return true;
+  }
+
+  static checkRateLimit(identifier: string): boolean {
+    const now = Date.now();
+    const existing = this.rateLimitStore.get(identifier);
+
+    if (!existing || now > existing.resetTime) {
+      // First request or window expired
+      this.rateLimitStore.set(identifier, {
+        count: 1,
+        resetTime: now + this.RATE_LIMIT_WINDOW
+      });
+      return true;
+    }
+
+    if (existing.count >= this.RATE_LIMIT_MAX_REQUESTS) {
+      console.warn(`[Payment Security] Rate limit exceeded for ${identifier}`);
+      return false;
+    }
+
+    existing.count++;
+    return true;
+  }
+
+  private static cleanupExpiredKeys(): void {
+    const now = Date.now();
+    for (const [key, value] of this.idempotencyStore.entries()) {
+      if (now - value.timestamp > this.IDEMPOTENCY_TTL) {
+        this.idempotencyStore.delete(key);
+      }
+    }
+
+    // Also cleanup rate limit entries
+    for (const [key, value] of this.rateLimitStore.entries()) {
+      if (now > value.resetTime) {
+        this.rateLimitStore.delete(key);
+      }
+    }
+  }
+
+  static secureLogPaymentData(data: any, operation: string): void {
+    // Create sanitized version for logging
+    const sanitized = { ...data };
+
+    // Encrypt sensitive fields
+    const sensitiveFields = [
+      'cardNumber', 'cvv', 'pin', 'password', 'token',
+      'authorization', 'signature', 'secret', 'key',
+      'card_number', 'cardNumber', 'cvv2', 'expiry', 'cardholder_name'
+    ];
+
+    sensitiveFields.forEach(field => {
+      if (sanitized[field]) {
+        sanitized[field] = '***ENCRYPTED***';
+      }
+    });
+
+    // Log sanitized data
+    console.log(`[Payment Security] ${operation}:`, JSON.stringify(sanitized, null, 2));
+  }
+
+  static validatePaymentAmount(amount: string | number, reference: string): boolean {
+    try {
+      const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+
+      // Get configurable limits from environment variables
+      const maxAmount = Number(process.env.PAYMENT_MAX_AMOUNT || '10000000'); // Default: 10M CFA
+      const minAmount = Number(process.env.PAYMENT_MIN_AMOUNT || '100');      // Default: 100 CFA
+
+      // Basic validation rules
+      if (isNaN(numAmount) || numAmount <= 0) {
+        console.error(`[Payment Security] Invalid amount for ${reference}:`, amount);
+        return false;
+      }
+
+      // Check for suspicious amounts (too large)
+      if (numAmount > maxAmount) {
+        console.warn(`[Payment Security] Amount exceeds maximum (${maxAmount}) for ${reference}:`, numAmount);
+        return false;
+      }
+
+      // Check for suspicious amounts (too small)
+      if (numAmount < minAmount) {
+        console.warn(`[Payment Security] Amount below minimum (${minAmount}) for ${reference}:`, numAmount);
+        return false;
+      }
+
+      return true;
+    } catch (error) {
+      console.error(`[Payment Security] Amount validation error for ${reference}:`, error);
+      return false;
+    }
+  }
+
+  static validateReferenceNumber(reference: string): boolean {
+    // Validate reference number format
+    const referenceRegex = /^[A-Z0-9\-_]+$/;
+    if (!referenceRegex.test(reference)) {
+      console.error('[Payment Security] Invalid reference number format:', reference);
+      return false;
+    }
+
+    // Check length constraints
+    if (reference.length < 5 || reference.length > 100) {
+      console.error('[Payment Security] Reference number length out of bounds:', reference.length);
+      return false;
+    }
+
+    return true;
+  }
+}
 
 type CallbackStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
 
@@ -185,11 +380,23 @@ function parseCustomerInfo(value: unknown): any | undefined {
 }
 
 export async function POST(request: NextRequest) {
+  // Rate limiting check
+  const clientIP = request.headers.get('x-forwarded-for') ||
+                   request.headers.get('x-real-ip') ||
+                   'unknown';
+  if (!PaymentSecurity.checkRateLimit(`callback_post_${clientIP}`)) {
+    console.warn('[Intouch Callback] Rate limit exceeded for IP:', clientIP);
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429 },
+    );
+  }
+
   // Log all incoming headers for diagnostics
   const headers: Record<string, string> = {};
   request.headers.forEach((value, key) => {
-    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature') 
-      ? '***REDACTED***' 
+    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature')
+      ? '***REDACTED***'
       : value;
   });
   console.log('[Intouch Callback] POST request received');
@@ -283,6 +490,16 @@ export async function POST(request: NextRequest) {
     });
   }
 
+  // Validate payment request
+  const validation = validatePaymentRequest(request, parsedBody);
+  if (!validation.isValid) {
+    console.error('[Intouch Callback] Request validation failed:', validation.error);
+    return NextResponse.json(
+      { error: validation.error },
+      { status: 400 },
+    );
+  }
+
   console.log('[Intouch] Received POST callback:', parsedBody);
 
   // Use shared processing logic
@@ -291,11 +508,23 @@ export async function POST(request: NextRequest) {
 
 // Handle GET requests - Intouch sends callbacks as GET with query params
 export async function GET(request: NextRequest) {
+  // Rate limiting check
+  const clientIP = request.headers.get('x-forwarded-for') ||
+                   request.headers.get('x-real-ip') ||
+                   'unknown';
+  if (!PaymentSecurity.checkRateLimit(`callback_get_${clientIP}`)) {
+    console.warn('[Intouch Callback] Rate limit exceeded for IP:', clientIP);
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      { status: 429 },
+    );
+  }
+
   // Log all incoming headers for diagnostics
   const headers: Record<string, string> = {};
   request.headers.forEach((value, key) => {
-    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature') 
-      ? '***REDACTED***' 
+    headers[key] = key.toLowerCase().includes('auth') || key.toLowerCase().includes('signature')
+      ? '***REDACTED***'
       : value;
   });
   console.log('[Intouch Callback] GET request received');
@@ -370,7 +599,10 @@ export async function GET(request: NextRequest) {
 // Shared callback processing logic
 async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   console.log('[Intouch Callback] Processing callback data...');
-  
+
+  // Secure logging of payment data
+  PaymentSecurity.secureLogPaymentData(parsedBody, 'Callback Received');
+
   const transactionId = coerceString(pickFirst(parsedBody, TRANSACTION_ID_KEYS));
   const statusRawCandidate = coerceString(pickFirst(parsedBody, STATUS_KEYS));
   const amountRaw = pickFirst(parsedBody, AMOUNT_KEYS);
@@ -378,6 +610,7 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   const paymentMethod = coerceString(pickFirst(parsedBody, PAYMENT_METHOD_KEYS));
   const timestampRaw = coerceString(pickFirst(parsedBody, TIMESTAMP_KEYS));
   const customerInfoRaw = pickFirst(parsedBody, CUSTOMER_INFO_KEYS);
+  const idempotencyKey = coerceString(pickFirst(parsedBody, ['idempotencyKey', 'idempotency_key', 'idempotency']));
   const statusFallback = coerceString(
     pickFirst(parsedBody, ['success', 'is_success', 'isSuccess', 'payment_status', 'paymentStatus'])
   );
@@ -394,8 +627,10 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
     referenceNumber,
     paymentMethod,
     timestamp: timestampRaw,
+    idempotencyKey,
   });
 
+  // Enhanced security validations
   if (!transactionId || !statusRaw || !amountRaw || !referenceNumber) {
     console.error('[Intouch Callback] Missing required fields:', {
       hasTransactionId: !!transactionId,
@@ -407,6 +642,35 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       { error: 'Missing required fields (transactionId, status, amount, referenceNumber)' },
       { status: 400 },
     );
+  }
+
+  // Validate reference number format
+  if (!PaymentSecurity.validateReferenceNumber(referenceNumber)) {
+    return NextResponse.json(
+      { error: 'Invalid reference number format' },
+      { status: 400 },
+    );
+  }
+
+  // Validate payment amount
+  const amountString = String(amountRaw);
+  if (!PaymentSecurity.validatePaymentAmount(amountString, referenceNumber)) {
+    return NextResponse.json(
+      { error: 'Invalid payment amount' },
+      { status: 400 },
+    );
+  }
+
+  // Check idempotency key if provided
+  if (idempotencyKey) {
+    if (!PaymentSecurity.validateIdempotencyKey(idempotencyKey, parsedBody)) {
+      console.warn('[Intouch Callback] Idempotency key validation failed:', idempotencyKey);
+      return NextResponse.json(
+        { error: 'Idempotency key validation failed' },
+        { status: 409 },
+      );
+    }
+    console.log('[Intouch Callback] Idempotency key validated:', idempotencyKey);
   }
 
   const normalizedStatus = statusRaw.toString().trim().toLowerCase();
