@@ -54,25 +54,25 @@ export async function proxy(request: NextRequest) {
   }
 
   // Check if user is trying to access admin routes
-  if (request.nextUrl.pathname.startsWith('/admin')) {
-    // IP-based access control for admin routes
-    const allowedIPs = (process.env.ADMIN_ALLOWED_IPS || '').split(',').map(ip => ip.trim()).filter(Boolean);
+  // if (request.nextUrl.pathname.startsWith('/admin')) {
+  //   // IP-based access control for admin routes
+  //   // const allowedIPs = (process.env.ADMIN_ALLOWED_IPS || '').split(',').map(ip => ip.trim()).filter(Boolean);
     
-    if (allowedIPs.length > 0) {
-      // Get client IP from various headers (Vercel uses x-forwarded-for)
-      const forwardedFor = request.headers.get('x-forwarded-for');
-      const realIP = request.headers.get('x-real-ip');
-      const clientIP = forwardedFor?.split(',')[0]?.trim() || realIP || 'unknown';
+  //   if (allowedIPs.length > 0) {
+  //     // Get client IP from various headers (Vercel uses x-forwarded-for)
+  //     const forwardedFor = request.headers.get('x-forwarded-for');
+  //     const realIP = request.headers.get('x-real-ip');
+  //     const clientIP = forwardedFor?.split(',')[0]?.trim() || realIP || 'unknown';
       
-      if (!allowedIPs.includes(clientIP)) {
-        // Return 404 to hide admin existence from unauthorized IPs
-        return NextResponse.redirect(new URL('/apesenegal', request.url));
-      }
-    }
+  //     if (!allowedIPs.includes(clientIP)) {
+  //       // Return 404 to hide admin existence from unauthorized IPs
+  //       return NextResponse.redirect(new URL('/apesenegal', request.url));
+  //     }
+  //   }
     
-    // Admin routes are handled by their own authentication
-    return NextResponse.next();
-  }
+  //   // Admin routes are handled by their own authentication
+  //   return NextResponse.next();
+  // }
 
   // Create response
   const response = NextResponse.next();
