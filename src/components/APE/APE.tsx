@@ -76,6 +76,30 @@ const InvestmentTranchesBackground = (): React.ReactElement => {
   );
 };
 
+const PAYMENT_STATUS_PATH = '/apesenegal/payment-status';
+
+const buildPaymentStatusUrl = (
+  origin: string,
+  {
+    referenceNumber,
+    amount,
+    source = 'intouch',
+    transactionId,
+  }: { referenceNumber: string; amount: number; source?: string; transactionId?: string }
+): string => {
+  const params = new URLSearchParams({
+    referenceNumber,
+    amount: String(amount),
+    source,
+  });
+
+  if (transactionId) {
+    params.append('transactionId', transactionId);
+  }
+
+  return `${origin}${PAYMENT_STATUS_PATH}?${params.toString()}`;
+};
+
 export default function APE() {
   const { formData, updateFormData, setTrancheInteret, submitForm, isSubmitting, errors, resetForm } = useContactForm();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -265,14 +289,18 @@ export default function APE() {
   const triggerIntouchPayment = (referenceNumber: string, amount: number) => {
     // Check if Intouch script is loaded
     if (typeof window !== 'undefined' && typeof (window as any).sendPaymentInfos === 'function') {
-      // Construct redirect URLs
+      // Construct canonical status URL used for both success/failure redirects
       const baseUrl = window.location.origin;
-      const successUrl = `${baseUrl}/apesenegal/payment-success?referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success`;
-      const failedUrl = `${baseUrl}/apesenegal/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed`;
+      const statusUrl = buildPaymentStatusUrl(baseUrl, { referenceNumber, amount });
+      // Use the same canonical status URL for both success and failure redirects
+      // This ensures our backend (not Intouch) determines the final payment status
+      const successUrl = statusUrl;
+      const failedUrl = statusUrl;
 
-      console.log('[APE Payment] Initiating Intouch payment:', {
+      console.log('[APE Payment] Initiating Intouch payment with canonical status URL:', {
         referenceNumber,
         amount,
+        statusUrl,
         successUrl,
         failedUrl,
       });
