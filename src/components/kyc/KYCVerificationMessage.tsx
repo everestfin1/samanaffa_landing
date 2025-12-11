@@ -105,7 +105,7 @@ export default function KYCVerificationMessage({
                   <h4 className="font-semibold text-sm text-gray-800">Téléphone</h4>
                   <div className="text-xs text-gray-600">
                     <div>+221 33 822 87 00</div>
-                    <div>+221 33 822 87 01</div>
+                    <div></div>
                   </div>
                 </div>
               </div>

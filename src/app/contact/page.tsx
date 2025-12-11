@@ -54,7 +54,7 @@ export default function ContactPage() {
     {
       icon: PhoneIcon,
       title: 'Téléphone',
-      details: ['+221 33 822 87 00', '+221 33 822 87 01'],
+      details: ['+221 33 822 87 00', ''],
       action: 'Appelez-nous'
     },
     {
