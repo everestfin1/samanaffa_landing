@@ -9,13 +9,14 @@ interface TrancheOption {
   duration: string;
   years: number;
   rate: number;
+  multiplier: number;
 }
 
 const tranches: TrancheOption[] = [
-  { id: "1", label: "Tranche 1", duration: "3ans", years: 3, rate: 6.40 },
-  { id: "2", label: "Tranche 2", duration: "5ans", years: 5, rate: 6.60 },
-  { id: "3", label: "Tranche 3", duration: "7ans", years: 7, rate: 6.75 },
-  { id: "4", label: "Tranche 4", duration: "10ans", years: 10, rate: 6.95 },
+  { id: "1", label: "Tranche 1", duration: "3ans", years: 3, rate: 6.40, multiplier: 1.192 },
+  { id: "2", label: "Tranche 2", duration: "5ans", years: 5, rate: 6.60, multiplier: 1.208 },
+  { id: "3", label: "Tranche 3", duration: "7ans", years: 7, rate: 6.75, multiplier: 1.32063 },
+  { id: "4", label: "Tranche 4", duration: "10ans", years: 10, rate: 6.95, multiplier: 1.43438 },
 ];
 
 const formatNumber = (num: number): string => {
@@ -41,10 +42,11 @@ export default function InvestmentSimulator() {
   const results = useMemo(() => {
     const numericAmount = parseFloat(amount || "0");
     const investedAmount = Number.isFinite(numericAmount) ? numericAmount : 0;
-    // Calculate interest income over the full duration
-    const interestIncome =
-      investedAmount * (selectedTranche.rate / 100) * selectedTranche.years;
-    const totalAtMaturity = investedAmount + interestIncome;
+
+    // Calculate using the specific multiplier for each tranche
+    // This matches the Excel Maturity values provided by the business
+    const totalAtMaturity = investedAmount * selectedTranche.multiplier;
+    const interestIncome = totalAtMaturity - investedAmount;
 
     return {
       investedAmount,
