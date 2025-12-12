@@ -41,7 +41,7 @@
     "jsonwebtoken": "^9.0.2",
     "libphonenumber-js": "^1.12.22",
     "lucide-react": "^0.544.0",
-    "next": "16.0.7",
+    "next": "16.0.10",
     "next-auth": "^4.24.11",
     "nodemailer": "^7.0.6",
     "pg": "^8.16.3",
