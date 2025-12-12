@@ -524,6 +524,9 @@ export default function APE() {
           </div>
         </section>
 
+        {/* Investment Simulator Section */}
+        <InvestmentSimulator />
+
         {/* Investment Tranches - Main Content with animated background */}
         <section className="relative py-16 sm:py-20" aria-label="Tranches d'investissement APE">
           <InvestmentTranchesBackground />
@@ -616,9 +619,6 @@ export default function APE() {
             </div>
           </div>
         </section>
-
-        {/* Investment Simulator Section */}
-        <InvestmentSimulator />
 
         {/* Documentation Section */}
         <DocumentationSection />
