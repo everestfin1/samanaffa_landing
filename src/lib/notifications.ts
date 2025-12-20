@@ -373,3 +373,74 @@ export async function sendKYCStatusSMS(
     throw error
   }
 }
+
+export async function sendPEELeadEmail(
+  data: {
+    civilite: string
+    prenom: string
+    nom: string
+    categorie: string
+    pays: string
+    ville: string
+    telephone: string
+    email?: string
+  }
+): Promise<void> {
+  const { civilite, prenom, nom, categorie, pays, ville, telephone, email } = data
+  const date = new Date().toLocaleString('fr-FR', { timeZone: 'Africa/Dakar' })
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: 'contact@everestfin.com',
+    subject: `Nouveau Lead PEE - ${prenom} ${nom}`,
+    replyTo: email || undefined,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Nouveau Lead PEE (Plan Épargne Éducation)</h2>
+        <p><strong>Date:</strong> ${date}</p>
+        
+        <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <h3 style="color: #374151; margin: 0 0 15px 0;">Informations du prospect</h3>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Civilité:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${civilite}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Prénom:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${prenom}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Nom:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${nom}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Catégorie:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${categorie}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Pays:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${pays}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Ville:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${ville}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;"><strong>Téléphone:</strong></td>
+              <td style="padding: 8px 0; border-bottom: 1px solid #e5e7eb;">${telephone}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0;"><strong>Email:</strong></td>
+              <td style="padding: 8px 0;">${email || 'Non renseigné'}</td>
+            </tr>
+          </table>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px;">Source: Landing Page PEE</p>
+      </div>
+    `,
+  }
+
+  await emailTransporter.sendMail(mailOptions)
+}

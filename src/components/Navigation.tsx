@@ -26,6 +26,7 @@ export default function Navigation() {
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
   const isApePage = pathname.startsWith('/apesenegal');
+  const isPeePage = pathname.startsWith('/pee');
   const isMaintenancePage = pathname === '/maintenance';
 
   // Check authentication status on mount - client-side only
@@ -131,7 +132,7 @@ export default function Navigation() {
   }
 
   // Hide navigation on APE pages (they have their own header)
-  if (isApePage) {
+  if (isApePage || isPeePage) {
     return null;
   }
 

@@ -378,11 +378,47 @@ Oct 23: refactor: improve environment detection in Intouch API
 ```
 
 #### Métriques Sprint 4
-- **Commits:** 34 (en cours)
+- **Commits:** 34
 - **Fichiers modifiés:** ~50
 - **Documentation:** 3 docs techniques majeures
 - **Migration:** 100% complete
 - **Payment:** Fonctionnel avec contraintes
+
+---
+
+### Sprint 5 : PEE Landing Page (Décembre 2025)
+
+**Dates:** 19 Décembre 2025
+**Objectif:** Création de la Landing Page pour le Plan Épargne Éducation (PEE)
+
+#### Accomplissements
+
+**Landing Page PEE**
+- ✅ Implémentation complète de la structure de page `/pee`
+- ✅ Création des composants dédiés (Header, Hero, Why, Advantages, Form, Footer)
+- ✅ Design fidèle aux maquettes et charte graphique (Aubergine/Or)
+- ✅ Formulaire de génération de leads avec validation
+- ✅ Backend API `/api/lead-pee` pour traitement des demandes
+- ✅ Système de notification Email pour les leads
+- ✅ Optimisation SEO (Metadata, OpenGraph)
+- ✅ Isolation de la navigation/footer globaux pour cette page spécifique
+
+**Stack Technique**
+- ✅ Next.js App Router
+- ✅ Tailwind CSS pour le styling
+- ✅ Nodemailer pour les notifications
+- ✅ Server Actions / API Routes
+
+**Commits Clés:**
+```
+Dec 19: feat: implement PEE landing page with lead capture form
+```
+
+#### Métriques Sprint 5
+- **Page:** 1 Landing Page complète
+- **Composants:** 6 nouveaux composants
+- **API:** 1 endpoint de capture de lead
+- **Assets:** Intégration bannières et images dédiées
 
 ---
 

@@ -10,8 +10,9 @@ export default function Footer() {
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
     const isApePage = pathname.startsWith('/apesenegal');
+    const isPeePage = pathname.startsWith('/pee');
     // Hide footer on portal pages, admin pages, and APE Senegal pages (APE has its own footer)
-    if (pathname.startsWith('/portal') || isAdminPage || isApePage) {
+    if (pathname.startsWith('/portal') || isAdminPage || isApePage || isPeePage) {
         return null;
     }
     const currentYear = new Date().getFullYear();
