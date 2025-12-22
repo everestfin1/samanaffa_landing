@@ -117,7 +117,7 @@ export default function LeadForm() {
           </p>
         </div>
 
-        <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-lg hover:shadow-xl transition-all duration-300 p-6 sm:p-8 lg:p-12 border border-gray-100">
+        <div className="bg-white rounded-xl sm:rounded-2xl lg:rounded-3xl p-6 sm:p-8 lg:p-12 border border-gray-300">
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
             
             {/* Civilité */}
@@ -270,10 +270,10 @@ export default function LeadForm() {
               <button
                 type="submit"
                 disabled={!isFormValid() || status === 'submitting'}
-                className={`inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base text-white shadow-md transition-all duration-300 ${
+                className={`inline-flex items-center justify-center bg-[#C38D1C]/50 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base text-white shadow-md transition-all duration-300 ${
                   !isFormValid() || status === 'submitting'
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-[#C38D1C] hover:bg-[#b3830f] hover:shadow-lg hover:scale-[1.02]'
+                    ? 'bg-[#C38D1C]/50 cursor-not-allowed'
+                    : 'bg-[#b3830f] hover:shadow-lg hover:scale-[1.02]'
                 }`}
               >
                 {status === 'submitting' ? 'Envoi en cours...' : 'Envoyer →'}

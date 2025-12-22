@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function WhyPEE() {
   return (
-    <section id="why" className="py-16 md:py-20 bg-[#2e0e36] text-white">
+    <section id="why" className="py-16 md:py-20 bg-gradient-to-r from-[#20163B] to-[#461D4C] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* Image Block */}
