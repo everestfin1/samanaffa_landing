@@ -78,8 +78,8 @@ export default function PEESavingsSimulator() {
     setMensualite(value);
     setMensualiteError(null);
     
-    if (isNaN(value) || value < 1000) {
-      setMensualiteError('Le montant minimum est de 1 000 FCFA');
+    if (isNaN(value) || value < 30000) {
+      setMensualiteError('Le montant minimum est de 30 000 FCFA');
       return;
     }
     
@@ -113,7 +113,7 @@ export default function PEESavingsSimulator() {
   const totalVerse = mensualite * duree;
 
   return (
-    <section id="simulateur" className="py-16 md:py-20 bg-white">
+    <section id="simulateur" className="py-16 md:py-20" style={{ backgroundImage: "url('/simulator_bg.jpg')" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8 lg:mb-10">
@@ -125,7 +125,7 @@ export default function PEESavingsSimulator() {
             </p>
           </div>
 
-          <Card className="rounded-xl sm:rounded-2xl lg:rounded-[35px] border border-gray-300">
+          <Card className="rounded-xl sm:rounded-2xl lg:rounded-[35px] border border-gray-300 bg-white/75">
             <CardContent className="p-4 sm:p-6 lg:p-10 space-y-6 lg:space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5 lg:gap-6">
                 <div className="space-y-2 lg:space-y-3">
@@ -136,12 +136,12 @@ export default function PEESavingsSimulator() {
                     <div className="relative flex-1">
                       <input
                         type="number"
-                        min={1000}
+                        min={30000}
                         max={500000}
                         step={1000}
                         value={mensualite}
                         onChange={(e) => handleMensualiteChange(Number(e.target.value))}
-                        className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#C38D1C] focus:ring-2 focus:ring-[#C38D1C] focus:border-transparent transition-colors ${
+                        className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#C09037] focus:ring-2 focus:ring-[#C09037] focus:border-transparent transition-colors ${
                           mensualiteError ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
                       />
@@ -153,18 +153,18 @@ export default function PEESavingsSimulator() {
                   )}
                   <input
                     type="range"
-                    min={1000}
+                    min={30000}
                     max={500000}
                     step={1000}
                     value={mensualite}
                     onChange={(e) => handleMensualiteChange(Number(e.target.value))}
                     className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
                     style={{
-                      background: `linear-gradient(to right, #C38D1C 0%, #C38D1C ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb 100%)`,
+                      background: `linear-gradient(to right, #C09037 0%, #C09037 ${((mensualite - 30000) / (500000 - 30000)) * 100}%, #e5e7eb ${((mensualite - 30000) / (500000 - 30000)) * 100}%, #e5e7eb 100%)`,
                     }}
                   />
                   <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm text-gray-500">
-                    <span>1K</span>
+                    <span>30K</span>
                     <span className="hidden sm:inline">500K</span>
                   </div>
                 </div>
@@ -182,7 +182,7 @@ export default function PEESavingsSimulator() {
                         step={1}
                         value={duree}
                         onChange={(e) => handleDureeChange(Number(e.target.value))}
-                        className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#2e0e36] focus:ring-2 focus:ring-[#C38D1C] focus:border-transparent transition-colors ${
+                        className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#2e0e36] focus:ring-2 focus:ring-[#C09037] focus:border-transparent transition-colors ${
                           dureeError ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
                       />
@@ -211,11 +211,11 @@ export default function PEESavingsSimulator() {
                 </div>
               </div>
 
-              <div className="p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#2e0e36]/10 to-[#C38D1C]/10 rounded-lg sm:rounded-xl border border-[#2e0e36]/20">
+              <div className="p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#2e0e36]/10 to-[#C09037]/10 rounded-lg sm:rounded-xl border border-[#2e0e36]/20">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 lg:gap-0">
                   <span className="text-[#2e0e36] font-medium text-sm sm:text-base lg:text-lg text-center sm:text-left">
                     Taux d'intérêt :{" "}
-                    <span className="font-bold text-base sm:text-lg lg:text-xl text-[#C38D1C]">
+                    <span className="font-bold text-base sm:text-lg lg:text-xl text-[#C09037]">
                       {taux.toFixed(1)}%
                     </span>{" "}
                     <span className="hidden sm:inline">par an</span>
@@ -248,7 +248,7 @@ export default function PEESavingsSimulator() {
                   <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600 mb-1">
                     Total versé
                   </div>
-                  <div className="font-medium text-[#C38D1C] text-xs sm:text-sm lg:text-lg break-words">
+                  <div className="font-medium text-[#C09037] text-xs sm:text-sm lg:text-lg break-words">
                     {formatCurrency(totalVerse)}
                   </div>
                 </div>

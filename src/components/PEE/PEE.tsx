@@ -10,7 +10,7 @@ import PEESavingsSimulator from './PEESavingsSimulator';
 
 export default function PEE() {
   return (
-    <main className="min-h-screen bg-white font-sans selection:bg-[#C38D1C] selection:text-white">
+    <main className="min-h-screen bg-white font-sans selection:bg-[#C09037] selection:text-white">
       <Header />
       <HeroSection />
       <WhyPEE />

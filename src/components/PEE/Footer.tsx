@@ -25,7 +25,7 @@ export default function Footer() {
 
           {/* Contact */}
           <div className="text-center md:text-right space-y-4">
-            <h4 className="font-bold text-[#C38D1C] uppercase tracking-wider">Nous contacter</h4>
+            <h4 className="font-bold text-[#C09037] uppercase tracking-wider">Nous contacter</h4>
             <div className="space-y-2 text-gray-300">
               <p>
                 <a href="mailto:contact@everestfin.com" className="hover:text-white transition-colors">
