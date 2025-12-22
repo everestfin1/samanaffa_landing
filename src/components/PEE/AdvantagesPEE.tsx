@@ -12,7 +12,7 @@ export default function AdvantagesPEE() {
   ];
 
   return (
-    <section id="advantages" className="py-16 md:py-20 bg-[#2e0e36]">
+    <section id="advantages" className="py-16 md:py-20 bg-gradient-to-r from-[#20163B] to-[#461D4C]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* Text/List Block (Left per design) */}
@@ -33,7 +33,7 @@ export default function AdvantagesPEE() {
           {/* Image Block (Right per design) */}
           <div className="relative h-[280px] sm:h-[340px] md:h-[380px] w-full rounded-2xl overflow-hidden shadow-2xl">
             <Image
-              src="/pee/extatic_teacher.jpg" // Photo maquette
+              src="/pee/avantages_image.jpg" // Photo maquette
               alt="Parent et enfant"
               fill
               className="object-cover"

@@ -29,10 +29,11 @@ export default function Header() {
           {/* Logo */}
           <div className="flex-shrink-0 cursor-pointer" onClick={() => scrollToSection('hero')}>
             <Image 
-              src="/logo-everest.png" 
+              src="/pee/logo_everest1.png" 
               alt="Everest Finance" 
               width={96} 
               height={96} 
+              quality={100}
               className="h-24 w-auto object-contain"
             />
           </div>
