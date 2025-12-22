@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sendPEELeadEmail } from '@/lib/notifications';
+import { db } from '@/lib/db';
+import { peeLeads } from '@/lib/db/schema';
 
 export async function POST(req: Request) {
   try {
@@ -36,7 +38,20 @@ export async function POST(req: Request) {
       }
     }
 
-    // Send Email
+    // Save to database
+    const [newLead] = await db.insert(peeLeads).values({
+      civilite,
+      prenom,
+      nom,
+      categorie,
+      pays,
+      ville,
+      telephone,
+      email: email || null,
+      status: 'NEW',
+    }).returning();
+
+    // Send Email notification
     await sendPEELeadEmail({
       civilite,
       prenom,
@@ -48,7 +63,7 @@ export async function POST(req: Request) {
       email
     });
 
-    return NextResponse.json({ success: true, message: 'Demande envoyée avec succès' });
+    return NextResponse.json({ success: true, message: 'Demande envoyée avec succès', leadId: newLead.id });
   } catch (error) {
     console.error('Error submitting PEE lead:', error);
     return NextResponse.json(
