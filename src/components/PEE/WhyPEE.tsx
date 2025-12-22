@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function WhyPEE() {
   return (
-    <section id="why" className="py-16 md:py-20 bg-gradient-to-r from-[#20163B] to-[#461D4C] text-white">
+    <section id="why" className="py-8 md:pt-12 bg-gradient-to-r from-[#20163B] to-[#461D4C] text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* Image Block */}
@@ -17,7 +17,7 @@ export default function WhyPEE() {
 
           {/* Text Block */}
           <div className="space-y-6">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#C38D1C]">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#C09037]">
               Pourquoi un Plan Épargne Éducation ?
             </h2>
             <p className="text-lg leading-relaxed text-gray-200">

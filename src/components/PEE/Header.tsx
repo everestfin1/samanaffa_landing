@@ -55,7 +55,7 @@ export default function Header() {
           <div className="lg:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-900 hover:text-[#C38D1C] p-2"
+              className="text-gray-900 hover:text-[#C09037] p-2"
             >
               {mobileMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" />
@@ -75,7 +75,7 @@ export default function Header() {
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.id)}
-                className="block w-full text-left px-3 py-2 text-base font-semibold text-[#2e0e36] hover:bg-gray-50 hover:text-[#C38D1C] rounded-md font-titillium"
+                className="block w-full text-left px-3 py-2 text-base font-semibold text-[#2e0e36] hover:bg-gray-50 hover:text-[#C09037] rounded-md font-titillium"
               >
                 {link.name}
               </button>
