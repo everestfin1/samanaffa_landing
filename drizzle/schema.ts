@@ -237,3 +237,19 @@ export const users = pgTable("users", {
 	uniqueIndex("users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
 	uniqueIndex("users_phone_key").using("btree", table.phone.asc().nullsLast().op("text_ops")),
 ]);
+
+export const peeLeads = pgTable("pee_leads", {
+	id: text().primaryKey().notNull(),
+	civilite: text().notNull(),
+	prenom: text().notNull(),
+	nom: text().notNull(),
+	categorie: text().notNull(),
+	pays: text().notNull(),
+	ville: text().notNull(),
+	telephone: text().notNull(),
+	email: text(),
+	status: text().default('NEW').notNull(),
+	adminNotes: text(),
+	createdAt: timestamp({ mode: 'string' }).default(sql`now()`).notNull(),
+	updatedAt: timestamp({ mode: 'string' }).default(sql`now()`).notNull(),
+});

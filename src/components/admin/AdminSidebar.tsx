@@ -11,11 +11,12 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
-  Gift
+  Gift,
+  GraduationCap
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'notifications' | 'settings'
+type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'
 
 interface NavItem {
   id: TabId
@@ -55,6 +56,7 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
     { id: 'transactions', label: 'Transactions', icon: CreditCard, badge: stats?.pendingTransactions },
     { id: 'apeSubscriptions', label: 'APE Sénégal', icon: FileSpreadsheet, badge: stats?.paymentInitiated },
     { id: 'sponsorCodes', label: 'Codes Parrainage', icon: Gift },
+    { id: 'peeLeads', label: 'PEE Leads', icon: GraduationCap },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'kyc', label: 'KYC', icon: FileText, badge: stats?.pendingKyc },
     { id: 'notifications', label: 'Notifications', icon: MessageSquare },

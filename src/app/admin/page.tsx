@@ -40,7 +40,10 @@ import {
   Wallet,
   Settings,
   X,
-  Gift
+  Gift,
+  GraduationCap,
+  Phone,
+  Mail
 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -157,6 +160,29 @@ interface SponsorCodeStats {
   expired: number
 }
 
+interface PeeLead {
+  id: string
+  civilite: string
+  prenom: string
+  nom: string
+  categorie: string
+  pays: string
+  ville: string
+  telephone: string
+  email?: string
+  status: string
+  adminNotes?: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface PeeLeadStats {
+  total: number
+  new: number
+  contacted: number
+  converted: number
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
@@ -171,7 +197,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -238,6 +264,19 @@ export default function AdminDashboard() {
     expiresAt: ''
   })
   const [savingSponsorCode, setSavingSponsorCode] = useState(false)
+
+  // PEE Leads State
+  const [peeLeads, setPeeLeads] = useState<PeeLead[]>([])
+  const [peeLeadStats, setPeeLeadStats] = useState<PeeLeadStats>({
+    total: 0,
+    new: 0,
+    contacted: 0,
+    converted: 0
+  })
+  const [selectedPeeLead, setSelectedPeeLead] = useState<PeeLead | null>(null)
+  const [showPeeLeadModal, setShowPeeLeadModal] = useState(false)
+  const [peeLeadNotes, setPeeLeadNotes] = useState('')
+  const [updatingPeeLead, setUpdatingPeeLead] = useState(false)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -350,6 +389,15 @@ export default function AdminDashboard() {
       if (sponsorCodesData.success) {
         setSponsorCodes(sponsorCodesData.codes)
         setSponsorCodeStats(sponsorCodesData.stats)
+      }
+
+      // Fetch PEE Leads
+      const peeLeadsResponse = await fetch('/api/admin/pee-leads', { headers })
+      const peeLeadsData = await peeLeadsResponse.json()
+      
+      if (peeLeadsData.success) {
+        setPeeLeads(peeLeadsData.leads)
+        setPeeLeadStats(peeLeadsData.stats)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -1081,6 +1129,59 @@ export default function AdminDashboard() {
     setShowEditCodeModal(true)
   }
 
+  // PEE Lead Update Function
+  const handleUpdatePeeLead = async (status: string) => {
+    if (!selectedPeeLead) return
+
+    setUpdatingPeeLead(true)
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/pee-leads', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: selectedPeeLead.id,
+          status,
+          adminNotes: peeLeadNotes,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setPeeLeads(prev =>
+          prev.map(lead =>
+            lead.id === selectedPeeLead.id
+              ? { ...lead, status, adminNotes: peeLeadNotes }
+              : lead
+          )
+        )
+        // Update stats
+        const newStats = { ...peeLeadStats }
+        if (selectedPeeLead.status === 'NEW') newStats.new--
+        if (selectedPeeLead.status === 'CONTACTED') newStats.contacted--
+        if (selectedPeeLead.status === 'CONVERTED') newStats.converted--
+        if (status === 'NEW') newStats.new++
+        if (status === 'CONTACTED') newStats.contacted++
+        if (status === 'CONVERTED') newStats.converted++
+        setPeeLeadStats(newStats)
+        
+        setShowPeeLeadModal(false)
+        setSelectedPeeLead(null)
+        setPeeLeadNotes('')
+      } else {
+        alert(data.error || 'Erreur lors de la mise à jour')
+      }
+    } catch (error) {
+      console.error('Error updating PEE lead:', error)
+      alert('Erreur lors de la mise à jour du lead')
+    } finally {
+      setUpdatingPeeLead(false)
+    }
+  }
+
   const SPONSOR_CODE_STATUS_CONFIG = {
     ACTIVE: { label: 'Actif', color: 'emerald' },
     INACTIVE: { label: 'Inactif', color: 'neutral' },
@@ -1123,6 +1224,8 @@ export default function AdminDashboard() {
       case 'overview': return 'Vue d\'ensemble'
       case 'kyc': return 'Vérification KYC'
       case 'apeSubscriptions': return 'APE Sénégal'
+      case 'sponsorCodes': return 'Codes Parrainage'
+      case 'peeLeads': return 'PEE Leads'
       case 'users': return 'Utilisateurs'
       case 'transactions': return 'Transactions'
       case 'notifications': return 'Notifications'
@@ -2680,6 +2783,147 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* PEE Leads Tab */}
+        {activeTab === 'peeLeads' && (
+          <div className="space-y-8">
+            {/* Stats Cards */}
+            <div className="admin-grid admin-grid-4">
+              <div className="admin-stat-card" data-color="sky">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total leads</span>
+                  <div className="admin-stat-icon"><GraduationCap className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{peeLeadStats.total}</div>
+              </div>
+              <div className="admin-stat-card" data-color="amber">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Nouveaux</span>
+                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{peeLeadStats.new}</div>
+              </div>
+              <div className="admin-stat-card" data-color="blue">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Contactés</span>
+                  <div className="admin-stat-icon"><Phone className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{peeLeadStats.contacted}</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Convertis</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{peeLeadStats.converted}</div>
+              </div>
+            </div>
+
+            {/* PEE Leads Table */}
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h3 className="admin-card-title">Leads PEE (Plan Épargne Éducation)</h3>
+                  <p className="admin-card-subtitle">Gérez les demandes de renseignements PEE</p>
+                </div>
+              </div>
+              <div className="admin-card-body p-0">
+                <div className="admin-table-container">
+                  {peeLeads.length > 0 ? (
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Nom</th>
+                          <th>Contact</th>
+                          <th>Catégorie</th>
+                          <th>Localisation</th>
+                          <th>Statut</th>
+                          <th>Date</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {peeLeads.map((lead) => (
+                          <tr key={lead.id}>
+                            <td>
+                              <div>
+                                <div className="font-semibold">{lead.civilite} {lead.prenom} {lead.nom}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <div className="text-sm">
+                                <div className="flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  {lead.telephone}
+                                </div>
+                                {lead.email && (
+                                  <div className="flex items-center gap-1 text-[var(--admin-text-muted)]">
+                                    <Mail className="w-3 h-3" />
+                                    {lead.email}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td>
+                              <span className="admin-badge admin-badge-neutral">{lead.categorie}</span>
+                            </td>
+                            <td>
+                              <div className="text-sm">
+                                <div>{lead.ville}</div>
+                                <div className="text-[var(--admin-text-muted)]">{lead.pays}</div>
+                              </div>
+                            </td>
+                            <td>
+                              <span className={`admin-badge ${
+                                lead.status === 'NEW' ? 'admin-badge-amber' :
+                                lead.status === 'CONTACTED' ? 'admin-badge-blue' :
+                                lead.status === 'CONVERTED' ? 'admin-badge-emerald' :
+                                'admin-badge-neutral'
+                              }`}>
+                                {lead.status === 'NEW' ? 'Nouveau' :
+                                 lead.status === 'CONTACTED' ? 'Contacté' :
+                                 lead.status === 'CONVERTED' ? 'Converti' :
+                                 lead.status}
+                              </span>
+                            </td>
+                            <td>
+                              <div className="text-sm text-[var(--admin-text-muted)]">
+                                {new Date(lead.createdAt).toLocaleDateString('fr-FR', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </div>
+                            </td>
+                            <td className="text-right">
+                              <button
+                                onClick={() => {
+                                  setSelectedPeeLead(lead)
+                                  setPeeLeadNotes(lead.adminNotes || '')
+                                  setShowPeeLeadModal(true)
+                                }}
+                                className="admin-btn admin-btn-sm admin-btn-secondary"
+                              >
+                                <Edit className="w-4 h-4 mr-1" />
+                                Gérer
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="admin-empty-state">
+                      <GraduationCap className="admin-empty-icon" />
+                      <h3 className="admin-empty-title">Aucun lead PEE</h3>
+                      <p className="admin-empty-text">Les demandes PEE apparaîtront ici</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (
           <div className="space-y-6">
@@ -3105,6 +3349,130 @@ export default function AdminDashboard() {
         )}
         </div>
       </main>
+
+      {/* PEE Lead Management Modal */}
+      {showPeeLeadModal && selectedPeeLead && (
+        <div className="admin-modal-overlay" onClick={() => setShowPeeLeadModal(false)}>
+          <div className="admin-modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <h3 className="admin-modal-title">
+                <GraduationCap className="w-5 h-5 mr-2" />
+                Gérer le lead PEE
+              </h3>
+              <button
+                onClick={() => setShowPeeLeadModal(false)}
+                className="admin-modal-close"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="admin-modal-body">
+              {/* Lead Info */}
+              <div className="mb-6 p-4 bg-[var(--admin-card-bg)] rounded-lg border border-[var(--admin-border)]">
+                <h4 className="font-semibold mb-3">Informations du prospect</h4>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Nom:</span>
+                    <div className="font-medium">{selectedPeeLead.civilite} {selectedPeeLead.prenom} {selectedPeeLead.nom}</div>
+                  </div>
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Catégorie:</span>
+                    <div className="font-medium">{selectedPeeLead.categorie}</div>
+                  </div>
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Téléphone:</span>
+                    <div className="font-medium">{selectedPeeLead.telephone}</div>
+                  </div>
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Email:</span>
+                    <div className="font-medium">{selectedPeeLead.email || 'Non renseigné'}</div>
+                  </div>
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Ville:</span>
+                    <div className="font-medium">{selectedPeeLead.ville}</div>
+                  </div>
+                  <div>
+                    <span className="text-[var(--admin-text-muted)]">Pays:</span>
+                    <div className="font-medium">{selectedPeeLead.pays}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Status Selection */}
+              <div className="mb-4">
+                <label className="admin-label">Statut du lead</label>
+                <div className="grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePeeLead('NEW')}
+                    disabled={updatingPeeLead}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedPeeLead.status === 'NEW'
+                        ? 'border-amber-500 bg-amber-50'
+                        : 'border-gray-200 hover:border-amber-300'
+                    }`}
+                  >
+                    <Clock className="w-5 h-5 mx-auto mb-1 text-amber-600" />
+                    <div className="text-sm font-medium">Nouveau</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePeeLead('CONTACTED')}
+                    disabled={updatingPeeLead}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedPeeLead.status === 'CONTACTED'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300'
+                    }`}
+                  >
+                    <Phone className="w-5 h-5 mx-auto mb-1 text-blue-600" />
+                    <div className="text-sm font-medium">Contacté</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdatePeeLead('CONVERTED')}
+                    disabled={updatingPeeLead}
+                    className={`p-3 rounded-lg border-2 transition-all ${
+                      selectedPeeLead.status === 'CONVERTED'
+                        ? 'border-emerald-500 bg-emerald-50'
+                        : 'border-gray-200 hover:border-emerald-300'
+                    }`}
+                  >
+                    <CheckCircle className="w-5 h-5 mx-auto mb-1 text-emerald-600" />
+                    <div className="text-sm font-medium">Converti</div>
+                  </button>
+                </div>
+              </div>
+
+              {/* Admin Notes */}
+              <div className="mb-4">
+                <label className="admin-label" htmlFor="peeLeadNotes">
+                  Notes administrateur
+                </label>
+                <textarea
+                  id="peeLeadNotes"
+                  value={peeLeadNotes}
+                  onChange={(e) => setPeeLeadNotes(e.target.value)}
+                  placeholder="Ajoutez des notes sur ce lead..."
+                  className="admin-input"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            <div className="admin-modal-footer">
+              <button
+                onClick={() => setShowPeeLeadModal(false)}
+                className="admin-btn admin-btn-secondary"
+                disabled={updatingPeeLead}
+              >
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

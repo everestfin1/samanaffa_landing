@@ -240,6 +240,23 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+// PEE Leads table - stores PEE (Plan Épargne Éducation) lead submissions
+export const peeLeads = pgTable('pee_leads', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  civilite: text('civilite').notNull(),
+  prenom: text('prenom').notNull(),
+  nom: text('nom').notNull(),
+  categorie: text('categorie').notNull(),
+  pays: text('pays').notNull(),
+  ville: text('ville').notNull(),
+  telephone: text('telephone').notNull(),
+  email: text('email'),
+  status: text('status').notNull().default('NEW'),
+  adminNotes: text('adminNotes'),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(sessions),
