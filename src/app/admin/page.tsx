@@ -8,6 +8,7 @@ import NotificationManagement from '@/components/admin/NotificationManagement'
 import NotificationSettings from '@/components/admin/NotificationSettings'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
+import IntouchReconciliation from '@/components/admin/IntouchReconciliation'
 import { 
   Users, 
   FileText, 
@@ -197,7 +198,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -884,11 +885,32 @@ export default function AdminDashboard() {
   }
 
   const handleUpdateApeStatus = async () => {
-    if (!selectedApeSubscription || !newApeStatus) return
+    if (!selectedApeSubscription || !newApeStatus) {
+      alert('Veuillez sélectionner un statut')
+      return
+    }
+
+    if (newApeStatus === selectedApeSubscription.status) {
+      alert('Le statut est déjà ' + newApeStatus)
+      return
+    }
 
     setUpdatingApeStatus(true)
     try {
       const token = localStorage.getItem('admin_token')
+      if (!token) {
+        alert('Session expirée. Veuillez vous reconnecter.')
+        router.push('/admin/login')
+        return
+      }
+
+      console.log('[Admin] Updating APE subscription:', {
+        id: selectedApeSubscription.id,
+        oldStatus: selectedApeSubscription.status,
+        newStatus: newApeStatus,
+        providerTransactionId: apeProviderTransactionId,
+      })
+
       const response = await fetch(`/api/admin/ape-subscriptions/${selectedApeSubscription.id}`, {
         method: 'PATCH',
         headers: {
@@ -904,22 +926,25 @@ export default function AdminDashboard() {
 
       const data = await response.json()
       
+      console.log('[Admin] Update response:', data)
+      
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}`)
+      }
+      
       if (data.success) {
-        // Update local state
+        // Update local state with server response
         setApeSubscriptions(prev => 
           prev.map(sub => 
             sub.id === selectedApeSubscription.id 
               ? { 
                   ...sub, 
-                  status: newApeStatus, 
-                  providerTransactionId: apeProviderTransactionId || sub.providerTransactionId,
-                  paymentCompletedAt: (newApeStatus === 'PAYMENT_SUCCESS' || newApeStatus === 'PAYMENT_FAILED') 
-                    ? new Date().toISOString() 
-                    : sub.paymentCompletedAt
+                  ...data.subscription,
                 }
               : sub
           )
         )
+        
         // Update stats
         setApeStats(prev => {
           const oldStatus = selectedApeSubscription.status
@@ -948,13 +973,17 @@ export default function AdminDashboard() {
           return newStats
         })
         
+        alert(`✅ Statut mis à jour: ${selectedApeSubscription.status} → ${newApeStatus}`)
         setShowApeStatusModal(false)
+        setSelectedApeSubscription(null)
+        setApeProviderTransactionId('')
+        setApeStatusNotes('')
       } else {
-        alert(data.error || 'Erreur lors de la mise à jour')
+        throw new Error(data.error || 'Réponse invalide du serveur')
       }
     } catch (error) {
-      console.error('Error updating APE status:', error)
-      alert('Erreur lors de la mise à jour du statut')
+      console.error('[Admin] Error updating APE status:', error)
+      alert(`❌ Erreur: ${error instanceof Error ? error.message : 'Erreur inconnue'}`)
     } finally {
       setUpdatingApeStatus(false)
     }
@@ -2278,6 +2307,29 @@ export default function AdminDashboard() {
           </div>
         )}
 
+        {/* Reconciliation Tab */}
+        {activeTab === 'reconciliation' && (
+          <IntouchReconciliation
+            onReconcile={async (matches) => {
+              const token = localStorage.getItem('admin_token')
+              const response = await fetch('/api/admin/ape-subscriptions/reconcile', {
+                method: 'PATCH',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ matches }),
+              })
+              const data = await response.json()
+              if (!data.success) {
+                throw new Error(data.error)
+              }
+              // Refresh APE subscriptions data
+              await fetchDashboardData()
+            }}
+          />
+        )}
+
         {/* APE Subscriptions Tab */}
         {activeTab === 'apeSubscriptions' && (
           <div className="space-y-8">
@@ -3011,7 +3063,7 @@ export default function AdminDashboard() {
         {/* APE Status Update Modal */}
         {showApeStatusModal && selectedApeSubscription && (
           <div className="admin-modal-overlay" onClick={() => setShowApeStatusModal(false)}>
-            <div className="admin-modal" style={{ maxWidth: '520px' }} onClick={e => e.stopPropagation()}>
+            <div className="admin-modal" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
               <div className="admin-modal-header">
                 <h3 className="admin-modal-title">
                   {selectedApeSubscription.status === 'PAYMENT_INITIATED' 
@@ -3028,32 +3080,30 @@ export default function AdminDashboard() {
               
               <div className="admin-modal-body">
                 {/* Subscription Info */}
-                <div className="mb-4 p-3 bg-[var(--admin-bg-tertiary)] rounded-lg">
-                  <div className="text-sm font-medium text-[var(--admin-text-primary)]">
-                    {selectedApeSubscription.civilite} {selectedApeSubscription.prenom} {selectedApeSubscription.nom}
-                  </div>
-                  <div className="text-xs text-[var(--admin-text-muted)] mt-1">
-                    Réf: {selectedApeSubscription.referenceNumber}
-                  </div>
-                  <div className="text-xs text-[var(--admin-text-muted)]">
-                    Montant: {parseFloat(selectedApeSubscription.montantCfa).toLocaleString('fr-FR')} FCFA
-                  </div>
-                  <div className="text-xs text-[var(--admin-text-muted)]">
-                    Statut actuel: <span className={`font-medium ${
-                      selectedApeSubscription.status === 'PAYMENT_SUCCESS' ? 'text-[var(--admin-emerald)]' :
-                      selectedApeSubscription.status === 'PAYMENT_INITIATED' ? 'text-[var(--admin-sky)]' :
-                      selectedApeSubscription.status === 'PAYMENT_FAILED' ? 'text-[var(--admin-rose)]' :
-                      'text-[var(--admin-amber)]'
+                <div className="mb-3 p-2.5 bg-[var(--admin-bg-tertiary)] rounded-lg border border-[var(--admin-border-light)]">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="text-sm font-semibold text-[var(--admin-text-primary)]">
+                      {selectedApeSubscription.civilite} {selectedApeSubscription.prenom} {selectedApeSubscription.nom}
+                    </div>
+                    <span className={`admin-badge admin-badge-sm ${
+                      selectedApeSubscription.status === 'PAYMENT_SUCCESS' ? 'admin-badge-success' :
+                      selectedApeSubscription.status === 'PAYMENT_INITIATED' ? 'admin-badge-info' :
+                      selectedApeSubscription.status === 'PAYMENT_FAILED' ? 'admin-badge-danger' :
+                      'admin-badge-warning'
                     }`}>
                       {APE_STATUS_CONFIG[selectedApeSubscription.status as keyof typeof APE_STATUS_CONFIG]?.label || selectedApeSubscription.status}
                     </span>
                   </div>
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-[var(--admin-text-muted)]">
+                    <div><span className="font-medium">Réf:</span> {selectedApeSubscription.referenceNumber}</div>
+                    <div><span className="font-medium">Montant:</span> {parseFloat(selectedApeSubscription.montantCfa).toLocaleString('fr-FR')} FCFA</div>
+                  </div>
                 </div>
 
                 {/* Status Selection */}
-                <div className="mb-4">
-                  <label className="admin-label">Nouveau statut</label>
-                  <div className="admin-status-select">
+                <div className="mb-3">
+                  <label className="admin-label text-sm font-semibold">Nouveau statut</label>
+                  <div className="admin-status-select" style={{ gap: '0.5rem' }}>
                     {Object.entries(APE_STATUS_CONFIG).map(([status, config]) => (
                       <button
                         key={status}
@@ -3084,35 +3134,35 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Provider Transaction ID */}
-                <div className="mb-4">
-                  <label className="admin-label" htmlFor="apeProviderTransactionId">
-                    Transaction ID Intouch (optionnel)
+                <div className="mb-3">
+                  <label className="admin-label text-sm font-semibold" htmlFor="apeProviderTransactionId">
+                    Transaction ID Intouch <span className="text-[var(--admin-text-muted)] font-normal">(optionnel)</span>
                   </label>
                   <input
                     type="text"
                     id="apeProviderTransactionId"
                     value={apeProviderTransactionId}
                     onChange={(e) => setApeProviderTransactionId(e.target.value)}
-                    placeholder="Ex: TXN123456789"
+                    placeholder="Ex: MP251219.1145.D54113"
                     className="admin-input"
                   />
-                  <p className="text-xs text-[var(--admin-text-muted)] mt-1">
-                    Récupérez cet ID depuis le back-office Intouch pour la réconciliation
+                  <p className="text-xs text-[var(--admin-text-muted)] mt-0.5">
+                    📋 ID depuis le rapport CSV Intouch
                   </p>
                 </div>
 
                 {/* Admin Notes */}
-                <div className="mb-4">
-                  <label className="admin-label" htmlFor="apeStatusNotes">
-                    Notes (optionnel)
+                <div>
+                  <label className="admin-label text-sm font-semibold" htmlFor="apeStatusNotes">
+                    Notes <span className="text-[var(--admin-text-muted)] font-normal">(optionnel)</span>
                   </label>
                   <textarea
                     id="apeStatusNotes"
                     value={apeStatusNotes}
                     onChange={(e) => setApeStatusNotes(e.target.value)}
-                    placeholder="Raison de la modification..."
+                    placeholder="Raison de la modification, source de vérification, etc."
                     className="admin-input"
-                    rows={3}
+                    rows={2}
                   />
                 </div>
               </div>
