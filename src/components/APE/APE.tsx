@@ -662,7 +662,7 @@ export default function APE() {
       )}
 
       {/* Footer */}
-      <Footer />
+      <Footer isApe={true}/>
     </div>
   );
 }
