@@ -3,9 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export const Footer = () => {
+export const Footer = ({ isApe }: { isApe: boolean }) => {
+  const backgroundColor = isApe ? "bg-gray-light" : "bg-[#20163B]";
+  const textColor = isApe ? "text-black" : "text-white";
   return (
-    <footer className="mt-16 bg-gray-light text-black max-md:flex max-md:flex-col max-md:items-center max-md:text-center">
+    <footer className={`mt-16 ${backgroundColor} ${textColor} max-md:flex max-md:flex-col max-md:items-center max-md:text-center`}>
       <div className="max-w-7xl mx-auto px-6 py-10 grid gap-10 md:grid-cols-3 items-start">
         {/* Logo & Slogan */}
         <div className="space-y-4 flex justify-center">
@@ -23,7 +25,7 @@ export const Footer = () => {
           <h3 className="font-titillium text-lg font-semibold tracking-wide text-[#C38D1C] mb-2">
             Adresse
           </h3>
-          <p className="text-sm md:text-base leading-relaxed text-black/90">
+          <p className="text-sm md:text-base leading-relaxed">
             18 Boulevard de la République,<br />
             Dakar, Sénégal<br />
             BP: 11659-13000
@@ -35,7 +37,7 @@ export const Footer = () => {
           <h3 className="font-titillium text-lg font-semibold tracking-wide text-[#C38D1C] mb-2">
             Contact
           </h3>
-          <div className="space-y-2 text-sm md:text-base text-black/90">
+          <div className="space-y-2 text-sm md:text-base">
             <p>
               Email<br />
               <Link
@@ -65,7 +67,7 @@ export const Footer = () => {
       </div>
 
       <div className="border-t border-black/10">
-        <div className="max-w-7xl mx-auto px-6 py-4 text-xs md:text-sm text-black/70 text-center">
+        <div className="max-w-7xl mx-auto px-6 py-4 text-xs md:text-sm text-center">
           2025 Everest Finance. Tous droits réservés.
         </div>
       </div>

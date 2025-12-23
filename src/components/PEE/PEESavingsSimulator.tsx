@@ -211,16 +211,16 @@ export default function PEESavingsSimulator() {
                 </div>
               </div>
 
-              <div className="p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#2e0e36]/10 to-[#C09037]/10 rounded-lg sm:rounded-xl border border-[#2e0e36]/20">
+              <div className="p-3 sm:p-3 lg:p-4 bg-[#20163B] rounded-lg sm:rounded-xl border border-[#2e0e36]/20 text-white">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 lg:gap-0">
-                  <span className="text-[#2e0e36] font-medium text-sm sm:text-base lg:text-lg text-center sm:text-left">
+                  <span className="font-medium text-sm sm:text-base lg:text-lg text-center sm:text-left">
                     Taux d'intérêt :{" "}
                     <span className="font-bold text-base sm:text-lg lg:text-xl text-[#C09037]">
                       {taux.toFixed(1)}%
                     </span>{" "}
                     <span className="hidden sm:inline">par an</span>
                   </span>
-                  <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
+                  <div className="text-[10px] sm:text-xs lg:text-sm text-gray-300">
                     {duree <= 6 && "💡 Très court terme"}
                     {duree > 6 && duree <= 12 && "📈 Court terme"}
                     {duree > 12 && duree <= 36 && "🚀 Moyen terme"}
@@ -230,7 +230,7 @@ export default function PEESavingsSimulator() {
                 </div>
               </div>
 
-              <div className="text-center space-y-2 sm:space-y-3 lg:space-y-4 p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-[#F2F8F4] to-white rounded-lg sm:rounded-xl">
+              <div className="text-center space-y-2 sm:space-y-3 lg:space-y-4 p-3 sm:p-4 lg:p-6 bg-gray-light rounded-lg sm:rounded-xl">
                 <h4 className="font-normal text-[#2e0e36] text-base sm:text-lg lg:text-[24px] mb-1 sm:mb-2">
                   Capital final estimé
                 </h4>
