@@ -16,7 +16,7 @@ export default function HeroSection() {
   }, [])
   return (
     <section id="hero" className="relative w-full bg-white">
-      <div className="relative w-full h-[60vh] md:h-[460px] lg:h-[520px]">
+      <div className="relative w-full h-[60vh] sm:h-[65vh] md:h-[460px] lg:h-[520px]">
         {isMobile ? 
         <Image src="/pee/Banniere_PEE_2_mobile.png" alt="Bannière PEE" quality={100} fill className="object-cover object-center" priority />
         : 
