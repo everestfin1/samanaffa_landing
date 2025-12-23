@@ -12,11 +12,12 @@ import {
   ChevronRight,
   Shield,
   Gift,
-  GraduationCap
+  GraduationCap,
+  RefreshCw
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'
+type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'
 
 interface NavItem {
   id: TabId
@@ -55,6 +56,7 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
     { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
     { id: 'transactions', label: 'Transactions', icon: CreditCard, badge: stats?.pendingTransactions },
     { id: 'apeSubscriptions', label: 'APE Sénégal', icon: FileSpreadsheet, badge: stats?.paymentInitiated },
+    { id: 'reconciliation', label: 'Réconciliation', icon: RefreshCw },
     { id: 'sponsorCodes', label: 'Codes Parrainage', icon: Gift },
     { id: 'peeLeads', label: 'PEE Leads', icon: GraduationCap },
     { id: 'users', label: 'Utilisateurs', icon: Users },
