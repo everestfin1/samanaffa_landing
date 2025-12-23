@@ -19,7 +19,7 @@ export default function AdvantagesPEE() {
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#D2BBD6]">
               Avantages du PEE
             </h2>
-            <ul className="space-y-4 md:space-y-5">
+            <ul className="space-y-1 md:space-y-2">
               {advantages.map((advantage, index) => (
                 <li key={index} className="flex items-center gap-3">
                   <span className="flex-shrink-0 w-[6px] h-[6px] bg-white/90 rounded-none"></span>

@@ -5,7 +5,7 @@ import HeroSection from './HeroSection';
 import WhyPEE from './WhyPEE';
 import AdvantagesPEE from './AdvantagesPEE';
 import LeadForm from './LeadForm';
-import { Footer as ApeFooter } from '../APE/Footer';
+import { Footer } from '../APE/Footer';
 import PEESavingsSimulator from './PEESavingsSimulator';
 
 export default function PEE() {
@@ -17,7 +17,7 @@ export default function PEE() {
       <AdvantagesPEE />
       <PEESavingsSimulator />
       <LeadForm />
-      <ApeFooter />
+      <Footer isApe={false} />
     </main>
   );
 }
