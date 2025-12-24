@@ -15,7 +15,7 @@ export default function AdvantagesPEE() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* Text/List Block (Left per design) */}
-          <div className="text-white">
+          <div className="text-white max-md:order-last">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#D2BBD6]">
               Avantages du PEE
             </h2>

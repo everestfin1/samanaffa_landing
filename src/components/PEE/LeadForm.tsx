@@ -295,7 +295,7 @@ export default function LeadForm() {
             <span className="text-[#2e0e36]">simplifiez-vous</span>
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-[#2e0e36]/70">
-            Remplissez le formulaire de contact
+            Laissez vos coordonnées, nous vous recontactons rapidement.
           </p>
         </div>
 
