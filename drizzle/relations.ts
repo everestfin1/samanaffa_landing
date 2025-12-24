@@ -1,5 +1,16 @@
 import { relations } from "drizzle-orm/relations";
-import { users, otpCodes, registrationSessions, sessions, kycDocuments, transactionIntents, userAccounts, paymentCallbackLogs, notifications } from "./schema";
+import { adminUsers, apeSponsorCodes, users, otpCodes, registrationSessions, sessions, kycDocuments, transactionIntents, userAccounts, paymentCallbackLogs, notifications } from "./schema";
+
+export const apeSponsorCodesRelations = relations(apeSponsorCodes, ({one}) => ({
+	adminUser: one(adminUsers, {
+		fields: [apeSponsorCodes.createdBy],
+		references: [adminUsers.id]
+	}),
+}));
+
+export const adminUsersRelations = relations(adminUsers, ({many}) => ({
+	apeSponsorCodes: many(apeSponsorCodes),
+}));
 
 export const otpCodesRelations = relations(otpCodes, ({one}) => ({
 	user: one(users, {

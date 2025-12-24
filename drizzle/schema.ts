@@ -1,18 +1,84 @@
-import { pgTable, foreignKey, text, timestamp, boolean, uniqueIndex, numeric, integer, jsonb, varchar, pgEnum } from "drizzle-orm/pg-core"
+import { pgTable, unique, text, numeric, json, timestamp, index, foreignKey, integer, uniqueIndex, boolean, jsonb, varchar, pgEnum } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 export const accountStatus = pgEnum("AccountStatus", ['ACTIVE', 'INACTIVE', 'SUSPENDED'])
 export const accountType = pgEnum("AccountType", ['SAMA_NAFFA', 'APE_INVESTMENT'])
 export const adminRole = pgEnum("AdminRole", ['ADMIN', 'MANAGER', 'SUPPORT'])
+export const apeSubscriptionStatus = pgEnum("ApeSubscriptionStatus", ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED'])
 export const intentType = pgEnum("IntentType", ['DEPOSIT', 'INVESTMENT', 'WITHDRAWAL'])
 export const kycStatus = pgEnum("KycStatus", ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW'])
 export const notificationPriority = pgEnum("NotificationPriority", ['LOW', 'NORMAL', 'HIGH', 'URGENT'])
 export const notificationType = pgEnum("NotificationType", ['KYC_STATUS', 'SUCCESS', 'ERROR', 'WARNING', 'TRANSACTION', 'SECURITY'])
 export const otpType = pgEnum("OtpType", ['EMAIL', 'SMS'])
 export const sessionType = pgEnum("SessionType", ['REGISTRATION', 'LOGIN'])
+export const sponsorCodeStatus = pgEnum("SponsorCodeStatus", ['ACTIVE', 'INACTIVE', 'EXPIRED'])
 export const transactionStatus = pgEnum("TransactionStatus", ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED', 'FAILED'])
 export const verificationStatus = pgEnum("VerificationStatus", ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW'])
 
+
+export const apeSubscriptions = pgTable("ape_subscriptions", {
+	id: text().primaryKey().notNull(),
+	referenceNumber: text().notNull(),
+	civilite: text().notNull(),
+	prenom: text().notNull(),
+	nom: text().notNull(),
+	email: text().notNull(),
+	telephone: text().notNull(),
+	paysResidence: text().notNull(),
+	ville: text().notNull(),
+	categorieSocioprofessionnelle: text().notNull(),
+	trancheInteresse: text().notNull(),
+	montantCfa: numeric({ precision: 15, scale:  2 }).notNull(),
+	codeParrainage: text(),
+	status: apeSubscriptionStatus().default('PENDING').notNull(),
+	providerTransactionId: text(),
+	providerStatus: text(),
+	paymentCallbackPayload: json(),
+	paymentInitiatedAt: timestamp({ mode: 'string' }),
+	paymentCompletedAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	unique("ape_subscriptions_referenceNumber_unique").on(table.referenceNumber),
+]);
+
+export const apeSponsorCodes = pgTable("ape_sponsor_codes", {
+	id: text().primaryKey().notNull(),
+	code: text().notNull(),
+	description: text(),
+	createdBy: text().notNull(),
+	status: sponsorCodeStatus().default('ACTIVE').notNull(),
+	usageCount: integer().default(0).notNull(),
+	maxUsage: integer(),
+	expiresAt: timestamp({ mode: 'string' }),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	updatedAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("ape_sponsor_codes_code_idx").using("btree", table.code.asc().nullsLast().op("text_ops")),
+	index("ape_sponsor_codes_status_idx").using("btree", table.status.asc().nullsLast().op("enum_ops")),
+	foreignKey({
+			columns: [table.createdBy],
+			foreignColumns: [adminUsers.id],
+			name: "ape_sponsor_codes_createdBy_fkey"
+		}).onDelete("cascade"),
+	unique("ape_sponsor_codes_code_key").on(table.code),
+]);
+
+export const adminUsers = pgTable("admin_users", {
+	id: text().primaryKey().notNull(),
+	email: text().notNull(),
+	passwordHash: text().notNull(),
+	name: text().notNull(),
+	role: adminRole().default('ADMIN').notNull(),
+	lastLogin: timestamp({ precision: 3, mode: 'string' }),
+	createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	failedAttempts: integer().default(0).notNull(),
+	isActive: boolean().default(true).notNull(),
+	lockedUntil: timestamp({ precision: 3, mode: 'string' }),
+	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+}, (table) => [
+	uniqueIndex("admin_users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
+]);
 
 export const otpCodes = pgTable("otp_codes", {
 	id: text().primaryKey().notNull(),
@@ -103,22 +169,6 @@ export const transactionIntents = pgTable("transaction_intents", {
 		}).onUpdate("cascade").onDelete("cascade"),
 ]);
 
-export const adminUsers = pgTable("admin_users", {
-	id: text().primaryKey().notNull(),
-	email: text().notNull(),
-	passwordHash: text().notNull(),
-	name: text().notNull(),
-	role: adminRole().default('ADMIN').notNull(),
-	lastLogin: timestamp({ precision: 3, mode: 'string' }),
-	createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	failedAttempts: integer().default(0).notNull(),
-	isActive: boolean().default(true).notNull(),
-	lockedUntil: timestamp({ precision: 3, mode: 'string' }),
-	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
-}, (table) => [
-	uniqueIndex("admin_users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
-]);
-
 export const userAccounts = pgTable("user_accounts", {
 	id: text().primaryKey().notNull(),
 	userId: text().notNull(),
@@ -153,6 +203,49 @@ export const prismaMigrations = pgTable("_prisma_migrations", {
 	startedAt: timestamp("started_at", { withTimezone: true, mode: 'string' }).defaultNow().notNull(),
 	appliedStepsCount: integer("applied_steps_count").default(0).notNull(),
 });
+
+export const users = pgTable("users", {
+	id: text().primaryKey().notNull(),
+	email: text().notNull(),
+	phone: text().notNull(),
+	firstName: text().notNull(),
+	lastName: text().notNull(),
+	dateOfBirth: timestamp({ precision: 3, mode: 'string' }),
+	nationality: text(),
+	address: text(),
+	city: text(),
+	preferredLanguage: text().default('fr').notNull(),
+	emailVerified: boolean().default(false).notNull(),
+	phoneVerified: boolean().default(false).notNull(),
+	kycStatus: kycStatus().default('PENDING').notNull(),
+	createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+	civilite: text(),
+	country: text(),
+	district: text(),
+	domaineActivite: text(),
+	idExpiryDate: timestamp({ precision: 3, mode: 'string' }),
+	idIssueDate: timestamp({ precision: 3, mode: 'string' }),
+	idNumber: text(),
+	idType: text(),
+	marketingAccepted: boolean().default(false).notNull(),
+	metiers: text(),
+	placeOfBirth: text(),
+	privacyAccepted: boolean().default(false).notNull(),
+	region: text(),
+	signature: text(),
+	statutEmploi: text(),
+	termsAccepted: boolean().default(false).notNull(),
+	otpVerifiedAt: timestamp({ precision: 3, mode: 'string' }),
+	passwordHash: text(),
+	arrondissement: text(),
+	department: text(),
+	failedAttempts: integer().default(0).notNull(),
+	lockedUntil: timestamp({ precision: 3, mode: 'string' }),
+}, (table) => [
+	uniqueIndex("users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
+	uniqueIndex("users_phone_key").using("btree", table.phone.asc().nullsLast().op("text_ops")),
+]);
 
 export const registrationSessions = pgTable("registration_sessions", {
 	id: text().primaryKey().notNull(),
@@ -196,60 +289,3 @@ export const notifications = pgTable("notifications", {
 			name: "notifications_userId_fkey"
 		}).onUpdate("cascade").onDelete("cascade"),
 ]);
-
-export const users = pgTable("users", {
-	id: text().primaryKey().notNull(),
-	email: text().notNull(),
-	phone: text().notNull(),
-	firstName: text().notNull(),
-	lastName: text().notNull(),
-	dateOfBirth: timestamp({ precision: 3, mode: 'string' }),
-	nationality: text(),
-	address: text(),
-	city: text(),
-	preferredLanguage: text().default('fr').notNull(),
-	emailVerified: boolean().default(false).notNull(),
-	phoneVerified: boolean().default(false).notNull(),
-	kycStatus: kycStatus().default('PENDING').notNull(),
-	createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
-	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
-	civilite: text(),
-	country: text(),
-	district: text(),
-	domaineActivite: text(),
-	idExpiryDate: timestamp({ precision: 3, mode: 'string' }),
-	idIssueDate: timestamp({ precision: 3, mode: 'string' }),
-	idNumber: text(),
-	idType: text(),
-	marketingAccepted: boolean().default(false).notNull(),
-	metiers: text(),
-	placeOfBirth: text(),
-	privacyAccepted: boolean().default(false).notNull(),
-	region: text(),
-	signature: text(),
-	statutEmploi: text(),
-	termsAccepted: boolean().default(false).notNull(),
-	otpVerifiedAt: timestamp({ precision: 3, mode: 'string' }),
-	passwordHash: text(),
-	arrondissement: text(),
-	department: text(),
-}, (table) => [
-	uniqueIndex("users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
-	uniqueIndex("users_phone_key").using("btree", table.phone.asc().nullsLast().op("text_ops")),
-]);
-
-export const peeLeads = pgTable("pee_leads", {
-	id: text().primaryKey().notNull(),
-	civilite: text().notNull(),
-	prenom: text().notNull(),
-	nom: text().notNull(),
-	categorie: text().notNull(),
-	pays: text().notNull(),
-	ville: text().notNull(),
-	telephone: text().notNull(),
-	email: text(),
-	status: text().default('NEW').notNull(),
-	adminNotes: text(),
-	createdAt: timestamp({ mode: 'string' }).default(sql`now()`).notNull(),
-	updatedAt: timestamp({ mode: 'string' }).default(sql`now()`).notNull(),
-});
