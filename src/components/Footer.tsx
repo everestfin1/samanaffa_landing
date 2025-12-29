@@ -52,10 +52,10 @@ export default function Footer() {
                   SAMA NAFFA • Épargne Inclusive
                 </button>
                 <button 
-                  onClick={() => router.push('/apesenegal')} 
+                  onClick={() => router.push('/pee')} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  Emprunt Obligataire • Appel Public à l’Epargne
+                  PEE • Plan Épargne Éducation
                 </button>
               </div>
             </div>
