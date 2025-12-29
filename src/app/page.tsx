@@ -628,10 +628,10 @@ export default function Home() {
                   </div>
                   
                   <Link 
-                    href="/apesenegal"
+                    href="/pee"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
-                    <span className="text-lg">Explorer l'APE</span>
+                    <span className="text-lg">Explorer le PEE</span>
                     <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
                   </Link>
                 </div>

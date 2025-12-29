@@ -24,7 +24,7 @@ export const Header = () => {
           {/* Navigation */}
           <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide font-titillium">
             <Link
-              href="/apesenegal"
+              href="/"
               className="text-gray-900 hover:text-[#C38D1C] transition-colors duration-200 font-semibold"
             >
               ACCUEIL

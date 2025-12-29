@@ -174,7 +174,7 @@ export default function SouscrireAPEPage() {
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="mb-8">
               <Link
-                href="/apesenegal"
+                href="/"
                 className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-300 mb-6"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />

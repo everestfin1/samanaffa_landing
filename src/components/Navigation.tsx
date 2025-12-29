@@ -180,7 +180,7 @@ export default function Navigation() {
               </Link>
 
               <Link
-                href="/apesenegal"
+                href="/pee"
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
@@ -189,9 +189,8 @@ export default function Navigation() {
                       : 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
                 }`}
               >
-                Emprunt Obligataire
+                Plan Épargne Éducation
               </Link>
-
             </div>
           </div>
 
@@ -353,11 +352,11 @@ export default function Navigation() {
                   </Link>
 
                   <Link
-                    href="/apesenegal"
+                    href="/pee"
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>Emprunt Obligataire</span>
+                    <span>Plan Épargne Éducation</span>
                   </Link>
                 </div>
               </div>
