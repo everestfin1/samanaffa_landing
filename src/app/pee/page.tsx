@@ -27,7 +27,7 @@ export default function PEEPage() {
     <>
       {/* Google Analytics - PEE Only */}
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-71C611KYZZ"
+        src="https://www.googletagmanager.com/gtag/js?id=G-PY0F823F8C"
         strategy="afterInteractive"
       />
       <Script id="google-analytics" strategy="afterInteractive">
@@ -35,7 +35,7 @@ export default function PEEPage() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', 'G-71C611KYZZ');
+          gtag('config', 'G-PY0F823F8C');
         `}
       </Script>
       <PEE />
