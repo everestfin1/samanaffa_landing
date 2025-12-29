@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     description: 'Assurez l\'avenir de vos enfants avec le PEE. Épargne sécurisée et rentable.',
     images: [
       {
-        url: '/pee/Banniere_PEE_1.png',
+        url: '/pee/Banniere_PEE_3.png',
         width: 1200,
         height: 630,
         alt: 'Bannière PEE Everest Finance',

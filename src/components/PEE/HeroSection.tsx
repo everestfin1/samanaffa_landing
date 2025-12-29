@@ -16,12 +16,12 @@ export default function HeroSection() {
   }, [])
   return (
     <section id="hero" className="relative w-full bg-white">
-      <div className="relative w-full h-[65vh] sm:h-[70vh] md:h-[460px] lg:h-[520px]">
+      <div className="relative w-full h-[65vh] sm:h-[100vh] md:h-[60vh] lg:h-[50vh]">
         {isMobile ? 
-        <Image src="/pee/Banniere_PEE_2_mobile.png" alt="Bannière PEE" quality={100} fill className="object-cover object-center" priority />
+        <Image src="/pee/Banniere_PEE_3_mobile.png" alt="Bannière PEE" quality={100} fill className="object-cover object-center" priority />
         : 
         <Image
-          src="/pee/Banniere_PEE_2.png"
+          src="/pee/Banniere_PEE_3.png"
           alt="Bannière PEE"
           quality={100}
           fill
