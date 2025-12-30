@@ -67,18 +67,18 @@ export default function RootLayout({
           href="/fav-samanaffa.png"
           type="image/<generated>"
           sizes="180x180"
-        />{/* Google Analytics - PEE Only */}
-      <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-BXRJ2YF3KB"
-        strategy="afterInteractive"
-      />
-      <Script id="google-analytics" strategy="afterInteractive">
-        {`
-          window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-BXRJ2YF3KB');
-        `}
-      </Script>
+        />
       </head>
       <body className={`${geistSans.variable} antialiased`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-BXRJ2YF3KB"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+          window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-BXRJ2YF3KB');
+        `}
+        </Script>
         <QueryProvider>
           <SessionProvider>
             <SelectionProvider>
