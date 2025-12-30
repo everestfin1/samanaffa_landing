@@ -68,17 +68,20 @@ export default function RootLayout({
           type="image/<generated>"
           sizes="180x180"
         />
-      </head>
-      <body className={`${geistSans.variable} antialiased`}>
         <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-BXRJ2YF3KB"
+          src="https://www.googletagmanager.com/gtag/js?id=G-SXLJ8F6H1L"
           strategy="afterInteractive"
         />
         <Script id="google-analytics" strategy="afterInteractive">
           {`
-          window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-BXRJ2YF3KB');
-        `}
+            window.dataLayer = window.dataLayer || [];
+            window.gtag = function gtag(){ window.dataLayer.push(arguments); };
+            window.gtag('js', new Date());
+            window.gtag('config', 'G-SXLJ8F6H1L');
+          `}
         </Script>
+      </head>
+      <body className={`${geistSans.variable} antialiased`}>
         <QueryProvider>
           <SessionProvider>
             <SelectionProvider>
