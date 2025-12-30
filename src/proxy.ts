@@ -95,7 +95,7 @@ export async function proxy(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.twilio.com https://api.bulksms.com https://api.sendgrid.com https://api.intouch.com https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com",
+    "connect-src 'self' https://api.twilio.com https://api.bulksms.com https://api.sendgrid.com https://api.intouch.com https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com",
     "frame-src 'self' https://vercel.live",
     "object-src 'none'",
     "base-uri 'self'",
