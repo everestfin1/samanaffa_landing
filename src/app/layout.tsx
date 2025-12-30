@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import Navigation from "../components/Navigation";
 import Footer from "@/components/Footer";
@@ -66,7 +67,16 @@ export default function RootLayout({
           href="/fav-samanaffa.png"
           type="image/<generated>"
           sizes="180x180"
-        />
+        />{/* Google Analytics - PEE Only */}
+      <Script
+        src="https://www.googletagmanager.com/gtag/js?id=G-BXRJ2YF3KB"
+        strategy="afterInteractive"
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-BXRJ2YF3KB');
+        `}
+      </Script>
       </head>
       <body className={`${geistSans.variable} antialiased`}>
         <QueryProvider>
