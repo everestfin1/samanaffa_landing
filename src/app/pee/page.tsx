@@ -18,7 +18,7 @@ export const metadata: Metadata = {
     ],
   },
   icons: {
-    icon: '/logo-everest.png', 
+    icon: '/logo-everest.png',
   }
 };
 
@@ -27,15 +27,12 @@ export default function PEEPage() {
     <>
       {/* Google Analytics - PEE Only */}
       <Script
-        src="https://www.googletagmanager.com/gtag/js?id=G-PY0F823F8C"
+        src="https://www.googletagmanager.com/gtag/js?id=G-BXRJ2YF3KB"
         strategy="afterInteractive"
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', 'G-PY0F823F8C');
+          window.dataLayer = window.dataLayer || [];   function gtag(){dataLayer.push(arguments);}   gtag('js', new Date());   gtag('config', 'G-BXRJ2YF3KB');
         `}
       </Script>
       <PEE />
