@@ -9,7 +9,7 @@ export default function Footer() {
     const router = useRouter();
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
-    const isApePage = pathname.startsWith('/apesenegal');
+    const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
     const isPeePage = pathname.startsWith('/pee');
     // Hide footer on portal pages, admin pages, and APE Senegal pages (APE has its own footer)
     if (pathname.startsWith('/portal') || isAdminPage || isApePage || isPeePage) {
