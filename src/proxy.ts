@@ -15,7 +15,8 @@ export async function proxy(request: NextRequest) {
                           request.nextUrl.pathname.startsWith('/static/') ||
                           request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js)$/);
     const isAllowedRoute = request.nextUrl.pathname.startsWith('/admin') ||
-                          request.nextUrl.pathname.startsWith('/pee');
+                          request.nextUrl.pathname.startsWith('/pee') ||
+                          request.nextUrl.pathname.startsWith('/ape')
     
     if (!isStaticAsset && !isAllowedRoute) {
       return NextResponse.redirect(new URL('/pee', request.url));

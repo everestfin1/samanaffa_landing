@@ -25,7 +25,7 @@ export default function Navigation() {
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
-  const isApePage = pathname.startsWith('/apesenegal');
+  const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
   const isPeePage = pathname.startsWith('/pee');
   const isMaintenancePage = pathname === '/maintenance';
 
