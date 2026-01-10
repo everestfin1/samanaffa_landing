@@ -14,7 +14,7 @@ interface TransferModalProps {
   accountId?: string | null;
   currentBalance?: number;
   onConfirm: (data: TransferData) => void;
-  accountType?: 'sama_naffa' | 'ape_investment';
+  accountType?: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment';
   kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 }
 
@@ -100,7 +100,7 @@ export default function TransferModal({
         throw new Error("Votre identité doit être approuvée avant d'effectuer un retrait.");
       }
 
-      const supportedAccountTypes: Array<'sama_naffa' | 'ape_investment'> = ['sama_naffa', 'ape_investment'];
+      const supportedAccountTypes: Array<'sama_naffa' | 'ape_investment' | 'ape_togo_investment'> = ['sama_naffa', 'ape_investment', 'ape_togo_investment'];
       if (!supportedAccountTypes.includes(accountType)) {
         throw new Error('Type de compte non pris en charge pour les paiements Intouch.');
       }

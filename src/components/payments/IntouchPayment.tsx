@@ -7,7 +7,7 @@ interface IntouchPaymentProps {
   amount: number;
   userId: string;
   accountId?: string | null;
-  accountType: 'sama_naffa' | 'ape_investment';
+  accountType: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment';
   intentType: 'deposit' | 'investment' | 'withdrawal';
   referenceNumber: string;
   onSuccess: (transactionId: string) => void;
