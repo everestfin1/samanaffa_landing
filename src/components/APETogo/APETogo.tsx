@@ -385,7 +385,7 @@ export default function APETogo() {
         <section className="relative w-full bg-white" aria-label="APE Togo Hero">
           <div className="relative w-full h-[65vh] sm:h-[100vh] md:h-[60vh] lg:h-[50vh]">
             {isMobile ? 
-            <Image src="/apetogo/banniere mobile-04.png" alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo" fill className="object-cover object-center" priority quality={100} />
+            <Image src="/apetogo/banniere mobile-04.png" alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo" fill className="object-contain object-center" priority quality={100} />
             : 
             <Image
               src="/apetogo/Banner-web-03.png"
