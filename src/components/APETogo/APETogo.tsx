@@ -140,6 +140,7 @@ export default function APETogo() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [paymentPending, setPaymentPending] = useState(false);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   
   // Animation values
   const animationDuration = 1800;
@@ -203,6 +204,19 @@ export default function APETogo() {
       document.body.style.overflow = "unset";
     };
   }, [isFormOpen]);
+
+  // Mobile detection
+  useEffect(() => {
+    window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
+    window.addEventListener('resize', () => {
+      window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
+    });
+    return () => {
+      window.removeEventListener('resize', () => {
+        window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
+      });
+    };
+  }, []);
 
   // Handle form submission
   const handleFormSubmit = async (e: React.FormEvent) => {
@@ -369,19 +383,19 @@ export default function APETogo() {
       <main id="main">
         {/* Hero Section - Banner */}
         <section className="relative w-full bg-white" aria-label="APE Togo Hero">
-          <div className="relative w-full h-auto">
+          <div className="relative w-full h-[65vh] sm:h-[100vh] md:h-[60vh] lg:h-[50vh]">
+            {isMobile ? 
+            <Image src="/apetogo/banniere mobile-04.png" alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo" fill className="object-cover object-center" priority quality={100} />
+            : 
             <Image
               src="/apetogo/Banner-web-03.png"
               alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo"
-              width={1920}
-              height={600}
-              sizes="100vw"
-              className="w-full h-auto object-contain"
+              fill
+              className="object-cover object-center"
               priority
-              quality={90}
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAGABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIRAAAgEEAQUBAAAAAAAAAAAAAQIDAAQFESEGEhMxQVH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8AzLpzqK9w2QjuLaRlKnTKT2sD8I+VoGN6/wAhkMfBcSRQq0qBiEBIBI3wTSlKy4x1YgnstYlmWf/Z"
+              quality={100}
             />
+            }
           </div>
         </section>
 
@@ -507,18 +521,6 @@ export default function APETogo() {
                           <span>Souscrire maintenant</span>
                           <ArrowRightIcon className="w-4 h-4" />
                         </button>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleDownload("/apetogo/BULLETIN DE SOUSCRIPTION ETAT DU TOGO 2.pdf", "Bulletin de Souscription");
-                          }}
-                          className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 text-sm"
-                        >
-                          <ArrowDownTrayIcon className="w-4 h-4" />
-                          <span>Télécharger le bulletin</span>
-                        </button>
                       </div>
                     </div>
                   );
@@ -593,46 +595,6 @@ export default function APETogo() {
                   </div>
                 </div>
               ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Contact CTA Section */}
-        <section className="relative py-24 sm:py-32 overflow-hidden" aria-label="Contact">
-          {/* Sophisticated background */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#004d38] via-[#006A4E] to-[#003d2f]" />
-          <div className="absolute inset-0 opacity-10">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#C42F30] rounded-full blur-3xl" />
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#1D943C] rounded-full blur-3xl" />
-          </div>
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05)_0%,transparent_50%)]" />
-          
-          <div className="relative max-w-4xl mx-auto px-6 text-center">
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
-              Des questions ?
-            </h2>
-            <p className="text-lg md:text-xl text-white/70 mb-12 max-w-2xl mx-auto font-light leading-relaxed">
-              Notre équipe d'experts est disponible pour vous accompagner dans votre investissement
-            </p>
-            
-            <Link
-              href="https://everestfin.com/contact/"
-              className="group inline-flex items-center gap-3 bg-gradient-to-r from-[#C42F30] to-[#A61F20] text-white px-10 py-5 rounded-xl font-bold text-lg hover:shadow-2xl hover:shadow-[#C42F30]/50 transition-all duration-300 hover:scale-105"
-            >
-              <span>Nous contacter</span>
-              <ArrowRightIcon className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-2" />
-            </Link>
-            
-            {/* Decorative element */}
-            <div className="mt-12 flex items-center justify-center gap-8 text-white/50 text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-white/50 rounded-full" />
-                <span>Réponse rapide</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-white/50 rounded-full" />
-                <span>Accompagnement personnalisé</span>
-              </div>
             </div>
           </div>
         </section>
