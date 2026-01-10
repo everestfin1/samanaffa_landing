@@ -253,30 +253,30 @@ export default function APETogo() {
                       key={tranche.id}
                       className="bg-white rounded-2xl p-6 hover:shadow-lg transition-all duration-300 group"
                     >
-                      <div className={`${color.bg} rounded-t-2xl -m-6 mb-4 p-4 ${color.text}`}>
-                        <h4 className="font-bold text-lg uppercase">
+                      <div className={`${color.bg} rounded-t-2xl -m-6 mb-6 p-5 ${color.text} text-center`}>
+                        <h4 className="font-bold text-xl uppercase">
                           TRANCHE {tranche.id}
                         </h4>
-                        <div className="text-xs font-medium tracking-wide mt-1">
+                        <div className="text-sm font-medium tracking-wide mt-2">
                           SUR {tranche.duration}
                         </div>
                       </div>
 
-                      <div className="text-center mb-6">
-                        <div className="text-4xl font-bold text-night mb-2">
+                      <div className="text-center mb-8">
+                        <div className="text-5xl font-bold text-night mb-2">
                           {formatRate(animatedRate)}%
                         </div>
                       </div>
 
-                      <div className="mb-6">
-                        <div className="text-sm text-night/60 mb-1">Montant</div>
-                        <div className="font-bold text-night text-xl">
+                      <div className="text-center mb-8">
+                        <div className="text-base text-night/60 mb-2">Montant</div>
+                        <div className="font-bold text-night text-2xl">
                           {tranche.amount}
                         </div>
                       </div>
 
-                      <div className="border-t border-timberwolf/20 pt-4 mb-6">
-                        <div className="text-sm text-night/80 font-medium">
+                      <div className="border-t border-timberwolf/20 pt-6 mb-8 text-center">
+                        <div className="text-base text-night/80 font-medium">
                           {tranche.additionalInfo.remboursement}
                         </div>
                       </div>
