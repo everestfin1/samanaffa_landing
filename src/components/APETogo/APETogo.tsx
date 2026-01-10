@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import {
   ArrowDownTrayIcon,
   ArrowTrendingUpIcon,
@@ -13,6 +14,18 @@ import Image from "next/image";
 import Link from "next/link";
 import { Header } from "@/components/APE/Header";
 import { Footer } from "@/components/APE/Footer";
+import { useContactForm } from "../../hooks/useContactForm";
+import { countries } from "../data/countries";
+
+// Dynamically import ContactForm to reduce initial bundle size
+const ContactForm = dynamic(() => import("../APE/ContactForm").then(mod => ({ default: mod.ContactForm })), {
+  loading: () => (
+    <div className="flex items-center justify-center p-12">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
+    </div>
+  ),
+  ssr: false,
+});
 
 // Custom hook for count-up animation
 const useCountUp = (end: number, duration: number): number => {
@@ -123,6 +136,11 @@ const investmentTranches = [
 ];
 
 export default function APETogo() {
+  const { formData, updateFormData, setTrancheInteret, submitForm, isSubmitting, errors, resetForm } = useContactForm();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [paymentPending, setPaymentPending] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
+  
   // Animation values
   const animationDuration = 1800;
   const animatedProgrammeTotal = useCountUp(60, animationDuration);
@@ -134,6 +152,205 @@ export default function APETogo() {
   const formatRate = (rate: number) => {
     return rate.toFixed(2).replace(".", ",");
   };
+
+  const selectedCountryData = countries.find(
+    (country) => country.code === formData.pays_residence
+  );
+
+  const handlePhoneChange = (value: string) => {
+    const selectedCode = selectedCountryData?.phoneCode || "+228";
+    let cleanValue = value;
+
+    if (value.startsWith(selectedCode)) {
+      cleanValue = value.substring(selectedCode.length).trim();
+    } else if (value.startsWith("+")) {
+      const plusIndex = value.indexOf("+");
+      cleanValue = value.substring(plusIndex + 1).trim();
+      cleanValue = cleanValue.replace(/^[0-9]+\s*/, "");
+    }
+
+    cleanValue = cleanValue.replace(/\D/g, "");
+    updateFormData("telephone", cleanValue);
+  };
+
+  const getDisplayPhoneValue = () => {
+    if (!selectedCountryData) return formData.telephone;
+    if (formData.telephone === "") return selectedCountryData.phoneCode;
+    return `${selectedCountryData.phoneCode} ${formData.telephone}`;
+  };
+
+  const handleAmountChange = (value: string) => {
+    const numericValue = value.replace(/\D/g, "");
+    const formattedValue = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    updateFormData("montant_cfa", formattedValue);
+  };
+
+  // Open contact form modal and set selected tranche
+  const scrollToFormWithTranche = (trancheId: string) => {
+    setTrancheInteret(`Tranche ${trancheId}`);
+    setIsFormOpen(true);
+    loadPaymentScripts();
+  };
+
+  // Disable body scroll when modal is open
+  useEffect(() => {
+    if (isFormOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isFormOpen]);
+
+  // Handle form submission
+  const handleFormSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitMessage(null);
+    
+    const result = await submitForm();
+    
+    if (!result.success) {
+      setSubmitMessage(result.message);
+      return;
+    }
+
+    if (result.subscription) {
+      const { referenceNumber, amount } = result.subscription;
+      setPaymentPending(true);
+      
+      // Update subscription status to payment initiated
+      await fetch('/api/ape/subscribe', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referenceNumber,
+          status: 'PAYMENT_INITIATED',
+        }),
+      });
+
+      // Trigger Intouch payment
+      triggerIntouchPayment(referenceNumber, amount);
+    }
+  };
+
+  // Trigger Intouch payment portal
+  const triggerIntouchPayment = (referenceNumber: string, amount: number) => {
+    if (typeof window !== 'undefined' && typeof (window as any).sendPaymentInfos === 'function') {
+      const baseUrl = window.location.origin;
+      const statusUrl = `${baseUrl}/ape/payment-status?referenceNumber=${referenceNumber}&amount=${amount}&source=intouch`;
+
+      fetch('/api/payments/intouch/config')
+        .then(res => res.json())
+        .then(config => {
+          if (config.error) {
+            setSubmitMessage(config.error);
+            setPaymentPending(false);
+            return;
+          }
+
+          if (config.apiKey && config.merchantId) {
+            (window as any).sendPaymentInfos(
+              referenceNumber,
+              config.merchantId,
+              config.apiKey,
+              config.domain,
+              statusUrl,
+              statusUrl,
+              Number(amount),
+              'Lomé',
+              formData.email,
+              formData.prenom,
+              formData.nom,
+              formData.telephone
+            );
+          } else {
+            setSubmitMessage('Configuration de paiement manquante. Veuillez réessayer.');
+            setPaymentPending(false);
+          }
+        })
+        .catch(err => {
+          setSubmitMessage('Erreur lors de l\'initialisation du paiement.');
+          setPaymentPending(false);
+        });
+    } else {
+      setSubmitMessage('Le système de paiement n\'est pas disponible. Veuillez rafraîchir la page.');
+      setPaymentPending(false);
+    }
+  };
+
+  // Load payment scripts on demand
+  const loadPaymentScripts = useCallback(() => {
+    if (typeof window === 'undefined') return Promise.resolve();
+    if ((window as any).sendPaymentInfos) return Promise.resolve();
+
+    const loadCryptoJS = () => {
+      return new Promise<void>((resolve, reject) => {
+        if ((window as any).CryptoJS) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';
+        script.onload = () => resolve();
+        script.onerror = () => reject(new Error('Failed to load CryptoJS'));
+        document.head.appendChild(script);
+      });
+    };
+
+    const loadIntouch = () => {
+      return new Promise<void>((resolve, reject) => {
+        if ((window as any).sendPaymentInfos) {
+          resolve();
+          return;
+        }
+        const script = document.createElement('script');
+        script.src = 'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+        script.onload = () => {
+          setTimeout(() => {
+            if ((window as any).sendPaymentInfos) {
+              resolve();
+            } else {
+              reject(new Error('sendPaymentInfos not available'));
+            }
+          }, 500);
+        };
+        script.onerror = () => reject(new Error('Failed to load Intouch script'));
+        document.head.appendChild(script);
+      });
+    };
+
+    return loadCryptoJS()
+      .then(() => loadIntouch())
+      .then(() => console.log('[APE Togo] Intouch payment scripts loaded'))
+      .catch(err => console.error('[APE Togo] Error loading payment scripts:', err));
+  }, []);
+
+  // Professional categories for the form
+  const professionalCategories = [
+    "Agriculteurs exploitants",
+    "Artisans, commerçants, chefs d'entreprise",
+    "Cadres et professions intellectuelles supérieures",
+    "Professions intermédiaires",
+    "Employés",
+    "Ouvriers",
+    "Retraités",
+    "Autres personnes sans activité professionnelle",
+    "Salarié",
+    "Entrepreneur",
+    "Profession libérale",
+    "Travailleur autonome",
+    "Étudiant",
+    "Stagiaire non rémunéré",
+  ];
+
+  // Tranches data for the ContactForm
+  const tranches = investmentTranches.map((t) => ({
+    id: t.id,
+    duration: t.duration,
+    rate: t.rate,
+  }));
 
   const handleDownload = (downloadUrl: string, title: string) => {
     const link = document.createElement("a");
@@ -281,13 +498,28 @@ export default function APETogo() {
                         </div>
                       </div>
 
-                      <button
-                        onClick={() => handleDownload("/apetogo/BULLETIN DE SOUSCRIPTION ETAT DU TOGO 2.pdf", "Bulletin de Souscription")}
-                        className={`w-full ${color.button} text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 group-hover:scale-105 transform duration-200`}
-                      >
-                        <span>Télécharger le bulletin</span>
-                        <ArrowRightIcon className="w-4 h-4" />
-                      </button>
+                      <div className="space-y-3">
+                        <button
+                          type="button"
+                          onClick={() => scrollToFormWithTranche(tranche.id)}
+                          className={`w-full ${color.button} text-white py-3 px-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2 group-hover:scale-105 transform duration-200`}
+                        >
+                          <span>Souscrire maintenant</span>
+                          <ArrowRightIcon className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleDownload("/apetogo/BULLETIN DE SOUSCRIPTION ETAT DU TOGO 2.pdf", "Bulletin de Souscription");
+                          }}
+                          className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg font-medium hover:bg-gray-50 transition-colors flex items-center justify-center space-x-2 text-sm"
+                        >
+                          <ArrowDownTrayIcon className="w-4 h-4" />
+                          <span>Télécharger le bulletin</span>
+                        </button>
+                      </div>
                     </div>
                   );
                 })}
@@ -407,6 +639,43 @@ export default function APETogo() {
       </main>
 
       <Footer isApe={true} />
+
+      {/* Contact Form Modal */}
+      {isFormOpen && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-white/70 backdrop-blur-md pt-[130px] md:pt-[120px]"
+          onClick={() => setIsFormOpen(false)}
+        >
+          <div
+            className="relative w-full max-w-5xl max-h-[calc(100vh-120px)] md:max-h-[calc(100vh-140px)] overflow-y-auto px-4"
+            onClick={(e) => e.stopPropagation()}
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            <button
+              onClick={() => setIsFormOpen(false)}
+              className="absolute right-6 top-6 z-50 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-gray-700 shadow hover:bg-white"
+            >
+              Fermer
+            </button>
+            <ContactForm
+              formData={formData}
+              updateFormData={updateFormData}
+              handleFormSubmit={handleFormSubmit}
+              isSubmitting={isSubmitting}
+              professionalCategories={professionalCategories}
+              countries={countries}
+              selectedCountryData={selectedCountryData}
+              getDisplayPhoneValue={getDisplayPhoneValue}
+              handlePhoneChange={handlePhoneChange}
+              handleAmountChange={handleAmountChange}
+              tranches={tranches}
+              errors={errors}
+              submitMessage={submitMessage}
+              paymentPending={paymentPending}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate account type
-    if (!['sama_naffa', 'ape_investment'].includes(normalizedAccountType)) {
+    if (!['sama_naffa', 'ape_investment', 'ape_togo_investment'].includes(normalizedAccountType)) {
       return respondError('invalid_account_type', 'Invalid account type', 400)
     }
 
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
       typeof providedReferenceNumber === 'string' && providedReferenceNumber.trim().length > 0
         ? providedReferenceNumber.trim()
         : generateReferenceNumber(
-            normalizedAccountType as 'sama_naffa' | 'ape_investment',
+            normalizedAccountType as 'sama_naffa' | 'ape_investment' | 'ape_togo_investment',
             normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
             userId,
             createdAt,
@@ -252,7 +252,7 @@ export async function POST(request: NextRequest) {
         amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
-        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',
+        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment' | 'ape_togo_investment',
         investmentTranche,
         investmentTerm,
         userNotes
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
         amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
         paymentMethod,
         referenceNumber,
-        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment',
+        accountType: normalizedAccountType as 'sama_naffa' | 'ape_investment' | 'ape_togo_investment',
         investmentTranche,
         investmentTerm,
         userNotes

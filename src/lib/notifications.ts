@@ -110,7 +110,7 @@ export async function sendTransactionIntentEmail(
     amount: number
     paymentMethod: string
     referenceNumber: string
-    accountType: 'sama_naffa' | 'ape_investment'
+    accountType: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment'
     investmentTranche?: string
     investmentTerm?: number
     userNotes?: string
@@ -118,7 +118,7 @@ export async function sendTransactionIntentEmail(
 ): Promise<void> {
   const { type, amount, paymentMethod, referenceNumber, accountType, investmentTranche, investmentTerm, userNotes } = transactionData
   
-  const accountTypeLabel = accountType === 'sama_naffa' ? 'Sama Naffa' : 'APE Investment'
+  const accountTypeLabel = accountType === 'sama_naffa' ? 'Sama Naffa' : accountType === 'ape_togo_investment' ? 'APE Togo' : 'APE Investment'
   const typeLabel = type === 'deposit' ? 'Dépôt' : type === 'investment' ? 'Investissement' : 'Retrait'
   
   let investmentDetails = ''
@@ -178,7 +178,7 @@ export async function sendAdminNotificationEmail(
     amount: number
     paymentMethod: string
     referenceNumber: string
-    accountType: 'sama_naffa' | 'ape_investment'
+    accountType: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment'
     investmentTranche?: string
     investmentTerm?: number
     userNotes?: string
@@ -186,7 +186,7 @@ export async function sendAdminNotificationEmail(
 ): Promise<void> {
   const { userName, userEmail, userPhone, type, amount, paymentMethod, referenceNumber, accountType, investmentTranche, investmentTerm, userNotes } = transactionData
   
-  const accountTypeLabel = accountType === 'sama_naffa' ? 'Sama Naffa' : 'APE Investment'
+  const accountTypeLabel = accountType === 'sama_naffa' ? 'Sama Naffa' : accountType === 'ape_togo_investment' ? 'APE Togo' : 'APE Investment'
   const typeLabel = type === 'deposit' ? 'Dépôt' : type === 'investment' ? 'Investissement' : 'Retrait'
   
   let investmentDetails = ''

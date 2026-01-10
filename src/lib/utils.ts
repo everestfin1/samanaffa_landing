@@ -93,12 +93,12 @@ export function addMonths(date: Date, months: number): Date {
 }
 
 export function generateReferenceNumber(
-  accountType: 'sama_naffa' | 'ape_investment',
+  accountType: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment',
   intentType: 'deposit' | 'investment' | 'withdrawal',
   userId: string,
   createdAt: Date
 ): string {
-  const prefix = accountType === 'sama_naffa' ? 'SN' : 'APE'
+  const prefix = accountType === 'sama_naffa' ? 'SN' : accountType === 'ape_togo_investment' ? 'APETG' : 'APE'
   const intentCode = intentType === 'deposit' ? 'DEP' : 
                     intentType === 'investment' ? 'INV' : 'WIT'
   const date = createdAt.toISOString().slice(0, 10).replace(/-/g, '')
