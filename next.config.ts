@@ -31,6 +31,12 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'cdn.jsdelivr.net',
+        port: '',
+        pathname: '/**',
+      },
     ],
     unoptimized: false,
     formats: ['image/avif', 'image/webp'],
@@ -58,6 +64,10 @@ const nextConfig: NextConfig = {
           {
             key: 'X-XSS-Protection',
             value: '1; mode=block',
+          },
+          {
+            key: 'Content-Security-Policy',
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob: https://www.facebook.com https://cdn.jsdelivr.net; connect-src 'self' https://touchpay.gutouch.net https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com; frame-src 'self' https://vercel.live https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self' https://touchpay.gutouch.net; frame-ancestors 'none'; upgrade-insecure-requests",
           },
         ],
       },

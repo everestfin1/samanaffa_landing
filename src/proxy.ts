@@ -13,14 +13,15 @@ export async function proxy(request: NextRequest) {
     // Exclude static assets, admin routes, and apesenegal routes (to avoid redirect loop)
     const isStaticAsset = request.nextUrl.pathname.startsWith('/_next/') || 
                           request.nextUrl.pathname.startsWith('/static/') ||
-                          request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js)$/);
+                          request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|json|webmanifest)$/);
     const isAllowedRoute = request.nextUrl.pathname.startsWith('/admin') ||
                           request.nextUrl.pathname.startsWith('/pee') ||
                           request.nextUrl.pathname.startsWith('/ape') ||
                           request.nextUrl.pathname.startsWith('/login') ||
                           request.nextUrl.pathname.startsWith('/register') ||
                           request.nextUrl.pathname.startsWith('/forgot-password') ||
-                          request.nextUrl.pathname.startsWith('/souscrire-ape')
+                          request.nextUrl.pathname.startsWith('/souscrire-ape') ||
+                          request.nextUrl.pathname === '/manifest.json'
     
     if (!isStaticAsset && !isAllowedRoute) {
       return NextResponse.redirect(new URL('/pee', request.url));
@@ -96,12 +97,12 @@ export async function proxy(request: NextRequest) {
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
-    "connect-src 'self' https://api.twilio.com https://api.bulksms.com https://api.sendgrid.com https://api.intouch.com https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com",
-    "frame-src 'self' https://vercel.live",
+    "connect-src 'self' https://api.twilio.com https://api.bulksms.com https://api.sendgrid.com https://api.intouch.com https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com",
+    "frame-src 'self' https://vercel.live https://www.googletagmanager.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https://touchpay.gutouch.net",
