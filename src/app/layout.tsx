@@ -68,17 +68,12 @@ export default function RootLayout({
           type="image/<generated>"
           sizes="180x180"
         />
-        <Script
-          src="https://www.googletagmanager.com/gtag/js?id=G-SXLJ8F6H1L"
-          strategy="afterInteractive"
-        />
-        <Script id="google-analytics" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            window.gtag = function gtag(){ window.dataLayer.push(arguments); };
-            window.gtag('js', new Date());
-            window.gtag('config', 'G-SXLJ8F6H1L');
-          `}
+        <Script id="google-tag-manager" strategy="afterInteractive">
+          {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+          new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+          j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+          'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+          })(window,document,'script','dataLayer','GTM-W9GHF4S2');`}
         </Script>
         <Script id="facebook-pixel" strategy="afterInteractive">
           {`
@@ -92,6 +87,14 @@ export default function RootLayout({
         </noscript>
       </head>
       <body className={`${geistSans.variable} antialiased`}>
+        <noscript>
+          <iframe 
+            src="https://www.googletagmanager.com/ns.html?id=GTM-W9GHF4S2" 
+            height="0" 
+            width="0" 
+            style={{ display: 'none', visibility: 'hidden' }}
+          />
+        </noscript>
         <QueryProvider>
           <SessionProvider>
             <SelectionProvider>
