@@ -2,10 +2,11 @@
   "name": "sn_ape",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "node .output/server/index.mjs",
     "lint": "eslint",
     "type-check": "tsc --noEmit",
     "check-all": "bun run lint && bun run type-check",
@@ -24,6 +25,8 @@
     "@radix-ui/react-slot": "^1.2.3",
     "@tanstack/react-query": "^5.89.0",
     "@tanstack/react-query-devtools": "^5.89.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-start": "^1.132.0",
     "@types/bcryptjs": "^3.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.1",
@@ -52,10 +55,13 @@
     "tailwind-merge": "^3.3.1",
     "tsx": "^4.20.5",
     "twilio": "^5.10.0",
+    "@unpic/react": "^1.0.0",
     "vercel": "^48.7.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@tailwindcss/vite": "^4",
+    "@vitejs/plugin-react": "^4.6.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "19.2.7",
@@ -65,7 +71,9 @@
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vite": "^6.4.0",
+    "vite-tsconfig-paths": "^5.1.0"
   },
   "overrides": {
     "@types/react": "19.2.7",

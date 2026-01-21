@@ -1,6 +1,4 @@
-'use client';
-
-import { useRouter } from 'next/navigation';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useRef, useEffect, useState } from 'react';
 import {
   ShieldCheckIcon,
@@ -12,12 +10,15 @@ import {
   SpeakerXMarkIcon,
   SpeakerWaveIcon
 } from '@heroicons/react/24/outline';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
-import Image from 'next/image';
+import { Image } from '@unpic/react';
 
-export default function Home() {
-  const router = useRouter();
+export const Route = createFileRoute('/')({
+  component: Home,
+});
+
+function Home() {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
   const [isVideoPaused, setIsVideoPaused] = useState(false);
@@ -260,10 +261,11 @@ export default function Home() {
               <Image
                 src="/sama-naffa_bg.jpg"
                 alt="Hero background"
-                fill
+                width={1920}
+                height={1080}
                 className="hero-media-position object-cover"
                 priority
-                sizes="100vw"
+                layout="constrained"
               />
             </div>
           </div>
@@ -399,7 +401,7 @@ export default function Home() {
                 transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
               >
                 <motion.button 
-                  onClick={() => router.push('/register')}
+                  onClick={() => navigate({ to: '/register' })}
                   className="group relative px-12 py-5 sama-gradient-accent text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-accent-gold/40 hover:-translate-y-2 hover:scale-105 hover:cursor-pointer"
                   whileHover={{ 
                     scale: 1.05,
@@ -513,13 +515,14 @@ export default function Home() {
         {/* Diaspora Bond Banner */}
         <section className="pt-16" aria-label="Diaspora Bond Banner">
           <div className="max-w-6xl mx-auto px-6">
-            <Link href="/register">
+            <Link to="/register">
               <Image
                 src="/Créa-Diaspora-Bond-1.png"
                 alt="Diaspora Bonds - Appel Public à l'Épargne du Sénégal"
                 className="w-full h-auto hover:opacity-80 transition-all duration-300"
                 width={1000}
                 height={1000}
+                layout="constrained"
               />
             </Link>
           </div>
@@ -580,7 +583,7 @@ export default function Home() {
                   </div>
                   
                   <Link 
-                    href="/sama-naffa"
+                    to="/sama-naffa"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
                     <span className="text-lg">Découvrir Sama Naffa</span>
@@ -628,7 +631,7 @@ export default function Home() {
                   </div>
                   
                   <Link 
-                    href="/pee"
+                    to="/pee"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
                     <span className="text-lg">Explorer le PEE</span>
