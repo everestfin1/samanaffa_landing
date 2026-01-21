@@ -1,6 +1,6 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, useAuth } from '@/components/providers/AuthProvider';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useRecentTransactions } from '../../../hooks/useTransactions';
 import {
@@ -24,7 +24,7 @@ import {
   PhoneIcon,
   StarIcon
 } from '@heroicons/react/24/outline';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 
@@ -69,8 +69,9 @@ interface TransactionIntent {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: session, status } = useSession();
+  const { signOut } = useAuth();
 
   // Use Tanstack Query hooks for data fetching
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
@@ -98,12 +99,13 @@ export default function DashboardPage() {
   }
 
   if (!session) {
-    router.push('/login');
+    (navigate as any)({ to: '/login' });
     return null;
   }
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await signOut();
+    (navigate as any)({ to: '/login' });
   };
 
   // Show loading state
@@ -169,7 +171,7 @@ export default function DashboardPage() {
         
         <div className="grid md:grid-cols-2 gap-6">
           <button 
-            onClick={() => router.push('/portal/sama-naffa')}
+            onClick={() => (navigate as any)({ to: '/portal/sama-naffa' })}
             className="group bg-gradient-to-br from-sama-primary-green/5 to-sama-primary-green-light/10 rounded-2xl border-2 border-sama-primary-green/20 p-8 hover:shadow-xl hover:shadow-sama-primary-green/10 transition-all duration-300 text-left hover:border-sama-primary-green/40 hover:scale-[1.02]"
           >
             <div className="flex items-center space-x-4 mb-6">
@@ -191,7 +193,7 @@ export default function DashboardPage() {
           </button>
 
           <button 
-            onClick={() => router.push('/portal/ape')}
+            onClick={() => (navigate as any)({ to: '/portal/ape' })}
             className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
           >
             <div className="flex items-center space-x-4 mb-6">

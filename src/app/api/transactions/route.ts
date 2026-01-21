@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { getServerSession } from '@/lib/get-session';
 import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
     // Verify user is authenticated
-    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    const session = await getServerSession();
     
-    if (!token || !token.sub) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify user owns this transaction
-    if (transaction.userId !== token.sub) {
+    if (transaction.userId !== session.user.id) {
       console.log('[API /transactions] User does not own this transaction');
       return NextResponse.json(
         { error: 'Unauthorized - transaction belongs to another user' },

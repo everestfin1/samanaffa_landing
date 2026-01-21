@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { signOut, useSession } from 'next-auth/react'
+import { useAuth, useSession } from '@/components/providers/AuthProvider'
 
 // Configuration
 const INACTIVITY_TIMEOUT = 15 * 60 * 1000 // 15 minutes
@@ -24,6 +24,8 @@ export function useSessionTimeout({
   const lastActivityRef = useRef<number>(0)
   const [warningShown, setWarningShown] = useState(false)
 
+  const { signOut } = useAuth()
+  
   // Handle session timeout
   const handleTimeout = useCallback(async () => {
     console.log('Session timeout - logging out user')
@@ -34,8 +36,9 @@ export function useSessionTimeout({
     }
     
     // Sign out user
-    await signOut({ redirect: true, callbackUrl: '/login?reason=timeout' })
-  }, [onTimeout])
+    await signOut()
+    window.location.href = '/login?reason=timeout'
+  }, [onTimeout, signOut])
 
   // Reset timers and update last activity
   const resetTimers = useCallback(() => {

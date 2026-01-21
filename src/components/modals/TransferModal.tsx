@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/AuthProvider';
 import PaymentMethodSelect from '../forms/PaymentMethodSelect';
 import IntouchPayment from '../payments/IntouchPayment';
 import KYCVerificationMessage from '../kyc/KYCVerificationMessage';

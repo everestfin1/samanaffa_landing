@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
 import { checkCSRFToken } from '@/lib/csrf';
 
 export async function proxy(request: NextRequest) {
@@ -45,18 +44,15 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
-  
   // Check if user is trying to access portal routes
+  // Session validation is now handled by the AuthProvider on the client side
+  // and by getServerSession in API routes
   if (request.nextUrl.pathname.startsWith('/portal')) {
-    // If no token, redirect to login
-    if (!token) {
+    // Check for session cookie
+    const sessionToken = request.cookies.get('better-auth.session_token')?.value;
+    if (!sessionToken) {
       return NextResponse.redirect(new URL('/login', request.url));
     }
-
-    // For now, we'll let the dashboard handle KYC status display
-    // In a production environment, you might want to add additional checks here
-    // based on the user's KYC status from the token
   }
 
   // Check if user is trying to access admin routes

@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession } from '@/components/providers/AuthProvider';
+import { useNavigate } from '@tanstack/react-router';
 import ComparativeTools from '../../../components/portal/ComparativeTools';
 import PortalHeader from '../../../components/portal/PortalHeader';
 
@@ -19,7 +19,7 @@ interface UserData {
 }
 
 export default function ComparePage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: session, status } = useSession();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -31,7 +31,7 @@ export default function ComparePage() {
       if (status === 'loading') return;
       
       if (!session) {
-        router.push('/login');
+        (navigate as any)({ to: '/login' });
         return;
       }
 
@@ -61,10 +61,10 @@ export default function ComparePage() {
     };
 
     fetchUserData();
-  }, [session, status, router]);
+  }, [session, status, navigate]);
 
   const handleLogout = () => {
-    router.push('/login');
+    (navigate as any)({ to: '/login' });
   };
 
   // Loading state

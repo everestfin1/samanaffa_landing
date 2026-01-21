@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/AuthProvider';
 import {
   ArrowDownIcon,
   ArrowUpIcon,

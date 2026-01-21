@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useSession } from '@/components/providers/AuthProvider'
+import { useNavigate } from '@tanstack/react-router'
 import PortalHeader from '@/components/portal/PortalHeader'
 import { useNotifications } from '@/hooks/useNotifications'
 import { formatDistanceToNow } from 'date-fns'
@@ -30,7 +30,7 @@ interface UserData {
 }
 
 export default function NotificationsPage() {
-  const router = useRouter()
+  const navigate = useNavigate()
   const { data: session, status } = useSession()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -57,7 +57,7 @@ export default function NotificationsPage() {
       if (status === 'loading') return
       
       if (!session) {
-        router.push('/login')
+        (navigate as any)({ to: '/login' })
         return
       }
 
@@ -88,7 +88,7 @@ export default function NotificationsPage() {
     }
 
     fetchUserData()
-  }, [session, status, router])
+  }, [session, status, navigate])
 
   // Fetch notifications when filter changes
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function NotificationsPage() {
   }, [userData, filter, page, fetchNotifications])
 
   const handleLogout = () => {
-    router.push('/login')
+    (navigate as any)({ to: '/login' })
   }
 
   const handleNotificationClick = (notificationId: string) => {

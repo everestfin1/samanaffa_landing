@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useNavigate } from '@tanstack/react-router';
+import { useAuth } from '@/components/providers/AuthProvider';
 import {
   LockClosedIcon,
   EyeIcon,
@@ -18,7 +18,8 @@ interface PasswordSetupStepProps {
 }
 
 export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupStepProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: '',
@@ -119,21 +120,20 @@ export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupSt
       if (data.success) {
         // After successful password setup, automatically log in the user
         try {
-          const signInResult = await signIn('credentials', {
+          const signInResult = await signIn({
             email: data.user.email,
             phone: data.user.phone,
             password: formData.password,
             type: 'login',
-            redirect: false
           });
 
-          if (signInResult?.error) {
+          if (!signInResult.success) {
             setError('Mot de passe configuré mais erreur de connexion. Veuillez vous connecter manuellement.');
             // Still call onSuccess to redirect to login
             setTimeout(() => {
-              router.push('/login?message=password_setup_success');
+              (navigate as any)({ to: '/login', search: { message: 'password_setup_success' } });
             }, 2000);
-          } else if (signInResult?.ok) {
+          } else {
             // Successfully logged in, redirect to dashboard
             onSuccess();
           }
@@ -142,7 +142,7 @@ export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupSt
           setError('Mot de passe configuré mais erreur de connexion. Veuillez vous connecter manuellement.');
           // Still call onSuccess to redirect to login
           setTimeout(() => {
-            router.push('/login?message=password_setup_success');
+            (navigate as any)({ to: '/login', search: { message: 'password_setup_success' } });
           }, 2000);
         }
       } else {
@@ -331,7 +331,7 @@ export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupSt
           <div className="mt-6 text-center">
             <button
               type="button"
-              onClick={() => router.push('/login?message=password_setup_skipped')}
+              onClick={() => (navigate as any)({ to: '/login', search: { message: 'password_setup_skipped' } })}
               className="text-sm text-timberwolf/60 hover:text-timberwolf transition-colors"
             >
               Configurer plus tard

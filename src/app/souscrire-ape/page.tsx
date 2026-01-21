@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useSession } from "@/components/providers/AuthProvider";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, TrendingUp, PlusIcon, ArrowDownIcon } from "lucide-react";
 import Link from "next/link";
 import { useSelection } from "@/lib/selection-context";
@@ -24,7 +24,7 @@ type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 export default function SouscrireAPEPage() {
   const { data: session } = useSession();
-  const router = useRouter();
+  const navigate = useNavigate();
   const { selectionData } = useSelection();
   
   const [apeAccount, setApeAccount] = useState<UserAccount | null>(null);
@@ -39,10 +39,10 @@ export default function SouscrireAPEPage() {
   useEffect(() => {
     if (!session) {
       // Redirect to login with return URL
-      router.push('/login?returnUrl=/souscrire-ape');
+      (navigate as any)({ to: '/login', search: { returnUrl: '/souscrire-ape' } });
       return;
     }
-  }, [session, router]);
+  }, [session, navigate]);
 
   // Fetch user's APE account and KYC status
   useEffect(() => {

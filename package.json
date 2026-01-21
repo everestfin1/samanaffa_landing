@@ -31,9 +31,11 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/nodemailer": "^7.0.1",
     "@types/twilio": "^3.19.3",
+    "@unpic/react": "^1.0.0",
     "@vercel/analytics": "^1.6.1",
     "@vercel/blob": "^2.0.0",
     "bcryptjs": "^3.0.2",
+    "better-auth": "^1.4.17",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -45,7 +47,6 @@
     "libphonenumber-js": "^1.12.22",
     "lucide-react": "^0.544.0",
     "next": "16.0.10",
-    "next-auth": "^4.24.11",
     "nodemailer": "^7.0.6",
     "pg": "^8.16.3",
     "react": "19.2.1",
@@ -55,7 +56,6 @@
     "tailwind-merge": "^3.3.1",
     "tsx": "^4.20.5",
     "twilio": "^5.10.0",
-    "@unpic/react": "^1.0.0",
     "vercel": "^48.7.0"
   },
   "devDependencies": {

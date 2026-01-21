@@ -1,7 +1,7 @@
 'use client';
 
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useSession, useAuth } from '@/components/providers/AuthProvider';
+import { useNavigate } from '@tanstack/react-router';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import SamaNaffaPortal from '../../../components/portal/SamaNaffaPortal';
 import PortalHeader from '../../../components/portal/PortalHeader';
@@ -19,8 +19,9 @@ interface UserData {
 }
 
 export default function SamaNaffaPage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: session, status } = useSession();
+  const { signOut } = useAuth();
   
   // Use Tanstack Query hook for data fetching (same as dashboard)
   const { data: userData, isLoading, error } = useUserProfile();
@@ -38,12 +39,13 @@ export default function SamaNaffaPage() {
   }
 
   if (!session) {
-    router.push('/login');
+    (navigate as any)({ to: '/login' });
     return null;
   }
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await signOut();
+    (navigate as any)({ to: '/login' });
   };
 
   // Show loading state

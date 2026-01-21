@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { useNavigate } from '@tanstack/react-router';
+import { useSession, useAuth } from '@/components/providers/AuthProvider';
 import { useUserProfile, useUpdateUserProfile, useInvalidateUserProfile } from '../../../hooks/useUserProfile';
 import {
   UserIcon,
@@ -70,8 +70,9 @@ interface KYCDocument {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
+  const navigate = useNavigate();
   const { data: session, status } = useSession();
+  const { signOut } = useAuth();
 
   // Use Tanstack Query hooks
   const { data: userData, isLoading, error: profileError } = useUserProfile();
@@ -120,12 +121,13 @@ export default function ProfilePage() {
   }
 
   if (!session) {
-    router.push('/login');
+    (navigate as any)({ to: '/login' });
     return null;
   }
 
   const handleLogout = async () => {
-    await signOut({ callbackUrl: '/login' });
+    await signOut();
+    (navigate as any)({ to: '/login' });
   };
 
   const handleSaveProfile = async () => {

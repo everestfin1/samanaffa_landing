@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '@/lib/auth'
+import { getServerSession } from '@/lib/get-session'
 import { prisma } from '@/lib/prisma'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { NotificationPriority, NotificationType } from '@/lib/types'
@@ -8,7 +7,7 @@ import { NotificationPriority, NotificationType } from '@/lib/types'
 // GET /api/admin/notifications - Get all notifications (admin)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     
     if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -93,7 +92,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/notifications - Send KYC status notification
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await getServerSession()
     
     if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

@@ -1,10 +1,9 @@
 import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../lib/auth';
+import { getServerSession } from '@/lib/get-session';
 
 export default async function PortalPage() {
   // Get session server-side
-  const session = await getServerSession(authOptions);
+  const session = await getServerSession();
 
   // Redirect based on authentication status
   if (!session) {

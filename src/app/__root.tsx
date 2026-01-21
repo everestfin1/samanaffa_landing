@@ -8,7 +8,7 @@ import appCss from "./globals.css?url";
 import Navigation from "../components/Navigation";
 import Footer from "@/components/Footer";
 import { SelectionProvider } from "../lib/selection-context";
-import SessionProvider from "@/components/providers/SessionProvider";
+import { AuthProvider } from "@/components/providers/AuthProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import QueryProvider from "@/components/providers/QueryProvider";
 import { Analytics } from "@vercel/analytics/react";
@@ -110,14 +110,14 @@ function RootLayout() {
           />
         </noscript>
         <QueryProvider>
-          <SessionProvider>
+          <AuthProvider>
             <SelectionProvider>
               <Navigation />
               <WhatsAppButton />
               <Outlet />
               <Footer />
             </SelectionProvider>
-          </SessionProvider>
+          </AuthProvider>
         </QueryProvider>
         <Analytics />
         <Scripts />

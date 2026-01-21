@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
+import { useAuth } from '@/components/providers/AuthProvider';
 import PhoneInput from '@/components/ui/PhoneInput';
 import {
   DevicePhoneMobileIcon,
@@ -17,8 +17,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 function LoginForm() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const navigate = useNavigate();
+  const searchParams = useSearch({ strict: false }) as Record<string, string | undefined>;
+  const { signIn } = useAuth();
   const [formData, setFormData] = useState({
     contact: '', // Unified field for email or phone
     phone: '', // Separate phone field for react-phone-input-2
@@ -56,7 +57,7 @@ function LoginForm() {
 
   // Check for success message from registration
   useEffect(() => {
-    const message = searchParams.get('message');
+    const message = searchParams?.message;
     if (message === 'registration_success') {
       setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter avec vos identifiants.');
     }
@@ -189,19 +190,18 @@ function LoginForm() {
 
       if (data.success) {
         setSuccess('Connexion réussie !');
-        // Use NextAuth signIn for session management
-        const result = await signIn('credentials', {
-          email: inputType === 'email' ? formData.contact : null,
-          phone: inputType === 'phone' ? formData.phone : null,
+        // Use better-auth signIn for session management
+        const result = await signIn({
+          email: inputType === 'email' ? formData.contact : undefined,
+          phone: inputType === 'phone' ? formData.phone : undefined,
           password: formData.password,
           type: 'login',
-          redirect: false
         });
 
-        if (result?.error) {
-          setError('Identifiants incorrects');
-        } else if (result?.ok) {
-          router.push('/portal/dashboard');
+        if (!result.success) {
+          setError(result.error || 'Identifiants incorrects');
+        } else {
+          (navigate as any)({ to: '/portal/dashboard' });
         }
       } else {
         if (data.error === 'password_not_set') {
@@ -280,13 +280,18 @@ function LoginForm() {
         signInData = { email: null, phone: formData.phone, otp: formData.otp, type: 'login', redirect: false };
       }
 
-      const result = await signIn('credentials', signInData);
+      const result = await signIn({
+        email: inputType === 'email' ? formData.contact : undefined,
+        phone: inputType === 'phone' ? formData.phone : undefined,
+        otp: formData.otp,
+        type: 'login',
+      });
 
-      if (result?.error) {
-        setError('Code OTP invalide ou expiré');
-      } else if (result?.ok) {
+      if (!result.success) {
+        setError(result.error || 'Code OTP invalide ou expiré');
+      } else {
         setSuccess('Connexion réussie !');
-        router.push('/portal/dashboard');
+        (navigate as any)({ to: '/portal/dashboard' });
       }
     } catch (error) {
       setError('Erreur de connexion. Veuillez réessayer.');
@@ -507,7 +512,7 @@ function LoginForm() {
                 <div className="text-sm text-night/60">
                   <button
                     type="button"
-                    onClick={() => router.push('/forgot-password')}
+                    onClick={() => (navigate as any)({ to: '/forgot-password' })}
                     className="sama-primary-green hover:text-sama-primary-green-light font-medium transition-colors"
                   >
                     Mot de passe oublié ?
@@ -626,7 +631,7 @@ function LoginForm() {
             <p className="text-night/70 text-sm">
               Pas encore de compte ?{' '}
               <button 
-                onClick={() => router.push('/register')}
+                onClick={() => (navigate as any)({ to: '/register' })}
                 className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
               >
                 Créer un Naffa
