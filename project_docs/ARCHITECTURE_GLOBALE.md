@@ -173,6 +173,8 @@ Les routes utilisent Prisma pour toute interaction base de données et appliquen
    - Support multi-langues (fr/en/wolof).
    - Application mobile (React Native ou Flutter).
 
+Référence : `project_docs/FORM_DRAFT_TELEMETRY_PLAN.md`
+
 ---
 
 ## 11. Références Doc & Ressources Internes

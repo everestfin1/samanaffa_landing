@@ -291,6 +291,10 @@ This document outlines the plan to integrate the existing frontend components wi
 - **Data Loss**: Implement proper form persistence
 - **Mobile Issues**: Extensive mobile testing
 
+### Related Plan
+
+See `project_docs/FORM_DRAFT_TELEMETRY_PLAN.md` for draft persistence and abandoned-form analytics.
+
 ## 📋 Next Steps
 
 1. **Start with Authentication** - Update login and registration pages
