@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from 'react';
+import { useEffect, useCallback, useRef, useState } from 'react';
+import { useFormTelemetry } from '@/hooks/useFormTelemetry';
 
 const MIN_APE_INVESTMENT_CFA = Number(process.env.NEXT_PUBLIC_APE_MIN_INVESTMENT_CFA ?? '10000');
 
@@ -46,22 +47,60 @@ const initialFormData: FormData = {
   code_parrainage: '',
 };
 
+const requiredFields: Array<keyof FormData> = [
+  'civilite',
+  'prenom',
+  'nom',
+  'categorie_socioprofessionnelle',
+  'pays_residence',
+  'ville',
+  'telephone',
+  'email',
+  'tranche_interesse',
+  'montant_cfa',
+];
+
+const countCompletedFields = (data: FormData) =>
+  requiredFields.filter((field) => String(data[field]).trim() !== '').length;
+
 export function useContactForm() {
   const [formData, setFormData] = useState<FormData>(initialFormData);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const draftAppliedRef = useRef(false);
+
+  const telemetry = useFormTelemetry<FormData>({
+    formType: 'ape_subscription',
+    initialDraft: initialFormData,
+  });
 
   const updateFormData = useCallback((field: keyof FormData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const nextData = { ...prev, [field]: value };
+      telemetry.trackFieldChange(field, value);
+      telemetry.saveDraft({
+        anonymousId: telemetry.anonymousId,
+        sessionId: telemetry.sessionId,
+        formInstanceId: telemetry.formInstanceId,
+        formType: 'ape_subscription',
+        draftData: nextData,
+        email: nextData.email || null,
+        phone: nextData.telephone || null,
+        stepReached: 'form',
+        fieldsCompleted: countCompletedFields(nextData),
+        totalFields: requiredFields.length,
+      });
+      return nextData;
+    });
     // Clear error when field is updated
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }));
     }
-  }, [errors]);
+  }, [errors, telemetry]);
 
   const setTrancheInteret = useCallback((tranche: string) => {
-    setFormData(prev => ({ ...prev, tranche_interesse: tranche }));
-  }, []);
+    updateFormData('tranche_interesse', tranche);
+  }, [updateFormData]);
 
   const validateForm = useCallback((): boolean => {
     const newErrors: FormErrors = {};
@@ -105,8 +144,13 @@ export function useContactForm() {
     }
 
     setErrors(newErrors);
+    Object.entries(newErrors).forEach(([field, message]) => {
+      if (message) {
+        telemetry.trackValidationError(field, message, 'form');
+      }
+    });
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  }, [formData, telemetry]);
 
   const submitForm = useCallback(async (): Promise<{ 
     success: boolean; 
@@ -142,6 +186,8 @@ export function useContactForm() {
         };
       }
 
+      telemetry.markSubmitted();
+      telemetry.clearDraft();
       // Don't reset form yet - we need the data for payment
       return { 
         success: true, 
@@ -153,12 +199,21 @@ export function useContactForm() {
     } finally {
       setIsSubmitting(false);
     }
-  }, [validateForm, formData]);
+  }, [validateForm, formData, telemetry]);
 
   const resetForm = useCallback(() => {
     setFormData(initialFormData);
     setErrors({});
-  }, []);
+    telemetry.clearDraft();
+  }, [telemetry]);
+
+  useEffect(() => {
+    if (draftAppliedRef.current || !telemetry.draftLoaded) return;
+    if (telemetry.draftData) {
+      setFormData(telemetry.draftData);
+      draftAppliedRef.current = true;
+    }
+  }, [telemetry.draftData, telemetry.draftLoaded]);
 
   return {
     formData,

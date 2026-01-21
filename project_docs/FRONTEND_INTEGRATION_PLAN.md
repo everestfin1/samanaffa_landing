@@ -8,6 +8,15 @@
 
 This document outlines the plan to integrate the existing frontend components with the newly implemented backend APIs, replacing mock authentication and data handling with real backend integration.
 
+## ✅ Form Telemetry & Abandoned Leads (Implemented)
+
+- Telemetry hook: `src/hooks/useFormTelemetry.ts`
+- Ingestion endpoints:
+  - `POST /api/telemetry/events`
+  - `POST /api/telemetry/draft`
+- BO (Admin): `/admin` → tab “Leads abandonnés”
+- Admin API: `GET/PATCH /api/admin/abandoned-leads`
+
 ## 🎯 Current State
 
 ### ✅ Backend APIs Completed

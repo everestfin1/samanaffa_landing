@@ -1,6 +1,6 @@
 # Plan — Form Draft Auto-Save & Abandoned Lead Analytics
 
-**Status:** Proposed
+**Status:** Implemented
 
 ## 1. Objective
 
@@ -160,7 +160,19 @@ Implementation constraints:
 ### 6.2 BO endpoints
 
 - `GET /api/admin/abandoned-leads`
-- `PATCH /api/admin/abandoned-leads/:id` (status, notes, assignment)
+- `PATCH /api/admin/abandoned-leads` (status, notes)
+
+Notes:
+
+- `form_drafts` includes an `adminNotes` field for BO follow-up.
+- BO UI is available in `/admin` under the “Leads abandonnés” tab.
+
+### 6.3 Migration note (dev environments)
+
+If your database already contains base enums/tables but Drizzle migration history is out-of-sync (e.g. `AccountStatus already exists` while running `drizzle-kit migrate`), you can:
+
+- Manually create/populate `__drizzle_migrations` to reflect already-applied migrations.
+- Apply only the missing migration SQL (e.g. `drizzle/0005_add_form_telemetry.sql`) using `psql` against the same `DATABASE_URL` used by the app.
 
 ## 7. Lead Scoring (v1)
 

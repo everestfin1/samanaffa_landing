@@ -184,6 +184,30 @@ interface PeeLeadStats {
   converted: number
 }
 
+interface AbandonedLead {
+  id: string
+  anonymousId: string
+  formType: string
+  email?: string | null
+  phone?: string | null
+  stepReached?: string | null
+  fieldsCompleted?: number | null
+  totalFields?: number | null
+  score: number
+  status: string
+  adminNotes?: string | null
+  lastActivityAt: string
+  firstSeenAt: string
+}
+
+interface AbandonedLeadStats {
+  total: number
+  abandoned: number
+  contacted: number
+  converted: number
+  dismissed: number
+}
+
 export default function AdminDashboard() {
   const router = useRouter()
   const [stats, setStats] = useState<DashboardStats>({
@@ -198,7 +222,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -278,6 +302,20 @@ export default function AdminDashboard() {
   const [showPeeLeadModal, setShowPeeLeadModal] = useState(false)
   const [peeLeadNotes, setPeeLeadNotes] = useState('')
   const [updatingPeeLead, setUpdatingPeeLead] = useState(false)
+
+  // Abandoned Leads State
+  const [abandonedLeads, setAbandonedLeads] = useState<AbandonedLead[]>([])
+  const [abandonedLeadStats, setAbandonedLeadStats] = useState<AbandonedLeadStats>({
+    total: 0,
+    abandoned: 0,
+    contacted: 0,
+    converted: 0,
+    dismissed: 0,
+  })
+  const [selectedAbandonedLead, setSelectedAbandonedLead] = useState<AbandonedLead | null>(null)
+  const [showAbandonedLeadModal, setShowAbandonedLeadModal] = useState(false)
+  const [abandonedLeadNotes, setAbandonedLeadNotes] = useState('')
+  const [updatingAbandonedLead, setUpdatingAbandonedLead] = useState(false)
 
   useEffect(() => {
     // Check if admin is authenticated
@@ -399,6 +437,15 @@ export default function AdminDashboard() {
       if (peeLeadsData.success) {
         setPeeLeads(peeLeadsData.leads)
         setPeeLeadStats(peeLeadsData.stats)
+      }
+
+      // Fetch Abandoned Leads
+      const abandonedLeadsResponse = await fetch('/api/admin/abandoned-leads', { headers })
+      const abandonedLeadsData = await abandonedLeadsResponse.json()
+
+      if (abandonedLeadsData.success) {
+        setAbandonedLeads(abandonedLeadsData.drafts)
+        setAbandonedLeadStats(abandonedLeadsData.stats)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -1211,6 +1258,60 @@ export default function AdminDashboard() {
     }
   }
 
+  const handleUpdateAbandonedLead = async (status: string) => {
+    if (!selectedAbandonedLead) return
+
+    setUpdatingAbandonedLead(true)
+    try {
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/abandoned-leads', {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: selectedAbandonedLead.id,
+          status,
+          adminNotes: abandonedLeadNotes,
+        }),
+      })
+
+      const data = await response.json()
+      if (data.success) {
+        setAbandonedLeads(prev =>
+          prev.map(lead =>
+            lead.id === selectedAbandonedLead.id
+              ? { ...lead, status, adminNotes: abandonedLeadNotes }
+              : lead
+          )
+        )
+
+        const newStats = { ...abandonedLeadStats }
+        if (selectedAbandonedLead.status === 'ABANDONED') newStats.abandoned--
+        if (selectedAbandonedLead.status === 'CONTACTED') newStats.contacted--
+        if (selectedAbandonedLead.status === 'CONVERTED') newStats.converted--
+        if (selectedAbandonedLead.status === 'DISMISSED') newStats.dismissed--
+        if (status === 'ABANDONED') newStats.abandoned++
+        if (status === 'CONTACTED') newStats.contacted++
+        if (status === 'CONVERTED') newStats.converted++
+        if (status === 'DISMISSED') newStats.dismissed++
+        setAbandonedLeadStats(newStats)
+
+        setShowAbandonedLeadModal(false)
+        setSelectedAbandonedLead(null)
+        setAbandonedLeadNotes('')
+      } else {
+        alert(data.error || 'Erreur lors de la mise à jour')
+      }
+    } catch (error) {
+      console.error('Error updating abandoned lead:', error)
+      alert('Erreur lors de la mise à jour du lead abandonné')
+    } finally {
+      setUpdatingAbandonedLead(false)
+    }
+  }
+
   const SPONSOR_CODE_STATUS_CONFIG = {
     ACTIVE: { label: 'Actif', color: 'emerald' },
     INACTIVE: { label: 'Inactif', color: 'neutral' },
@@ -1255,6 +1356,7 @@ export default function AdminDashboard() {
       case 'apeSubscriptions': return 'APE Sénégal'
       case 'sponsorCodes': return 'Codes Parrainage'
       case 'peeLeads': return 'PEE Leads'
+      case 'abandonedLeads': return 'Leads abandonnés'
       case 'users': return 'Utilisateurs'
       case 'transactions': return 'Transactions'
       case 'notifications': return 'Notifications'
@@ -1395,6 +1497,169 @@ export default function AdminDashboard() {
                   <p className="text-sm text-[var(--admin-text-muted)]">
                     Utilisez cet outil pour synchroniser les soldes avec les transactions complétées
                   </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Abandoned Leads Tab */}
+        {activeTab === 'abandonedLeads' && (
+          <div className="space-y-8">
+            <div className="admin-grid admin-grid-5">
+              <div className="admin-stat-card" data-color="sky">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Total</span>
+                  <div className="admin-stat-icon"><Archive className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{abandonedLeadStats.total}</div>
+              </div>
+              <div className="admin-stat-card" data-color="amber">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Abandonnés</span>
+                  <div className="admin-stat-icon"><AlertCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{abandonedLeadStats.abandoned}</div>
+              </div>
+              <div className="admin-stat-card" data-color="blue">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Contactés</span>
+                  <div className="admin-stat-icon"><Phone className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{abandonedLeadStats.contacted}</div>
+              </div>
+              <div className="admin-stat-card" data-color="emerald">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Convertis</span>
+                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value colored">{abandonedLeadStats.converted}</div>
+              </div>
+              <div className="admin-stat-card" data-color="rose">
+                <div className="admin-stat-header">
+                  <span className="admin-stat-label">Écartés</span>
+                  <div className="admin-stat-icon"><XCircle className="w-5 h-5" /></div>
+                </div>
+                <div className="admin-stat-value">{abandonedLeadStats.dismissed}</div>
+              </div>
+            </div>
+
+            <div className="admin-card">
+              <div className="admin-card-header">
+                <div>
+                  <h3 className="admin-card-title">Leads abandonnés</h3>
+                  <p className="admin-card-subtitle">Suivi des brouillons de formulaires non convertis</p>
+                </div>
+              </div>
+              <div className="admin-card-body p-0">
+                <div className="admin-table-container">
+                  {abandonedLeads.length > 0 ? (
+                    <table className="admin-table">
+                      <thead>
+                        <tr>
+                          <th>Contact</th>
+                          <th>Formulaire</th>
+                          <th>Progression</th>
+                          <th>Score</th>
+                          <th>Statut</th>
+                          <th>Dernière activité</th>
+                          <th className="text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {abandonedLeads.map((lead) => {
+                          const completionRate = lead.totalFields
+                            ? Math.round(((lead.fieldsCompleted || 0) / lead.totalFields) * 100)
+                            : 0
+                          return (
+                            <tr key={lead.id}>
+                              <td>
+                                <div className="text-sm">
+                                  {lead.email && (
+                                    <div className="flex items-center gap-1">
+                                      <Mail className="w-3 h-3" />
+                                      {lead.email}
+                                    </div>
+                                  )}
+                                  {lead.phone && (
+                                    <div className="flex items-center gap-1 text-[var(--admin-text-muted)]">
+                                      <Phone className="w-3 h-3" />
+                                      {lead.phone}
+                                    </div>
+                                  )}
+                                  {!lead.email && !lead.phone && (
+                                    <span className="text-[var(--admin-text-muted)]">Anonyme</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td>
+                                <span className="admin-badge admin-badge-neutral">
+                                  {lead.formType}
+                                </span>
+                                {lead.stepReached && (
+                                  <div className="text-xs text-[var(--admin-text-muted)] mt-1">
+                                    Étape: {lead.stepReached}
+                                  </div>
+                                )}
+                              </td>
+                              <td>
+                                <div className="text-sm">
+                                  {lead.fieldsCompleted ?? 0}/{lead.totalFields ?? 0}
+                                  <div className="text-xs text-[var(--admin-text-muted)]">{completionRate}%</div>
+                                </div>
+                              </td>
+                              <td>
+                                <span className="font-semibold">{lead.score}</span>
+                              </td>
+                              <td>
+                                <span className={`admin-badge ${
+                                  lead.status === 'ABANDONED' ? 'admin-badge-amber' :
+                                  lead.status === 'CONTACTED' ? 'admin-badge-blue' :
+                                  lead.status === 'CONVERTED' ? 'admin-badge-emerald' :
+                                  lead.status === 'DISMISSED' ? 'admin-badge-rose' :
+                                  'admin-badge-neutral'
+                                }`}>
+                                  {lead.status === 'ABANDONED' ? 'Abandonné' :
+                                   lead.status === 'CONTACTED' ? 'Contacté' :
+                                   lead.status === 'CONVERTED' ? 'Converti' :
+                                   lead.status === 'DISMISSED' ? 'Écarté' :
+                                   lead.status}
+                                </span>
+                              </td>
+                              <td>
+                                <div className="text-sm text-[var(--admin-text-muted)]">
+                                  {new Date(lead.lastActivityAt).toLocaleDateString('fr-FR', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </div>
+                              </td>
+                              <td className="text-right">
+                                <button
+                                  onClick={() => {
+                                    setSelectedAbandonedLead(lead)
+                                    setAbandonedLeadNotes(lead.adminNotes || '')
+                                    setShowAbandonedLeadModal(true)
+                                  }}
+                                  className="admin-btn admin-btn-sm admin-btn-secondary"
+                                >
+                                  <Edit className="w-4 h-4 mr-1" />
+                                  Gérer
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        })}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <div className="admin-empty-state">
+                      <Archive className="admin-empty-icon" />
+                      <h3 className="admin-empty-title">Aucun lead abandonné</h3>
+                      <p className="admin-empty-text">Les brouillons apparaîtront ici</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -3518,6 +3783,101 @@ export default function AdminDashboard() {
                 disabled={updatingPeeLead}
               >
                 Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Abandoned Lead Management Modal */}
+      {showAbandonedLeadModal && selectedAbandonedLead && (
+        <div className="admin-modal-overlay" onClick={() => setShowAbandonedLeadModal(false)}>
+          <div className="admin-modal" style={{ maxWidth: '640px' }} onClick={e => e.stopPropagation()}>
+            <div className="admin-modal-header">
+              <h3 className="admin-modal-title">Gérer le lead abandonné</h3>
+              <button onClick={() => setShowAbandonedLeadModal(false)} className="admin-modal-close">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="admin-modal-body">
+              <div className="admin-info-grid mb-6">
+                <div>
+                  <p className="admin-info-label">Formulaire</p>
+                  <p className="admin-info-value">{selectedAbandonedLead.formType}</p>
+                </div>
+                <div>
+                  <p className="admin-info-label">Score</p>
+                  <p className="admin-info-value">{selectedAbandonedLead.score}</p>
+                </div>
+                <div>
+                  <p className="admin-info-label">Progression</p>
+                  <p className="admin-info-value">
+                    {selectedAbandonedLead.fieldsCompleted ?? 0}/{selectedAbandonedLead.totalFields ?? 0}
+                  </p>
+                </div>
+                <div>
+                  <p className="admin-info-label">Dernière activité</p>
+                  <p className="admin-info-value">
+                    {new Date(selectedAbandonedLead.lastActivityAt).toLocaleDateString('fr-FR')}
+                  </p>
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="admin-label">Contact</label>
+                <div className="space-y-1 text-sm">
+                  {selectedAbandonedLead.email && (
+                    <div className="flex items-center gap-2"><Mail className="w-4 h-4" /> {selectedAbandonedLead.email}</div>
+                  )}
+                  {selectedAbandonedLead.phone && (
+                    <div className="flex items-center gap-2"><Phone className="w-4 h-4" /> {selectedAbandonedLead.phone}</div>
+                  )}
+                  {!selectedAbandonedLead.email && !selectedAbandonedLead.phone && (
+                    <div className="text-[var(--admin-text-muted)]">Aucune info de contact</div>
+                  )}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="admin-label">Notes internes</label>
+                <textarea
+                  value={abandonedLeadNotes}
+                  onChange={(e) => setAbandonedLeadNotes(e.target.value)}
+                  placeholder="Ajouter un commentaire interne"
+                  className="admin-textarea"
+                  rows={4}
+                />
+              </div>
+            </div>
+
+            <div className="admin-modal-footer flex-wrap gap-2">
+              <button
+                onClick={() => setShowAbandonedLeadModal(false)}
+                className="admin-btn admin-btn-secondary"
+                disabled={updatingAbandonedLead}
+              >
+                Annuler
+              </button>
+              <button
+                onClick={() => handleUpdateAbandonedLead('CONTACTED')}
+                className="admin-btn admin-btn-secondary"
+                disabled={updatingAbandonedLead}
+              >
+                {updatingAbandonedLead ? '...' : 'Marquer contacté'}
+              </button>
+              <button
+                onClick={() => handleUpdateAbandonedLead('CONVERTED')}
+                className="admin-btn admin-btn-primary"
+                disabled={updatingAbandonedLead}
+              >
+                Converti
+              </button>
+              <button
+                onClick={() => handleUpdateAbandonedLead('DISMISSED')}
+                className="admin-btn admin-btn-ghost text-rose-600"
+                disabled={updatingAbandonedLead}
+              >
+                Écarter
               </button>
             </div>
           </div>

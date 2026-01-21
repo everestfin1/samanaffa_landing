@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, boolean, decimal, integer, json, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, boolean, decimal, integer, json, pgEnum, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Enums
@@ -14,6 +14,7 @@ export const sessionTypeEnum = pgEnum('SessionType', ['REGISTRATION', 'LOGIN']);
 export const notificationTypeEnum = pgEnum('NotificationType', ['KYC_STATUS', 'SUCCESS', 'ERROR', 'WARNING', 'TRANSACTION', 'SECURITY']);
 export const notificationPriorityEnum = pgEnum('NotificationPriority', ['LOW', 'NORMAL', 'HIGH', 'URGENT']);
 export const apeSubscriptionStatusEnum = pgEnum('ApeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
+export const formDraftStatusEnum = pgEnum('FormDraftStatus', ['ABANDONED', 'CONTACTED', 'CONVERTED', 'DISMISSED']);
 
 // Sponsor code status enum
 export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
@@ -132,6 +133,48 @@ export const transactionIntents = pgTable('transaction_intents', {
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
+
+// Form drafts table - stores latest known draft per lead/session
+export const formDrafts = pgTable('form_drafts', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  anonymousId: text('anonymousId').notNull(),
+  formType: text('formType').notNull(),
+  draftData: json('draftData').notNull(),
+  email: text('email'),
+  phone: text('phone'),
+  stepReached: text('stepReached'),
+  fieldsCompleted: integer('fieldsCompleted'),
+  totalFields: integer('totalFields'),
+  source: json('source'),
+  deviceInfo: json('deviceInfo'),
+  score: integer('score').notNull().default(0),
+  status: formDraftStatusEnum('status').notNull().default('ABANDONED'),
+  adminNotes: text('adminNotes'),
+  firstSeenAt: timestamp('firstSeenAt', { mode: 'date' }).notNull().defaultNow(),
+  lastActivityAt: timestamp('lastActivityAt', { mode: 'date' }).notNull().defaultNow(),
+  convertedAt: timestamp('convertedAt', { mode: 'date' }),
+}, (table) => [
+  uniqueIndex('form_drafts_anonymous_form_type_unique').on(table.anonymousId, table.formType),
+  index('form_drafts_status_idx').on(table.formType, table.status),
+  index('form_drafts_email_idx').on(table.email),
+  index('form_drafts_phone_idx').on(table.phone),
+  index('form_drafts_score_idx').on(table.score),
+]);
+
+// Form events table - analytics timeline
+export const formEvents = pgTable('form_events', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  anonymousId: text('anonymousId').notNull(),
+  formType: text('formType').notNull(),
+  eventType: text('eventType').notNull(),
+  fieldKey: text('fieldKey'),
+  step: text('step'),
+  metadata: json('metadata'),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+}, (table) => [
+  index('form_events_anon_form_idx').on(table.anonymousId, table.formType),
+  index('form_events_event_time_idx').on(table.eventType, table.createdAt),
+]);
 
 // Payment Callback Logs table
 export const paymentCallbackLogs = pgTable('payment_callback_logs', {
@@ -355,3 +398,7 @@ export type ApeSubscription = typeof apeSubscriptions.$inferSelect;
 export type NewApeSubscription = typeof apeSubscriptions.$inferInsert;
 export type ApeSponsorCode = typeof apeSponsorCodes.$inferSelect;
 export type NewApeSponsorCode = typeof apeSponsorCodes.$inferInsert;
+export type FormDraft = typeof formDrafts.$inferSelect;
+export type NewFormDraft = typeof formDrafts.$inferInsert;
+export type FormEvent = typeof formEvents.$inferSelect;
+export type NewFormEvent = typeof formEvents.$inferInsert;

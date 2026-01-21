@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useFormTelemetry } from '@/hooks/useFormTelemetry';
 
 const countries = [
   { code: 'SN', name: 'Sénégal' },
@@ -180,24 +181,84 @@ const countryCodeToName: Record<string, string> = countries.reduce((acc, country
   return acc;
 }, {} as Record<string, string>);
 
+const initialFormData = {
+  civilite: 'Mme',
+  prenom: '',
+  nom: '',
+  categorie: '',
+  pays: 'SN',
+  ville: '',
+  telephone: '',
+  email: ''
+};
+
+const requiredFields = [
+  'civilite',
+  'prenom',
+  'nom',
+  'categorie',
+  'pays',
+  'ville',
+  'telephone',
+] as const;
+
+const countCompletedFields = (data: typeof initialFormData) =>
+  requiredFields.filter((field) => String(data[field]).trim() !== '').length;
+
+const getSourceInfo = () => {
+  if (typeof window === 'undefined') return null;
+  return {
+    path: window.location.pathname,
+    search: window.location.search,
+    referrer: document.referrer || null,
+  };
+};
+
+const getDeviceInfo = () => {
+  if (typeof navigator === 'undefined') return null;
+  return {
+    userAgent: navigator.userAgent,
+    language: navigator.language,
+  };
+};
+
 export default function LeadForm() {
-  const [formData, setFormData] = useState({
-    civilite: 'Mme',
-    prenom: '',
-    nom: '',
-    categorie: '',
-    pays: 'SN',
-    ville: '',
-    telephone: '',
-    email: ''
-  });
+  const [formData, setFormData] = useState(initialFormData);
   
   const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const draftAppliedRef = useRef(false);
+
+  const telemetry = useFormTelemetry<typeof initialFormData>({
+    formType: 'pee_lead',
+    initialDraft: initialFormData,
+  });
+
+  const updateFormData = useCallback((field: keyof typeof initialFormData, value: string) => {
+    setFormData(prev => {
+      const nextData = { ...prev, [field]: value };
+      telemetry.trackFieldChange(field, value, 'form');
+      telemetry.saveDraft({
+        anonymousId: telemetry.anonymousId,
+        sessionId: telemetry.sessionId,
+        formInstanceId: telemetry.formInstanceId,
+        formType: 'pee_lead',
+        draftData: nextData,
+        email: nextData.email || null,
+        phone: nextData.telephone || null,
+        stepReached: 'form',
+        fieldsCompleted: countCompletedFields(nextData),
+        totalFields: requiredFields.length,
+        source: getSourceInfo(),
+        deviceInfo: getDeviceInfo(),
+      });
+      return nextData;
+    });
+  }, [telemetry]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    updateFormData(name as keyof typeof initialFormData, value);
   };
 
   const isFormValid = () => {
@@ -235,6 +296,8 @@ export default function LeadForm() {
       const data = await response.json();
 
       if (response.ok) {
+        telemetry.markSubmitted();
+        telemetry.clearDraft();
         setStatus('success');
         // Trigger GA4 event
         if (typeof window !== 'undefined' && (window as any).gtag) {
@@ -253,6 +316,14 @@ export default function LeadForm() {
     }
   };
 
+  useEffect(() => {
+    if (draftAppliedRef.current || !telemetry.draftLoaded) return;
+    if (telemetry.draftData) {
+      setFormData(telemetry.draftData);
+      draftAppliedRef.current = true;
+    }
+  }, [telemetry.draftData, telemetry.draftLoaded]);
+
   if (status === 'success') {
     return (
       <section id="contact" className="py-16 md:py-20 bg-white">
@@ -265,16 +336,8 @@ export default function LeadForm() {
             <button 
               onClick={() => {
                 setStatus('idle');
-                setFormData({
-                  civilite: 'Mme',
-                  prenom: '',
-                  nom: '',
-                  categorie: '',
-                  pays: 'SN',
-                  ville: '',
-                  telephone: '',
-                  email: ''
-                });
+                setFormData(initialFormData);
+                telemetry.clearDraft();
               }}
               className="bg-[#C09037] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base hover:bg-[#b3830f] transition-all duration-300 hover:shadow-lg"
             >
@@ -365,7 +428,7 @@ export default function LeadForm() {
               <label htmlFor="categorie" className="block text-sm sm:text-base font-medium text-[#2e0e36] mb-1.5 sm:mb-2">Catégorie socio-professionnelle *</label>
               <Select
                 value={formData.categorie}
-                onValueChange={(value) => setFormData((prev) => ({ ...prev, categorie: value }))}
+                onValueChange={(value) => updateFormData('categorie', value)}
               >
                 <SelectTrigger className="h-auto w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 bg-white text-sm sm:text-base focus:ring-2 focus:ring-[#C09037] focus:ring-offset-0">
                   <SelectValue placeholder="Sélectionner..." />
@@ -386,7 +449,7 @@ export default function LeadForm() {
                 <label htmlFor="pays" className="block text-sm sm:text-base font-medium text-[#2e0e36] mb-1.5 sm:mb-2">Pays de résidence *</label>
                 <Select
                   value={formData.pays}
-                  onValueChange={(value) => setFormData((prev) => ({ ...prev, pays: value }))}
+                  onValueChange={(value) => updateFormData('pays', value)}
                 >
                   <SelectTrigger className="h-auto w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 bg-white text-sm sm:text-base focus:ring-2 focus:ring-[#C09037] focus:ring-offset-0">
                     <span className="flex items-center gap-2">

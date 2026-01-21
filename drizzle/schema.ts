@@ -5,6 +5,7 @@ export const accountStatus = pgEnum("AccountStatus", ['ACTIVE', 'INACTIVE', 'SUS
 export const accountType = pgEnum("AccountType", ['SAMA_NAFFA', 'APE_INVESTMENT'])
 export const adminRole = pgEnum("AdminRole", ['ADMIN', 'MANAGER', 'SUPPORT'])
 export const apeSubscriptionStatus = pgEnum("ApeSubscriptionStatus", ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED'])
+export const formDraftStatus = pgEnum("FormDraftStatus", ['ABANDONED', 'CONTACTED', 'CONVERTED', 'DISMISSED'])
 export const intentType = pgEnum("IntentType", ['DEPOSIT', 'INVESTMENT', 'WITHDRAWAL'])
 export const kycStatus = pgEnum("KycStatus", ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW'])
 export const notificationPriority = pgEnum("NotificationPriority", ['LOW', 'NORMAL', 'HIGH', 'URGENT'])
@@ -78,6 +79,46 @@ export const adminUsers = pgTable("admin_users", {
 	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
 }, (table) => [
 	uniqueIndex("admin_users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
+]);
+
+export const formDrafts = pgTable("form_drafts", {
+	id: text().primaryKey().notNull(),
+	anonymousId: text().notNull(),
+	formType: text().notNull(),
+	draftData: jsonb().notNull(),
+	email: text(),
+	phone: text(),
+	stepReached: text(),
+	fieldsCompleted: integer(),
+	totalFields: integer(),
+	source: jsonb(),
+	deviceInfo: jsonb(),
+	score: integer().default(0).notNull(),
+	status: formDraftStatus().default('ABANDONED').notNull(),
+	adminNotes: text(),
+	firstSeenAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	lastActivityAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+	convertedAt: timestamp({ mode: 'string' }),
+}, (table) => [
+	uniqueIndex("form_drafts_anonymous_form_type_unique").using("btree", table.anonymousId.asc().nullsLast().op("text_ops"), table.formType.asc().nullsLast().op("text_ops")),
+	index("form_drafts_email_idx").using("btree", table.email.asc().nullsLast().op("text_ops")),
+	index("form_drafts_phone_idx").using("btree", table.phone.asc().nullsLast().op("text_ops")),
+	index("form_drafts_score_idx").using("btree", table.score.asc().nullsLast().op("int4_ops")),
+	index("form_drafts_status_idx").using("btree", table.formType.asc().nullsLast().op("text_ops"), table.status.asc().nullsLast().op("enum_ops")),
+]);
+
+export const formEvents = pgTable("form_events", {
+	id: text().primaryKey().notNull(),
+	anonymousId: text().notNull(),
+	formType: text().notNull(),
+	eventType: text().notNull(),
+	fieldKey: text(),
+	step: text(),
+	metadata: jsonb(),
+	createdAt: timestamp({ mode: 'string' }).defaultNow().notNull(),
+}, (table) => [
+	index("form_events_anon_form_idx").using("btree", table.anonymousId.asc().nullsLast().op("text_ops"), table.formType.asc().nullsLast().op("text_ops")),
+	index("form_events_event_time_idx").using("btree", table.eventType.asc().nullsLast().op("text_ops"), table.createdAt.asc().nullsLast().op("timestamp_ops")),
 ]);
 
 export const otpCodes = pgTable("otp_codes", {

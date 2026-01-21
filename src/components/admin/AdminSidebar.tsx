@@ -13,11 +13,12 @@ import {
   Shield,
   Gift,
   GraduationCap,
-  RefreshCw
+  RefreshCw,
+  Archive
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
-type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'
+type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'
 
 interface NavItem {
   id: TabId
@@ -59,6 +60,7 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
     { id: 'reconciliation', label: 'Réconciliation', icon: RefreshCw },
     { id: 'sponsorCodes', label: 'Codes Parrainage', icon: Gift },
     { id: 'peeLeads', label: 'PEE Leads', icon: GraduationCap },
+    { id: 'abandonedLeads', label: 'Leads abandonnés', icon: Archive },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'kyc', label: 'KYC', icon: FileText, badge: stats?.pendingKyc },
     { id: 'notifications', label: 'Notifications', icon: MessageSquare },

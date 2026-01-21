@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { validateInternationalPhone, isUEMOACountry } from '@/lib/utils';
+import { useFormTelemetry } from '@/hooks/useFormTelemetry';
 import {
   UserIcon,
   IdentificationIcon,
@@ -38,7 +39,7 @@ export default function RegisterPage() {
   const [isDrawing, setIsDrawing] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const [formData, setFormData] = useState<FormData>({
+  const initialFormData = useMemo<FormData>(() => ({
     // Step 1
     civilite: 'mr',
     firstName: '',
@@ -77,6 +78,14 @@ export default function RegisterPage() {
     marketingAccepted: false,
     signature: '',
     signatureFile: null
+  }), []);
+
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const draftAppliedRef = useRef(false);
+
+  const telemetry = useFormTelemetry<FormData>({
+    formType: 'registration',
+    initialDraft: initialFormData,
   });
 
   const steps = [
@@ -87,6 +96,71 @@ export default function RegisterPage() {
     { id: 5, title: 'Conditions et signature', icon: ShieldCheckIcon, description: 'Termes et signature électronique' },
     { id: 6, title: 'Vérification finale', icon: CheckCircleIcon, description: 'Code de vérification et création du compte' }
   ];
+
+  const registrationFieldKeys: Array<keyof FormData> = [
+    'civilite',
+    'firstName',
+    'lastName',
+    'phone',
+    'email',
+    'statutEmploi',
+    'metiers',
+    'nationality',
+    'idType',
+    'idNumber',
+    'idIssueDate',
+    'idExpiryDate',
+    'dateOfBirth',
+    'placeOfBirth',
+    'country',
+    'region',
+    'department',
+    'arrondissement',
+    'district',
+    'address',
+    'city',
+    'selfieImage',
+    'idFrontImage',
+    'idBackImage',
+    'termsAccepted',
+    'privacyAccepted',
+    'marketingAccepted',
+    'signature',
+    'signatureFile',
+  ];
+
+  const getSourceInfo = () => {
+    if (typeof window === 'undefined') return null;
+    return {
+      path: window.location.pathname,
+      search: window.location.search,
+      referrer: document.referrer || null,
+    };
+  };
+
+  const getDeviceInfo = () => {
+    if (typeof navigator === 'undefined') return null;
+    return {
+      userAgent: navigator.userAgent,
+      language: navigator.language,
+    };
+  };
+
+  const countCompletedFields = (data: FormData) =>
+    registrationFieldKeys.filter((field) => {
+      const value = data[field];
+      if (typeof value === 'boolean') return value;
+      if (value instanceof File) return true;
+      return typeof value === 'string' ? value.trim() !== '' : Boolean(value);
+    }).length;
+
+  const sanitizeDraftData = (data: FormData): FormData => ({
+    ...data,
+    selfieImage: null,
+    idFrontImage: null,
+    idBackImage: null,
+    signatureFile: null,
+  });
 
 
 
@@ -365,6 +439,23 @@ export default function RegisterPage() {
         }
       }
 
+      const sanitizedData = sanitizeDraftData(newData);
+      telemetry.trackFieldChange(name, type === 'checkbox' ? checked : value, `step-${currentStep}`);
+      telemetry.saveDraft({
+        anonymousId: telemetry.anonymousId,
+        sessionId: telemetry.sessionId,
+        formInstanceId: telemetry.formInstanceId,
+        formType: 'registration',
+        draftData: sanitizedData,
+        email: sanitizedData.email || null,
+        phone: sanitizedData.phone || null,
+        stepReached: `step-${currentStep}`,
+        fieldsCompleted: countCompletedFields(sanitizedData),
+        totalFields: registrationFieldKeys.length,
+        source: getSourceInfo(),
+        deviceInfo: getDeviceInfo(),
+      });
+
       return newData;
     });
 
@@ -374,6 +465,9 @@ export default function RegisterPage() {
       ...prev,
       [name]: error
     }));
+    if (error) {
+      telemetry.trackValidationError(name, error, `step-${currentStep}`);
+    }
   };
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -388,6 +482,9 @@ export default function RegisterPage() {
       ...prev,
       [name]: error
     }));
+    if (error) {
+      telemetry.trackValidationError(name, error, `step-${currentStep}`);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, fieldName: string) => {
@@ -416,10 +513,29 @@ export default function RegisterPage() {
       }
     }
     
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: file
-    }));
+    setFormData(prev => {
+      const nextData = {
+        ...prev,
+        [fieldName]: file
+      };
+      const sanitizedData = sanitizeDraftData(nextData);
+      telemetry.trackFieldChange(fieldName, file ? file.name : '', `step-${currentStep}`);
+      telemetry.saveDraft({
+        anonymousId: telemetry.anonymousId,
+        sessionId: telemetry.sessionId,
+        formInstanceId: telemetry.formInstanceId,
+        formType: 'registration',
+        draftData: sanitizedData,
+        email: sanitizedData.email || null,
+        phone: sanitizedData.phone || null,
+        stepReached: `step-${currentStep}`,
+        fieldsCompleted: countCompletedFields(sanitizedData),
+        totalFields: registrationFieldKeys.length,
+        source: getSourceInfo(),
+        deviceInfo: getDeviceInfo(),
+      });
+      return nextData;
+    });
 
     // Clear error for this field if file is valid
     setErrors(prev => ({
@@ -565,6 +681,9 @@ export default function RegisterPage() {
         ...prev,
         [field]: error
       }));
+      if (error) {
+        telemetry.trackValidationError(field, error, `step-${currentStep}`);
+      }
     });
     
     // For step 3, mark Senegal-specific fields as touched if country is Senegal
@@ -577,6 +696,9 @@ export default function RegisterPage() {
           ...prev,
           [field]: error
         }));
+        if (error) {
+          telemetry.trackValidationError(field, error, `step-${currentStep}`);
+        }
       });
       
       // Also check arrondissement if needed
@@ -587,6 +709,9 @@ export default function RegisterPage() {
           ...prev,
           arrondissement: error
         }));
+        if (error) {
+          telemetry.trackValidationError('arrondissement', error, `step-${currentStep}`);
+        }
       }
     }
     
@@ -646,9 +771,28 @@ export default function RegisterPage() {
 
   // Memoized callback functions to prevent unnecessary re-renders
   const handlePhoneChange = useCallback((value: string) => {
-    setFormData(prev => ({ ...prev, phone: value }));
+    setFormData(prev => {
+      const nextData = { ...prev, phone: value };
+      const sanitizedData = sanitizeDraftData(nextData);
+      telemetry.trackFieldChange('phone', value, `step-${currentStep}`);
+      telemetry.saveDraft({
+        anonymousId: telemetry.anonymousId,
+        sessionId: telemetry.sessionId,
+        formInstanceId: telemetry.formInstanceId,
+        formType: 'registration',
+        draftData: sanitizedData,
+        email: sanitizedData.email || null,
+        phone: sanitizedData.phone || null,
+        stepReached: `step-${currentStep}`,
+        fieldsCompleted: countCompletedFields(sanitizedData),
+        totalFields: registrationFieldKeys.length,
+        source: getSourceInfo(),
+        deviceInfo: getDeviceInfo(),
+      });
+      return nextData;
+    });
     // Don't call validateField here since PhoneInput handles its own validation
-  }, []);
+  }, [currentStep, telemetry]);
 
   const handlePhoneValidationChange = useCallback((isValid: boolean, error?: string) => {
     // Update the error state based on PhoneInput's validation
@@ -658,7 +802,22 @@ export default function RegisterPage() {
     }));
     // Mark the field as touched when validation changes
     setTouched(prev => ({ ...prev, phone: true }));
-  }, []);
+    if (!isValid) {
+      telemetry.trackValidationError('phone', error || 'Numéro de téléphone invalide', `step-${currentStep}`);
+    }
+  }, [currentStep, telemetry]);
+
+  useEffect(() => {
+    telemetry.trackEvent('step_viewed', { step: `step-${currentStep}` });
+  }, [currentStep, telemetry]);
+
+  useEffect(() => {
+    if (draftAppliedRef.current || !telemetry.draftLoaded) return;
+    if (telemetry.draftData) {
+      setFormData({ ...initialFormData, ...telemetry.draftData });
+      draftAppliedRef.current = true;
+    }
+  }, [initialFormData, telemetry.draftData, telemetry.draftLoaded]);
 
 
 
@@ -782,6 +941,8 @@ export default function RegisterPage() {
             <OTPVerificationStep
               formData={formData}
               onSuccess={() => {
+                telemetry.markSubmitted();
+                telemetry.clearDraft();
                 // Account created successfully, redirect to success page or dashboard
                 router.push('/login?message=account_created');
               }}
