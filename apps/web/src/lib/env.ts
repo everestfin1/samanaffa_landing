@@ -27,37 +27,37 @@ const envSchema = z.object({
   INTOUCH_CALLBACK_URL: z.string().url('INTOUCH_CALLBACK_URL must be a valid URL'),
   
   // Rate Limiting
-  ADMIN_RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).pipe(z.number().min(1)).default(5),
-  ADMIN_RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(900000),
-  ADMIN_RATE_LIMIT_BLOCK_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(3600000),
+  ADMIN_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('5').transform(Number).pipe(z.number().min(1)),
+  ADMIN_RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number).pipe(z.number().min(1000)),
+  ADMIN_RATE_LIMIT_BLOCK_MS: z.string().default('3600000').transform(Number).pipe(z.number().min(1000)),
   
-  LOGIN_RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).pipe(z.number().min(1)).default(5),
-  LOGIN_RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(900000),
-  LOGIN_RATE_LIMIT_BLOCK_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(1800000),
+  LOGIN_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('5').transform(Number).pipe(z.number().min(1)),
+  LOGIN_RATE_LIMIT_WINDOW_MS: z.string().default('900000').transform(Number).pipe(z.number().min(1000)),
+  LOGIN_RATE_LIMIT_BLOCK_MS: z.string().default('1800000').transform(Number).pipe(z.number().min(1000)),
   
-  OTP_RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).pipe(z.number().min(1)).default(3),
-  OTP_RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(3600000),
-  OTP_RATE_LIMIT_BLOCK_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(3600000),
+  OTP_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('3').transform(Number).pipe(z.number().min(1)),
+  OTP_RATE_LIMIT_WINDOW_MS: z.string().default('3600000').transform(Number).pipe(z.number().min(1000)),
+  OTP_RATE_LIMIT_BLOCK_MS: z.string().default('3600000').transform(Number).pipe(z.number().min(1000)),
   
-  TRANSACTION_RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).pipe(z.number().min(1)).default(10),
-  TRANSACTION_RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(60000),
-  TRANSACTION_RATE_LIMIT_BLOCK_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(300000),
+  TRANSACTION_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('10').transform(Number).pipe(z.number().min(1)),
+  TRANSACTION_RATE_LIMIT_WINDOW_MS: z.string().default('60000').transform(Number).pipe(z.number().min(1000)),
+  TRANSACTION_RATE_LIMIT_BLOCK_MS: z.string().default('300000').transform(Number).pipe(z.number().min(1000)),
   
-  KYC_RATE_LIMIT_MAX_ATTEMPTS: z.string().transform(Number).pipe(z.number().min(1)).default(5),
-  KYC_RATE_LIMIT_WINDOW_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(3600000),
-  KYC_RATE_LIMIT_BLOCK_MS: z.string().transform(Number).pipe(z.number().min(1000)).default(3600000),
+  KYC_RATE_LIMIT_MAX_ATTEMPTS: z.string().default('5').transform(Number).pipe(z.number().min(1)),
+  KYC_RATE_LIMIT_WINDOW_MS: z.string().default('3600000').transform(Number).pipe(z.number().min(1000)),
+  KYC_RATE_LIMIT_BLOCK_MS: z.string().default('3600000').transform(Number).pipe(z.number().min(1000)),
   
   // File Upload
-  MAX_FILE_SIZE: z.string().transform(Number).pipe(z.number().min(1024)).default(5242880), // 5MB
+  MAX_FILE_SIZE: z.string().default('5242880').transform(Number).pipe(z.number().min(1024)), // 5MB
   ALLOWED_FILE_TYPES: z.string().default('image/jpeg,image/png,image/pdf,application/pdf'),
   
   // Security
-  BCRYPT_ROUNDS: z.string().transform(Number).pipe(z.number().min(10).max(15)).default(12),
-  SESSION_MAX_AGE: z.string().transform(Number).pipe(z.number().min(300)).default(2592000), // 30 days
+  BCRYPT_ROUNDS: z.string().default('12').transform(Number).pipe(z.number().min(10).max(15)),
+  SESSION_MAX_AGE: z.string().default('2592000').transform(Number).pipe(z.number().min(300)), // 30 days
   
   // Application
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  PORT: z.string().transform(Number).pipe(z.number().min(1).max(65535)).default(3000),
+  PORT: z.string().default('3000').transform(Number).pipe(z.number().min(1).max(65535)),
 })
 
 // Validate environment variables

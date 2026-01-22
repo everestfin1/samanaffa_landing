@@ -1,0 +1,52 @@
+{
+  "name": "@samanaffa/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "start": "node .output/server/index.mjs",
+    "lint": "eslint",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@samanaffa/shared": "workspace:*",
+    "@tanstack/react-query": "^5.89.0",
+    "@tanstack/react-query-devtools": "^5.89.0",
+    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-start": "^1.132.0",
+    "@unpic/react": "^1.0.0",
+    "@vercel/analytics": "^1.6.1",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "framer-motion": "^12.23.13",
+    "libphonenumber-js": "^1.12.22",
+    "lucide-react": "^0.544.0",
+    "react": "19.2.1",
+    "react-country-flag": "^3.1.0",
+    "react-dom": "19.2.1",
+    "react-phone-number-input": "^3.4.12",
+    "tailwind-merge": "^3.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/vite": "^4",
+    "@types/node": "^20",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "^4.6.0",
+    "eslint": "^9",
+    "tailwindcss": "^4",
+    "typescript": "^5",
+    "vite": "^6.4.0",
+    "vite-tsconfig-paths": "^5.1.0"
+  },
+  "overrides": {
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3"
+  }
+}

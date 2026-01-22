@@ -10,8 +10,12 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "noEmit": true
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    "outDir": "./dist",
+    "rootDir": "./src"
   },
-  "include": [],
-  "exclude": ["node_modules", "**/node_modules", "**/dist", "**/.output", "apps", "packages"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist"]
 }
