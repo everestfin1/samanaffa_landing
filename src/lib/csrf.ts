@@ -1,4 +1,3 @@
-import { NextRequest } from 'next/server'
 
 // Store CSRF tokens in memory (in production, use Redis or database)
 const csrfTokens = new Map<string, { token: string; expires: number }>()
@@ -52,7 +51,7 @@ export function invalidateCSRFToken(sessionId: string): void {
 }
 
 // Get CSRF token from request headers
-export function getCSRFTokenFromRequest(request: NextRequest): string | null {
+export function getCSRFTokenFromRequest(request: Request): string | null {
   // Try different header names
   const token = request.headers.get('x-csrf-token') ||
                 request.headers.get('csrf-token') ||
@@ -62,25 +61,35 @@ export function getCSRFTokenFromRequest(request: NextRequest): string | null {
 }
 
 // Get session ID from request (you may need to adapt this based on your session management)
-export function getSessionIdFromRequest(request: NextRequest): string | null {
+export function getSessionIdFromRequest(request: Request): string | null {
   // Try to get session ID from various sources
+  const cookieHeader = request.headers.get('cookie') || ''
+  
+  // Parse cookies manually
+  const cookies: Record<string, string> = {}
+  cookieHeader.split(';').forEach(cookie => {
+    const [key, ...val] = cookie.trim().split('=')
+    if (key) cookies[key] = decodeURIComponent(val.join('='))
+  })
+  
   const sessionId = request.headers.get('x-session-id') ||
-                    request.cookies.get('session-id')?.value ||
-                    request.cookies.get('next-auth.session-token')?.value ||
+                    cookies['session-id'] ||
+                    cookies['better-auth.session_token'] ||
                     null
   
   return sessionId
 }
 
 // Middleware helper to check CSRF token
-export function checkCSRFToken(request: NextRequest): { valid: boolean; error?: string } {
+export function checkCSRFToken(request: Request): { valid: boolean; error?: string } {
   // Skip CSRF check for GET, HEAD, OPTIONS requests
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     return { valid: true }
   }
   
   // Skip CSRF check for API routes that don't need it (like webhooks)
-  const pathname = request.nextUrl.pathname
+  const url = new URL(request.url)
+  const pathname = url.pathname
   if (pathname.startsWith('/api/payments/intouch/callback') ||
       pathname.startsWith('/api/webhooks/')) {
     return { valid: true }

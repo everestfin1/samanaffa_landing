@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+const isBrowser = typeof window !== 'undefined'
+
 // Environment variable schema with validation
 const envSchema = z.object({
   // Database
@@ -60,6 +62,9 @@ const envSchema = z.object({
 
 // Validate environment variables
 function validateEnv() {
+  if (isBrowser) {
+    return {} as z.infer<typeof envSchema>
+  }
   try {
     const env = envSchema.parse(process.env)
     return env
@@ -93,10 +98,14 @@ export const isDevelopment = env.NODE_ENV === 'development'
 export const isTest = env.NODE_ENV === 'test'
 
 // Log environment status (without sensitive data)
-console.log(`🚀 Application starting in ${env.NODE_ENV} mode`)
-console.log(`📊 Rate limiting configured:`)
-console.log(`  - Admin: ${env.ADMIN_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.ADMIN_RATE_LIMIT_WINDOW_MS}ms`)
-console.log(`  - Login: ${env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.LOGIN_RATE_LIMIT_WINDOW_MS}ms`)
-console.log(`  - OTP: ${env.OTP_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.OTP_RATE_LIMIT_WINDOW_MS}ms`)
-console.log(`  - Transaction: ${env.TRANSACTION_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.TRANSACTION_RATE_LIMIT_WINDOW_MS}ms`)
-console.log(`  - KYC: ${env.KYC_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.KYC_RATE_LIMIT_WINDOW_MS}ms`)
+if (!isBrowser) {
+  console.log(`🚀 Application starting in ${env.NODE_ENV} mode`)
+  console.log(`📊 Rate limiting configured:`)
+  console.log(`  - Admin: ${env.ADMIN_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.ADMIN_RATE_LIMIT_WINDOW_MS}ms`)
+  console.log(`  - Login: ${env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.LOGIN_RATE_LIMIT_WINDOW_MS}ms`)
+  console.log(`  - OTP: ${env.OTP_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.OTP_RATE_LIMIT_WINDOW_MS}ms`)
+  console.log(
+    `  - Transaction: ${env.TRANSACTION_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.TRANSACTION_RATE_LIMIT_WINDOW_MS}ms`,
+  )
+  console.log(`  - KYC: ${env.KYC_RATE_LIMIT_MAX_ATTEMPTS} attempts per ${env.KYC_RATE_LIMIT_WINDOW_MS}ms`)
+}

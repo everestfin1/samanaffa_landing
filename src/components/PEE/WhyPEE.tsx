@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 export default function WhyPEE() {
   return (
     <section id="why" className="py-8 md:pt-12 bg-gradient-to-r from-[#20163B] to-[#461D4C] text-white">
@@ -7,11 +5,10 @@ export default function WhyPEE() {
         <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
           {/* Image Block */}
           <div className="relative h-[280px] sm:h-[340px] md:h-[380px] w-full rounded-2xl overflow-hidden shadow-2xl">
-            <Image
-              src="/pee/teacher_kids.jpg" // Photo maquette
+            <img
+              src="/pee/teacher_kids.jpg"
               alt="Parent et enfant"
-              fill
-              className="object-cover"
+              className="object-cover absolute inset-0 w-full h-full"
             />
           </div>
 

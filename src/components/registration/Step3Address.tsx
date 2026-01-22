@@ -1,4 +1,3 @@
-'use client';
 
 import { DocumentTextIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
@@ -358,7 +357,7 @@ export default function Step3Address({
               className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
                 hasFieldError('country') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
               }`}
-              placeholder={formData.country ? '' : 'Sélectionner un pays'}
+
               required
             />
             <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
@@ -471,7 +470,7 @@ export default function Step3Address({
                   className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
                     hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
                   }`}
-                  placeholder="Saisir le département"
+
                   required
                 />
               )}
@@ -593,7 +592,7 @@ export default function Step3Address({
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 resize-none ${
             hasFieldError('address') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
           }`}
-          placeholder="Ex: 1, Rue de la République..."
+
           required
         />
         {getFieldError('address') && (

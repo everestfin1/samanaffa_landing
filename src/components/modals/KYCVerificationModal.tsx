@@ -1,6 +1,5 @@
-'use client';
 
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import KYCVerificationMessage from '../kyc/KYCVerificationMessage';
 
 interface KYCVerificationModalProps {
@@ -16,17 +15,17 @@ export default function KYCVerificationModal({
   kycStatus,
   featureName = 'cette fonctionnalité'
 }: KYCVerificationModalProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   if (!isOpen || kycStatus === 'APPROVED') return null;
 
   const handleContactSupport = () => {
-    router.push('/contact');
+    navigate({ to: '/contact' });
     onClose();
   };
 
   const handleRestartRegistration = () => {
-    router.push('/register');
+    navigate({ to: '/register' });
     onClose();
   };
 

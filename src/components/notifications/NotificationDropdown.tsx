@@ -1,10 +1,9 @@
-'use client'
 
 import { useState } from 'react'
 import { Notification } from '@/hooks/useNotifications'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
-import Link from 'next/link'
+import { Link } from '@tanstack/react-router'
 
 interface NotificationDropdownProps {
   notifications: Notification[]
@@ -166,7 +165,7 @@ export default function NotificationDropdown({
                 return (
                   <Link
                     key={notification.id}
-                    href={actionUrl}
+                    to={actionUrl as any}
                     onClick={() => handleNotificationClick(notification)}
                     className="block"
                   >
@@ -192,7 +191,7 @@ export default function NotificationDropdown({
       {/* Footer */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <Link
-          href="/portal/notifications"
+          to="/portal/notifications"
           onClick={onClose}
           className="block w-full text-center text-sm text-gold-metallic hover:text-gold-dark transition-colors font-medium"
         >

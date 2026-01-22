@@ -1,7 +1,6 @@
-'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import {
   ClockIcon,
   ExclamationTriangleIcon,
@@ -36,7 +35,7 @@ interface KYCStep {
 }
 
 export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCStatusHandlerProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [kycSteps, setKycSteps] = useState<KYCStep[]>([]);
 
   useEffect(() => {
@@ -147,13 +146,13 @@ export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCS
                 {kycStatus === 'REJECTED' && (
                   <div className="flex space-x-4">
                     <button
-                      onClick={() => router.push('/contact')}
+                      onClick={() => navigate({ to: '/contact' })}
                       className="bg-red-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-red-700 transition-colors"
                     >
                       Contacter le support
                     </button>
                     <button
-                      onClick={() => router.push('/register')}
+                      onClick={() => navigate({ to: '/register' })}
                       className="border border-red-600 text-red-600 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors"
                     >
                       Recommencer l'inscription

@@ -1,32 +1,26 @@
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 export default function HeroSection() {
   const [isMobile, setIsMobile] = useState(false);
+  
   useEffect(() => {
-    window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
-    window.addEventListener('resize', () => {
-      window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
-    });
-    return () => {
-      window.removeEventListener('resize', () => {
-        window.innerWidth < 768 ? setIsMobile(true) : setIsMobile(false);
-      });
-    };
-  }, [])
+    if (typeof window === 'undefined') return;
+    
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   return (
     <section id="hero" className="relative w-full bg-white">
       <div className="relative w-full h-[65vh] sm:h-[100vh] md:h-[60vh] lg:h-[50vh]">
         {isMobile ? 
-        <Image src="/pee/Banniere_PEE_3_mobile.png" alt="Bannière PEE" quality={100} fill className="object-cover object-center" priority />
+        <img src="/pee/Banniere_PEE_3_mobile.png" alt="Bannière PEE" className="object-cover object-center absolute inset-0 w-full h-full" />
         : 
-        <Image
+        <img
           src="/pee/Banniere_PEE_3.png"
           alt="Bannière PEE"
-          quality={100}
-          fill
-          className="object-cover object-center"
-          priority
+          className="object-cover object-center absolute inset-0 w-full h-full"
         />
         }
       </div>

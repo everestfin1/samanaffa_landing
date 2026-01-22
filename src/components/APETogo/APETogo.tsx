@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
@@ -61,14 +60,14 @@ const useCountUp = (end: number, duration: number): number => {
 const InvestmentTranchesBackground = (): React.ReactElement => {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <Image
+      <img
         src="/new-daba-bg.png"
         alt=""
-        fill
-        sizes="100vw"
+
+
         className="object-cover"
-        priority={false}
-        quality={85}
+
+
       />
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
     </div>
@@ -385,15 +384,14 @@ export default function APETogo() {
         <section className="relative w-full bg-white" aria-label="APE Togo Hero">
           <div className="relative w-full h-[65vh] sm:h-[100vh] md:h-[60vh] lg:h-[50vh]">
             {isMobile ? 
-            <Image src="/apetogo/banniere mobile-04.png" alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo" fill className="object-contain object-center" priority quality={100} />
+            <img src="/apetogo/banniere mobile-04.png" alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo" className="object-contain object-center" />
             : 
-            <Image
+            <img
               src="/apetogo/Banner-web-03.png"
               alt="APE - Emprunt Obligataire par Appel Public à l'Épargne Trésor Public du Togo"
-              fill
+
               className="object-cover object-center"
-              priority
-              quality={100}
+
             />
             }
           </div>
@@ -561,11 +559,11 @@ export default function APETogo() {
                   <div className="relative bg-white rounded-2xl overflow-hidden border-2 border-gray-100 transition-all duration-500 group-hover:border-transparent group-hover:shadow-2xl group-hover:-translate-y-2">
                     {/* Document preview */}
                     <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-                      <Image
+                      <img
                         src={doc.previewImage}
                         alt={`Aperçu ${doc.title}`}
-                        fill
-                        sizes="(max-width: 768px) 100vw, 33vw"
+
+
                         loading="lazy"
                         className="object-cover transition-all duration-700 ease-out group-hover:scale-110"
                       />

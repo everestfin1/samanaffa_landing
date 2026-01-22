@@ -1,4 +1,3 @@
-"use client";
 
 import {
   UserIcon,
@@ -258,7 +257,7 @@ export default function Step1PersonalInfo({
                 ? "border-red-400 bg-red-50"
                 : "border-sama-border-light"
             }`}
-            placeholder="Amadou"
+
             required
           />
           {getFieldError("firstName") && (
@@ -282,7 +281,7 @@ export default function Step1PersonalInfo({
                 ? "border-red-400 bg-red-50"
                 : "border-sama-border-light"
             }`}
-            placeholder="Diallo"
+
             required
           />
           {getFieldError("lastName") && (
@@ -300,7 +299,7 @@ export default function Step1PersonalInfo({
         onBlur={() => onBlur({ target: { name: "phone" } } as any)}
         onValidationChange={onPhoneValidationChange}
         error={getFieldError("phone")}
-        placeholder="77 123 45 67"
+
         required
       />
 
@@ -319,7 +318,7 @@ export default function Step1PersonalInfo({
               ? "border-red-400 bg-red-50"
               : "border-sama-border-light"
           }`}
-          placeholder="amadou.diallo@email.com"
+
           required
         />
         {getFieldError("email") && (

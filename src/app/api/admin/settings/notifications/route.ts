@@ -24,7 +24,7 @@ interface NotificationSettings {
 // GET /api/admin/settings/notifications - Get notification settings
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     
     if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/settings/notifications - Update notification settings
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     
     if (!session?.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

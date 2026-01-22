@@ -1,8 +1,3 @@
-"use client";
-
-import Image from "next/image";
-import Link from "next/link";
-
 export const Footer = ({ isApe }: { isApe: boolean }) => {
   const backgroundColor = isApe ? "bg-gray-light" : "bg-[#20163B]";
   const textColor = isApe ? "text-black" : "text-white";
@@ -11,7 +6,7 @@ export const Footer = ({ isApe }: { isApe: boolean }) => {
       <div className="max-w-7xl mx-auto px-6 py-10 grid gap-10 md:grid-cols-3 items-start">
         {/* Logo & Slogan */}
         <div className="space-y-4 flex justify-center">
-          <Image
+          <img
             src="/logo-everest.png"
             alt="EVEREST Finance"
             width={192}
@@ -40,27 +35,27 @@ export const Footer = ({ isApe }: { isApe: boolean }) => {
           <div className="space-y-2 text-sm md:text-base">
             <p>
               Email<br />
-              <Link
+              <a
                 href="mailto:contact@everestfin.com"
                 className="hover:text-[#C38D1C] transition-colors duration-200"
               >
                 contact@everestfin.com
-              </Link>
+              </a>
             </p>
             <p>
               Téléphone<br />
-              <Link
+              <a
                 href="tel:+221338228700"
                 className="block hover:text-[#C38D1C] transition-colors duration-200"
               >
                 +221 33 822 87 00
-              </Link>
-              <Link
+              </a>
+              <a
                 href="tel:+221338228701"
                 className="block hover:text-[#C38D1C] transition-colors duration-200"
               >
                 
-              </Link>
+              </a>
             </p>
           </div>
         </div>

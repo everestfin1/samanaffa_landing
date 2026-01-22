@@ -1,8 +1,7 @@
-'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
+import { useNavigate, useLocation } from '@tanstack/react-router';
+
 import { usePrefetchTransactions } from '../../hooks/useTransactions';
 import NotificationBell from '../notifications/NotificationBell';
 import {
@@ -44,8 +43,9 @@ export default function PortalHeader({
   setActiveTab,
   onLogout
 }: PortalHeaderProps) {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [isNavDropdownOpen, setIsNavDropdownOpen] = useState(false);
   const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
@@ -89,7 +89,7 @@ export default function PortalHeader({
 
   const handleTabChange = (tab: ActiveTab, href: string, requiresKYC: boolean = false) => {
     // Allow navigation to all pages - KYC blocking only applies to transactions
-    router.push(href);
+    navigate({ to: href as any });
     setIsNavDropdownOpen(false);
   };
 
@@ -138,7 +138,7 @@ export default function PortalHeader({
   }, []);
 
   const handleProfileClick = () => {
-    router.push('/portal/profile');
+    navigate({ to: '/portal/profile' });
     closeUserDropdown();
   };
 
@@ -220,16 +220,16 @@ export default function PortalHeader({
           {/* Logo - Center */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto z-10">
             <button
-              onClick={() => router.push('/portal/dashboard')}
+              onClick={() => navigate({ to: '/portal/dashboard' })}
               className="transition-opacity hover:opacity-80 focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 rounded-md p-2"
               aria-label="Retourner à l'accueil"
             >
-              <Image
+              <img
                 src="/sama_naffa_logo.png"
                 alt="Sama Naffa"
                 width={180}
                 height={72}
-                priority
+                
               />
             </button>
           </div>
@@ -363,15 +363,15 @@ export default function PortalHeader({
         {/* Logo - Center */}
         <div className="flex items-center flex-shrink-0 mx-2">
           <button
-            onClick={() => router.push('/portal/dashboard')}
+            onClick={() => navigate({ to: '/portal/dashboard' })}
             className="transition-opacity hover:opacity-80 p-1"
           >
-            <Image
+            <img
               src="/sama_naffa_logo.png"
               alt="Sama Naffa"
               width={100}
               height={34}
-              priority
+              
             />
           </button>
         </div>

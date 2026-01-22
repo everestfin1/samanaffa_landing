@@ -1,4 +1,3 @@
-'use client'
 
 import { useState } from 'react'
 import { Upload, CheckCircle, AlertCircle, XCircle, FileSpreadsheet, Download } from 'lucide-react'

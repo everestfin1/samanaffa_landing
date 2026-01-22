@@ -1,9 +1,7 @@
-'use client';
 
 import React, { useState } from 'react';
 import PhoneInput2 from 'react-phone-number-input';
 import { isValidPhoneNumber, isPossiblePhoneNumber } from 'libphonenumber-js';
-import 'react-phone-number-input/style.css';
 import { cn } from '@/lib/utils';
 
 interface PhoneInputProps {
@@ -113,7 +111,7 @@ export default function PhoneInput({
           value={value}
           onChange={handleChange}
           onBlur={handleBlur}
-          placeholder={placeholder}
+
           disabled={disabled}
           className={cn(
             'phone-input-wrapper',
@@ -148,8 +146,8 @@ export default function PhoneInput({
         Choisissez votre pays et saisissez votre numéro local
       </p>
 
-      <style jsx>{`
-        .phone-input-wrapper :global(.PhoneInputInput) {
+      <style>{`
+        .phone-input-wrapper .PhoneInputInput {
           width: 100%;
           padding: 12px 16px;
           border: 1px solid rgba(156, 163, 175, 0.3);
@@ -159,13 +157,13 @@ export default function PhoneInput({
           transition: all 0.2s;
         }
 
-        .phone-input-wrapper :global(.PhoneInputInput:focus) {
+        .phone-input-wrapper .PhoneInputInput:focus {
           outline: none;
           border-color: #D4AF37;
           box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
         }
 
-        .phone-input-wrapper :global(.PhoneInputCountrySelect) {
+        .phone-input-wrapper .PhoneInputCountrySelect {
           border: 1px solid rgba(156, 163, 175, 0.3);
           border-radius: 12px 0 0 12px;
           border-right: none;
@@ -173,27 +171,27 @@ export default function PhoneInput({
           padding: 12px 8px;
         }
 
-        .phone-input-wrapper :global(.PhoneInputCountrySelect:focus) {
+        .phone-input-wrapper .PhoneInputCountrySelect:focus {
           border-color: #D4AF37;
           box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
         }
 
-        .phone-input-wrapper.error :global(.PhoneInputInput) {
+        .phone-input-wrapper.error .PhoneInputInput {
           border-color: #ef4444;
           background-color: #fef2f2;
         }
 
-        .phone-input-wrapper.error :global(.PhoneInputCountrySelect) {
+        .phone-input-wrapper.error .PhoneInputCountrySelect {
           border-color: #ef4444;
           background-color: #fef2f2;
         }
 
-        .phone-input-wrapper :global(.PhoneInputCountrySelectArrow) {
+        .phone-input-wrapper .PhoneInputCountrySelectArrow {
           color: #666;
           opacity: 0.8;
         }
 
-        .phone-input-wrapper :global(.PhoneInputCountryFlag) {
+        .phone-input-wrapper .PhoneInputCountryFlag {
           margin-right: 8px;
         }
       `}</style>

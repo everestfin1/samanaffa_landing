@@ -1,7 +1,6 @@
-'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import {
   EnvelopeIcon,
   DevicePhoneMobileIcon,
@@ -57,7 +56,7 @@ interface OTPVerificationStepProps {
 }
 
 export default function OTPVerificationStep({ formData, onSuccess }: OTPVerificationStepProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
   const [otpMethod, setOtpMethod] = useState<'email' | 'sms'>('email');
   const [otpCode, setOtpCode] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -260,7 +259,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
           // Success! Account created and files uploaded
           // Redirect to password setup for new users
           if (data.redirectUrl && data.redirectUrl.includes('password_setup_required')) {
-            router.push(`/setup-password?userId=${data.user.id}`);
+            navigate({ to: '/setup-password', search: { userId: data.user.id } });
           } else {
             onSuccess();
           }
@@ -269,7 +268,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
           setError('Compte créé mais erreur lors du téléchargement des documents. Veuillez les télécharger manuellement depuis votre profil.');
           // Still redirect to password setup since account was created
           if (data.redirectUrl && data.redirectUrl.includes('password_setup_required')) {
-            router.push(`/setup-password?userId=${data.user.id}`);
+            navigate({ to: '/setup-password', search: { userId: data.user.id } });
           } else {
             onSuccess();
           }
@@ -402,7 +401,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
               onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               maxLength={6}
               className="w-full px-4 py-3 text-center text-2xl font-mono border rounded-xl focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors border-green-300 bg-white"
-              placeholder="123456"
+
               required
             />
           </div>

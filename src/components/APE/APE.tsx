@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -61,14 +60,14 @@ const useCountUp = (end: number, duration: number): number => {
 const InvestmentTranchesBackground = (): React.ReactElement => {
   return (
     <div className="absolute inset-0 overflow-hidden">
-      <Image
+      <img
         src="/new-daba-bg.png"
         alt=""
-        fill
-        sizes="100vw"
+
+
         className="object-cover"
-        priority={false}
-        quality={85}
+
+
       />
       {/* Subtle overlay for better text contrast */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/20" />
@@ -458,17 +457,16 @@ export default function APE() {
         >
           {/* Background Image */}
           <div className="relative w-full h-auto">
-            <Image
+            <img
               src="/Hero-03.png"
               alt="APE - Emprunt Obligataire État du Sénégal"
               width={1920}
               height={600}
-              sizes="100vw"
+
               className="w-full h-auto object-contain"
-              priority
-              quality={85}
-              placeholder="blur"
-              blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAGABADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUH/8QAIRAAAgEEAQUBAAAAAAAAAAAAAQIDAAQFESEGEhMxQVH/xAAVAQEBAAAAAAAAAAAAAAAAAAADBP/EABkRAAIDAQAAAAAAAAAAAAAAAAECAAMRIf/aAAwDAQACEQMRAD8AzLpzqK9w2QjuLaRlKnTKT2sD8I+VoGN6/wAhkMfBcSRQq0qBiEBIBI3wTSlKy4x1YgnstYlmWf/Z"
+
+
+
             />
           </div>
         </section>

@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma'
 // GET /api/notifications - Get user notifications
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
 // POST /api/notifications - Create notification (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(request)
     
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })

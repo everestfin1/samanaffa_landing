@@ -1,4 +1,3 @@
-'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from '@/components/providers/AuthProvider';
@@ -12,7 +11,7 @@ import {
   EyeSlashIcon,
   PlusIcon,
 } from '@heroicons/react/24/outline';
-import Image from 'next/image';
+
 
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
@@ -129,7 +128,7 @@ function AccountCard({
 
         {/* Logo */}
         <div className={`absolute ${logoPosition} z-30`}>
-          <Image
+          <img
             src="/sama_naffa_logo.png"
             alt="Sama Naffa Logo"
             className={`${logoSize} w-auto`}

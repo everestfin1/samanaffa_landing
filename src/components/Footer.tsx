@@ -1,13 +1,11 @@
-'use client'
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
 
 export default function Footer() {
-    const router = useRouter();
-    const pathname = usePathname();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const pathname = location.pathname;
     const isAdminPage = pathname.startsWith('/admin');
     const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
     const isPeePage = pathname.startsWith('/pee');
@@ -27,11 +25,12 @@ export default function Footer() {
         <div className="lg:col-span-2 space-y-8">
           <div>
             <div className="mb-6">
-              <Image
+              <img
                 src="/sama_naffa_logo.png"
                 alt="Sama Naffa Logo"
                 width={250}
                 height={80}
+                
               />
             </div>
             <p className="text-white/70 text-xl font-light leading-relaxed max-w-2xl">
@@ -46,13 +45,13 @@ export default function Footer() {
               <h4 className="font-light mb-4 text-white/90 text-lg">Nos Solutions</h4>
               <div className="space-y-3">
                 <button 
-                  onClick={() => router.push('/sama-naffa')} 
+                  onClick={() => navigate({ to: '/sama-naffa' })} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
                   SAMA NAFFA • Épargne Inclusive
                 </button>
                 <button 
-                  onClick={() => router.push('/pee')} 
+                  onClick={() => navigate({ to: '/pee' })} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
                   PEE • Plan Épargne Éducation
@@ -64,13 +63,13 @@ export default function Footer() {
               <h4 className="font-light mb-4 text-white/90 text-lg">Support</h4>
               <div className="space-y-3">
                 <Link 
-                  href="/faq"
+                  to="/faq"
                   className="flex items-center space-x-3 text-white/60 hover:text-sama-accent-gold transition-all duration-300 font-light hover:translate-x-1"
                 >
                   <span>FAQ</span>
                 </Link>
                 <Link 
-                  href="/contact"
+                  to="/contact"
                   className="flex items-center space-x-3 text-white/60 hover:text-sama-accent-gold transition-all duration-300 font-light hover:translate-x-1"
                 >
                   <span>Contact</span>
@@ -101,11 +100,12 @@ export default function Footer() {
 
           {/* Everest Finance Logo and Agrément */}
           <div className="flex flex-col gap-3">
-            <Image
+            <img
               src="/everestfin_logo.png"
               alt="Everest Finance Logo"
               width={120}
               height={40}
+              
               className="opacity-90"
             />
             <span className="text-sm text-white/60 font-light">

@@ -1,4 +1,3 @@
-"use client";
 
 import * as React from "react";
 import { ChevronDownIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
@@ -77,7 +76,7 @@ export function CountrySelector({
             <MagnifyingGlassIcon className="mr-2 h-4 w-4 opacity-50" />
             <input
               type="text"
-              placeholder={searchPlaceholder}
+
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"

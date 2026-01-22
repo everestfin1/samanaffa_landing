@@ -1,0 +1,108 @@
+
+
+import { useSession, useAuth } from '@/components/providers/AuthProvider';
+import { createFileRoute } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
+import { useUserProfile } from '../../hooks/useUserProfile';
+import APEPortal from '../../components/portal/APEPortal';
+import PortalHeader from '../../components/portal/PortalHeader';
+
+type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+
+interface UserData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  userId: string;
+  isNewUser: boolean;
+  kycStatus: KYCStatus;
+}
+
+export const Route = createFileRoute('/portal/ape')({
+  component: APEPage,
+});
+
+export default function APEPage() {
+  const navigate = useNavigate();
+  const { data: session, status } = useSession();
+  const { signOut } = useAuth();
+  
+  // Use Tanstack Query hook for data fetching (same as dashboard)
+  const { data: userData, isLoading, error } = useUserProfile();
+
+  // Redirect to login if not authenticated
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-night/70">Vérification de l'authentification...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    (navigate as any)({ to: '/login' });
+    return null;
+  }
+
+  const handleLogout = async () => {
+    await signOut();
+    (navigate as any)({ to: '/login' });
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-night/70">Chargement...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || (!isLoading && !userData)) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-night/70">Erreur lors du chargement des données</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors mt-4"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gray-light">
+      <PortalHeader
+        userData={{
+          firstName: userData?.firstName || '',
+          lastName: userData?.lastName || '',
+          email: userData?.email || '',
+          phone: userData?.phone || '',
+          userId: userData?.id || '',
+          isNewUser: false,
+          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING'
+        }}
+        kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'}
+        activeTab="ape"
+        setActiveTab={() => {}} // Not used with navigation
+        onLogout={handleLogout}
+      />
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <APEPortal kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'} />
+      </main>
+    </div>
+  );
+}

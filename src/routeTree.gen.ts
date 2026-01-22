@@ -9,38 +9,514 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './app/__root'
+import { Route as SouscrireApeRouteImport } from './app/souscrire-ape'
+import { Route as SetupPasswordRouteImport } from './app/setup-password'
+import { Route as SamaNaffaRouteImport } from './app/sama-naffa'
+import { Route as RegisterRouteImport } from './app/register'
+import { Route as PeeRouteImport } from './app/pee'
+import { Route as MaintenanceRouteImport } from './app/maintenance'
+import { Route as LoginRouteImport } from './app/login'
+import { Route as ForgotPasswordRouteImport } from './app/forgot-password'
+import { Route as FaqRouteImport } from './app/faq'
+import { Route as ContactRouteImport } from './app/contact'
+import { Route as ApesenegalRouteImport } from './app/apesenegal'
+import { Route as ApeRouteImport } from './app/ape'
 import { Route as IndexRouteImport } from './app/index'
+import { Route as PortalIndexRouteImport } from './app/portal/index'
+import { Route as AdminIndexRouteImport } from './app/admin/index'
+import { Route as PortalSamaNaffaRouteImport } from './app/portal/sama-naffa'
+import { Route as PortalProfileRouteImport } from './app/portal/profile'
+import { Route as PortalNotificationsRouteImport } from './app/portal/notifications'
+import { Route as PortalDashboardRouteImport } from './app/portal/dashboard'
+import { Route as PortalCompareRouteImport } from './app/portal/compare'
+import { Route as PortalApeRouteImport } from './app/portal/ape'
+import { Route as ApesenegalPaymentSuccessRouteImport } from './app/apesenegal/payment-success'
+import { Route as ApesenegalPaymentStatusRouteImport } from './app/apesenegal/payment-status'
+import { Route as ApesenegalPaymentFailedRouteImport } from './app/apesenegal/payment-failed'
+import { Route as ApePaymentStatusRouteImport } from './app/ape/payment-status'
+import { Route as AdminLoginRouteImport } from './app/admin/login'
+import { Route as PortalSamaNaffaPaymentSuccessRouteImport } from './app/portal/sama-naffa/payment-success'
+import { Route as PortalSamaNaffaPaymentFailedRouteImport } from './app/portal/sama-naffa/payment-failed'
+import { Route as ApiAuthSignOutRouteImport } from './app/api/auth/sign-out'
+import { Route as ApiAuthSessionRouteImport } from './app/api/auth/session'
+import { Route as ApiAuthSignInCredentialsRouteImport } from './app/api/auth/sign-in/credentials'
 
+const SouscrireApeRoute = SouscrireApeRouteImport.update({
+  id: '/souscrire-ape',
+  path: '/souscrire-ape',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetupPasswordRoute = SetupPasswordRouteImport.update({
+  id: '/setup-password',
+  path: '/setup-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SamaNaffaRoute = SamaNaffaRouteImport.update({
+  id: '/sama-naffa',
+  path: '/sama-naffa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PeeRoute = PeeRouteImport.update({
+  id: '/pee',
+  path: '/pee',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MaintenanceRoute = MaintenanceRouteImport.update({
+  id: '/maintenance',
+  path: '/maintenance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqRoute = FaqRouteImport.update({
+  id: '/faq',
+  path: '/faq',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApesenegalRoute = ApesenegalRouteImport.update({
+  id: '/apesenegal',
+  path: '/apesenegal',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApeRoute = ApeRouteImport.update({
+  id: '/ape',
+  path: '/ape',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PortalIndexRoute = PortalIndexRouteImport.update({
+  id: '/portal/',
+  path: '/portal/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalSamaNaffaRoute = PortalSamaNaffaRouteImport.update({
+  id: '/portal/sama-naffa',
+  path: '/portal/sama-naffa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalProfileRoute = PortalProfileRouteImport.update({
+  id: '/portal/profile',
+  path: '/portal/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalNotificationsRoute = PortalNotificationsRouteImport.update({
+  id: '/portal/notifications',
+  path: '/portal/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalDashboardRoute = PortalDashboardRouteImport.update({
+  id: '/portal/dashboard',
+  path: '/portal/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalCompareRoute = PortalCompareRouteImport.update({
+  id: '/portal/compare',
+  path: '/portal/compare',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalApeRoute = PortalApeRouteImport.update({
+  id: '/portal/ape',
+  path: '/portal/ape',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApesenegalPaymentSuccessRoute =
+  ApesenegalPaymentSuccessRouteImport.update({
+    id: '/payment-success',
+    path: '/payment-success',
+    getParentRoute: () => ApesenegalRoute,
+  } as any)
+const ApesenegalPaymentStatusRoute = ApesenegalPaymentStatusRouteImport.update({
+  id: '/payment-status',
+  path: '/payment-status',
+  getParentRoute: () => ApesenegalRoute,
+} as any)
+const ApesenegalPaymentFailedRoute = ApesenegalPaymentFailedRouteImport.update({
+  id: '/payment-failed',
+  path: '/payment-failed',
+  getParentRoute: () => ApesenegalRoute,
+} as any)
+const ApePaymentStatusRoute = ApePaymentStatusRouteImport.update({
+  id: '/payment-status',
+  path: '/payment-status',
+  getParentRoute: () => ApeRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/admin/login',
+  path: '/admin/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalSamaNaffaPaymentSuccessRoute =
+  PortalSamaNaffaPaymentSuccessRouteImport.update({
+    id: '/payment-success',
+    path: '/payment-success',
+    getParentRoute: () => PortalSamaNaffaRoute,
+  } as any)
+const PortalSamaNaffaPaymentFailedRoute =
+  PortalSamaNaffaPaymentFailedRouteImport.update({
+    id: '/payment-failed',
+    path: '/payment-failed',
+    getParentRoute: () => PortalSamaNaffaRoute,
+  } as any)
+const ApiAuthSignOutRoute = ApiAuthSignOutRouteImport.update({
+  id: '/api/auth/sign-out',
+  path: '/api/auth/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSignInCredentialsRoute =
+  ApiAuthSignInCredentialsRouteImport.update({
+    id: '/api/auth/sign-in/credentials',
+    path: '/api/auth/sign-in/credentials',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ape': typeof ApeRouteWithChildren
+  '/apesenegal': typeof ApesenegalRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/pee': typeof PeeRoute
+  '/register': typeof RegisterRoute
+  '/sama-naffa': typeof SamaNaffaRoute
+  '/setup-password': typeof SetupPasswordRoute
+  '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/ape/payment-status': typeof ApePaymentStatusRoute
+  '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
+  '/apesenegal/payment-status': typeof ApesenegalPaymentStatusRoute
+  '/apesenegal/payment-success': typeof ApesenegalPaymentSuccessRoute
+  '/portal/ape': typeof PortalApeRoute
+  '/portal/compare': typeof PortalCompareRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/portal/': typeof PortalIndexRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
+  '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ape': typeof ApeRouteWithChildren
+  '/apesenegal': typeof ApesenegalRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/pee': typeof PeeRoute
+  '/register': typeof RegisterRoute
+  '/sama-naffa': typeof SamaNaffaRoute
+  '/setup-password': typeof SetupPasswordRoute
+  '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/ape/payment-status': typeof ApePaymentStatusRoute
+  '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
+  '/apesenegal/payment-status': typeof ApesenegalPaymentStatusRoute
+  '/apesenegal/payment-success': typeof ApesenegalPaymentSuccessRoute
+  '/portal/ape': typeof PortalApeRoute
+  '/portal/compare': typeof PortalCompareRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
+  '/admin': typeof AdminIndexRoute
+  '/portal': typeof PortalIndexRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
+  '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ape': typeof ApeRouteWithChildren
+  '/apesenegal': typeof ApesenegalRouteWithChildren
+  '/contact': typeof ContactRoute
+  '/faq': typeof FaqRoute
+  '/forgot-password': typeof ForgotPasswordRoute
+  '/login': typeof LoginRoute
+  '/maintenance': typeof MaintenanceRoute
+  '/pee': typeof PeeRoute
+  '/register': typeof RegisterRoute
+  '/sama-naffa': typeof SamaNaffaRoute
+  '/setup-password': typeof SetupPasswordRoute
+  '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin/login': typeof AdminLoginRoute
+  '/ape/payment-status': typeof ApePaymentStatusRoute
+  '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
+  '/apesenegal/payment-status': typeof ApesenegalPaymentStatusRoute
+  '/apesenegal/payment-success': typeof ApesenegalPaymentSuccessRoute
+  '/portal/ape': typeof PortalApeRoute
+  '/portal/compare': typeof PortalCompareRoute
+  '/portal/dashboard': typeof PortalDashboardRoute
+  '/portal/notifications': typeof PortalNotificationsRoute
+  '/portal/profile': typeof PortalProfileRoute
+  '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
+  '/admin/': typeof AdminIndexRoute
+  '/portal/': typeof PortalIndexRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
+  '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/ape'
+    | '/apesenegal'
+    | '/contact'
+    | '/faq'
+    | '/forgot-password'
+    | '/login'
+    | '/maintenance'
+    | '/pee'
+    | '/register'
+    | '/sama-naffa'
+    | '/setup-password'
+    | '/souscrire-ape'
+    | '/admin/login'
+    | '/ape/payment-status'
+    | '/apesenegal/payment-failed'
+    | '/apesenegal/payment-status'
+    | '/apesenegal/payment-success'
+    | '/portal/ape'
+    | '/portal/compare'
+    | '/portal/dashboard'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/sama-naffa'
+    | '/admin/'
+    | '/portal/'
+    | '/api/auth/session'
+    | '/api/auth/sign-out'
+    | '/portal/sama-naffa/payment-failed'
+    | '/portal/sama-naffa/payment-success'
+    | '/api/auth/sign-in/credentials'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/ape'
+    | '/apesenegal'
+    | '/contact'
+    | '/faq'
+    | '/forgot-password'
+    | '/login'
+    | '/maintenance'
+    | '/pee'
+    | '/register'
+    | '/sama-naffa'
+    | '/setup-password'
+    | '/souscrire-ape'
+    | '/admin/login'
+    | '/ape/payment-status'
+    | '/apesenegal/payment-failed'
+    | '/apesenegal/payment-status'
+    | '/apesenegal/payment-success'
+    | '/portal/ape'
+    | '/portal/compare'
+    | '/portal/dashboard'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/sama-naffa'
+    | '/admin'
+    | '/portal'
+    | '/api/auth/session'
+    | '/api/auth/sign-out'
+    | '/portal/sama-naffa/payment-failed'
+    | '/portal/sama-naffa/payment-success'
+    | '/api/auth/sign-in/credentials'
+  id:
+    | '__root__'
+    | '/'
+    | '/ape'
+    | '/apesenegal'
+    | '/contact'
+    | '/faq'
+    | '/forgot-password'
+    | '/login'
+    | '/maintenance'
+    | '/pee'
+    | '/register'
+    | '/sama-naffa'
+    | '/setup-password'
+    | '/souscrire-ape'
+    | '/admin/login'
+    | '/ape/payment-status'
+    | '/apesenegal/payment-failed'
+    | '/apesenegal/payment-status'
+    | '/apesenegal/payment-success'
+    | '/portal/ape'
+    | '/portal/compare'
+    | '/portal/dashboard'
+    | '/portal/notifications'
+    | '/portal/profile'
+    | '/portal/sama-naffa'
+    | '/admin/'
+    | '/portal/'
+    | '/api/auth/session'
+    | '/api/auth/sign-out'
+    | '/portal/sama-naffa/payment-failed'
+    | '/portal/sama-naffa/payment-success'
+    | '/api/auth/sign-in/credentials'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApeRoute: typeof ApeRouteWithChildren
+  ApesenegalRoute: typeof ApesenegalRouteWithChildren
+  ContactRoute: typeof ContactRoute
+  FaqRoute: typeof FaqRoute
+  ForgotPasswordRoute: typeof ForgotPasswordRoute
+  LoginRoute: typeof LoginRoute
+  MaintenanceRoute: typeof MaintenanceRoute
+  PeeRoute: typeof PeeRoute
+  RegisterRoute: typeof RegisterRoute
+  SamaNaffaRoute: typeof SamaNaffaRoute
+  SetupPasswordRoute: typeof SetupPasswordRoute
+  SouscrireApeRoute: typeof SouscrireApeRoute
+  AdminLoginRoute: typeof AdminLoginRoute
+  PortalApeRoute: typeof PortalApeRoute
+  PortalCompareRoute: typeof PortalCompareRoute
+  PortalDashboardRoute: typeof PortalDashboardRoute
+  PortalNotificationsRoute: typeof PortalNotificationsRoute
+  PortalProfileRoute: typeof PortalProfileRoute
+  PortalSamaNaffaRoute: typeof PortalSamaNaffaRouteWithChildren
+  AdminIndexRoute: typeof AdminIndexRoute
+  PortalIndexRoute: typeof PortalIndexRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiAuthSignOutRoute: typeof ApiAuthSignOutRoute
+  ApiAuthSignInCredentialsRoute: typeof ApiAuthSignInCredentialsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/souscrire-ape': {
+      id: '/souscrire-ape'
+      path: '/souscrire-ape'
+      fullPath: '/souscrire-ape'
+      preLoaderRoute: typeof SouscrireApeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/setup-password': {
+      id: '/setup-password'
+      path: '/setup-password'
+      fullPath: '/setup-password'
+      preLoaderRoute: typeof SetupPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sama-naffa': {
+      id: '/sama-naffa'
+      path: '/sama-naffa'
+      fullPath: '/sama-naffa'
+      preLoaderRoute: typeof SamaNaffaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pee': {
+      id: '/pee'
+      path: '/pee'
+      fullPath: '/pee'
+      preLoaderRoute: typeof PeeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/maintenance': {
+      id: '/maintenance'
+      path: '/maintenance'
+      fullPath: '/maintenance'
+      preLoaderRoute: typeof MaintenanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/forgot-password': {
+      id: '/forgot-password'
+      path: '/forgot-password'
+      fullPath: '/forgot-password'
+      preLoaderRoute: typeof ForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faq': {
+      id: '/faq'
+      path: '/faq'
+      fullPath: '/faq'
+      preLoaderRoute: typeof FaqRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apesenegal': {
+      id: '/apesenegal'
+      path: '/apesenegal'
+      fullPath: '/apesenegal'
+      preLoaderRoute: typeof ApesenegalRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ape': {
+      id: '/ape'
+      path: '/ape'
+      fullPath: '/ape'
+      preLoaderRoute: typeof ApeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +524,212 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/portal/': {
+      id: '/portal/'
+      path: '/portal'
+      fullPath: '/portal/'
+      preLoaderRoute: typeof PortalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/sama-naffa': {
+      id: '/portal/sama-naffa'
+      path: '/portal/sama-naffa'
+      fullPath: '/portal/sama-naffa'
+      preLoaderRoute: typeof PortalSamaNaffaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/profile': {
+      id: '/portal/profile'
+      path: '/portal/profile'
+      fullPath: '/portal/profile'
+      preLoaderRoute: typeof PortalProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/notifications': {
+      id: '/portal/notifications'
+      path: '/portal/notifications'
+      fullPath: '/portal/notifications'
+      preLoaderRoute: typeof PortalNotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/dashboard': {
+      id: '/portal/dashboard'
+      path: '/portal/dashboard'
+      fullPath: '/portal/dashboard'
+      preLoaderRoute: typeof PortalDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/compare': {
+      id: '/portal/compare'
+      path: '/portal/compare'
+      fullPath: '/portal/compare'
+      preLoaderRoute: typeof PortalCompareRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/ape': {
+      id: '/portal/ape'
+      path: '/portal/ape'
+      fullPath: '/portal/ape'
+      preLoaderRoute: typeof PortalApeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/apesenegal/payment-success': {
+      id: '/apesenegal/payment-success'
+      path: '/payment-success'
+      fullPath: '/apesenegal/payment-success'
+      preLoaderRoute: typeof ApesenegalPaymentSuccessRouteImport
+      parentRoute: typeof ApesenegalRoute
+    }
+    '/apesenegal/payment-status': {
+      id: '/apesenegal/payment-status'
+      path: '/payment-status'
+      fullPath: '/apesenegal/payment-status'
+      preLoaderRoute: typeof ApesenegalPaymentStatusRouteImport
+      parentRoute: typeof ApesenegalRoute
+    }
+    '/apesenegal/payment-failed': {
+      id: '/apesenegal/payment-failed'
+      path: '/payment-failed'
+      fullPath: '/apesenegal/payment-failed'
+      preLoaderRoute: typeof ApesenegalPaymentFailedRouteImport
+      parentRoute: typeof ApesenegalRoute
+    }
+    '/ape/payment-status': {
+      id: '/ape/payment-status'
+      path: '/payment-status'
+      fullPath: '/ape/payment-status'
+      preLoaderRoute: typeof ApePaymentStatusRouteImport
+      parentRoute: typeof ApeRoute
+    }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/admin/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/sama-naffa/payment-success': {
+      id: '/portal/sama-naffa/payment-success'
+      path: '/payment-success'
+      fullPath: '/portal/sama-naffa/payment-success'
+      preLoaderRoute: typeof PortalSamaNaffaPaymentSuccessRouteImport
+      parentRoute: typeof PortalSamaNaffaRoute
+    }
+    '/portal/sama-naffa/payment-failed': {
+      id: '/portal/sama-naffa/payment-failed'
+      path: '/payment-failed'
+      fullPath: '/portal/sama-naffa/payment-failed'
+      preLoaderRoute: typeof PortalSamaNaffaPaymentFailedRouteImport
+      parentRoute: typeof PortalSamaNaffaRoute
+    }
+    '/api/auth/sign-out': {
+      id: '/api/auth/sign-out'
+      path: '/api/auth/sign-out'
+      fullPath: '/api/auth/sign-out'
+      preLoaderRoute: typeof ApiAuthSignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sign-in/credentials': {
+      id: '/api/auth/sign-in/credentials'
+      path: '/api/auth/sign-in/credentials'
+      fullPath: '/api/auth/sign-in/credentials'
+      preLoaderRoute: typeof ApiAuthSignInCredentialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface ApeRouteChildren {
+  ApePaymentStatusRoute: typeof ApePaymentStatusRoute
+}
+
+const ApeRouteChildren: ApeRouteChildren = {
+  ApePaymentStatusRoute: ApePaymentStatusRoute,
+}
+
+const ApeRouteWithChildren = ApeRoute._addFileChildren(ApeRouteChildren)
+
+interface ApesenegalRouteChildren {
+  ApesenegalPaymentFailedRoute: typeof ApesenegalPaymentFailedRoute
+  ApesenegalPaymentStatusRoute: typeof ApesenegalPaymentStatusRoute
+  ApesenegalPaymentSuccessRoute: typeof ApesenegalPaymentSuccessRoute
+}
+
+const ApesenegalRouteChildren: ApesenegalRouteChildren = {
+  ApesenegalPaymentFailedRoute: ApesenegalPaymentFailedRoute,
+  ApesenegalPaymentStatusRoute: ApesenegalPaymentStatusRoute,
+  ApesenegalPaymentSuccessRoute: ApesenegalPaymentSuccessRoute,
+}
+
+const ApesenegalRouteWithChildren = ApesenegalRoute._addFileChildren(
+  ApesenegalRouteChildren,
+)
+
+interface PortalSamaNaffaRouteChildren {
+  PortalSamaNaffaPaymentFailedRoute: typeof PortalSamaNaffaPaymentFailedRoute
+  PortalSamaNaffaPaymentSuccessRoute: typeof PortalSamaNaffaPaymentSuccessRoute
+}
+
+const PortalSamaNaffaRouteChildren: PortalSamaNaffaRouteChildren = {
+  PortalSamaNaffaPaymentFailedRoute: PortalSamaNaffaPaymentFailedRoute,
+  PortalSamaNaffaPaymentSuccessRoute: PortalSamaNaffaPaymentSuccessRoute,
+}
+
+const PortalSamaNaffaRouteWithChildren = PortalSamaNaffaRoute._addFileChildren(
+  PortalSamaNaffaRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApeRoute: ApeRouteWithChildren,
+  ApesenegalRoute: ApesenegalRouteWithChildren,
+  ContactRoute: ContactRoute,
+  FaqRoute: FaqRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
+  LoginRoute: LoginRoute,
+  MaintenanceRoute: MaintenanceRoute,
+  PeeRoute: PeeRoute,
+  RegisterRoute: RegisterRoute,
+  SamaNaffaRoute: SamaNaffaRoute,
+  SetupPasswordRoute: SetupPasswordRoute,
+  SouscrireApeRoute: SouscrireApeRoute,
+  AdminLoginRoute: AdminLoginRoute,
+  PortalApeRoute: PortalApeRoute,
+  PortalCompareRoute: PortalCompareRoute,
+  PortalDashboardRoute: PortalDashboardRoute,
+  PortalNotificationsRoute: PortalNotificationsRoute,
+  PortalProfileRoute: PortalProfileRoute,
+  PortalSamaNaffaRoute: PortalSamaNaffaRouteWithChildren,
+  AdminIndexRoute: AdminIndexRoute,
+  PortalIndexRoute: PortalIndexRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiAuthSignOutRoute: ApiAuthSignOutRoute,
+  ApiAuthSignInCredentialsRoute: ApiAuthSignInCredentialsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
+import type { startInstance } from './start.ts'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

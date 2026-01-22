@@ -1,4 +1,3 @@
-'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { 
@@ -8,7 +7,7 @@ import {
   CheckIcon,
   ExclamationTriangleIcon
 } from '@heroicons/react/24/outline';
-import Image from 'next/image';
+
 
 interface WebcamCaptureProps {
   isOpen: boolean;
@@ -467,7 +466,7 @@ export default function WebcamCapture({
       return (
         <div className="text-center space-y-4">
           <div className="relative">
-            <Image
+            <img
               src={capturedImage}
               alt="Photo capturée"
               className="w-full h-64 object-cover rounded-lg"

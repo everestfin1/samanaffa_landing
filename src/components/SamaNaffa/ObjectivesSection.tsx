@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, Dispatch, SetStateAction } from "re
 import { Objective, Persona } from "../data/types";
 import { Card, CardContent } from "../ui/card";
 import { formatCurrency } from "@/lib/utils";
-import Image from "next/image";
 import Decimal from 'decimal.js';
 
 // --- HELPER FUNCTIONS & HOOKS ---
@@ -256,7 +255,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                     <h3 className="text-xl font-semibold text-[#30461f] mb-2">Commmençons ?</h3>
                                     <p className="text-gray-600 mb-2">Sélectionnez une méthode de simulation.</p>
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#C38D1C] animate-bounce-subtle mt-1">
-                                        <path d="M12 16L6 10H18L12 16Z" fill="currentColor"/>
+                                        <path d="M12 16L6 10H18L12 16Z" fill="currentColor" />
                                     </svg>
                                 </div>
                             </div>
@@ -309,7 +308,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                 WebkitOverflowScrolling: 'touch'
                                             }}
                                         >
-                                            <style jsx>{`
+                                            <style>{`
                                                 #objectives-scroll-section::-webkit-scrollbar {
                                                     display: none;
                                                 }
@@ -322,7 +321,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                     style={{ animationDelay: `${index * 0.05}s` }}
                                                 >
                                                     <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 transition-all duration-300 group-hover:shadow-lg ${selectedObjective?.id === objective.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4]"}`}>
-                                                        <Image
+                                                        <img
                                                             className="absolute w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 group-hover:scale-110"
                                                             alt={objective.name}
                                                             src={objective.icon}
@@ -367,7 +366,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                     style={{ animationDelay: `${index * 0.05}s` }}
                                                 >
                                                     <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 flex items-center justify-center transition-all duration-300 group-hover:shadow-lg ${selectedPersona?.id === persona.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4]"}`}>
-                                                        <Image
+                                                        <img
                                                             width={100}
                                                             height={100}
                                                             className="w-full h-full object-cover rounded-full"

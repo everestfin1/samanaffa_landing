@@ -1,6 +1,5 @@
-'use client';
 
-import { useRouter } from 'next/navigation';
+import { useNavigate } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import {
   ExclamationTriangleIcon,
@@ -18,7 +17,7 @@ interface KYCProtectionProps {
 }
 
 export default function KYCProtection({ kycStatus, children, fallback }: KYCProtectionProps) {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   // If KYC is approved, render children
   if (kycStatus === 'APPROVED') {
@@ -84,7 +83,7 @@ export default function KYCProtection({ kycStatus, children, fallback }: KYCProt
 
           <div className="space-y-4">
             <button
-              onClick={() => router.push('/portal/dashboard')}
+              onClick={() => navigate({ to: '/portal/dashboard' })}
               className="w-full bg-gold-metallic text-white py-3 px-6 rounded-lg font-semibold hover:bg-gold-dark transition-colors"
             >
               Retour au tableau de bord
@@ -92,7 +91,7 @@ export default function KYCProtection({ kycStatus, children, fallback }: KYCProt
             
             {kycStatus === 'REJECTED' && (
               <button
-                onClick={() => router.push('/contact')}
+                onClick={() => navigate({ to: '/contact' })}
                 className="w-full border border-red-600 text-red-600 py-3 px-6 rounded-lg font-semibold hover:bg-red-50 transition-colors"
               >
                 Contacter le support

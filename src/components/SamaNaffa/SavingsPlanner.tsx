@@ -4,8 +4,8 @@ import { formatCurrency } from "@/lib/utils";
 import { personas, objectives } from "../data";
 import { RefreshCw } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Image from "next/image";
-import { useRouter } from 'next/navigation';
+
+import { useNavigate } from '@tanstack/react-router';
 import { useSelection } from '@/lib/selection-context';
 import Decimal from 'decimal.js';
 
@@ -83,7 +83,7 @@ interface SavingsPlannerProps {
 
 export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 'register' }) => {
   // --- ROUTER & CONTEXT ---
-  const router = useRouter();
+  const navigate = useNavigate();
   const { setSelectionData } = useSelection();
 
   // --- STATE MANAGEMENT ---
@@ -216,9 +216,9 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
 
     // Navigate based on the redirectTo prop
     if (redirectTo === 'sama-naffa') {
-      router.push('/portal/sama-naffa');
+      navigate({ to: '/portal/sama-naffa' });
     } else {
-      router.push('/register');
+      navigate({ to: '/register' });
     }
   }
 
@@ -320,7 +320,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                                             : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#f0f8f0] group-hover:to-[#e8f5e8]"
                                                         }`}
                                                 >
-                                                    <Image
+                                                    <img
                                                         width={86}
                                                         height={86}
                                                         className="absolute w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 group-hover:scale-110"
@@ -411,13 +411,12 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                                 aria-pressed={selectedPersona === persona.id}
                                                 style={{ minWidth: '70px', maxWidth: '90px' }}
                                             >
-                                                <Image
+                                                <img
                                                     width={100}
                                                     height={100}
                                                     src={persona.icon}
                                                     alt={persona.name}
-                                                    className={`w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] lg:w-[90px] lg:h-[90px] rounded-full mb-1 sm:mb-2 lg:mb-3 transition-all duration-300 border border-solid ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2px] sm:border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
-                                                    style={{objectFit: 'contain'}}
+                                                    className={`w-[60px] h-[60px] sm:w-[70px] sm:h-[70px] lg:w-[90px] lg:h-[90px] rounded-full mb-1 sm:mb-2 lg:mb-3 transition-all duration-300 border border-solid object-contain ${selectedPersona === persona.id ? 'bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] border-[#B48310] border-[2px] sm:border-[2.5px]' : 'bg-[#F2F8F4] border-gray-200 border-[1px] group-hover:border-[#C38D1C]/30'}`}
                                                 />
                                                 {(() => {
                                                     let [prenom, qualification] = persona.shortName.split(",");

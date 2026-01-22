@@ -1,4 +1,3 @@
-'use client';
 
 import { useState, useEffect } from 'react';
 import { useSession } from '@/components/providers/AuthProvider';
@@ -267,7 +266,7 @@ export default function InvestmentModal({
                 className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent ${
                   error ? 'border-red-300 bg-red-50' : 'border-timberwolf/30'
                 }`}
-                placeholder="Minimum 10 000 FCFA"
+
                 required
               />
               {error && (

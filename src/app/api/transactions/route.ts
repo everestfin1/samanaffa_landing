@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 export async function GET(request: NextRequest) {
   try {
     // Verify user is authenticated
-    const session = await getServerSession();
+    const session = await getServerSession(request);
     
     if (!session?.user?.id) {
       return NextResponse.json(

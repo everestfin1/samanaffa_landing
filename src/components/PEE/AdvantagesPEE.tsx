@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 export default function AdvantagesPEE() {
   const advantages = [
     "Anticipez les frais d’études sans stress",
@@ -31,11 +29,10 @@ export default function AdvantagesPEE() {
 
           {/* Image Block (Right per design) */}
           <div className="relative h-[280px] sm:h-[340px] md:h-[380px] w-full rounded-2xl overflow-hidden shadow-2xl">
-            <Image
-              src="/pee/avantages_image.jpg" // Photo maquette
+            <img
+              src="/pee/avantages_image.jpg"
               alt="Parent et enfant"
-              fill
-              className="object-cover"
+              className="object-cover absolute inset-0 w-full h-full"
             />
           </div>
         </div>

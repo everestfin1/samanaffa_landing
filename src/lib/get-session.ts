@@ -1,7 +1,16 @@
 import { db } from './db'
 import { sessions, users } from './db/schema'
 import { eq, and, gt } from 'drizzle-orm'
-import { cookies } from 'next/headers'
+const parseCookies = (cookieHeader: string | null) => {
+  if (!cookieHeader) return {}
+
+  return cookieHeader.split(';').reduce<Record<string, string>>((acc, cookie) => {
+    const [rawKey, ...rawValue] = cookie.trim().split('=')
+    if (!rawKey) return acc
+    acc[rawKey] = decodeURIComponent(rawValue.join('='))
+    return acc
+  }, {})
+}
 
 export interface SessionUser {
   id: string
@@ -18,13 +27,15 @@ export interface Session {
 }
 
 /**
- * Get session from Next.js API routes (App Router)
- * Replacement for getServerSession from next-auth
+ * Get session from request headers (API routes/server calls)
  */
-export async function getServerSession(): Promise<Session | null> {
+export async function getServerSession(
+  request?: Request | { headers: Headers }
+): Promise<Session | null> {
   try {
-    const cookieStore = await cookies()
-    const sessionToken = cookieStore.get('better-auth.session_token')?.value
+    const cookieHeader = request?.headers?.get('cookie') ?? null
+    const cookieStore = parseCookies(cookieHeader)
+    const sessionToken = cookieStore['better-auth.session_token']
 
     if (!sessionToken) {
       return null

@@ -1,6 +1,5 @@
-'use client'
 
-import { useRouter } from 'next/navigation'
+import { useNavigate } from '@tanstack/react-router'
 import { RefreshCw, LogOut, Bell, Search } from 'lucide-react'
 import { useState } from 'react'
 
@@ -12,7 +11,7 @@ interface AdminHeaderProps {
 }
 
 export default function AdminHeader({ title, subtitle, onRefresh, loading }: AdminHeaderProps) {
-  const router = useRouter()
+  const navigate = useNavigate()
   const [searchQuery, setSearchQuery] = useState('')
 
   const handleLogout = async () => {
@@ -33,7 +32,7 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
       localStorage.removeItem('admin_token')
       localStorage.removeItem('admin_refresh_token')
       localStorage.removeItem('admin_user')
-      router.push('/admin/login')
+      navigate({ to: '/admin/login' })
     }
   }
 
@@ -51,7 +50,7 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
           <Search className="admin-topbar-search-icon" />
           <input
             type="text"
-            placeholder="Rechercher..."
+
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="admin-topbar-search-input"

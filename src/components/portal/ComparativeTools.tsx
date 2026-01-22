@@ -1,4 +1,3 @@
-'use client';
 
 import { useState } from 'react';
 import Decimal from 'decimal.js';
@@ -172,7 +171,7 @@ export default function ComparativeTools() {
                 value={comparisonAmount}
                 onChange={(e) => setComparisonAmount(e.target.value)}
                 className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="1000000"
+
               />
             </div>
             <div>

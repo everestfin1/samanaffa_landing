@@ -1,4 +1,3 @@
-"use client";
 
 import Link from "next/link";
 import Image from "next/image";
@@ -11,7 +10,7 @@ export const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="https://www.everestfin.com">
-              <Image
+              <img
                 src="/logo-everest.png"
                 alt="EVEREST Finance"
                 width={96}

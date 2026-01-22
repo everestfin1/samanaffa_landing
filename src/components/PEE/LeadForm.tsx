@@ -1,9 +1,12 @@
-'use client';
-
 import { useCallback, useEffect, useRef, useState } from 'react';
-import ReactCountryFlag from 'react-country-flag';
+// import ReactCountryFlag from 'react-country-flag'; // Temporarily disabled for SSR debugging
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFormTelemetry } from '@/hooks/useFormTelemetry';
+
+// SSR-safe placeholder for ReactCountryFlag
+const ReactCountryFlag = ({ countryCode, svg, style }: { countryCode: string; svg?: boolean; style?: React.CSSProperties }) => (
+  <span style={style} className="inline-block text-center">{countryCode}</span>
+);
 
 const countries = [
   { code: 'SN', name: 'Sénégal' },
@@ -431,7 +434,7 @@ export default function LeadForm() {
                 onValueChange={(value) => updateFormData('categorie', value)}
               >
                 <SelectTrigger className="h-auto w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 bg-white text-sm sm:text-base focus:ring-2 focus:ring-[#C09037] focus:ring-offset-0">
-                  <SelectValue placeholder="Sélectionner..." />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -493,7 +496,7 @@ export default function LeadForm() {
                   name="telephone"
                   id="telephone"
                   required
-                  placeholder="+221..."
+
                   value={formData.telephone}
                   onChange={handleChange}
                   className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#C09037] focus:border-[#C09037] transition-all duration-200 text-sm sm:text-base"

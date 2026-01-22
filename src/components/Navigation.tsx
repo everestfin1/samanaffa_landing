@@ -1,9 +1,7 @@
-'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation';
+import { Link, useNavigate, useLocation } from '@tanstack/react-router';
+
 import {
   Bars3Icon,
   XMarkIcon,
@@ -13,8 +11,9 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Navigation() {
-  const router = useRouter();
-  const pathname = usePathname();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
@@ -154,7 +153,7 @@ export default function Navigation() {
           <div className="flex items-center">
             <div className="flex items-center space-x-10">
               <Link
-                href="/"
+                to="/"
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-primary hover:drop-shadow-md'
@@ -167,7 +166,7 @@ export default function Navigation() {
               </Link>
 
               <Link
-                href="/sama-naffa"
+                to={"/sama-naffa" as any}
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-green hover:drop-shadow-md'
@@ -180,7 +179,7 @@ export default function Navigation() {
               </Link>
 
               <Link
-                href="/pee"
+                to={"/pee" as any}
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
@@ -198,15 +197,15 @@ export default function Navigation() {
           <div className="flex items-center justify-center absolute left-1/2 transform -translate-x-1/2">
             <div className="flex-shrink-0">
               <Link 
-                href="/"
+                to="/"
                 className="transition-opacity hover:opacity-80"
               >
-                <Image
+                <img
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
                   width={200}
                   height={80}
-                  priority
+                  
                 />
               </Link>
             </div>
@@ -218,7 +217,7 @@ export default function Navigation() {
               isAuthenticated ? (
               <div className="flex items-center space-x-3">
                 <Link 
-                  href="/portal"
+                  to={"/portal" as any}
                   className={`flex items-center space-x-2 transition-colors  ${
                     isOverLightBackground
                       ? 'sama-text-secondary hover:sama-text-primary'
@@ -231,7 +230,7 @@ export default function Navigation() {
                   <span className="text-sm">Mon Portail</span>
                 </Link>
                 <Link 
-                  href="/portal"
+                  to={"/portal" as any}
                   className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -241,7 +240,7 @@ export default function Navigation() {
             ) : (
               <div className="flex items-center space-x-3">
                 <Link
-                  href="/login"
+                  to={"/login" as any}
                   className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -249,7 +248,7 @@ export default function Navigation() {
                 </Link>
                 {!isHomePage && (
                   <Link
-                    href="/register"
+                    to={"/register" as any}
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -262,7 +261,7 @@ export default function Navigation() {
               // Render default state during SSR to match initial client render
               <div className="flex items-center space-x-3">
                 <Link
-                  href="/login"
+                  to={"/login" as any}
                   className="group relative sama-gradient-primary text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-gradient-primary-hover transition-all duration-300 hover:shadow-lg hover:shadow-sama-primary-green/25 hover:-translate-y-1 overflow-hidden"
                 >
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -270,7 +269,7 @@ export default function Navigation() {
                 </Link>
                 {!isHomePage && (
                   <Link
-                    href="/register"
+                    to={"/register" as any}
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -289,15 +288,15 @@ export default function Navigation() {
           <div className="flex items-center flex-1 min-w-0 py-3 pl-2">
             <div className="flex-shrink-0">
               <Link
-                href="/"
+                to="/"
                 className="transition-opacity hover:opacity-80 block"
               >
-                <Image
+                <img
                   src="/sama_naffa_logo.png"
                   alt="Sama Naffa"
                   width={120}
                   height={38}
-                  priority
+                  
                   className="h-auto w-auto max-h-10"
                 />
               </Link>
@@ -337,14 +336,14 @@ export default function Navigation() {
                 </p>
                 <div className="space-y-1">
                   <Link
-                    href="/"
+                    to="/"
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-timberwolf/10 hover:text-night transition-all duration-200"
                   >
                     <span>Accueil</span>
                   </Link>
 
                   <Link
-                    href="/sama-naffa"
+                    to={"/sama-naffa" as any}
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-sama-primary-green/10 hover:text-sama-primary-green transition-all duration-200"
                   >
                     <DevicePhoneMobileIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
@@ -352,7 +351,7 @@ export default function Navigation() {
                   </Link>
 
                   <Link
-                    href="/pee"
+                    to={"/pee" as any}
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
@@ -370,14 +369,14 @@ export default function Navigation() {
                   isAuthenticated ? (
                     <>
                       <Link 
-                        href="/portal"
+                        to={"/portal" as any}
                         className="flex items-center justify-center space-x-2 w-full px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-timberwolf/10 hover:text-night transition-all duration-200"
                       >
                         <UserIcon className="w-5 h-5" />
                         <span>Mon Portail</span>
                       </Link>
                       <Link 
-                        href="/portal"
+                        to={"/portal" as any}
                         className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -387,7 +386,7 @@ export default function Navigation() {
                   ) : (
                     <>
                       <Link
-                        href="/login"
+                        to={"/login" as any}
                         className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -395,7 +394,7 @@ export default function Navigation() {
                       </Link>
                       {!isHomePage && (
                         <Link
-                          href="/register"
+                          to={"/register" as any}
                           className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -408,7 +407,7 @@ export default function Navigation() {
                   // Render default state during SSR to match initial client render
                   <>
                     <Link 
-                      href="/login"
+                      to={"/login" as any}
                       className="group relative w-full sama-gradient-primary text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-gradient-primary-hover transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -416,7 +415,7 @@ export default function Navigation() {
                     </Link>
                     {!isHomePage && (
                       <Link 
-                        href="/register"
+                        to={"/register" as any}
                         className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

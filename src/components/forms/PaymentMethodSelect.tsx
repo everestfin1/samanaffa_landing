@@ -1,4 +1,4 @@
-import Image from 'next/image';
+
 
 interface PaymentMethodSelectProps {
   value: string;
@@ -48,7 +48,7 @@ export default function PaymentMethodSelect({
           <div className="w-full p-6 border-2 border-gold-metallic bg-gold-light/20 text-gold-dark rounded-lg">
             <div className="flex items-center justify-center space-x-3">
               <div className="flex-shrink-0">
-                <Image
+                <img
                   src="/intouch_logo.png"
                   alt="Intouch Logo"
                   width={48}
@@ -84,7 +84,7 @@ export default function PaymentMethodSelect({
           >
             <div className="flex items-center space-x-3">
               <div className="flex-shrink-0">
-                <Image
+                <img
                   src={method.logo}
                   alt={`${method.name} Logo`}
                   width={40}

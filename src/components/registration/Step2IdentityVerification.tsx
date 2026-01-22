@@ -1,4 +1,3 @@
-'use client';
 
 import { IdentificationIcon } from '@heroicons/react/24/outline';
 import { countries } from '@/components/data/countries';
@@ -232,7 +231,7 @@ export default function Step2IdentityVerification({
           className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
             hasFieldError('placeOfBirth') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
           }`}
-          placeholder="Ex: Dakar, Thiès, Saint-Louis..."
+
           required
         />
         {getFieldError('placeOfBirth') && (

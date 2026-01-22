@@ -15,7 +15,7 @@ export default defineConfig({
       srcDirectory: 'src',
       router: {
         routesDirectory: 'app',
-        routeFileIgnorePattern: '(^|/)(api/|.*\\/api\\/|page\\.tsx$|route\\.ts$|.*\\/(page\\.tsx|route\\.ts)$)',
+        routeFileIgnorePattern: '(^|/)(page\\.tsx$|.*\\/page\\.tsx$|route\\.ts$|.*\\/route\\.ts$)',
       },
     }),
     viteReact(),

@@ -1,4 +1,3 @@
-'use client'
 
 import { useState, useMemo } from 'react'
 import { 
@@ -131,7 +130,7 @@ export default function DataTable<T extends Record<string, any>>({
             <Search className="admin-data-table-search-icon" />
             <input
               type="text"
-              placeholder={searchPlaceholder}
+
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="admin-data-table-search-input"

@@ -1,4 +1,3 @@
-"use client";
 
 import { ChevronRightIcon, CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 import React, { useState, useCallback } from "react";
@@ -184,7 +183,7 @@ export const ContactForm = ({
                     }
                     value={formData.prenom}
                     onChange={(e) => updateFormData("prenom", e.target.value)}
-                    placeholder="Saisissez votre prénom"
+
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("prenom")}`}
                     required
                   />
@@ -212,7 +211,7 @@ export const ContactForm = ({
                     }
                     value={formData.nom}
                     onChange={(e) => updateFormData("nom", e.target.value)}
-                    placeholder="Saisissez votre nom"
+
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("nom")}`}
                     required
                   />
@@ -248,7 +247,7 @@ export const ContactForm = ({
                         : undefined
                     }
                   >
-                    <SelectValue placeholder="Sélectionnez votre catégorie" />
+                    <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {professionalCategories.map((category, index) => (
@@ -283,7 +282,7 @@ export const ContactForm = ({
                       onValueChange={(value) =>
                         updateFormData("pays_residence", value)
                       }
-                      placeholder="Sélectionnez votre pays"
+
                       searchPlaceholder="Rechercher un pays..."
                       emptyMessage="Aucun pays trouvé."
                       error={!!getFieldError("pays_residence")}
@@ -313,7 +312,7 @@ export const ContactForm = ({
                     }
                     value={formData.ville}
                     onChange={(e) => updateFormData("ville", e.target.value)}
-                    placeholder="Saisissez votre ville"
+
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("ville")}`}
                     required
                   />
@@ -346,7 +345,7 @@ export const ContactForm = ({
                     }
                     value={getDisplayPhoneValue()}
                     onChange={(e) => handlePhoneChange(e.target.value)}
-                    placeholder={selectedCountryData?.phoneCode || "+221"}
+
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("telephone")}`}
                     required
                   />
@@ -375,7 +374,7 @@ export const ContactForm = ({
                     }
                     value={formData.email}
                     onChange={(e) => updateFormData("email", e.target.value)}
-                    placeholder="exemple@email.com"
+
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("email")}`}
                     required
                   />
@@ -405,7 +404,7 @@ export const ContactForm = ({
                     }
                   >
                     <SelectTrigger className="h-14 mt-2 bg-gray-50 text-base">
-                      <SelectValue placeholder="Sélectionnez une tranche" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {tranches.map((tranche) => (
@@ -443,7 +442,6 @@ export const ContactForm = ({
                     }
                     value={formData.montant_cfa}
                     onChange={(e) => handleAmountChange(e.target.value)}
-                    placeholder={`Ex: Minimum ${MIN_APE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA`}
                     className={`h-14 mt-2 bg-gray-50 text-base ${inputErrorClasses("montant_cfa")}`}
                     required
                   />
@@ -471,7 +469,7 @@ export const ContactForm = ({
                     id="code_parrainage"
                     value={formData.code_parrainage}
                     onChange={(e) => handleSponsorCodeChange(e.target.value)}
-                    placeholder="Entrez votre code de parrainage"
+
                     className={`h-14 mt-2 bg-gray-50 text-base pr-12 font-mono uppercase ${
                       sponsorCodeStatus === 'valid' ? 'border-green-500 focus-visible:ring-green-500' :
                       sponsorCodeStatus === 'invalid' ? 'border-red-500 focus-visible:ring-red-500' : ''

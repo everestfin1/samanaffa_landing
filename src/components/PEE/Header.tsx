@@ -1,7 +1,4 @@
-'use client';
-
 import { useState } from 'react';
-import Image from 'next/image';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function Header() {
@@ -36,12 +33,11 @@ export default function Header() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0 cursor-pointer" onClick={() => scrollToSection('hero')}>
-            <Image 
+            <img 
               src="/pee/logo_everest1.png" 
               alt="Everest Finance" 
               width={96} 
-              height={96} 
-              quality={100}
+              height={96}
               className="h-24 w-auto object-contain"
             />
           </div>

@@ -1,4 +1,3 @@
-"use client";
 
 import React, { useState, useMemo } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
@@ -136,7 +135,7 @@ export default function InvestmentSimulator() {
                 step={STEP_INVESTMENT}
                 value={amount}
                 onChange={(e) => handleAmountChange(e.target.value)}
-                placeholder="Minimum 10 000 FCFA"
+
                 className="w-full px-4 py-3 pr-20 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all text-gray-700"
               />
               <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">

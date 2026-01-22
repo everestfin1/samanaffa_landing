@@ -1,4 +1,3 @@
-'use client';
 
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
@@ -206,7 +205,7 @@ export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupSt
                   value={formData.password}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
-                  placeholder="Créez un mot de passe sécurisé"
+
                   required
                 />
                 <button
@@ -256,7 +255,7 @@ export default function PasswordSetupStep({ userId, onSuccess }: PasswordSetupSt
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 pr-12 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
-                  placeholder="Confirmez votre mot de passe"
+
                   required
                 />
                 <button

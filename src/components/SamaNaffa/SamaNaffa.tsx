@@ -1,4 +1,3 @@
-'use client';
 
 import {
   WalletIcon,
@@ -12,7 +11,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { SavingsPlanner } from './SavingsPlanner';
 import { useRef } from 'react';
-import Image from 'next/image';
+
 
 export default function SamaNaffa() {
   // Refs for scrolling
@@ -49,13 +48,10 @@ export default function SamaNaffa() {
         <section className="relative pt-32 pb-20 overflow-hidden max-h-[50vh] flex items-center" aria-label="Sama Naffa Hero">
           {/* Background Image */}
           <div className="absolute inset-0">
-            <Image
+            <img
               src="/sama-naffa-banner.png"
               alt="Sama Naffa - Épargne Intelligente pour l'Afrique de l'Ouest"
-              fill
-              className="object-cover object-center"
-              priority
-              quality={90}
+              className="object-cover object-center absolute inset-0 w-full h-full"
             />
           </div>
 

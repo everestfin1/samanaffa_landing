@@ -1,4 +1,3 @@
-'use client';
 
 import { useState } from 'react';
 import {
@@ -10,7 +9,7 @@ import {
   EyeIcon
 } from '@heroicons/react/24/outline';
 import WebcamCapture from '../common/WebcamCaptureFixed';
-import Image from 'next/image';
+
 
 interface FormData {
   selfieImage: File | null;
@@ -134,7 +133,7 @@ export default function Step4Documents({
             <div className="relative bg-white rounded-xl p-4 border-2 border-sama-success">
               <div className="flex items-start gap-4">
                 <div className="relative w-24 h-24 flex-shrink-0">
-                  <Image
+                  <img
                     src={createImagePreview(formData.selfieImage)}
                     alt="Photo de profil"
                     className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"
@@ -279,7 +278,7 @@ export default function Step4Documents({
               <div className="relative bg-white rounded-xl p-3 border-2 border-sama-success">
                 <div className="flex items-start gap-3">
                   <div className="relative w-16 h-16 flex-shrink-0">
-                    <Image
+                    <img
                       src={createImagePreview(formData.idFrontImage)}
                       alt="Recto pièce d'identité"
                       className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"
@@ -405,7 +404,7 @@ export default function Step4Documents({
                 <div className="relative bg-white rounded-xl p-3 border-2 border-sama-success">
                   <div className="flex items-start gap-3">
                     <div className="relative w-16 h-16 flex-shrink-0">
-                      <Image
+                      <img
                         src={createImagePreview(formData.idBackImage)}
                         alt="Verso pièce d'identité"
                         className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"

@@ -1,10 +1,8 @@
-"use client"
-
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { useLocation } from '@tanstack/react-router';
 
 export const WhatsAppButton: React.FC = () => {
-  const pathname = usePathname();
+  const location = useLocation();
+  const pathname = location.pathname;
   
   // Check if user is in admin portal
   const isInAdminorClientPortal = pathname.startsWith('/admin') || pathname.startsWith('/portal');
@@ -29,7 +27,7 @@ export const WhatsAppButton: React.FC = () => {
       aria-label="Contacter Everest Finance sur WhatsApp"
       title="Discuter sur WhatsApp"
     >
-      <Image src="/whatsapp.png" alt="WhatsApp" width={24} height={24} />
+      <img src="/whatsapp.png" alt="WhatsApp" width={24} height={24}  />
     </button>
   );
 };
