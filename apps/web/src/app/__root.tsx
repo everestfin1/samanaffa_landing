@@ -3,6 +3,7 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  redirect,
   useRouterState,
 } from "@tanstack/react-router";
 import appCss from "./globals.css?url";
@@ -15,6 +16,48 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import QueryProvider from "@/components/providers/QueryProvider";
 
 export const Route = createRootRoute({
+  beforeLoad: ({ location }) => {
+    const pathname = location.pathname
+
+    console.log('[ROOT beforeLoad] Pathname:', pathname)
+
+    const MAINTENANCE_MODE =
+      (typeof process !== 'undefined' && process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true') ||
+      import.meta.env.VITE_MAINTENANCE_MODE === 'true' ||
+      import.meta.env.VITE_PUBLIC_MAINTENANCE_MODE === 'true'
+
+    console.log('[ROOT beforeLoad] Maintenance mode:', MAINTENANCE_MODE)
+
+    if (MAINTENANCE_MODE) {
+      const isStaticAsset =
+        pathname.startsWith('/_build/') ||
+        pathname.startsWith('/static/') ||
+        /\.(png|jpg|jpeg|gif|svg|ico|css|js|json|webmanifest)$/.test(pathname)
+
+      const isAllowedRoute =
+        pathname.startsWith('/admin') ||
+        pathname.startsWith('/pee') ||
+        pathname.startsWith('/ape') ||
+        pathname.startsWith('/login') ||
+        pathname.startsWith('/register') ||
+        pathname.startsWith('/forgot-password') ||
+        pathname.startsWith('/souscrire-ape') ||
+        pathname === '/manifest.json'
+
+      if (!isStaticAsset && !isAllowedRoute) {
+        throw redirect({ to: '/pee' })
+      }
+    }
+
+    if (pathname.startsWith('/portal') && typeof document !== 'undefined') {
+      const hasSession = document.cookie.includes('better-auth.session_token=')
+      console.log('[ROOT beforeLoad] Portal route. Has session:', hasSession)
+      if (!hasSession) {
+        console.log('[ROOT beforeLoad] No session, redirecting to /login')
+        throw redirect({ to: '/login' })
+      }
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },

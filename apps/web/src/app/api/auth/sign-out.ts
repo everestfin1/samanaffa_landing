@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { db } from '@/lib/db'
+import { getDb } from '@/lib/db'
 import { sessions } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
@@ -25,6 +25,7 @@ export const Route = createFileRoute('/api/auth/sign-out')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const db = getDb()
           const cookies = parseCookieHeader(request.headers.get('cookie'))
           const sessionToken = cookies['better-auth.session_token']
 

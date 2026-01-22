@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { verifyCredentials } from '@/lib/better-auth'
-import { db } from '@/lib/db'
+import { verifyCredentials } from '@/lib/auth-utils'
+import { getDb } from '@/lib/db'
 import { sessions } from '@/lib/db/schema'
 
 export const Route = createFileRoute('/api/auth/sign-in/credentials')({
@@ -8,6 +8,7 @@ export const Route = createFileRoute('/api/auth/sign-in/credentials')({
     handlers: {
       POST: async ({ request }) => {
         try {
+          const db = getDb()
           const body = await request.json()
           const { email, phone, password, otp, type } = body ?? {}
 

@@ -10,8 +10,15 @@ export const securityMiddleware = createMiddleware({ type: 'request' }).server(
     const url = new URL(request.url)
     const pathname = url.pathname
 
+    console.log('[MIDDLEWARE] Request:', pathname)
+
     // ==================== MAINTENANCE MODE ====================
-    const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true'
+    const MAINTENANCE_MODE =
+      process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true' ||
+      import.meta.env.VITE_MAINTENANCE_MODE === 'true' ||
+      import.meta.env.VITE_PUBLIC_MAINTENANCE_MODE === 'true'
+
+    console.log('[MIDDLEWARE] Maintenance mode:', MAINTENANCE_MODE)
 
     // Skip middleware for API routes - let Vercel Functions handle them
     if (pathname.startsWith('/api')) {
@@ -43,7 +50,9 @@ export const securityMiddleware = createMiddleware({ type: 'request' }).server(
     if (pathname.startsWith('/portal')) {
       const cookieHeader = request.headers.get('cookie') || ''
       const hasSession = cookieHeader.includes('better-auth.session_token=')
+      console.log('[MIDDLEWARE] Portal route detected. Has session:', hasSession)
       if (!hasSession) {
+        console.log('[MIDDLEWARE] No session, redirecting to /login')
         throw redirect({ to: '/login' })
       }
     }

@@ -13,6 +13,9 @@ export default defineConfig({
     tsconfigPaths(),
     tanstackStart({
       srcDirectory: 'src',
+      start: {
+        configFile: 'src/start.ts',
+      },
       router: {
         routesDirectory: 'app',
         routeFileIgnorePattern: '(^|/)(page\\.tsx$|.*\\/page\\.tsx$|route\\.ts$|.*\\/route\\.ts$)',

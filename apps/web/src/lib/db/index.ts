@@ -4,23 +4,34 @@ import * as schema from './schema';
 
 const isBrowser = typeof globalThis !== 'undefined' && 'window' in globalThis
 
-let db: ReturnType<typeof drizzle>
+let _db: ReturnType<typeof drizzle> | undefined
 
-if (!isBrowser) {
-  if (!process.env.DATABASE_URL) {
-    throw new Error('DATABASE_URL is not defined');
+function initDb(): ReturnType<typeof drizzle> {
+  if (_db) return _db
+
+  if (isBrowser) {
+    throw new Error('Database client cannot be used in the browser')
   }
 
-  // Create a connection pool
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  if (!process.env.DATABASE_URL) {
+    throw new Error('DATABASE_URL is not defined')
+  }
 
-  // Create the Drizzle instance
-  db = drizzle(pool, { schema });
-} else {
-  db = undefined as unknown as ReturnType<typeof drizzle>
+  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  _db = drizzle(pool, { schema })
+  return _db
 }
 
-export { db }
+export function getDb(): ReturnType<typeof drizzle> {
+  return initDb()
+}
+
+export const db = new Proxy({} as ReturnType<typeof drizzle>, {
+  get(_target, prop) {
+    const realDb = initDb() as any
+    return realDb[prop as any]
+  },
+})
 
 // Export schema for convenience
 export * from './schema';
