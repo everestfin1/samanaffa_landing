@@ -2,7 +2,12 @@
 
 ## 1. Vue d'ensemble de l'Architecture
 
-La plateforme Sama Naffa a été refactorisée pour adopter une architecture moderne avec navigation traditionnelle, pages dédiées, et un système d'authentification robuste.
+La plateforme Sama Naffa est en migration vers une architecture séparant explicitement:
+
+- Frontend (TanStack Start)
+- Backend (Hono sur Vercel Serverless)
+
+Objectif: réduire le couplage entre UI et API, stabiliser l’auth et simplifier les déploiements.
 
 ## 2. Structure des Composants
 
@@ -134,8 +139,8 @@ Accueil → "Se connecter" → Login → ClientPortal → Services complets
 ### 10.2 Pipeline
 - **Linting** : ESLint + Prettier
 - **Tests** : Jest + Testing Library
-- **Build** : Next.js optimization
-- **Déploiement** : Automatisé via CI/CD
+- **Build** : Frontend et backend buildés séparément
+- **Déploiement** : Deux projets Vercel (frontend + backend)
 
 ## 11. Prochaines Étapes
 

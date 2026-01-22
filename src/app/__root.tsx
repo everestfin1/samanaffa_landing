@@ -3,8 +3,10 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  useRouterState,
 } from "@tanstack/react-router";
 import appCss from "./globals.css?url";
+import adminCss from "./admin/admin.css?url";
 import Navigation from "../components/Navigation";
 import Footer from "@/components/Footer";
 import { SelectionProvider } from "../lib/selection-context";
@@ -33,6 +35,7 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "stylesheet", href: adminCss },
       { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", href: "/fav-samanaffa.png", sizes: "32x32", type: "image/png" },
       { rel: "apple-touch-icon", href: "/fav-samanaffa.png" },
@@ -43,6 +46,10 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
+  const routerState = useRouterState();
+  const pathname = routerState.location.pathname;
+  const isAdminRoute = pathname.startsWith('/admin');
+
   return (
     <html lang="fr" data-scroll-behavior="smooth">
       <head>
@@ -52,10 +59,18 @@ function RootLayout() {
         <QueryProvider>
           <AuthProvider>
             <SelectionProvider>
-              <Navigation />
-              <WhatsAppButton />
-              <Outlet />
-              <Footer />
+              {isAdminRoute ? (
+                <div className="admin-root">
+                  <Outlet />
+                </div>
+              ) : (
+                <>
+                  <Navigation />
+                  <WhatsAppButton />
+                  <Outlet />
+                  <Footer />
+                </>
+              )}
             </SelectionProvider>
           </AuthProvider>
         </QueryProvider>

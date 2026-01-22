@@ -7,11 +7,11 @@ This guide provides a step-by-step process to migrate a project from the Next.js
 
 ## Project Status (Repo-Specific)
 
-This repository is mid-migration. The goal is:
+This repository is mid-migration. The target goal is:
 
 - Frontend: TanStack Start (Vite + TanStack Router)
-- Backend: Vercel Functions under `/api/**` using `@vercel/node`
-- Auth: migrate from NextAuth to **better-auth**
+- Backend: Separate backend service (Hono) deployed to Vercel Serverless (Node)
+- Auth: migrate from NextAuth to **better-auth** (in the backend service)
 
 ### Current Progress
 
@@ -35,7 +35,7 @@ tanstackStart({
 })
 ```
 
-Once all pages are migrated to TanStack file routes and all APIs are moved to `/api/**`, remove or tighten this ignore rule.
+Once all pages are migrated to TanStack file routes, remove or tighten this ignore rule.
 
 ### Auth Migration Note (NextAuth -> better-auth)
 
@@ -43,7 +43,7 @@ If the project currently uses NextAuth via `src/app/api/auth/[...nextauth]/route
 
 Target state:
 
-- Move auth endpoints to `/api/**` as Vercel Functions.
+- Implement auth endpoints in the backend service.
 - Replace NextAuth session usage in UI/server handlers with better-auth.
 
 ## Step-by-Step (Basics)
@@ -407,9 +407,9 @@ Learn more about the [Server Functions](./guide/server-functions).
 
 Learn more about the [Server Routes](./guide/server-routes).
 
-### Backend API: Keep Vercel Functions
+### Backend API: Separate Backend Service
 
-If you prefer to keep Vercel Functions for backend APIs, you can move your Next.js route handlers into a standalone `api/` directory (Vercel Functions) and keep the frontend in TanStack Start. This keeps the server runtime on Vercel while adopting TanStack Start for routing/UI.
+For this repo, the preferred approach is to keep the frontend in TanStack Start and move backend APIs to a separate backend service (Hono) deployed to Vercel. This avoids cross-compilation and module-resolution issues when mixing frontend and serverless backends in the same project.
 
 **Suggested structure** (root-level functions):
 

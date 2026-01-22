@@ -15,8 +15,7 @@ export default function AdminLogin() {
   const [error, setError] = useState('')
   const navigate = useNavigate()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleLogin = async () => {
     setLoading(true)
     setError('')
 
@@ -29,21 +28,37 @@ export default function AdminLogin() {
         body: JSON.stringify({ email, password }),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: any
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = null
+      }
 
-      if (data.success) {
+      if (data?.success) {
         localStorage.setItem('admin_token', data.token)
         localStorage.setItem('admin_refresh_token', data.refreshToken)
         localStorage.setItem('admin_user', JSON.stringify(data.user))
         ;(navigate as any)({ to: '/admin' })
       } else {
-        setError(data.error || 'Échec de connexion')
+        if (!response.ok) {
+          setError(data?.error || 'Échec de connexion')
+          return
+        }
+        setError(data?.error || 'Échec de connexion')
       }
     } catch {
       setError('Échec de connexion. Veuillez réessayer.')
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (loading) return
+    void handleLogin()
   }
 
   return (
@@ -64,7 +79,7 @@ export default function AdminLogin() {
 
         {/* Login card */}
         <div className="bg-white rounded-lg border border-[var(--admin-border-light)] shadow-sm p-6">
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form method="post" onSubmit={handleSubmit} className="space-y-5">
             {/* Email field */}
             <div className="space-y-1.5">
               <label htmlFor="email" className="admin-label">
@@ -72,7 +87,6 @@ export default function AdminLogin() {
               </label>
               <input
                 id="email"
-                name="email"
                 type="email"
                 autoComplete="email"
                 required
@@ -90,7 +104,6 @@ export default function AdminLogin() {
               </label>
               <input
                 id="password"
-                name="password"
                 type="password"
                 autoComplete="current-password"
                 required

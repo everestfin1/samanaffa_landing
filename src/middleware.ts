@@ -13,6 +13,11 @@ export const securityMiddleware = createMiddleware({ type: 'request' }).server(
     // ==================== MAINTENANCE MODE ====================
     const MAINTENANCE_MODE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true'
 
+    // Skip middleware for API routes - let Vercel Functions handle them
+    if (pathname.startsWith('/api')) {
+      return next()
+    }
+
     if (MAINTENANCE_MODE) {
       const isStaticAsset =
         pathname.startsWith('/_build/') ||

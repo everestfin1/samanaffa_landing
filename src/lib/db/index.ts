@@ -2,7 +2,7 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool } from '@neondatabase/serverless';
 import * as schema from './schema';
 
-const isBrowser = typeof window !== 'undefined'
+const isBrowser = typeof globalThis !== 'undefined' && 'window' in globalThis
 
 let db: ReturnType<typeof drizzle>
 

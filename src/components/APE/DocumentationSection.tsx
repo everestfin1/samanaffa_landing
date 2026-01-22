@@ -1,7 +1,7 @@
 
 import React from "react";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
+import { Image } from '@unpic/react';
 
 interface DocumentCard {
   id: string;

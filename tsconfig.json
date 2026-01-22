@@ -15,6 +15,7 @@
     "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react-jsx",
@@ -23,17 +24,19 @@
       "@/*": [
         "./src/*"
       ]
-    }
+    },
+    "plugins": []
   },
   "include": [
     "vite-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",
-    ".next",
+    ".output",
+    "api",
     "scripts",
-    "base"
+    "drizzle"
   ]
 }

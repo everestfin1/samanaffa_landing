@@ -1,6 +1,4 @@
-
-import Link from "next/link";
-import Image from "next/image";
+import { Link } from '@tanstack/react-router';
 
 export const Header = () => {
   return (
@@ -9,7 +7,7 @@ export const Header = () => {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link href="https://www.everestfin.com">
+            <a href="https://www.everestfin.com">
               <img
                 src="/logo-everest.png"
                 alt="EVEREST Finance"
@@ -17,29 +15,29 @@ export const Header = () => {
                 height={96}
                 className="h-24 w-auto object-contain"
               />
-            </Link>
+            </a>
           </div>
 
           {/* Navigation */}
           <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide font-titillium">
             <Link
-              href="/"
+              to="/"
               className="text-gray-900 hover:text-[#C38D1C] transition-colors duration-200 font-semibold"
             >
               ACCUEIL
             </Link>
-            <Link
+            <a
               href="https://everestfin.com/everest-finance/"
               className="text-gray-900 hover:text-[#C38D1C] transition-colors duration-200 font-semibold"
             >
               EVEREST Finance
-            </Link>
-            <Link
+            </a>
+            <a
               href="https://everestfin.com/contact/"
               className="text-gray-900 hover:text-[#C38D1C] transition-colors duration-200 font-semibold"
             >
               CONTACT
-            </Link>
+            </a>
           </nav>
         </div>
       </div>

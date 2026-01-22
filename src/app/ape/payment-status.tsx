@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
 import { CheckCircleIcon, ExclamationTriangleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
-import Link from 'next/link';
+import { Link } from '@tanstack/react-router';
 
 function PaymentStatusContent() {
   const searchParams = useSearch({ strict: false }) as Record<string, string | undefined>;
@@ -287,7 +287,7 @@ function PaymentStatusContent() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
-              href="/ape"
+              to="/ape"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gold-metallic text-white font-medium rounded-lg hover:bg-gold-dark transition-colors"
             >
               Retour à l'accueil

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from '@tanstack/react-router';
 import { ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -34,7 +34,7 @@ export default function Button({
 
   if (href) {
     return (
-      <Link href={href} className={buttonStyles}>
+      <Link to={href as any} className={buttonStyles}>
         {children}
       </Link>
     );

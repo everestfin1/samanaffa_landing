@@ -6,8 +6,8 @@ import {
   CheckCircleIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import dynamic from "next/dynamic";
+import { Image } from '@unpic/react';
+import { lazy, Suspense } from 'react';
 import { useContactForm } from "../../hooks/useContactForm";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
@@ -16,14 +16,19 @@ import InvestmentSimulator from "./InvestmentSimulator";
 import { countries } from "../data/countries";
 
 // Dynamically import ContactForm to reduce initial bundle size
-const ContactForm = dynamic(() => import("./ContactForm").then(mod => ({ default: mod.ContactForm })), {
-  loading: () => (
-    <div className="flex items-center justify-center p-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
-    </div>
-  ),
-  ssr: false,
-});
+const ContactFormLazy = lazy(() => import("./ContactForm").then(mod => ({ default: mod.ContactForm })));
+
+const ContactFormLoader = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
+  </div>
+);
+
+const ContactForm = (props: any) => (
+  <Suspense fallback={<ContactFormLoader />}>
+    <ContactFormLazy {...props} />
+  </Suspense>
+);
 
 // Custom hook for count-up animation
 const useCountUp = (end: number, duration: number): number => {

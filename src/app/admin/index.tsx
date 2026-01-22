@@ -46,7 +46,7 @@ import {
   Phone,
   Mail
 } from 'lucide-react'
-import Image from 'next/image'
+import { Image } from '@unpic/react'
 
 interface DashboardStats {
   totalUsers: number

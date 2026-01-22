@@ -15,20 +15,20 @@ Sama Naffa est la plateforme digitale d’Everest Finance dédiée à l’éparg
 
 ### Frontend
 
-- **Framework** : Next.js 15 (App Router) avec Turbopack.
+- **Framework** : TanStack Start (Vite + TanStack Router).
 - **Bibliothèques** : React 19, Tailwind CSS 4, Radix UI, shadcn/ui, Framer Motion, Heroicons & Lucide.
 - **Gestion d’état & data fetching** : TanStack React Query (incl. Devtools).
 - **Autres** : next/font (Geist), clsx, tailwind-merge.
 
 ### Backend / API
 
-- **Node runtime** : Bun (scripts et dev server).
-- **API** : Routes Next.js (`src/app/api/**`) organisées par domaine (auth, comptes, transactions, paiements, KYC, notifications, admin).
-- **ORM** : Prisma 6.16 connecté à PostgreSQL.
-- **Auth** : NextAuth, OTP personnalisés, hashage via bcrypt.
+- **Runtime** : Vercel Serverless (Node) pour le backend ; Bun utilisé pour les scripts et l’expérience dev.
+- **API** : Backend séparé (service dédié) basé sur Hono, organisé par domaine (auth, comptes, transactions, paiements, KYC, notifications, admin).
+- **ORM** : PostgreSQL (Neon recommandé) + Drizzle (source de vérité côté backend).
+- **Auth** : migration NextAuth → better-auth (côté backend), OTP utilisateurs ; auth admin par mot de passe + JWT.
 - **Notifications & messagerie** : Nodemailer (Mailgun/SMTP), Twilio (SMS).
 - **Stockage** : Vercel Blob (upload de pièces KYC).
-- **Sécurité** : jsonwebtoken, rate limiting Redis (`src/lib/rate-limit.ts`).
+- **Sécurité** : jsonwebtoken, rate limiting (Redis), validation stricte des payloads.
 
 ### Outils de développement
 
@@ -40,18 +40,12 @@ Sama Naffa est la plateforme digitale d’Everest Finance dédiée à l’éparg
 ## 3. Organisation du Code
 
 ```
-├── src/
-│   ├── app/                 # Pages publiques, portail, routes API (App Router)
-│   ├── components/          # Bibliothèque de composants (UI, modales, pages produit)
-│   ├── hooks/               # Hooks métiers (accounts, KYC, notifications, transactions)
-│   ├── lib/                 # Services partagés (auth, OTP, Prisma, Intouch, notifications, rate limit)
-│   ├── content/             # Données statiques (FAQ, personas)
-│   └── types/               # Typages NextAuth et extensions
-├── prisma/
-│   ├── schema.prisma        # Schéma central (User, Account, TransactionIntent…)
-│   ├── migrations/          # Historique des évolutions de schéma
-│   └── seed.ts              # Données d’amorçage
-├── project_docs/            # Documentation fonctionnelle et technique (historique)
+├── apps/
+│   ├── web/                 # Frontend TanStack Start
+│   └── backend/             # Backend Hono (Vercel Serverless)
+├── packages/
+│   └── shared/              # Types/validations partagés (sans logique runtime côté serveur)
+├── project_docs/            # Documentation fonctionnelle et technique
 └── ARCHITECTURE_GLOBALE.md  # Ce document
 ```
 
@@ -90,7 +84,7 @@ Sama Naffa est la plateforme digitale d’Everest Finance dédiée à l’éparg
 4. **Transactions & Paiements**
    - Création d’intentions via `/api/transactions/intent` (référence unique).
    - Intégration Intouch : déclenchement des paiements, stockage des `providerTransactionId` et `providerStatus`.
-   - Callbacks validés (`payments/intouch/callback`) avec signature HMAC, contrôle d’idempotence, mise à jour des soldes.
+   - Callbacks Intouch (webhook) : vérifier la signature HMAC / valider le payload → mettre à jour la transaction en base → retourner 200. Idempotence obligatoire.
    - Journalisation des callbacks et des administrateurs notes (`adminNotes`).
 
 5. **Notifications**

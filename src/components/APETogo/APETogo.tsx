@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from "react";
-import dynamic from "next/dynamic";
+import { lazy, Suspense } from 'react';
 import {
   ArrowDownTrayIcon,
   ArrowTrendingUpIcon,
@@ -9,22 +9,27 @@ import {
   CalendarDaysIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import Image from "next/image";
-import Link from "next/link";
+import { Image } from '@unpic/react';
+import { Link } from '@tanstack/react-router';
 import { Header } from "@/components/APE/Header";
 import { Footer } from "@/components/APE/Footer";
 import { useContactForm } from "../../hooks/useContactForm";
 import { countries } from "../data/countries";
 
 // Dynamically import ContactForm to reduce initial bundle size
-const ContactForm = dynamic(() => import("../APE/ContactForm").then(mod => ({ default: mod.ContactForm })), {
-  loading: () => (
-    <div className="flex items-center justify-center p-12">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
-    </div>
-  ),
-  ssr: false,
-});
+const ContactFormLazy = lazy(() => import("../APE/ContactForm").then(mod => ({ default: mod.ContactForm })));
+
+const ContactFormLoader = () => (
+  <div className="flex items-center justify-center p-12">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sama-accent-gold"></div>
+  </div>
+);
+
+const ContactForm = (props: any) => (
+  <Suspense fallback={<ContactFormLoader />}>
+    <ContactFormLazy {...props} />
+  </Suspense>
+);
 
 // Custom hook for count-up animation
 const useCountUp = (end: number, duration: number): number => {

@@ -1,8 +1,12 @@
-# Sama Naffa Backend Setup Guide
+# Sama Naffa Backend Setup Guide (Monorepo)
 
 ## 🚀 Quick Start
 
-This guide will help you set up the backend for the Sama Naffa platform using Bun, Next.js, Prisma, and PostgreSQL.
+This guide will help you set up the backend for the Sama Naffa platform in a monorepo with:
+
+- Frontend: TanStack Start
+- Backend: Hono (Vercel Serverless - Node)
+- Database: PostgreSQL (Neon recommended)
 
 ## 📋 Prerequisites
 
@@ -22,21 +26,27 @@ bun install
 
 ### 2. Environment Variables
 
-Copy the example environment file and configure your variables:
+Copy the example environment file and configure your variables.
+
+In the monorepo target, environment variables are split between:
+
+- Frontend (`apps/web`)
+- Backend (`apps/backend`)
 
 ```bash
 cp env.example .env.local
 ```
 
-Update `.env.local` with your actual values:
+Update `.env.local` (or Vercel project env vars) with your actual values.
 
 ```bash
 # Database
 DATABASE_URL="postgresql://username:password@localhost:5432/sama_naffa_db"
 
-# NextAuth.js
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="your-secret-key-here"
+# Auth (user)
+# better-auth (target state)
+BETTER_AUTH_URL="http://localhost:3000"
+BETTER_AUTH_SECRET="your-secret-key-here"
 
 # Vercel Blob
 BLOB_READ_WRITE_TOKEN="vercel_blob_rw_xxx"
@@ -55,6 +65,9 @@ TWILIO_PHONE_NUMBER="+1234567890"
 # Admin Configuration
 ADMIN_EMAIL="admin@samanaffa.com"
 ADMIN_PASSWORD="secure-admin-password"
+
+# Backend
+ADMIN_JWT_SECRET="change-me"
 
 # Application
 NODE_ENV="development"
@@ -136,7 +149,9 @@ bunx prisma db seed
 bun run dev
 ```
 
-The application will be available at `http://localhost:3000`
+The frontend will be available at `http://localhost:3000`.
+
+The backend will be exposed via its own Vercel project URL in production; in development you can run it locally and point the frontend to it via an env variable (e.g. `BACKEND_URL`).
 
 ### Production Build
 
@@ -147,11 +162,11 @@ bun run start
 
 ## 📡 API Endpoints
 
-### Authentication
+### Authentication (User)
 
 - `POST /api/auth/send-otp` - Send OTP to user
 - `POST /api/auth/verify-otp` - Verify OTP and authenticate
-- `GET /api/auth/[...nextauth]` - NextAuth.js endpoints
+- NextAuth is legacy; target state is better-auth in the backend service.
 
 ### User Management
 
@@ -174,6 +189,10 @@ bun run start
 - `GET /api/admin/users` - List all users
 - `GET /api/admin/transactions` - List all transaction intents
 - `PUT /api/admin/transactions/[id]` - Update transaction intent status
+
+### Payments (Intouch)
+
+- `POST /api/payments/intouch/callback` - Webhook callback (verify signature + update DB + return 200)
 
 ## 🗄 Database Schema
 
@@ -273,9 +292,10 @@ DEBUG=*
 
 ### Vercel Deployment
 
-1. Connect your GitHub repository to Vercel
-2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+In the monorepo target, you will deploy two Vercel projects:
+
+1. Frontend (TanStack Start)
+2. Backend (Hono API)
 
 ### Environment Variables for Production
 
