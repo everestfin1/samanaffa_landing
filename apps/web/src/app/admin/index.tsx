@@ -75,6 +75,7 @@ interface User {
 interface Transaction {
   id: string
   referenceNumber: string
+  userId?: string
   user: {
     name: string
     email: string
@@ -88,6 +89,7 @@ interface Transaction {
 
 interface KycDocument {
   id: string
+  userId?: string
   documentType: string
   fileName: string
   fileUrl: string
@@ -367,13 +369,24 @@ export default function AdminDashboard() {
       const usersData = await usersResponse.json()
       
       if (usersData.success) {
-        setUsers(usersData.users)
+        const usersList = usersData.users || []
+        
+        // Calculate stats for each user based on available data
+        const usersWithStats = usersList.map((user: any) => ({
+          ...user,
+          stats: {
+            totalTransactions: 0, // Will be calculated when we have transaction data
+            totalKycDocuments: 0 // Will be calculated when we have KYC data
+          }
+        }))
+        
+        setUsers(usersWithStats)
         
         // Calculate stats
-        const totalUsers = usersData.users.length
-        const pendingKyc = usersData.users.filter((u: User) => u.kycStatus === 'PENDING').length
-        const underReviewKyc = usersData.users.filter((u: User) => u.kycStatus === 'UNDER_REVIEW').length
-        const completedKyc = usersData.users.filter((u: User) => u.kycStatus === 'APPROVED').length
+        const totalUsers = usersList.length
+        const pendingKyc = usersList.filter((u: User) => u.kycStatus === 'PENDING').length
+        const underReviewKyc = usersList.filter((u: User) => u.kycStatus === 'UNDER_REVIEW').length
+        const completedKyc = usersList.filter((u: User) => u.kycStatus === 'APPROVED').length
         
         setStats(prev => ({
           ...prev,
@@ -388,14 +401,15 @@ export default function AdminDashboard() {
       const transactionsData = await transactionsResponse.json()
       
       if (transactionsData.success) {
-        setTransactions(transactionsData.transactionIntents)
+        setTransactions(transactionsData.transactions || [])
         
-        const pendingTransactions = transactionsData.transactionIntents.filter((t: Transaction) => t.status === 'PENDING').length
-        const completedTransactions = transactionsData.transactionIntents.filter((t: Transaction) => t.status === 'COMPLETED').length
-        const totalDeposits = transactionsData.transactionIntents
+        const transactionsList = transactionsData.transactions || []
+        const pendingTransactions = transactionsList.filter((t: Transaction) => t.status === 'PENDING').length
+        const completedTransactions = transactionsList.filter((t: Transaction) => t.status === 'COMPLETED').length
+        const totalDeposits = transactionsList
           .filter((t: Transaction) => t.intentType === 'DEPOSIT' && t.status === 'COMPLETED')
           .reduce((sum: number, t: Transaction) => sum + (Number(t.amount) || 0), 0)
-        const totalInvestments = transactionsData.transactionIntents
+        const totalInvestments = transactionsList
           .filter((t: Transaction) => t.intentType === 'INVESTMENT' && t.status === 'COMPLETED')
           .reduce((sum: number, t: Transaction) => sum + (Number(t.amount) || 0), 0)
         
@@ -413,7 +427,7 @@ export default function AdminDashboard() {
       const kycData = await kycResponse.json()
       
       if (kycData.success) {
-        setKycDocuments(kycData.kycDocuments)
+        setKycDocuments(kycData.kycDocuments || [])
       }
 
       // Fetch APE subscriptions
@@ -421,8 +435,23 @@ export default function AdminDashboard() {
       const apeData = await apeResponse.json()
       
       if (apeData.success) {
-        setApeSubscriptions(apeData.subscriptions)
-        setApeStats(apeData.stats)
+        const subscriptions = apeData.subscriptions || []
+        const totalAmount = subscriptions.reduce(
+          (sum: number, sub: ApeSubscription) => sum + (Number(sub.montantCfa) || 0),
+          0
+        )
+        const computedStats = {
+          total: subscriptions.length,
+          pending: subscriptions.filter((sub: ApeSubscription) => sub.status === 'PENDING').length,
+          paymentInitiated: subscriptions.filter((sub: ApeSubscription) => sub.status === 'PAYMENT_INITIATED').length,
+          paymentSuccess: subscriptions.filter((sub: ApeSubscription) => sub.status === 'PAYMENT_SUCCESS').length,
+          paymentFailed: subscriptions.filter((sub: ApeSubscription) => sub.status === 'PAYMENT_FAILED').length,
+          cancelled: subscriptions.filter((sub: ApeSubscription) => sub.status === 'CANCELLED').length,
+          totalAmount,
+        }
+
+        setApeSubscriptions(subscriptions)
+        setApeStats(computedStats)
       }
 
       // Fetch Sponsor Codes
@@ -430,8 +459,8 @@ export default function AdminDashboard() {
       const sponsorCodesData = await sponsorCodesResponse.json()
       
       if (sponsorCodesData.success) {
-        setSponsorCodes(sponsorCodesData.codes)
-        setSponsorCodeStats(sponsorCodesData.stats)
+        setSponsorCodes(sponsorCodesData.codes || [])
+        setSponsorCodeStats(sponsorCodesData.stats || {})
       }
 
       // Fetch PEE Leads
@@ -439,8 +468,8 @@ export default function AdminDashboard() {
       const peeLeadsData = await peeLeadsResponse.json()
       
       if (peeLeadsData.success) {
-        setPeeLeads(peeLeadsData.leads)
-        setPeeLeadStats(peeLeadsData.stats)
+        setPeeLeads(peeLeadsData.leads || [])
+        setPeeLeadStats(peeLeadsData.stats || {})
       }
 
       // Fetch Abandoned Leads
@@ -448,8 +477,31 @@ export default function AdminDashboard() {
       const abandonedLeadsData = await abandonedLeadsResponse.json()
 
       if (abandonedLeadsData.success) {
-        setAbandonedLeads(abandonedLeadsData.drafts)
-        setAbandonedLeadStats(abandonedLeadsData.stats)
+        setAbandonedLeads(abandonedLeadsData.drafts || [])
+        setAbandonedLeadStats(abandonedLeadsData.stats || {})
+      }
+
+      // Calculate user stats after all data is fetched
+      if (usersData.success && transactionsData.success && kycData.success) {
+        const usersList = usersData.users || []
+        const transactionsList = transactionsData.transactions || []
+        const kycDocsList = kycData.kycDocuments || []
+        
+        // Calculate stats for each user
+        const usersWithStats = usersList.map((user: any) => {
+          const userTransactions = transactionsList.filter((t: any) => t.userId === user.id)
+          const userKycDocs = kycDocsList.filter((doc: any) => doc.userId === user.id)
+          
+          return {
+            ...user,
+            stats: {
+              totalTransactions: userTransactions.length,
+              totalKycDocuments: userKycDocs.length
+            }
+          }
+        })
+        
+        setUsers(usersWithStats)
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
@@ -591,15 +643,15 @@ export default function AdminDashboard() {
       if (!token) return
 
       // Fetch updated user documents
-      const response = await fetch(`/api/kyc/upload?userId=${userId}`, {
+      const response = await fetch('/api/admin/kyc', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       })
 
       const data = await response.json()
-      if (data.success && data.documents) {
-        const documents = data.documents
+      if (data.success && data.kycDocuments) {
+        const documents = data.kycDocuments.filter((doc: any) => doc.userId === userId)
         const pendingDocs = documents.filter((doc: any) => doc.verificationStatus === 'PENDING')
         const approvedDocs = documents.filter((doc: any) => doc.verificationStatus === 'APPROVED')
         const rejectedDocs = documents.filter((doc: any) => doc.verificationStatus === 'REJECTED')
@@ -637,7 +689,7 @@ export default function AdminDashboard() {
         return
       }
 
-      const response = await fetch(`/api/kyc/upload?userId=${userId}`, {
+      const response = await fetch('/api/admin/kyc', {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
@@ -645,7 +697,8 @@ export default function AdminDashboard() {
 
       const data = await response.json()
       if (data.success) {
-        setUserKycDocuments(data.documents)
+        const documents = (data.kycDocuments || []).filter((doc: KycDocument) => doc.userId === userId)
+        setUserKycDocuments(documents)
       }
     } catch (error) {
       console.error('Error fetching user KYC documents:', error)
@@ -657,7 +710,6 @@ export default function AdminDashboard() {
     setActiveTab('kyc')
     await fetchUserKycDocuments(user.id)
   }
-
   const handleBulkValidate = async (userId: string, status: string) => {
     try {
       setBulkValidating(true)
@@ -1715,7 +1767,7 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="admin-table-cell-primary">
-                          {user.stats.totalTransactions}
+                          {user.stats?.totalTransactions || 0}
                         </td>
                         <td className="admin-table-cell-mono">
                           {new Date(user.createdAt).toLocaleDateString('fr-FR')}
@@ -1813,7 +1865,7 @@ export default function AdminDashboard() {
                   <span className="admin-stat-label">Total</span>
                   <div className="admin-stat-icon"><CreditCard className="w-5 h-5" /></div>
                 </div>
-                <div className="admin-stat-value">{transactions.length}</div>
+                <div className="admin-stat-value">{transactions?.length || 0}</div>
               </button>
               <button 
                 className={`admin-stat-card ${transactionStatusFilter === 'PENDING' ? 'active' : ''}`}
@@ -1824,7 +1876,7 @@ export default function AdminDashboard() {
                   <span className="admin-stat-label">En attente</span>
                   <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
                 </div>
-                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'PENDING').length}</div>
+                <div className="admin-stat-value colored">{transactions?.filter(t => t.status === 'PENDING').length || 0}</div>
               </button>
               <button 
                 className={`admin-stat-card ${transactionStatusFilter === 'PROCESSING' ? 'active' : ''}`}
@@ -1835,7 +1887,7 @@ export default function AdminDashboard() {
                   <span className="admin-stat-label">En cours</span>
                   <div className="admin-stat-icon"><TrendingUp className="w-5 h-5" /></div>
                 </div>
-                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'PROCESSING').length}</div>
+                <div className="admin-stat-value colored">{transactions?.filter(t => t.status === 'PROCESSING').length || 0}</div>
               </button>
               <button 
                 className={`admin-stat-card ${transactionStatusFilter === 'COMPLETED' ? 'active' : ''}`}
@@ -1846,7 +1898,7 @@ export default function AdminDashboard() {
                   <span className="admin-stat-label">Complétées</span>
                   <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
                 </div>
-                <div className="admin-stat-value colored">{transactions.filter(t => t.status === 'COMPLETED').length}</div>
+                <div className="admin-stat-value colored">{transactions?.filter(t => t.status === 'COMPLETED').length || 0}</div>
               </button>
             </div>
 
@@ -1904,7 +1956,7 @@ export default function AdminDashboard() {
                       </tr>
                     </thead>
                     <tbody>
-                      {transactions
+                      {(transactions || [])
                         .filter(t => !transactionStatusFilter || t.status === transactionStatusFilter)
                         .filter(t => !transactionTypeFilter || t.intentType === transactionTypeFilter)
                         .map((transaction) => (
@@ -1914,8 +1966,12 @@ export default function AdminDashboard() {
                           </td>
                           <td>
                             <div>
-                              <div className="admin-table-cell-primary">{transaction.user.name}</div>
-                              <div className="text-xs text-[var(--admin-text-muted)]">{transaction.user.email}</div>
+                              <div className="admin-table-cell-primary">
+                                {transaction.user?.name || transaction.userId || 'Utilisateur inconnu'}
+                              </div>
+                              <div className="text-xs text-[var(--admin-text-muted)]">
+                                {transaction.user?.email || 'Email indisponible'}
+                              </div>
                             </div>
                           </td>
                           <td>
@@ -1927,7 +1983,7 @@ export default function AdminDashboard() {
                             </span>
                           </td>
                           <td className="admin-table-cell-primary font-semibold">
-                            {transaction.amount.toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
+                            {(Number(transaction.amount) || 0).toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
                           </td>
                           <td>
                             <span className={`admin-badge ${
@@ -1977,7 +2033,7 @@ export default function AdminDashboard() {
                       ))}
                     </tbody>
                   </table>
-                  {transactions
+                  {(transactions || [])
                     .filter(t => !transactionStatusFilter || t.status === transactionStatusFilter)
                     .filter(t => !transactionTypeFilter || t.intentType === transactionTypeFilter)
                     .length === 0 && (
@@ -2089,7 +2145,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="admin-card-content">
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {users.filter(user => user.stats.totalKycDocuments > 0).map((user) => (
+                    {users.filter(user => user.stats?.totalKycDocuments > 0).map((user) => (
                       <div 
                         key={user.id} 
                         className="p-4 rounded-lg border border-[var(--admin-border-light)] hover:border-[var(--admin-primary)] hover:bg-[var(--admin-bg-tertiary)] transition-all cursor-pointer"
@@ -2103,7 +2159,7 @@ export default function AdminDashboard() {
                             <p className="text-sm text-[var(--admin-text-muted)]">{user.email}</p>
                             <div className="flex items-center gap-2 mt-2">
                               <span className="text-xs text-[var(--admin-text-muted)]">
-                                {user.stats.totalKycDocuments} document(s)
+                                {user.stats?.totalKycDocuments || 0} document(s)
                               </span>
                               <span className={`admin-badge admin-badge-sm ${
                                 user.kycStatus === 'APPROVED' ? 'admin-badge-success' :
@@ -2125,7 +2181,7 @@ export default function AdminDashboard() {
                       </div>
                     ))}
                   </div>
-                  {users.filter(user => user.stats.totalKycDocuments > 0).length === 0 && (
+                  {users.filter(user => user.stats?.totalKycDocuments > 0).length === 0 && (
                     <div className="admin-empty">
                       <FileText className="admin-empty-icon" />
                       <p className="admin-empty-title">Aucun document KYC</p>
@@ -2680,7 +2736,7 @@ export default function AdminDashboard() {
                     <Wallet className="w-5 h-5" />
                   </div>
                 </div>
-                <div className="admin-stat-value colored text-xl">{apeStats.totalAmount.toLocaleString('fr-FR')}</div>
+                <div className="admin-stat-value colored text-xl">{(apeStats.totalAmount || 0).toLocaleString('fr-FR')}</div>
                 <div className="text-xs text-[var(--admin-text-muted)] mt-1">FCFA</div>
               </div>
             </div>
@@ -2865,7 +2921,7 @@ export default function AdminDashboard() {
                             {sub.trancheInteresse}
                           </td>
                           <td className="admin-table-cell-primary font-semibold">
-                            {parseFloat(sub.montantCfa).toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
+                            {(Number(sub.montantCfa) || 0).toLocaleString('fr-FR')} <span className="text-[var(--admin-text-muted)] font-normal">FCFA</span>
                           </td>
                           <td className="admin-table-cell-mono">
                             {sub.codeParrainage || '-'}
@@ -3364,7 +3420,7 @@ export default function AdminDashboard() {
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs text-[var(--admin-text-muted)]">
                     <div><span className="font-medium">Réf:</span> {selectedApeSubscription.referenceNumber}</div>
-                    <div><span className="font-medium">Montant:</span> {parseFloat(selectedApeSubscription.montantCfa).toLocaleString('fr-FR')} FCFA</div>
+                    <div><span className="font-medium">Montant:</span> {(Number(selectedApeSubscription.montantCfa) || 0).toLocaleString('fr-FR')} FCFA</div>
                   </div>
                 </div>
 
