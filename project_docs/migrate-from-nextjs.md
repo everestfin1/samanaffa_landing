@@ -25,6 +25,18 @@ This repository is mid-migration. The target goal is:
 - **Dev proxy**: Vite proxy forwards `/api/admin/*`, `/api/kyc/*`, `/api/payments/*` to backend:8787.
 - **Auth API routes**: 9 TanStack Start server routes created (send-otp, verify-otp, login, reset-password, setup-password, check-availability, verify-and-create-account, session, sign-out).
 - **Legacy cleanup**: 31 legacy Next.js route.ts files deleted (admin + auth subdirectories).
+- **Dashboard bugs fixed**: Admin dashboard data fetching errors resolved (2026-01-23).
+
+### Remaining Tasks
+
+**See [MIGRATION_STATUS.md](./MIGRATION_STATUS.md) for detailed current status and next steps.**
+
+**High Priority:**
+- Complete better-auth integration across remaining 16 API routes
+- Migrate or remove legacy Next.js API routes using NextAuth patterns
+- Replace direct prisma usage with new db setup
+
+**Current Status: ~70% complete (2026-01-23)**
 
 ### Middleware Configuration
 
