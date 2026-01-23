@@ -1,4 +1,4 @@
-import { NextRequest } from 'next/server'
+type RequestLike = Request | { headers: { get: (name: string) => string | null } }
 
 interface RateLimitAttempt {
   count: number
@@ -50,7 +50,7 @@ export interface RateLimitResult {
   blocked: boolean
 }
 
-export function checkRateLimit(request: NextRequest, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): RateLimitResult {
+export function checkRateLimit(request: RequestLike, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): RateLimitResult {
   const ip = getClientIP(request)
   const key = identifier || ip // Use provided identifier or fall back to IP
   const config = RATE_LIMITS[type]
@@ -127,30 +127,30 @@ export function checkRateLimit(request: NextRequest, type: keyof typeof RATE_LIM
 }
 
 // Convenience functions for specific rate limit types
-export function checkLoginRateLimit(request: NextRequest, emailOrPhone?: string): RateLimitResult {
+export function checkLoginRateLimit(request: RequestLike, emailOrPhone?: string): RateLimitResult {
   return checkRateLimit(request, 'login', emailOrPhone)
 }
 
-export function checkOTPRateLimit(request: NextRequest, emailOrPhone?: string): RateLimitResult {
+export function checkOTPRateLimit(request: RequestLike, emailOrPhone?: string): RateLimitResult {
   return checkRateLimit(request, 'otp', emailOrPhone)
 }
 
-export function checkTransactionRateLimit(request: NextRequest, userId?: string): RateLimitResult {
+export function checkTransactionRateLimit(request: RequestLike, userId?: string): RateLimitResult {
   return checkRateLimit(request, 'transaction', userId)
 }
 
-export function checkKYCRateLimit(request: NextRequest, userId?: string): RateLimitResult {
+export function checkKYCRateLimit(request: RequestLike, userId?: string): RateLimitResult {
   return checkRateLimit(request, 'kyc', userId)
 }
 
-export function resetRateLimit(request: NextRequest, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): void {
+export function resetRateLimit(request: RequestLike, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): void {
   const ip = getClientIP(request)
   const key = identifier || ip
   const attemptsMap = rateLimitAttempts.get(type)!
   attemptsMap.delete(key)
 }
 
-export function getRateLimitStatus(request: NextRequest, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): RateLimitResult {
+export function getRateLimitStatus(request: RequestLike, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): RateLimitResult {
   const ip = getClientIP(request)
   const key = identifier || ip
   const config = RATE_LIMITS[type]
@@ -193,7 +193,7 @@ export function getRateLimitStatus(request: NextRequest, type: keyof typeof RATE
   }
 }
 
-function getClientIP(request: NextRequest): string {
+function getClientIP(request: RequestLike): string {
   const forwarded = request.headers.get('x-forwarded-for')
   const realIP = request.headers.get('x-real-ip')
   const cfConnectingIP = request.headers.get('cf-connecting-ip')

@@ -21,6 +21,10 @@ This repository is mid-migration. The target goal is:
 - **Middleware**: `src/middleware.ts` + `src/start.ts` now working for maintenance mode and portal auth.
 - **DB lazy loading**: `src/lib/db/index.ts` uses lazy initialization to avoid crashing at module import.
 - **Auth utils**: `src/lib/auth-utils.ts` extracted to avoid Zod v3/v4 conflict with `better-auth`.
+- **Backend (Hono)**: All admin dashboard API routes implemented with dual prefixes (`/admin/*` and `/api/admin/*`).
+- **Dev proxy**: Vite proxy forwards `/api/admin/*`, `/api/kyc/*`, `/api/payments/*` to backend:8787.
+- **Auth API routes**: 9 TanStack Start server routes created (send-otp, verify-otp, login, reset-password, setup-password, check-availability, verify-and-create-account, session, sign-out).
+- **Legacy cleanup**: 31 legacy Next.js route.ts files deleted (admin + auth subdirectories).
 
 ### Middleware Configuration
 

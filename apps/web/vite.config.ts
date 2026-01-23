@@ -7,6 +7,20 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   server: {
     port: Number(process.env.PORT) || 3000,
+    proxy: {
+      '/api/admin': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+      },
+      '/api/kyc': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+      },
+      '/api/payments': {
+        target: 'http://localhost:8787',
+        changeOrigin: true,
+      },
+    },
   },
   plugins: [
     tailwindcss(),
@@ -14,7 +28,7 @@ export default defineConfig({
     tanstackStart({
       srcDirectory: 'src',
       start: {
-        configFile: 'src/start.ts',
+        entry: 'src/start.ts',
       },
       router: {
         routesDirectory: 'app',

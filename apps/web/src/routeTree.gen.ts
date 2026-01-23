@@ -37,9 +37,15 @@ import { Route as ApePaymentStatusRouteImport } from './app/ape/payment-status'
 import { Route as AdminLoginRouteImport } from './app/admin/login'
 import { Route as PortalSamaNaffaPaymentSuccessRouteImport } from './app/portal/sama-naffa/payment-success'
 import { Route as PortalSamaNaffaPaymentFailedRouteImport } from './app/portal/sama-naffa/payment-failed'
+import { Route as ApiAuthVerifyOtpRouteImport } from './app/api/auth/verify-otp'
+import { Route as ApiAuthVerifyAndCreateAccountRouteImport } from './app/api/auth/verify-and-create-account'
 import { Route as ApiAuthSignOutRouteImport } from './app/api/auth/sign-out'
+import { Route as ApiAuthSetupPasswordRouteImport } from './app/api/auth/setup-password'
 import { Route as ApiAuthSessionRouteImport } from './app/api/auth/session'
-import { Route as ApiAuthSignInCredentialsRouteImport } from './app/api/auth/sign-in/credentials'
+import { Route as ApiAuthSendOtpRouteImport } from './app/api/auth/send-otp'
+import { Route as ApiAuthResetPasswordRouteImport } from './app/api/auth/reset-password'
+import { Route as ApiAuthLoginRouteImport } from './app/api/auth/login'
+import { Route as ApiAuthCheckAvailabilityRouteImport } from './app/api/auth/check-availability'
 
 const SouscrireApeRoute = SouscrireApeRouteImport.update({
   id: '/souscrire-ape',
@@ -184,9 +190,25 @@ const PortalSamaNaffaPaymentFailedRoute =
     path: '/payment-failed',
     getParentRoute: () => PortalSamaNaffaRoute,
   } as any)
+const ApiAuthVerifyOtpRoute = ApiAuthVerifyOtpRouteImport.update({
+  id: '/api/auth/verify-otp',
+  path: '/api/auth/verify-otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthVerifyAndCreateAccountRoute =
+  ApiAuthVerifyAndCreateAccountRouteImport.update({
+    id: '/api/auth/verify-and-create-account',
+    path: '/api/auth/verify-and-create-account',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiAuthSignOutRoute = ApiAuthSignOutRouteImport.update({
   id: '/api/auth/sign-out',
   path: '/api/auth/sign-out',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSetupPasswordRoute = ApiAuthSetupPasswordRouteImport.update({
+  id: '/api/auth/setup-password',
+  path: '/api/auth/setup-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
@@ -194,10 +216,25 @@ const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
   path: '/api/auth/session',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiAuthSignInCredentialsRoute =
-  ApiAuthSignInCredentialsRouteImport.update({
-    id: '/api/auth/sign-in/credentials',
-    path: '/api/auth/sign-in/credentials',
+const ApiAuthSendOtpRoute = ApiAuthSendOtpRouteImport.update({
+  id: '/api/auth/send-otp',
+  path: '/api/auth/send-otp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
+  id: '/api/auth/reset-password',
+  path: '/api/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthCheckAvailabilityRoute =
+  ApiAuthCheckAvailabilityRouteImport.update({
+    id: '/api/auth/check-availability',
+    path: '/api/auth/check-availability',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -228,11 +265,17 @@ export interface FileRoutesByFullPath {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/setup-password': typeof ApiAuthSetupPasswordRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/auth/verify-and-create-account': typeof ApiAuthVerifyAndCreateAccountRoute
+  '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
-  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -261,11 +304,17 @@ export interface FileRoutesByTo {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/setup-password': typeof ApiAuthSetupPasswordRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/auth/verify-and-create-account': typeof ApiAuthVerifyAndCreateAccountRoute
+  '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
-  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -295,11 +344,17 @@ export interface FileRoutesById {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/setup-password': typeof ApiAuthSetupPasswordRoute
   '/api/auth/sign-out': typeof ApiAuthSignOutRoute
+  '/api/auth/verify-and-create-account': typeof ApiAuthVerifyAndCreateAccountRoute
+  '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
-  '/api/auth/sign-in/credentials': typeof ApiAuthSignInCredentialsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -330,11 +385,17 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/api/auth/check-availability'
+    | '/api/auth/login'
+    | '/api/auth/reset-password'
+    | '/api/auth/send-otp'
     | '/api/auth/session'
+    | '/api/auth/setup-password'
     | '/api/auth/sign-out'
+    | '/api/auth/verify-and-create-account'
+    | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
-    | '/api/auth/sign-in/credentials'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -363,11 +424,17 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin'
     | '/portal'
+    | '/api/auth/check-availability'
+    | '/api/auth/login'
+    | '/api/auth/reset-password'
+    | '/api/auth/send-otp'
     | '/api/auth/session'
+    | '/api/auth/setup-password'
     | '/api/auth/sign-out'
+    | '/api/auth/verify-and-create-account'
+    | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
-    | '/api/auth/sign-in/credentials'
   id:
     | '__root__'
     | '/'
@@ -396,11 +463,17 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/api/auth/check-availability'
+    | '/api/auth/login'
+    | '/api/auth/reset-password'
+    | '/api/auth/send-otp'
     | '/api/auth/session'
+    | '/api/auth/setup-password'
     | '/api/auth/sign-out'
+    | '/api/auth/verify-and-create-account'
+    | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
-    | '/api/auth/sign-in/credentials'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -426,9 +499,15 @@ export interface RootRouteChildren {
   PortalSamaNaffaRoute: typeof PortalSamaNaffaRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  ApiAuthCheckAvailabilityRoute: typeof ApiAuthCheckAvailabilityRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
+  ApiAuthSendOtpRoute: typeof ApiAuthSendOtpRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiAuthSetupPasswordRoute: typeof ApiAuthSetupPasswordRoute
   ApiAuthSignOutRoute: typeof ApiAuthSignOutRoute
-  ApiAuthSignInCredentialsRoute: typeof ApiAuthSignInCredentialsRoute
+  ApiAuthVerifyAndCreateAccountRoute: typeof ApiAuthVerifyAndCreateAccountRoute
+  ApiAuthVerifyOtpRoute: typeof ApiAuthVerifyOtpRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -629,11 +708,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PortalSamaNaffaPaymentFailedRouteImport
       parentRoute: typeof PortalSamaNaffaRoute
     }
+    '/api/auth/verify-otp': {
+      id: '/api/auth/verify-otp'
+      path: '/api/auth/verify-otp'
+      fullPath: '/api/auth/verify-otp'
+      preLoaderRoute: typeof ApiAuthVerifyOtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/verify-and-create-account': {
+      id: '/api/auth/verify-and-create-account'
+      path: '/api/auth/verify-and-create-account'
+      fullPath: '/api/auth/verify-and-create-account'
+      preLoaderRoute: typeof ApiAuthVerifyAndCreateAccountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/sign-out': {
       id: '/api/auth/sign-out'
       path: '/api/auth/sign-out'
       fullPath: '/api/auth/sign-out'
       preLoaderRoute: typeof ApiAuthSignOutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/setup-password': {
+      id: '/api/auth/setup-password'
+      path: '/api/auth/setup-password'
+      fullPath: '/api/auth/setup-password'
+      preLoaderRoute: typeof ApiAuthSetupPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/session': {
@@ -643,11 +743,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSessionRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/auth/sign-in/credentials': {
-      id: '/api/auth/sign-in/credentials'
-      path: '/api/auth/sign-in/credentials'
-      fullPath: '/api/auth/sign-in/credentials'
-      preLoaderRoute: typeof ApiAuthSignInCredentialsRouteImport
+    '/api/auth/send-otp': {
+      id: '/api/auth/send-otp'
+      path: '/api/auth/send-otp'
+      fullPath: '/api/auth/send-otp'
+      preLoaderRoute: typeof ApiAuthSendOtpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/reset-password': {
+      id: '/api/auth/reset-password'
+      path: '/api/auth/reset-password'
+      fullPath: '/api/auth/reset-password'
+      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/check-availability': {
+      id: '/api/auth/check-availability'
+      path: '/api/auth/check-availability'
+      fullPath: '/api/auth/check-availability'
+      preLoaderRoute: typeof ApiAuthCheckAvailabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -716,20 +837,25 @@ const rootRouteChildren: RootRouteChildren = {
   PortalSamaNaffaRoute: PortalSamaNaffaRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   PortalIndexRoute: PortalIndexRoute,
+  ApiAuthCheckAvailabilityRoute: ApiAuthCheckAvailabilityRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
+  ApiAuthSendOtpRoute: ApiAuthSendOtpRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiAuthSetupPasswordRoute: ApiAuthSetupPasswordRoute,
   ApiAuthSignOutRoute: ApiAuthSignOutRoute,
-  ApiAuthSignInCredentialsRoute: ApiAuthSignInCredentialsRoute,
+  ApiAuthVerifyAndCreateAccountRoute: ApiAuthVerifyAndCreateAccountRoute,
+  ApiAuthVerifyOtpRoute: ApiAuthVerifyOtpRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
 import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
+import type { createStart } from '@tanstack/react-start'
 declare module '@tanstack/react-start' {
   interface Register {
     ssr: true
     router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
   }
 }

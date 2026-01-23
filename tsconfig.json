@@ -12,6 +12,10 @@
     "isolatedModules": true,
     "noEmit": true
   },
-  "include": [],
-  "exclude": ["node_modules", "**/node_modules", "**/dist", "**/.output", "apps", "packages"]
+  "files": [],
+  "references": [
+    { "path": "./packages/shared" },
+    { "path": "./apps/backend" },
+    { "path": "./apps/web" }
+  ]
 }
