@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/get-session'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { userAccounts, transactionIntents } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 import { addMonths, generateAccountNumber } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
 
@@ -71,29 +73,30 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
     const accountTypeFilter = searchParams.get('accountType')
 
-    const whereClause: any = {
-      userId: (session?.user as any).id
-    }
-
+    const conditions = [eq(userAccounts.userId, (session?.user as any).id)]
     if (accountTypeFilter) {
-      whereClause.accountType = accountTypeFilter.toUpperCase()
+      conditions.push(eq(userAccounts.accountType, accountTypeFilter.toUpperCase() as any))
     }
+    const whereClause = and(...conditions)
 
-    const [accounts, total] = await Promise.all([
-      prisma.userAccount.findMany({
-        where: whereClause,
-        include: {
-          transactionIntents: {
-            orderBy: { createdAt: 'desc' },
-            take: 5
-          }
-        },
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit
-      }),
-      prisma.userAccount.count({ where: whereClause })
+    const [accounts, totalResult] = await Promise.all([
+      db
+        .select()
+        .from(userAccounts)
+        .leftJoin(
+          transactionIntents,
+          eq(userAccounts.id, transactionIntents.accountId)
+        )
+        .where(whereClause)
+        .orderBy(desc(userAccounts.createdAt))
+        .limit(limit)
+        .offset(skip),
+      db
+        .select({ count: userAccounts.id })
+        .from(userAccounts)
+        .where(whereClause)
     ])
+    const total = totalResult[0]?.count || 0
 
     return NextResponse.json({
       success: true,
@@ -170,8 +173,9 @@ export async function POST(request: NextRequest) {
       ? mergedMetadata
       : undefined
 
-    const account = await prisma.userAccount.create({
-      data: {
+    const account = await db
+      .insert(userAccounts)
+      .values({
         userId: (session?.user as any).id,
         accountType: normalizedAccountType as any,
         accountNumber: generateAccountNumber('SN'),
@@ -185,14 +189,8 @@ export async function POST(request: NextRequest) {
         allowAdditionalDeposits: effectiveAllowDeposits,
         metadata: metadataInput,
         status: 'ACTIVE'
-      },
-      include: {
-        transactionIntents: {
-          orderBy: { createdAt: 'desc' },
-          take: 5
-        }
-      }
-    })
+      })
+      .returning()
 
     return NextResponse.json({
       success: true,

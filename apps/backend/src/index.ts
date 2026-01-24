@@ -12,6 +12,7 @@ import adminSponsorCodes from './routes/admin/sponsor-codes.js'
 import adminPeeLeads from './routes/admin/pee-leads.js'
 import adminAbandonedLeads from './routes/admin/abandoned-leads.js'
 import adminAccounts from './routes/admin/accounts.js'
+import adminSettings from './routes/admin/settings.js'
 import paymentsIntouch from './routes/payments/intouch.js'
 
 const app = new Hono()
@@ -38,6 +39,7 @@ app.route('/admin/sponsor-codes', adminSponsorCodes)
 app.route('/admin/pee-leads', adminPeeLeads)
 app.route('/admin/abandoned-leads', adminAbandonedLeads)
 app.route('/admin/accounts', adminAccounts)
+app.route('/admin/settings', adminSettings)
 
 // API prefixed admin routes (for frontend proxy)
 app.route('/api/admin/auth', adminAuth)
@@ -50,6 +52,7 @@ app.route('/api/admin/sponsor-codes', adminSponsorCodes)
 app.route('/api/admin/pee-leads', adminPeeLeads)
 app.route('/api/admin/abandoned-leads', adminAbandonedLeads)
 app.route('/api/admin/accounts', adminAccounts)
+app.route('/api/admin/settings', adminSettings)
 
 // Payment callbacks
 app.route('/payments/intouch', paymentsIntouch)

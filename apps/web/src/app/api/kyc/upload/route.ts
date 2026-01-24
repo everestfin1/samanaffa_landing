@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { users, kycDocuments } from '@/lib/db/schema'
+import { eq, desc } from 'drizzle-orm'
 import { checkKYCRateLimit } from '@/lib/rate-limit'
 
 export async function POST(request: NextRequest) {
@@ -88,11 +90,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
 
-    if (!user) {
+    if (!user || user.length === 0) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
@@ -105,14 +109,17 @@ export async function POST(request: NextRequest) {
     })
 
     // Save document record to database
-    const kycDocument = await prisma.kycDocument.create({
-      data: {
+    const kycDocumentResult = await db
+      .insert(kycDocuments)
+      .values({
         userId,
         documentType,
         fileUrl: blob.url,
         fileName: file.name,
-      }
-    })
+      })
+      .returning()
+    
+    const kycDocument = kycDocumentResult[0]
 
     return NextResponse.json({
       success: true,
@@ -147,14 +154,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const kycDocuments = await prisma.kycDocument.findMany({
-      where: { userId },
-      orderBy: { uploadDate: 'desc' }
-    })
+    const kycDocumentsData = await db
+      .select()
+      .from(kycDocuments)
+      .where(eq(kycDocuments.userId, userId))
+      .orderBy(desc(kycDocuments.uploadDate))
 
     return NextResponse.json({
       success: true,
-      documents: kycDocuments
+      documents: kycDocumentsData
     })
   } catch (error) {
     console.error('Error fetching KYC documents:', error)

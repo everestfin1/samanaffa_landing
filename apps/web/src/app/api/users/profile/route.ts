@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/get-session'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { users, userAccounts, kycDocuments as kycDocs } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,47 +15,55 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: (session?.user as any).id },
-      include: {
-        accounts: true,
-        kycDocuments: {
-          orderBy: { uploadDate: 'desc' }
-        }
-      }
-    })
+    const user = await db
+      .select()
+      .from(users)
+      .leftJoin(userAccounts, eq(users.id, userAccounts.userId))
+      .leftJoin(kycDocs, eq(users.id, kycDocs.userId))
+      .where(eq(users.id, (session?.user as any).id))
+      .limit(1)
 
-    if (!user) {
+    if (!user || !user[0]) {
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
+    const userData = user[0].users
+    // Group related data
+    const accounts = user
+      .filter(row => row.user_accounts)
+      .map(row => row.user_accounts!)
+    const kycDocuments = user
+      .filter(row => row.kyc_documents)
+      .sort((a, b) => new Date(b.kyc_documents!.uploadDate).getTime() - new Date(a.kyc_documents!.uploadDate).getTime())
+      .map(row => row.kyc_documents!)
+
     return NextResponse.json({
       success: true,
       user: {
-        id: user.id,
-        email: user.email,
-        phone: user.phone,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        dateOfBirth: user.dateOfBirth,
-        nationality: user.nationality,
-        address: user.address,
-        city: user.city,
-        country: user.country,
-        region: user.region,
-        department: user.department,
-        arrondissement: user.arrondissement,
-        district: user.district,
-        preferredLanguage: user.preferredLanguage,
-        emailVerified: user.emailVerified,
-        phoneVerified: user.phoneVerified,
-        kycStatus: user.kycStatus,
-        createdAt: user.createdAt,
-        accounts: user.accounts,
-        kycDocuments: user.kycDocuments
+        id: userData.id,
+        email: userData.email,
+        phone: userData.phone,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        dateOfBirth: userData.dateOfBirth,
+        nationality: userData.nationality,
+        address: userData.address,
+        city: userData.city,
+        country: userData.country,
+        region: userData.region,
+        department: userData.department,
+        arrondissement: userData.arrondissement,
+        district: userData.district,
+        preferredLanguage: userData.preferredLanguage,
+        emailVerified: userData.emailVerified,
+        phoneVerified: userData.phoneVerified,
+        kycStatus: userData.kycStatus,
+        createdAt: userData.createdAt,
+        accounts,
+        kycDocuments
       }
     })
   } catch (error) {
@@ -91,9 +101,9 @@ export async function PUT(request: NextRequest) {
       preferredLanguage
     } = await request.json()
 
-    const updatedUser = await prisma.user.update({
-      where: { id: (session?.user as any).id },
-      data: {
+    const updatedUser = await db
+      .update(users)
+      .set({
         firstName,
         lastName,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
@@ -106,29 +116,30 @@ export async function PUT(request: NextRequest) {
         arrondissement,
         district,
         preferredLanguage
-      }
-    })
+      })
+      .where(eq(users.id, (session?.user as any).id))
+      .returning()
 
     return NextResponse.json({
       success: true,
       message: 'Profile updated successfully',
       user: {
-        id: updatedUser.id,
-        email: updatedUser.email,
-        phone: updatedUser.phone,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
-        dateOfBirth: updatedUser.dateOfBirth,
-        nationality: updatedUser.nationality,
-        address: updatedUser.address,
-        city: updatedUser.city,
-        country: updatedUser.country,
-        region: updatedUser.region,
-        department: updatedUser.department,
-        arrondissement: updatedUser.arrondissement,
-        district: updatedUser.district,
-        preferredLanguage: updatedUser.preferredLanguage,
-        kycStatus: updatedUser.kycStatus,
+        id: updatedUser[0].id,
+        email: updatedUser[0].email,
+        phone: updatedUser[0].phone,
+        firstName: updatedUser[0].firstName,
+        lastName: updatedUser[0].lastName,
+        dateOfBirth: updatedUser[0].dateOfBirth,
+        nationality: updatedUser[0].nationality,
+        address: updatedUser[0].address,
+        city: updatedUser[0].city,
+        country: updatedUser[0].country,
+        region: updatedUser[0].region,
+        department: updatedUser[0].department,
+        arrondissement: updatedUser[0].arrondissement,
+        district: updatedUser[0].district,
+        preferredLanguage: updatedUser[0].preferredLanguage,
+        kycStatus: updatedUser[0].kycStatus,
       }
     })
   } catch (error) {

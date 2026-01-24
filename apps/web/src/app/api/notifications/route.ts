@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from '@/lib/get-session'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { notifications, users, adminUsers } from '@/lib/db/schema'
+import { eq, and, desc } from 'drizzle-orm'
 
 // GET /api/notifications - Get user notifications
 export async function GET(request: NextRequest) {
@@ -20,56 +22,52 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit
 
     // Build where clause
-    const where: any = {
-      userId: session.user.id
-    }
+    const conditions = [eq(notifications.userId, session.user.id)]
 
     if (status && status !== 'all') {
-      where.isRead = status === 'read'
+      conditions.push(eq(notifications.isRead, status === 'read'))
     }
 
     if (type) {
-      where.type = type.toUpperCase()
+      conditions.push(eq(notifications.type, type.toUpperCase() as any))
     }
 
-    const [notifications, totalCount] = await Promise.all([
-      prisma.notification.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        select: {
-          id: true,
-          title: true,
-          message: true,
-          type: true,
-          isRead: true,
-          priority: true,
-          metadata: true,
-          createdAt: true,
-          updatedAt: true
-        }
-      }),
-      prisma.notification.count({ where })
+    const whereClause = and(...conditions)
+
+    const [notificationsData, totalCount] = await Promise.all([
+      db
+        .select()
+        .from(notifications)
+        .where(whereClause)
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit)
+        .offset(skip),
+      db
+        .select({ count: notifications.id })
+        .from(notifications)
+        .where(whereClause)
+        .then(result => result[0]?.count || 0)
     ])
 
     // Get unread count
-    const unreadCount = await prisma.notification.count({
-      where: {
-        userId: session.user.id,
-        isRead: false
-      }
-    })
+    const unreadCountResult = await db
+      .select({ count: notifications.id })
+      .from(notifications)
+      .where(and(
+        eq(notifications.userId, session.user.id),
+        eq(notifications.isRead, false)
+      ))
+    const unreadCount = unreadCountResult[0]?.count || 0
 
     return NextResponse.json({
       success: true,
       data: {
-        notifications,
+        notifications: notificationsData,
         pagination: {
           page,
           limit,
           total: totalCount,
-          pages: Math.ceil(totalCount / limit)
+          pages: Math.ceil(Number(totalCount) / limit) || 1
         },
         unreadCount
       }
@@ -94,11 +92,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user is admin
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email! }
-    })
+    const adminUser = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, session.user.email!))
+      .limit(1)
 
-    if (!adminUser) {
+    if (!adminUser || adminUser.length === 0) {
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
     }
 
@@ -113,31 +113,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user exists
-    const user = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
 
-    if (!user) {
+    if (!user || user.length === 0) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
         { status: 404 }
       )
     }
 
-    const notification = await prisma.notification.create({
-      data: {
+    const notification = await db
+      .insert(notifications)
+      .values({
         userId,
         title,
         message,
         type: type || 'INFO',
         priority: priority || 'NORMAL',
         metadata: metadata ? JSON.stringify(metadata) : null
-      }
-    })
+      })
+      .returning()
 
     return NextResponse.json({
       success: true,
-      data: notification
+      data: notification[0]
     })
 
   } catch (error) {
