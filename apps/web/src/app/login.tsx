@@ -171,47 +171,18 @@ function LoginForm() {
     }
 
     try {
-      let requestBody;
-      if (inputType === 'email') {
-        requestBody = { email: formData.contact, phone: null, password: formData.password, type: 'login' };
-      } else {
-        // Use the phone value from react-phone-input-2 (already validated)
-        requestBody = { email: null, phone: formData.phone, password: formData.password, type: 'login' };
-      }
-
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
+      const result = await signIn({
+        email: inputType === 'email' ? formData.contact : undefined,
+        phone: inputType === 'phone' ? formData.phone : undefined,
+        password: formData.password,
+        type: 'login',
       });
 
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('Connexion réussie !');
-        // Use better-auth signIn for session management
-        const result = await signIn({
-          email: inputType === 'email' ? formData.contact : undefined,
-          phone: inputType === 'phone' ? formData.phone : undefined,
-          password: formData.password,
-          type: 'login',
-        });
-
-        if (!result.success) {
-          setError(result.error || 'Identifiants incorrects');
-        } else {
-          (navigate as any)({ to: '/portal/dashboard' });
-        }
+      if (!result.success) {
+        setError(result.error || 'Identifiants incorrects');
       } else {
-        if (data.error === 'password_not_set') {
-          // User exists but no password set, offer OTP login
-          setStep('otp');
-          await handleSendOTP();
-        } else {
-          setError(data.error || 'Erreur lors de la connexion');
-        }
+        setSuccess('Connexion réussie !');
+        (navigate as any)({ to: '/portal/dashboard' });
       }
     } catch (error) {
       setError('Erreur de connexion. Veuillez réessayer.');

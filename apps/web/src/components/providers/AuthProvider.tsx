@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
+import { createContext, useContext, ReactNode } from 'react'
+import { authClient } from '@/lib/auth-client'
 
 interface User {
   id: string
@@ -41,54 +42,32 @@ export function useAuth() {
   return context
 }
 
-// Alias for compatibility with existing code using useSession
-export const useSession = () => {
-  const { user, session, status } = useAuth()
-  return {
-    data: user ? { user, expires: session?.expires?.toISOString() } : null,
-    status,
-  }
-}
+export const useSession = authClient.useSession
 
 interface AuthProviderProps {
   children: ReactNode
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
-  const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading')
+  const { data: sessionData, isPending } = authClient.useSession()
 
-  const fetchSession = async () => {
-    try {
-      const response = await fetch('/api/auth/session', {
-        credentials: 'include',
-      })
-      const data = await response.json()
+  const user = sessionData?.user ? {
+    id: sessionData.user.id,
+    email: sessionData.user.email,
+    name: sessionData.user.name,
+    phone: (sessionData.user as any).phone || '',
+    firstName: (sessionData.user as any).firstName || '',
+    lastName: (sessionData.user as any).lastName || '',
+    kycStatus: (sessionData.user as any).kycStatus || null,
+  } : null
 
-      if (data.user && data.session) {
-        setUser(data.user)
-        setSession({
-          ...data.session,
-          expires: new Date(data.session.expires),
-        })
-        setStatus('authenticated')
-      } else {
-        setUser(null)
-        setSession(null)
-        setStatus('unauthenticated')
-      }
-    } catch (error) {
-      console.error('Failed to fetch session:', error)
-      setUser(null)
-      setSession(null)
-      setStatus('unauthenticated')
-    }
-  }
+  const session = sessionData?.session ? {
+    id: sessionData.session.id,
+    userId: sessionData.session.userId,
+    expires: new Date(sessionData.session.expiresAt),
+  } : null
 
-  useEffect(() => {
-    fetchSession()
-  }, [])
+  const status = isPending ? 'loading' : (sessionData ? 'authenticated' : 'unauthenticated')
 
   const signIn = async (credentials: {
     email?: string
@@ -98,44 +77,32 @@ export function AuthProvider({ children }: AuthProviderProps) {
     type: 'login' | 'register'
   }) => {
     try {
-      const response = await fetch('/api/auth/sign-in/credentials', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(credentials),
-      })
-
-      const data = await response.json()
-
-      if (data.success && data.user) {
-        setUser(data.user)
-        setStatus('authenticated')
+      // Use better-auth native signIn endpoint
+      if (credentials.password && credentials.email) {
+        const { data, error } = await authClient.signIn.email({
+          email: credentials.email,
+          password: credentials.password,
+        })
+        
+        if (error) {
+          return { success: false, error: error.message || 'Authentication failed' }
+        }
+        
         return { success: true }
       }
-
-      return { success: false, error: data.error || 'Authentication failed' }
+      
+      return { success: false, error: 'Email and password are required' }
     } catch (error: any) {
       return { success: false, error: error.message || 'Authentication failed' }
     }
   }
 
   const signOut = async () => {
-    try {
-      await fetch('/api/auth/sign-out', {
-        method: 'POST',
-        credentials: 'include',
-      })
-    } catch (error) {
-      console.error('Sign out error:', error)
-    } finally {
-      setUser(null)
-      setSession(null)
-      setStatus('unauthenticated')
-    }
+    await authClient.signOut()
   }
 
   const refresh = async () => {
-    await fetchSession()
+    // better-auth handles session refresh automatically
   }
 
   return (

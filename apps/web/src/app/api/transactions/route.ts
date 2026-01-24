@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify user is authenticated
+    // Verify user is authenticated<
     const session = await getServerSession(request);
     
     if (!session?.user?.id) {

@@ -24,7 +24,7 @@ export const Route = createFileRoute('/portal/compare')({
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,7 +32,7 @@ export default function ComparePage() {
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
-      if (status === 'loading') return;
+      if (isPending) return;
       
       if (!session) {
         (navigate as any)({ to: '/login' });

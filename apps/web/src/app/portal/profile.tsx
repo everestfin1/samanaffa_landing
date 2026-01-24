@@ -75,7 +75,7 @@ export const Route = createFileRoute('/portal/profile')({
 
 export default function ProfilePage() {
   const navigate = useNavigate();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const { signOut } = useAuth();
 
   // Use Tanstack Query hooks
@@ -113,7 +113,7 @@ export default function ProfilePage() {
   }, [userData]);
 
   // Redirect to login if not authenticated
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">

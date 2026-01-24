@@ -8,10 +8,10 @@ export const Route = createFileRoute('/portal/')({
 
 export default function PortalPage() {
   const navigate = useNavigate();
-  const { data, status } = useSession();
+  const { data, isPending } = useSession();
 
   useEffect(() => {
-    if (status === 'loading') {
+    if (isPending) {
       return;
     }
     if (!data?.user) {
@@ -19,7 +19,7 @@ export default function PortalPage() {
       return;
     }
     (navigate as any)({ to: '/portal/dashboard' });
-  }, [data?.user, navigate, status]);
+  }, [data?.user, navigate, isPending]);
 
   return null;
 }

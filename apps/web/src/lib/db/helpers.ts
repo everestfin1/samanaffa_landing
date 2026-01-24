@@ -1262,32 +1262,32 @@ export const apeSubscription = {
   },
 };
 
-// Session helpers
-export const session = {
-  async findUnique(params: { where: { sessionToken: string } }) {
+// Session helpers - updated for Better Auth schema (snake_case columns)
+export const sessionHelper = {
+  async findUnique(params: { where: { token: string } }) {
     const results = await db.select()
-      .from(schema.sessions)
-      .where(eq(schema.sessions.sessionToken, params.where.sessionToken))
+      .from(schema.session)
+      .where(eq(schema.session.token, params.where.token))
       .limit(1);
     
     return results[0] || null;
   },
 
   async create(params: { data: any }) {
-    const results = await db.insert(schema.sessions).values(params.data).returning();
+    const results = await db.insert(schema.session).values(params.data).returning();
     return results[0];
   },
 
-  async update(params: { where: { sessionToken: string }; data: any }) {
-    const results = await db.update(schema.sessions)
+  async update(params: { where: { token: string }; data: any }) {
+    const results = await db.update(schema.session)
       .set(params.data)
-      .where(eq(schema.sessions.sessionToken, params.where.sessionToken))
+      .where(eq(schema.session.token, params.where.token))
       .returning();
     return results[0];
   },
 
-  async delete(params: { where: { sessionToken: string } }) {
-    await db.delete(schema.sessions).where(eq(schema.sessions.sessionToken, params.where.sessionToken));
+  async delete(params: { where: { token: string } }) {
+    await db.delete(schema.session).where(eq(schema.session.token, params.where.token));
   },
 };
 
@@ -1324,7 +1324,7 @@ export const prisma = {
   adminAuditLog,
   notification,
   paymentCallbackLog,
-  session,
+  session: sessionHelper,
   apeSubscription,
   apeSponsorCode,
   $transaction: utils.$transaction,

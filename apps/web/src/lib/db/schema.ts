@@ -19,56 +19,99 @@ export const formDraftStatusEnum = pgEnum('FormDraftStatus', ['ABANDONED', 'CONT
 // Sponsor code status enum
 export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
 
-// Users table
-export const users = pgTable('users', {
+// User table - Better Auth core schema (singular table name)
+export const users = pgTable('user', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  // Better Auth required fields
+  name: text('name').notNull().default(''),
   email: text('email').notNull().unique(),
-  phone: text('phone').notNull().unique(),
-  passwordHash: text('passwordHash'),
-  firstName: text('firstName').notNull(),
-  lastName: text('lastName').notNull(),
-  dateOfBirth: timestamp('dateOfBirth', { mode: 'date' }),
+  emailVerified: boolean('email_verified').notNull().default(false),
+  image: text('image'),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+  // App-specific fields
+  phone: text('phone').unique(),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
+  passwordHash: text('password_hash'),
+  kycStatus: text('kyc_status').default('PENDING'),
+  dateOfBirth: timestamp('date_of_birth', { mode: 'date' }),
   nationality: text('nationality'),
   address: text('address'),
   city: text('city'),
-  preferredLanguage: text('preferredLanguage').notNull().default('fr'),
-  emailVerified: boolean('emailVerified').notNull().default(false),
-  phoneVerified: boolean('phoneVerified').notNull().default(false),
-  otpVerifiedAt: timestamp('otpVerifiedAt', { mode: 'date' }),
-  kycStatus: kycStatusEnum('kycStatus').notNull().default('PENDING'),
-  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+  preferredLanguage: text('preferred_language').default('fr'),
+  phoneVerified: boolean('phone_verified').default(false),
+  otpVerifiedAt: timestamp('otp_verified_at', { mode: 'date' }),
   civilite: text('civilite'),
   country: text('country'),
   region: text('region'),
   department: text('department'),
   arrondissement: text('arrondissement'),
   district: text('district'),
-  domaineActivite: text('domaineActivite'),
-  idExpiryDate: timestamp('idExpiryDate', { mode: 'date' }),
-  idIssueDate: timestamp('idIssueDate', { mode: 'date' }),
-  idNumber: text('idNumber'),
-  idType: text('idType'),
-  marketingAccepted: boolean('marketingAccepted').notNull().default(false),
+  domaineActivite: text('domaine_activite'),
+  idExpiryDate: timestamp('id_expiry_date', { mode: 'date' }),
+  idIssueDate: timestamp('id_issue_date', { mode: 'date' }),
+  idNumber: text('id_number'),
+  idType: text('id_type'),
+  marketingAccepted: boolean('marketing_accepted').default(false),
   metiers: text('metiers'),
-  placeOfBirth: text('placeOfBirth'),
-  privacyAccepted: boolean('privacyAccepted').notNull().default(false),
+  placeOfBirth: text('place_of_birth'),
+  privacyAccepted: boolean('privacy_accepted').default(false),
   signature: text('signature'),
-  statutEmploi: text('statutEmploi'),
-  termsAccepted: boolean('termsAccepted').notNull().default(false),
+  statutEmploi: text('statut_emploi'),
+  termsAccepted: boolean('terms_accepted').default(false),
   // Account lockout fields
-  failedAttempts: integer('failedAttempts').notNull().default(0),
-  lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
+  failedAttempts: integer('failed_attempts').default(0),
+  lockedUntil: timestamp('locked_until', { mode: 'date' }),
 });
 
-// Sessions table
-export const sessions = pgTable('sessions', {
+// Session table - Better Auth core schema (singular name)
+export const session = pgTable('session', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  sessionToken: text('sessionToken').notNull().unique(),
-  userId: text('userId').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  expires: timestamp('expires', { mode: 'date' }).notNull(),
-  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
-});
+  token: text('token').notNull().unique(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+  ipAddress: text('ip_address'),
+  userAgent: text('user_agent'),
+}, (table) => [index('session_userId_idx').on(table.userId)]);
+
+// Alias for backwards compatibility
+export const sessions = session;
+
+// Account table - Better Auth core schema (singular name)
+export const account = pgTable('account', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  providerId: text('provider_id').notNull(),
+  accountId: text('account_id').notNull(),
+  accessToken: text('access_token'),
+  refreshToken: text('refresh_token'),
+  idToken: text('id_token'),
+  accessTokenExpiresAt: timestamp('access_token_expires_at', { mode: 'date' }),
+  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { mode: 'date' }),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  uniqueIndex('account_provider_account_unique').on(table.providerId, table.accountId),
+  index('account_userId_idx').on(table.userId),
+]);
+
+// Alias for backwards compatibility
+export const accounts = account;
+
+// Verification table - Better Auth core schema
+export const verification = pgTable('verification', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { mode: 'date' }).notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [index('verification_identifier_idx').on(table.identifier)]);
 
 // Registration Sessions table
 export const registrationSessions = pgTable('registration_sessions', {
@@ -310,9 +353,16 @@ export const usersRelations = relations(users, ({ many }) => ({
   notifications: many(notifications),
 }));
 
-export const sessionsRelations = relations(sessions, ({ one }) => ({
+export const sessionRelations = relations(session, ({ one }) => ({
   user: one(users, {
-    fields: [sessions.userId],
+    fields: [session.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accountRelations = relations(account, ({ one }) => ({
+  user: one(users, {
+    fields: [account.userId],
     references: [users.id],
   }),
 }));

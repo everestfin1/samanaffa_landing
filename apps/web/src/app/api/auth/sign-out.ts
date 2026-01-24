@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { getDb } from '@/lib/db'
-import { sessions } from '@/lib/db/schema'
+import { session as sessionTable } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 
 function parseCookieHeader(cookieHeader: string | null): Record<string, string> {
@@ -30,7 +30,7 @@ export const Route = createFileRoute('/api/auth/sign-out')({
           const sessionToken = cookies['better-auth.session_token']
 
           if (sessionToken) {
-            await db.delete(sessions).where(eq(sessions.sessionToken, sessionToken))
+            await db.delete(sessionTable).where(eq(sessionTable.token, sessionToken))
           }
         } catch (error) {
           console.error('[api/auth/sign-out] Error:', error)

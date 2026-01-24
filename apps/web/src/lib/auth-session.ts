@@ -1,5 +1,5 @@
 import { db } from './db'
-import { sessions, users } from './db/schema'
+import { session as sessionTable, users } from './db/schema'
 import { eq, and, gt } from 'drizzle-orm'
 
 export interface SessionUser {
@@ -25,6 +25,7 @@ export interface AuthSession {
 
 /**
  * Get session from request cookies (for Vercel Functions / API routes)
+ * Uses Better Auth session table with snake_case column names
  */
 export async function getSession(cookies: Record<string, string> | undefined): Promise<AuthSession> {
   const sessionToken = cookies?.['better-auth.session_token']
@@ -35,11 +36,11 @@ export async function getSession(cookies: Record<string, string> | undefined): P
 
   const [session] = await db
     .select()
-    .from(sessions)
+    .from(sessionTable)
     .where(
       and(
-        eq(sessions.sessionToken, sessionToken),
-        gt(sessions.expires, new Date())
+        eq(sessionTable.token, sessionToken),
+        gt(sessionTable.expiresAt, new Date())
       )
     )
     .limit(1)
@@ -62,15 +63,15 @@ export async function getSession(cookies: Record<string, string> | undefined): P
     session: {
       id: session.id,
       userId: session.userId,
-      expires: session.expires,
+      expires: session.expiresAt,
     },
     user: {
       id: user.id,
       email: user.email,
-      name: `${user.firstName} ${user.lastName}`,
-      phone: user.phone,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+      phone: user.phone || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       kycStatus: user.kycStatus,
     },
   }

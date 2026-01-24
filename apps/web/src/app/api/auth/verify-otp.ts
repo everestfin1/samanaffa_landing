@@ -57,7 +57,7 @@ export const Route = createFileRoute('/api/auth/verify-otp')({
           }
 
           if (type === 'register' && userData) {
-            const finalNormalizedPhone = normalizedPhone || user.phone
+            const finalNormalizedPhone = normalizedPhone || user.phone || ''
 
             const duplicateEmailUser = await prisma.user.findFirst({
               where: { email: user.email, id: { not: user.id } }

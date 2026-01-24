@@ -75,7 +75,7 @@ export const Route = createFileRoute('/portal/dashboard')({
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const { signOut } = useAuth();
 
   // Use Tanstack Query hooks for data fetching
@@ -92,7 +92,7 @@ export default function DashboardPage() {
   const error = profileError?.message || transactionsError?.message || '';
 
   // Redirect to login if not authenticated
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">

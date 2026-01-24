@@ -1,6 +1,10 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool } from '@neondatabase/serverless';
 import * as schema from './schema';
+import * as dotenv from 'dotenv';
+
+// Load environment variables from .env.local
+dotenv.config({ path: '.env.local' });
 
 const isBrowser = typeof globalThis !== 'undefined' && 'window' in globalThis
 
@@ -17,7 +21,11 @@ function initDb(): ReturnType<typeof drizzle> {
     throw new Error('DATABASE_URL is not defined')
   }
 
-  const pool = new Pool({ connectionString: process.env.DATABASE_URL })
+  // Debug: log the database being connected to
+  const dbUrl = process.env.DATABASE_URL
+  console.log('[DB] Connecting to:', dbUrl.substring(0, 50) + '...')
+
+  const pool = new Pool({ connectionString: dbUrl })
   _db = drizzle(pool, { schema })
   return _db
 }

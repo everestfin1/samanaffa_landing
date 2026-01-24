@@ -46,6 +46,7 @@ import { Route as ApiAuthSendOtpRouteImport } from './app/api/auth/send-otp'
 import { Route as ApiAuthResetPasswordRouteImport } from './app/api/auth/reset-password'
 import { Route as ApiAuthLoginRouteImport } from './app/api/auth/login'
 import { Route as ApiAuthCheckAvailabilityRouteImport } from './app/api/auth/check-availability'
+import { Route as ApiAuthSplatRouteImport } from './app/api/auth/$'
 
 const SouscrireApeRoute = SouscrireApeRouteImport.update({
   id: '/souscrire-ape',
@@ -237,6 +238,11 @@ const ApiAuthCheckAvailabilityRoute =
     path: '/api/auth/check-availability',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -265,6 +271,7 @@ export interface FileRoutesByFullPath {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -304,6 +311,7 @@ export interface FileRoutesByTo {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -344,6 +352,7 @@ export interface FileRoutesById {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
@@ -385,6 +394,7 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
     | '/api/auth/reset-password'
@@ -424,6 +434,7 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin'
     | '/portal'
+    | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
     | '/api/auth/reset-password'
@@ -463,6 +474,7 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
     | '/api/auth/reset-password'
@@ -499,6 +511,7 @@ export interface RootRouteChildren {
   PortalSamaNaffaRoute: typeof PortalSamaNaffaRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAuthCheckAvailabilityRoute: typeof ApiAuthCheckAvailabilityRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
@@ -771,6 +784,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthCheckAvailabilityRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -837,6 +857,7 @@ const rootRouteChildren: RootRouteChildren = {
   PortalSamaNaffaRoute: PortalSamaNaffaRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   PortalIndexRoute: PortalIndexRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthCheckAvailabilityRoute: ApiAuthCheckAvailabilityRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,

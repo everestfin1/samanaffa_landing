@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const userData = user[0].users
+    const userData = user[0].user
     // Group related data
     const accounts = user
       .filter(row => row.user_accounts)

@@ -1,6 +1,7 @@
 import { db } from './db'
-import { sessions, users } from './db/schema'
+import { session as sessionTable, users } from './db/schema'
 import { eq, and, gt } from 'drizzle-orm'
+
 const parseCookies = (cookieHeader: string | null) => {
   if (!cookieHeader) return {}
 
@@ -28,6 +29,7 @@ export interface Session {
 
 /**
  * Get session from request headers (API routes/server calls)
+ * Uses Better Auth session table with snake_case column names
  */
 export async function getServerSession(
   request?: Request | { headers: Headers }
@@ -43,11 +45,11 @@ export async function getServerSession(
 
     const [session] = await db
       .select()
-      .from(sessions)
+      .from(sessionTable)
       .where(
         and(
-          eq(sessions.sessionToken, sessionToken),
-          gt(sessions.expires, new Date())
+          eq(sessionTable.token, sessionToken),
+          gt(sessionTable.expiresAt, new Date())
         )
       )
       .limit(1)
@@ -70,10 +72,10 @@ export async function getServerSession(
       user: {
         id: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
-        phone: user.phone,
-        firstName: user.firstName,
-        lastName: user.lastName,
+        name: user.name || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+        phone: user.phone || '',
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
         kycStatus: user.kycStatus,
       },
     }

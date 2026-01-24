@@ -35,7 +35,7 @@ export const Route = createFileRoute('/portal/notifications')({
 
 export default function NotificationsPage() {
   const navigate = useNavigate()
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const [userData, setUserData] = useState<UserData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -58,7 +58,7 @@ export default function NotificationsPage() {
   // Fetch user data
   useEffect(() => {
     const fetchUserData = async () => {
-      if (status === 'loading') return
+      if (isPending) return
       
       if (!session) {
         (navigate as any)({ to: '/login' })

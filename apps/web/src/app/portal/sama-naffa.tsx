@@ -24,14 +24,14 @@ export const Route = createFileRoute('/portal/sama-naffa')({
 
 export default function SamaNaffaPage() {
   const navigate = useNavigate();
-  const { data: session, status } = useSession();
+  const { data: session, isPending } = useSession();
   const { signOut } = useAuth();
   
   // Use Tanstack Query hook for data fetching (same as dashboard)
   const { data: userData, isLoading, error } = useUserProfile();
 
   // Redirect to login if not authenticated
-  if (status === 'loading') {
+  if (isPending) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">

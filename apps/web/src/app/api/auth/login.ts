@@ -1,5 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { prisma } from '@/lib/prisma'
+import { user as userDb } from '@/lib/db/helpers'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkLoginRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { sanitizeText, validateEmail } from '@/lib/sanitization'
@@ -57,13 +57,13 @@ export const Route = createFileRoute('/api/auth/login')({
           let user: User | null = null
 
           if (sanitizedEmail) {
-            user = await prisma.user.findFirst({ where: { email: sanitizedEmail } })
+            user = await userDb.findFirst({ where: { email: sanitizedEmail } })
           }
 
           if (!user && normalizedPhone) {
             const phoneFormats = generatePhoneFormats(normalizedPhone)
             for (const phoneFormat of phoneFormats) {
-              user = await prisma.user.findFirst({ where: { phone: phoneFormat } })
+              user = await userDb.findFirst({ where: { phone: phoneFormat } })
               if (user) break
             }
           }
@@ -100,7 +100,7 @@ export const Route = createFileRoute('/api/auth/login')({
               lockedUntil = new Date(Date.now() + 30 * 60 * 1000)
             }
 
-            await prisma.user.update({
+            await userDb.update({
               where: { id: user.id },
               data: { failedAttempts, lockedUntil }
             })
@@ -118,7 +118,7 @@ export const Route = createFileRoute('/api/auth/login')({
             )
           }
 
-          await prisma.user.update({
+          await userDb.update({
             where: { id: user.id },
             data: { failedAttempts: 0, lockedUntil: null }
           })

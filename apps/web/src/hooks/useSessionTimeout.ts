@@ -17,7 +17,7 @@ export function useSessionTimeout({
   onWarning,
   enabled = true
 }: UseSessionTimeoutOptions = {}) {
-  const { data: session, status } = useSession()
+  const { data: session, isPending } = useSession()
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const warningRef = useRef<NodeJS.Timeout | null>(null)
   const checkIntervalRef = useRef<NodeJS.Timeout | null>(null)

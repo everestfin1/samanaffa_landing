@@ -1,1 +1,1 @@
-export { auth, verifyCredentials, type Auth } from './better-auth'
+export { auth, type Auth } from './better-auth'
