@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/get-session';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { transactionIntents, userAccounts, users } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,53 +29,58 @@ export async function GET(request: NextRequest) {
     }
 
     let transaction: any = null;
+    let row: any = null;
 
     if (referenceNumber) {
       console.log('[API /transactions] Looking up transaction by reference:', referenceNumber);
-      transaction = await prisma.transactionIntent.findUnique({
-        where: { referenceNumber },
-        include: {
-          account: {
-            select: {
-              id: true,
-              accountNumber: true,
-              accountType: true,
-              balance: true,
-            }
-          },
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-            }
-          }
-        }
-      });
+      row = await db
+        .select({
+          intent: transactionIntents,
+          account: userAccounts,
+          user: users,
+        })
+        .from(transactionIntents)
+        .leftJoin(userAccounts, eq(transactionIntents.accountId, userAccounts.id))
+        .leftJoin(users, eq(transactionIntents.userId, users.id))
+        .where(eq(transactionIntents.referenceNumber, referenceNumber))
+        .limit(1)
+        .then((rows) => rows[0] ?? null)
     } else if (transactionId) {
       console.log('[API /transactions] Looking up transaction by ID:', transactionId);
-      transaction = await prisma.transactionIntent.findUnique({
-        where: { id: transactionId },
-        include: {
-          account: {
-            select: {
-              id: true,
-              accountNumber: true,
-              accountType: true,
-              balance: true,
+      row = await db
+        .select({
+          intent: transactionIntents,
+          account: userAccounts,
+          user: users,
+        })
+        .from(transactionIntents)
+        .leftJoin(userAccounts, eq(transactionIntents.accountId, userAccounts.id))
+        .leftJoin(users, eq(transactionIntents.userId, users.id))
+        .where(eq(transactionIntents.id, transactionId))
+        .limit(1)
+        .then((rows) => rows[0] ?? null)
+    }
+
+    if (row?.intent) {
+      transaction = {
+        ...row.intent,
+        account: row.account
+          ? {
+              id: row.account.id,
+              accountNumber: row.account.accountNumber,
+              accountType: row.account.accountType,
+              balance: row.account.balance,
             }
-          },
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
+          : null,
+        user: row.user
+          ? {
+              id: row.user.id,
+              firstName: row.user.firstName,
+              lastName: row.user.lastName,
+              email: row.user.email,
             }
-          }
-        }
-      });
+          : null,
+      }
     }
 
     if (!transaction) {

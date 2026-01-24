@@ -380,6 +380,32 @@ function parseCustomerInfo(value: unknown): any | undefined {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8787'
+    const body = await request.text()
+
+    const res = await fetch(`${backendUrl}/api/payments/intouch/callback`, {
+      method: 'POST',
+      headers: {
+        'content-type': request.headers.get('content-type') || 'application/json',
+        authorization: request.headers.get('authorization') || '',
+        'x-intouch-signature': request.headers.get('x-intouch-signature') || '',
+      },
+      body,
+    })
+
+    const responseBody = await res.text()
+    return new NextResponse(responseBody, {
+      status: res.status,
+      headers: {
+        'content-type': res.headers.get('content-type') || 'application/json',
+      },
+    })
+  } catch (error) {
+    console.error('[Intouch Callback] Proxy error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+
   // Rate limiting check
   const clientIP = request.headers.get('x-forwarded-for') ||
                    request.headers.get('x-real-ip') ||
@@ -408,12 +434,12 @@ export async function POST(request: NextRequest) {
   const basicAuthPassword = process.env.NODE_ENV === 'production' ? process.env.INTOUCH_BASIC_AUTH_PASSWORD : process.env.INTOUCH_BASIC_AUTH_PASSWORD_TEST;
 
   // Verify Basic Authentication (InTouch API requirement)
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('authorization') || '';
   if (authHeader) {
-    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0]);
+    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0] || '');
     
     if (authHeader.startsWith('Basic ')) {
-      const base64Credentials = authHeader.split(' ')[1];
+      const base64Credentials = authHeader.split(' ')[1] || '';
       const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
       const [username, password] = credentials.split(':');
       
@@ -450,7 +476,7 @@ export async function POST(request: NextRequest) {
   if (signature) {
     console.log('[Intouch Callback] HMAC signature present');
     if (webhookSecret) {
-      if (!verifySignature(rawBody, signature, webhookSecret)) {
+      if (!verifySignature(rawBody, signature as string, webhookSecret as string)) {
         if (!allowUnsigned) {
           console.error('[Intouch Callback] HMAC signature verification FAILED');
           return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 401 });
@@ -508,6 +534,30 @@ export async function POST(request: NextRequest) {
 
 // Handle GET requests - Intouch sends callbacks as GET with query params
 export async function GET(request: NextRequest) {
+  try {
+    const backendUrl = process.env.BACKEND_URL || 'http://localhost:8787'
+    const url = new URL(request.url)
+
+    const res = await fetch(`${backendUrl}/api/payments/intouch/callback?${url.searchParams.toString()}`, {
+      method: 'GET',
+      headers: {
+        authorization: request.headers.get('authorization') || '',
+        'x-intouch-signature': request.headers.get('x-intouch-signature') || '',
+      },
+    })
+
+    const responseBody = await res.text()
+    return new NextResponse(responseBody, {
+      status: res.status,
+      headers: {
+        'content-type': res.headers.get('content-type') || 'application/json',
+      },
+    })
+  } catch (error) {
+    console.error('[Intouch Callback] Proxy error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+
   // Rate limiting check
   const clientIP = request.headers.get('x-forwarded-for') ||
                    request.headers.get('x-real-ip') ||
@@ -545,12 +595,12 @@ export async function GET(request: NextRequest) {
   const basicAuthPassword = process.env.INTOUCH_BASIC_AUTH_PASSWORD;
   const allowUnsigned = process.env.INTOUCH_ALLOW_UNSIGNED_CALLBACKS === 'true';
 
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('authorization') || '';
   if (authHeader) {
-    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0]);
+    console.log('[Intouch Callback] Authorization header present:', authHeader.split(' ')[0] || '');
     
     if (authHeader.startsWith('Basic ')) {
-      const base64Credentials = authHeader.split(' ')[1];
+      const base64Credentials = authHeader.split(' ')[1] || '';
       const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
       const [username, password] = credentials.split(':');
       

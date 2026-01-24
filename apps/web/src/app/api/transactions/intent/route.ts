@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getServerSession } from '@/lib/get-session'
+import { db } from '@/lib/db'
+import { transactionIntents, userAccounts, users } from '@/lib/db/schema'
+import { and, desc, eq, sql } from 'drizzle-orm'
 import { generateReferenceNumber } from '@/lib/utils'
 import { sendTransactionIntentEmail, sendAdminNotificationEmail } from '@/lib/notifications'
 import { checkTransactionRateLimit } from '@/lib/rate-limit'
@@ -18,8 +21,13 @@ function respondError(code: string, message: string, status = 400) {
 
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(request)
+
+    if (!(session?.user as any)?.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const {
-      userId,
       accountId: rawAccountId,
       accountType,
       intentType,
@@ -31,6 +39,8 @@ export async function POST(request: NextRequest) {
       referenceNumber: providedReferenceNumber,
       providerTransactionId,
     } = await request.json()
+
+    const userId = (session!.user as any).id
 
     // Check rate limiting for transaction creation
     if (userId) {
@@ -72,11 +82,6 @@ export async function POST(request: NextRequest) {
       normalizedIntentType,
       amount
     });
-
-    // Validate and sanitize input
-    if (!userId || typeof userId !== 'string') {
-      return respondError('invalid_user_id', 'User ID is required and must be a string', 400)
-    }
 
     if (!validateAmount(amount)) {
       return respondError('invalid_amount', 'Invalid amount provided', 400)
@@ -144,14 +149,26 @@ export async function POST(request: NextRequest) {
     
     console.log('[Transaction Intent] Querying accounts with filter:', accountQuery);
     
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        accounts: {
-          where: accountQuery
-        }
-      }
-    })
+    const accountConditions = [
+      eq(userAccounts.userId, userId),
+      eq(userAccounts.accountType, normalizedAccountType.toUpperCase() as any),
+    ]
+    if (accountId) {
+      accountConditions.push(eq(userAccounts.id, accountId))
+    }
+
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
+      .then((rows) => rows[0] ?? null)
+
+    const accounts = await db
+      .select()
+      .from(userAccounts)
+      .where(and(...accountConditions))
+      .limit(10)
 
     if (!user) {
       return respondError('user_not_found', 'User not found', 404)
@@ -160,29 +177,29 @@ export async function POST(request: NextRequest) {
     // Check KYC status - allow deposits and investments without KYC, but require for withdrawals
     const requiresKyc = normalizedIntentType === 'withdrawal';
 
-    if (requiresKyc && user.kycStatus !== 'APPROVED') {
+    if (requiresKyc && (user as any).kycStatus !== 'APPROVED') {
       return NextResponse.json(
         {
           success: false,
           error: 'Vérification d\'identité (KYC) requise pour effectuer des retraits. Veuillez attendre la validation de vos documents.',
           code: 'kyc_required',
-          kycStatus: user.kycStatus,
+          kycStatus: (user as any).kycStatus,
         },
         { status: 403 },
       )
     }
 
     console.log('[Transaction Intent] User accounts found:', {
-      accountCount: user.accounts.length,
-      accounts: user.accounts.map((a: any) => ({ id: a.id, type: a.accountType })),
+      accountCount: accounts.length,
+      accounts: accounts.map((a: any) => ({ id: a.id, type: a.accountType })),
       requestedAccountId: accountId
     });
 
-    if (!user.accounts.length) {
+    if (!accounts.length) {
       return respondError('account_not_found', `Account not found for type ${normalizedAccountType.toUpperCase()}`, 404)
     }
 
-    const account = user.accounts[0]
+    const account = accounts[0]
     
     console.log('[Transaction Intent] Selected account:', {
       accountId: account.id,
@@ -195,7 +212,7 @@ export async function POST(request: NextRequest) {
       console.error('[Transaction Intent] Account ID mismatch!', {
         foundAccountId: account.id,
         requestedAccountId: accountId,
-        accountsAvailable: user.accounts.map((a: any) => a.id)
+        accountsAvailable: accounts.map((a: any) => a.id)
       });
       return respondError('account_mismatch', 'Selected account not found or does not match type', 400)
     }
@@ -227,26 +244,30 @@ export async function POST(request: NextRequest) {
           )
 
     // Create transaction intent
-    const transactionIntent = await prisma.transactionIntent.create({
-      data: {
+    const amountValue = typeof amount === 'string' ? amount : String(amount)
+
+    const transactionIntent = await db
+      .insert(transactionIntents)
+      .values({
         userId,
         accountId: account.id,
-        accountType: normalizedAccountType.toUpperCase(),
-        intentType: normalizedIntentType.toUpperCase(),
-        amount: typeof amount === 'string' ? parseFloat(amount) : Number(amount),
+        accountType: normalizedAccountType.toUpperCase() as any,
+        intentType: normalizedIntentType.toUpperCase() as any,
+        amount: amountValue,
         paymentMethod,
         investmentTranche,
         investmentTerm,
         userNotes,
         referenceNumber,
         providerTransactionId: providerTransactionId || null,
-      }
-    })
+      })
+      .returning()
+      .then((rows) => rows[0])
 
     // Send confirmation email to user
     await sendTransactionIntentEmail(
-      user.email,
-      `${user.firstName} ${user.lastName}`,
+      (user as any).email,
+      `${(user as any).firstName} ${(user as any).lastName}`,
       {
         type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
         amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
@@ -263,9 +284,9 @@ export async function POST(request: NextRequest) {
     await sendAdminNotificationEmail(
       process.env.ADMIN_EMAIL || 'admin@samanaffa.com',
       {
-        userName: `${user.firstName} ${user.lastName}`,
-        userEmail: user.email,
-        userPhone: user.phone,
+        userName: `${(user as any).firstName} ${(user as any).lastName}`,
+        userEmail: (user as any).email,
+        userPhone: (user as any).phone,
         type: normalizedIntentType as 'deposit' | 'investment' | 'withdrawal',
         amount: Number(transactionIntent.amount) || Number(transactionIntent.amount),
         paymentMethod,
@@ -299,47 +320,50 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(request)
+
+    if (!(session?.user as any)?.id) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
+    const userId = (session!.user as any).id
     const accountId = searchParams.get('accountId')
     const accountType = searchParams.get('accountType')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
-    }
-
     // Build where clause
-    const where: any = { userId }
-    if (accountId) {
-      where.accountId = accountId
-    }
-    if (accountType) {
-      where.accountType = accountType.toUpperCase()
-    }
+    const whereConditions = [eq(transactionIntents.userId, userId)]
+    if (accountId) whereConditions.push(eq(transactionIntents.accountId, accountId))
+    if (accountType) whereConditions.push(eq(transactionIntents.accountType, accountType.toUpperCase() as any))
+    const whereClause = and(...whereConditions)
 
     // Get total count for pagination
-    const totalCount = await prisma.transactionIntent.count({
-      where
-    })
+    const [countResult, intents] = await Promise.all([
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(transactionIntents)
+        .where(whereClause),
+      db
+        .select({ intent: transactionIntents, account: userAccounts })
+        .from(transactionIntents)
+        .leftJoin(userAccounts, eq(transactionIntents.accountId, userAccounts.id))
+        .where(whereClause)
+        .orderBy(desc(transactionIntents.createdAt))
+        .limit(limit)
+        .offset(offset),
+    ])
 
-    const transactionIntents = await prisma.transactionIntent.findMany({
-      where,
-      include: {
-        account: true
-      },
-      orderBy: { createdAt: 'desc' },
-      take: limit,
-      skip: offset
-    })
+    const totalCount = Number(countResult[0]?.count || 0)
+    const transactionIntentsResult = intents.map((row) => ({
+      ...row.intent,
+      account: row.account,
+    }))
 
     return NextResponse.json({
       success: true,
-      transactionIntents,
+      transactionIntents: transactionIntentsResult,
       pagination: {
         total: totalCount,
         limit,
