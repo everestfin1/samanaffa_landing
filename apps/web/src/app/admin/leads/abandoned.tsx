@@ -4,6 +4,7 @@ import PageContainer from '../../../components/admin/layout/PageContainer';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
+import Badge from '../../../components/admin/data-display/Badge';
 import { useAbandonedLeads } from './queries';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
@@ -65,10 +66,16 @@ const abandonedColumns = [
     header: 'Statut',
     cell: (info) => {
       const status = info.getValue();
+      const variant =
+        status === 'CONVERTED'
+          ? 'success'
+          : status === 'ABANDONED' || status === 'CONTACTED'
+            ? 'warning'
+            : status === 'DISMISSED'
+              ? 'danger'
+              : 'default';
       return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadgeColors[status] || 'bg-gray-100 text-gray-800'}`}>
-          {statusLabels[status] || status}
-        </span>
+        <Badge variant={variant}>{statusLabels[status] || status}</Badge>
       );
     },
   }),
@@ -179,6 +186,7 @@ function AbandonedLeadsPage() {
           page,
           pageSize,
           total: pagination.total,
+          totalPages: pagination.totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

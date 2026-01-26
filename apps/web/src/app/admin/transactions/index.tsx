@@ -60,7 +60,7 @@ function TransactionsPage() {
   const [paymentFilter, setPaymentFilter] = React.useState('');
   const [selectedTransaction, setSelectedTransaction] = React.useState<Transaction | null>(null);
 
-  const { data, isLoading } = useTransactions({ page, pageSize });
+  const { data, isLoading } = useTransactions({ page, pageSize, q, status, date });
 
   const transactions = data?.transactions ?? [];
   const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
@@ -71,28 +71,12 @@ function TransactionsPage() {
   );
 
   const filteredTransactions = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toLowerCase();
-
     return transactions.filter((t) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        t.referenceNumber.toLowerCase().includes(qNorm) ||
-        t.paymentMethod.toLowerCase().includes(qNorm) ||
-        t.intentType.toLowerCase().includes(qNorm) ||
-        String(t.amount).includes(qNorm);
-
-      const matchesStatus =
-        statusNorm.length === 0 || t.status.toLowerCase().includes(statusNorm);
-
-      const matchesDate = date.length === 0 || t.createdAt.slice(0, 10) === date;
-
       const matchesType = !typeFilter || t.intentType === typeFilter;
       const matchesPayment = !paymentFilter || t.paymentMethod === paymentFilter;
-
-      return matchesQ && matchesStatus && matchesDate && matchesType && matchesPayment;
+      return matchesType && matchesPayment;
     });
-  }, [transactions, q, status, date, typeFilter, paymentFilter]);
+  }, [transactions, typeFilter, paymentFilter]);
 
   const stats = React.useMemo(() => {
     const totalVolume = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
@@ -145,14 +129,26 @@ function TransactionsPage() {
               label: 'Type de transaction',
               options: typeFacetOptions,
               value: typeFilter,
-              onChange: (value) => setTypeFilter(value),
+              onChange: (value) => {
+                setTypeFilter(value);
+                navigate({
+                  search: (prev) => ({ ...prev, page: 1 }),
+                  replace: true,
+                });
+              },
             },
             {
               columnId: 'paymentMethod',
               label: 'Moyen de paiement',
               options: paymentFacetOptions,
               value: paymentFilter,
-              onChange: (value) => setPaymentFilter(value),
+              onChange: (value) => {
+                setPaymentFilter(value);
+                navigate({
+                  search: (prev) => ({ ...prev, page: 1 }),
+                  replace: true,
+                });
+              },
             },
           ],
         }}
@@ -160,6 +156,7 @@ function TransactionsPage() {
           page,
           pageSize,
           total: pagination.total,
+          totalPages: pagination.totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

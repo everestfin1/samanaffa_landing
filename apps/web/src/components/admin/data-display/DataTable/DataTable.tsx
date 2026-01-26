@@ -271,9 +271,10 @@ export function DataTable<TData>({
       {paginationProps ? (
         <DataTablePagination
           {...paginationProps}
-          page={pagination.pageIndex + 1}
-          pageSize={pagination.pageSize}
+          page={paginationProps.page}
+          pageSize={paginationProps.pageSize}
           total={paginationProps.total}
+          totalPages={paginationProps.totalPages}
           onPageChange={(nextPage) => {
             setPagination((prev) => ({ ...prev, pageIndex: Math.max(0, nextPage - 1) }));
             paginationProps.onPageChange(nextPage);

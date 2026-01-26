@@ -1,5 +1,6 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { User } from './queries';
+import Badge from '../../../components/admin/data-display/Badge';
 
 const columnHelper = createColumnHelper<User>();
 
@@ -41,10 +42,16 @@ export const userColumns = [
     header: 'Statut KYC',
     cell: (info) => {
       const status = info.getValue();
+      const variant =
+        status === 'APPROVED'
+          ? 'success'
+          : status === 'PENDING' || status === 'UNDER_REVIEW'
+            ? 'warning'
+            : status === 'REJECTED'
+              ? 'danger'
+              : 'default';
       return (
-        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadgeColors[status] || 'bg-gray-100 text-gray-800'}`}>
-          {statusLabels[status] || status}
-        </span>
+        <Badge variant={variant}>{statusLabels[status] || status}</Badge>
       );
     },
   }),

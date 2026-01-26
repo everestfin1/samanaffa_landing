@@ -100,6 +100,7 @@ function ApeSubscriptionsPage() {
           page: currentPage,
           pageSize,
           total,
+          totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

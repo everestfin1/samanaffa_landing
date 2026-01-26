@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 export interface DataTablePaginationProps {
   page: number;
   pageSize: number;
   total: number;
+  totalPages?: number;
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
   className?: string;
@@ -16,74 +16,56 @@ const DataTablePagination = ({
   page,
   pageSize,
   total,
+  totalPages,
   onPageChange,
   onPageSizeChange,
   className = '',
 }: DataTablePaginationProps) => {
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const clampedPage = Math.min(Math.max(1, page), totalPages);
-
-  const canGoPrevious = clampedPage > 1;
-  const canGoNext = clampedPage < totalPages;
+  const computedTotalPages = Math.max(1, Math.ceil(total / pageSize));
+  const effectiveTotalPages = Math.max(1, totalPages ?? computedTotalPages);
+  const clampedPage = Math.min(Math.max(1, page), effectiveTotalPages);
 
   const from = total === 0 ? 0 : (clampedPage - 1) * pageSize + 1;
   const to = Math.min(clampedPage * pageSize, total);
 
   return (
-    <div className={`flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between ${className}`}>
-      <div className="flex items-center gap-2">
-        <span className="font-medium text-slate-900">{from}-{to}</span>
-        <span>sur</span>
-        <span className="font-medium text-slate-900">{total}</span>
-        <span>résultats</span>
+    <div className={`flex flex-col gap-2 rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600 lg:flex-row lg:items-center lg:justify-between ${className}`}>
+      <div>
+        {from}-{to} sur {total} résultats
       </div>
-      
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-slate-400">Par page</span>
-          <select
-            value={pageSize}
-            onChange={(event) => onPageSizeChange(Number(event.target.value))}
-            className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 transition-all"
-          >
-            {pageSizeOptions.map((size) => (
-              <option key={size} value={size}>
-                {size}
-              </option>
-            ))}
-          </select>
+      <div className="flex items-center gap-2">
+        <span className="hidden sm:inline">Par page</span>
+        <select
+          value={pageSize}
+          onChange={(event) => onPageSizeChange(Number(event.target.value))}
+          className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+        >
+          {pageSizeOptions.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+
+        <button
+          type="button"
+          onClick={() => onPageChange(clampedPage - 1)}
+          disabled={clampedPage <= 1}
+          className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm font-semibold shadow-sm disabled:opacity-50"
+        >
+          ◀
+        </button>
+        <div className="min-w-[120px] text-center">
+          Page {clampedPage} / {effectiveTotalPages}
         </div>
-
-        <div className="h-8 w-px bg-slate-100 hidden sm:block" />
-
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => onPageChange(clampedPage - 1)}
-            disabled={!canGoPrevious}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white disabled:cursor-not-allowed"
-            title="Page précédente"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          
-          <div className="flex items-center gap-1 px-2">
-            <span className="text-slate-400 text-xs uppercase font-bold tracking-tighter">Page</span>
-            <span className="font-bold text-slate-900 min-w-[1.5rem] text-center">{clampedPage}</span>
-            <span className="text-slate-300">/</span>
-            <span className="text-slate-500 font-medium">{totalPages}</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => onPageChange(clampedPage + 1)}
-            disabled={!canGoNext}
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 shadow-sm transition-all hover:bg-slate-50 disabled:opacity-30 disabled:hover:bg-white disabled:cursor-not-allowed"
-            title="Page suivante"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => onPageChange(clampedPage + 1)}
+          disabled={clampedPage >= effectiveTotalPages}
+          className="rounded-lg border border-slate-200 bg-white px-3 py-1 text-sm font-semibold shadow-sm disabled:opacity-50"
+        >
+          ▶
+        </button>
       </div>
     </div>
   );

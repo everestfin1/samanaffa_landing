@@ -114,6 +114,7 @@ function KycPage() {
           page,
           pageSize,
           total: pagination.total,
+          totalPages: pagination.totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

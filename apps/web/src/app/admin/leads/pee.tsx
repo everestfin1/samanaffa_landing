@@ -99,6 +99,7 @@ function PeeLeadsPage() {
           page: currentPage,
           pageSize,
           total,
+          totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

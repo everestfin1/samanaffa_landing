@@ -114,6 +114,7 @@ const stats = React.useMemo(() => {
           page,
           pageSize,
           total: pagination.total,
+          totalPages: pagination.totalPages,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),
