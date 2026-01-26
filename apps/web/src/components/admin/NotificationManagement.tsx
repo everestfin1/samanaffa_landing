@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import Button from '@/components/common/Button'
+import { Button } from '@/components/ui/button'
 import {
   Users,
   Send,
@@ -381,7 +381,7 @@ export default function NotificationManagement() {
                   onClick={handleSendNotification}
                   disabled={sending || (!notificationForm.sendEmail && !notificationForm.sendSMS)}
                   className="w-full"
-                  variant={notificationForm.kycStatus === 'APPROVED' ? 'primary' : 'secondary'}
+                  variant={notificationForm.kycStatus === 'APPROVED' ? 'default' : 'secondary'}
                 >
                   {sending ? (
                     <>

@@ -32,7 +32,7 @@ export default defineConfig({
       },
       router: {
         routesDirectory: 'app',
-        routeFileIgnorePattern: '(^|/)(page\\.tsx$|.*\\/page\\.tsx$|route\\.ts$|.*\\/route\\.ts$)',
+        routeFileIgnorePattern: '(^|/)(page\\.tsx$|.*\\/page\\.tsx$|route\\.ts$|.*\\/route\\.ts$|columns\\.tsx$|queries\\.ts$)',
       },
     }),
     viteReact(),

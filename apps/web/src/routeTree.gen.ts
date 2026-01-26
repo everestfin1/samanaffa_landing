@@ -35,6 +35,15 @@ import { Route as ApesenegalPaymentStatusRouteImport } from './app/apesenegal/pa
 import { Route as ApesenegalPaymentFailedRouteImport } from './app/apesenegal/payment-failed'
 import { Route as ApePaymentStatusRouteImport } from './app/ape/payment-status'
 import { Route as AdminLoginRouteImport } from './app/admin/login'
+import { Route as AdminLayoutRouteImport } from './app/admin/_layout'
+import { Route as AdminUsersIndexRouteImport } from './app/admin/users/index'
+import { Route as AdminTransactionsIndexRouteImport } from './app/admin/transactions/index'
+import { Route as AdminSponsorCodesIndexRouteImport } from './app/admin/sponsor-codes/index'
+import { Route as AdminSettingsIndexRouteImport } from './app/admin/settings/index'
+import { Route as AdminReconciliationIndexRouteImport } from './app/admin/reconciliation/index'
+import { Route as AdminNotificationsIndexRouteImport } from './app/admin/notifications/index'
+import { Route as AdminKycIndexRouteImport } from './app/admin/kyc/index'
+import { Route as AdminApeSubscriptionsIndexRouteImport } from './app/admin/ape-subscriptions/index'
 import { Route as PortalSamaNaffaPaymentSuccessRouteImport } from './app/portal/sama-naffa/payment-success'
 import { Route as PortalSamaNaffaPaymentFailedRouteImport } from './app/portal/sama-naffa/payment-failed'
 import { Route as ApiAuthVerifyOtpRouteImport } from './app/api/auth/verify-otp'
@@ -47,6 +56,13 @@ import { Route as ApiAuthResetPasswordRouteImport } from './app/api/auth/reset-p
 import { Route as ApiAuthLoginRouteImport } from './app/api/auth/login'
 import { Route as ApiAuthCheckAvailabilityRouteImport } from './app/api/auth/check-availability'
 import { Route as ApiAuthSplatRouteImport } from './app/api/auth/$'
+import { Route as AdminUsersIdRouteImport } from './app/admin/users/$id'
+import { Route as AdminTransactionsIdRouteImport } from './app/admin/transactions/$id'
+import { Route as AdminSponsorCodesIdRouteImport } from './app/admin/sponsor-codes/$id'
+import { Route as AdminLeadsPeeRouteImport } from './app/admin/leads/pee'
+import { Route as AdminLeadsAbandonedRouteImport } from './app/admin/leads/abandoned'
+import { Route as AdminKycIdRouteImport } from './app/admin/kyc/$id'
+import { Route as AdminApeSubscriptionsIdRouteImport } from './app/admin/ape-subscriptions/$id'
 
 const SouscrireApeRoute = SouscrireApeRouteImport.update({
   id: '/souscrire-ape',
@@ -179,6 +195,53 @@ const AdminLoginRoute = AdminLoginRouteImport.update({
   path: '/admin/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminLayoutRoute = AdminLayoutRouteImport.update({
+  id: '/admin/_layout',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTransactionsIndexRoute = AdminTransactionsIndexRouteImport.update({
+  id: '/admin/transactions/',
+  path: '/admin/transactions/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSponsorCodesIndexRoute = AdminSponsorCodesIndexRouteImport.update({
+  id: '/admin/sponsor-codes/',
+  path: '/admin/sponsor-codes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsIndexRoute = AdminSettingsIndexRouteImport.update({
+  id: '/admin/settings/',
+  path: '/admin/settings/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReconciliationIndexRoute =
+  AdminReconciliationIndexRouteImport.update({
+    id: '/admin/reconciliation/',
+    path: '/admin/reconciliation/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminNotificationsIndexRoute = AdminNotificationsIndexRouteImport.update({
+  id: '/admin/notifications/',
+  path: '/admin/notifications/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKycIndexRoute = AdminKycIndexRouteImport.update({
+  id: '/admin/kyc/',
+  path: '/admin/kyc/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminApeSubscriptionsIndexRoute =
+  AdminApeSubscriptionsIndexRouteImport.update({
+    id: '/admin/ape-subscriptions/',
+    path: '/admin/ape-subscriptions/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const PortalSamaNaffaPaymentSuccessRoute =
   PortalSamaNaffaPaymentSuccessRouteImport.update({
     id: '/payment-success',
@@ -243,6 +306,41 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersIdRoute = AdminUsersIdRouteImport.update({
+  id: '/admin/users/$id',
+  path: '/admin/users/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminTransactionsIdRoute = AdminTransactionsIdRouteImport.update({
+  id: '/admin/transactions/$id',
+  path: '/admin/transactions/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSponsorCodesIdRoute = AdminSponsorCodesIdRouteImport.update({
+  id: '/admin/sponsor-codes/$id',
+  path: '/admin/sponsor-codes/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLeadsPeeRoute = AdminLeadsPeeRouteImport.update({
+  id: '/admin/leads/pee',
+  path: '/admin/leads/pee',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLeadsAbandonedRoute = AdminLeadsAbandonedRouteImport.update({
+  id: '/admin/leads/abandoned',
+  path: '/admin/leads/abandoned',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminKycIdRoute = AdminKycIdRouteImport.update({
+  id: '/admin/kyc/$id',
+  path: '/admin/kyc/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminApeSubscriptionsIdRoute = AdminApeSubscriptionsIdRouteImport.update({
+  id: '/admin/ape-subscriptions/$id',
+  path: '/admin/ape-subscriptions/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -258,6 +356,7 @@ export interface FileRoutesByFullPath {
   '/sama-naffa': typeof SamaNaffaRoute
   '/setup-password': typeof SetupPasswordRoute
   '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin': typeof AdminLayoutRoute
   '/admin/login': typeof AdminLoginRoute
   '/ape/payment-status': typeof ApePaymentStatusRoute
   '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
@@ -271,6 +370,13 @@ export interface FileRoutesByFullPath {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/admin/ape-subscriptions/$id': typeof AdminApeSubscriptionsIdRoute
+  '/admin/kyc/$id': typeof AdminKycIdRoute
+  '/admin/leads/abandoned': typeof AdminLeadsAbandonedRoute
+  '/admin/leads/pee': typeof AdminLeadsPeeRoute
+  '/admin/sponsor-codes/$id': typeof AdminSponsorCodesIdRoute
+  '/admin/transactions/$id': typeof AdminTransactionsIdRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -283,6 +389,14 @@ export interface FileRoutesByFullPath {
   '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/admin/ape-subscriptions/': typeof AdminApeSubscriptionsIndexRoute
+  '/admin/kyc/': typeof AdminKycIndexRoute
+  '/admin/notifications/': typeof AdminNotificationsIndexRoute
+  '/admin/reconciliation/': typeof AdminReconciliationIndexRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/admin/sponsor-codes/': typeof AdminSponsorCodesIndexRoute
+  '/admin/transactions/': typeof AdminTransactionsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -298,6 +412,7 @@ export interface FileRoutesByTo {
   '/sama-naffa': typeof SamaNaffaRoute
   '/setup-password': typeof SetupPasswordRoute
   '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin': typeof AdminIndexRoute
   '/admin/login': typeof AdminLoginRoute
   '/ape/payment-status': typeof ApePaymentStatusRoute
   '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
@@ -309,8 +424,14 @@ export interface FileRoutesByTo {
   '/portal/notifications': typeof PortalNotificationsRoute
   '/portal/profile': typeof PortalProfileRoute
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
-  '/admin': typeof AdminIndexRoute
   '/portal': typeof PortalIndexRoute
+  '/admin/ape-subscriptions/$id': typeof AdminApeSubscriptionsIdRoute
+  '/admin/kyc/$id': typeof AdminKycIdRoute
+  '/admin/leads/abandoned': typeof AdminLeadsAbandonedRoute
+  '/admin/leads/pee': typeof AdminLeadsPeeRoute
+  '/admin/sponsor-codes/$id': typeof AdminSponsorCodesIdRoute
+  '/admin/transactions/$id': typeof AdminTransactionsIdRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -323,6 +444,14 @@ export interface FileRoutesByTo {
   '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/admin/ape-subscriptions': typeof AdminApeSubscriptionsIndexRoute
+  '/admin/kyc': typeof AdminKycIndexRoute
+  '/admin/notifications': typeof AdminNotificationsIndexRoute
+  '/admin/reconciliation': typeof AdminReconciliationIndexRoute
+  '/admin/settings': typeof AdminSettingsIndexRoute
+  '/admin/sponsor-codes': typeof AdminSponsorCodesIndexRoute
+  '/admin/transactions': typeof AdminTransactionsIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -339,6 +468,7 @@ export interface FileRoutesById {
   '/sama-naffa': typeof SamaNaffaRoute
   '/setup-password': typeof SetupPasswordRoute
   '/souscrire-ape': typeof SouscrireApeRoute
+  '/admin/_layout': typeof AdminLayoutRoute
   '/admin/login': typeof AdminLoginRoute
   '/ape/payment-status': typeof ApePaymentStatusRoute
   '/apesenegal/payment-failed': typeof ApesenegalPaymentFailedRoute
@@ -352,6 +482,13 @@ export interface FileRoutesById {
   '/portal/sama-naffa': typeof PortalSamaNaffaRouteWithChildren
   '/admin/': typeof AdminIndexRoute
   '/portal/': typeof PortalIndexRoute
+  '/admin/ape-subscriptions/$id': typeof AdminApeSubscriptionsIdRoute
+  '/admin/kyc/$id': typeof AdminKycIdRoute
+  '/admin/leads/abandoned': typeof AdminLeadsAbandonedRoute
+  '/admin/leads/pee': typeof AdminLeadsPeeRoute
+  '/admin/sponsor-codes/$id': typeof AdminSponsorCodesIdRoute
+  '/admin/transactions/$id': typeof AdminTransactionsIdRoute
+  '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
@@ -364,6 +501,14 @@ export interface FileRoutesById {
   '/api/auth/verify-otp': typeof ApiAuthVerifyOtpRoute
   '/portal/sama-naffa/payment-failed': typeof PortalSamaNaffaPaymentFailedRoute
   '/portal/sama-naffa/payment-success': typeof PortalSamaNaffaPaymentSuccessRoute
+  '/admin/ape-subscriptions/': typeof AdminApeSubscriptionsIndexRoute
+  '/admin/kyc/': typeof AdminKycIndexRoute
+  '/admin/notifications/': typeof AdminNotificationsIndexRoute
+  '/admin/reconciliation/': typeof AdminReconciliationIndexRoute
+  '/admin/settings/': typeof AdminSettingsIndexRoute
+  '/admin/sponsor-codes/': typeof AdminSponsorCodesIndexRoute
+  '/admin/transactions/': typeof AdminTransactionsIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -381,6 +526,7 @@ export interface FileRouteTypes {
     | '/sama-naffa'
     | '/setup-password'
     | '/souscrire-ape'
+    | '/admin'
     | '/admin/login'
     | '/ape/payment-status'
     | '/apesenegal/payment-failed'
@@ -394,6 +540,13 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/admin/ape-subscriptions/$id'
+    | '/admin/kyc/$id'
+    | '/admin/leads/abandoned'
+    | '/admin/leads/pee'
+    | '/admin/sponsor-codes/$id'
+    | '/admin/transactions/$id'
+    | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
@@ -406,6 +559,14 @@ export interface FileRouteTypes {
     | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
+    | '/admin/ape-subscriptions/'
+    | '/admin/kyc/'
+    | '/admin/notifications/'
+    | '/admin/reconciliation/'
+    | '/admin/settings/'
+    | '/admin/sponsor-codes/'
+    | '/admin/transactions/'
+    | '/admin/users/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -421,6 +582,7 @@ export interface FileRouteTypes {
     | '/sama-naffa'
     | '/setup-password'
     | '/souscrire-ape'
+    | '/admin'
     | '/admin/login'
     | '/ape/payment-status'
     | '/apesenegal/payment-failed'
@@ -432,8 +594,14 @@ export interface FileRouteTypes {
     | '/portal/notifications'
     | '/portal/profile'
     | '/portal/sama-naffa'
-    | '/admin'
     | '/portal'
+    | '/admin/ape-subscriptions/$id'
+    | '/admin/kyc/$id'
+    | '/admin/leads/abandoned'
+    | '/admin/leads/pee'
+    | '/admin/sponsor-codes/$id'
+    | '/admin/transactions/$id'
+    | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
@@ -446,6 +614,14 @@ export interface FileRouteTypes {
     | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
+    | '/admin/ape-subscriptions'
+    | '/admin/kyc'
+    | '/admin/notifications'
+    | '/admin/reconciliation'
+    | '/admin/settings'
+    | '/admin/sponsor-codes'
+    | '/admin/transactions'
+    | '/admin/users'
   id:
     | '__root__'
     | '/'
@@ -461,6 +637,7 @@ export interface FileRouteTypes {
     | '/sama-naffa'
     | '/setup-password'
     | '/souscrire-ape'
+    | '/admin/_layout'
     | '/admin/login'
     | '/ape/payment-status'
     | '/apesenegal/payment-failed'
@@ -474,6 +651,13 @@ export interface FileRouteTypes {
     | '/portal/sama-naffa'
     | '/admin/'
     | '/portal/'
+    | '/admin/ape-subscriptions/$id'
+    | '/admin/kyc/$id'
+    | '/admin/leads/abandoned'
+    | '/admin/leads/pee'
+    | '/admin/sponsor-codes/$id'
+    | '/admin/transactions/$id'
+    | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
     | '/api/auth/login'
@@ -486,6 +670,14 @@ export interface FileRouteTypes {
     | '/api/auth/verify-otp'
     | '/portal/sama-naffa/payment-failed'
     | '/portal/sama-naffa/payment-success'
+    | '/admin/ape-subscriptions/'
+    | '/admin/kyc/'
+    | '/admin/notifications/'
+    | '/admin/reconciliation/'
+    | '/admin/settings/'
+    | '/admin/sponsor-codes/'
+    | '/admin/transactions/'
+    | '/admin/users/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -502,6 +694,7 @@ export interface RootRouteChildren {
   SamaNaffaRoute: typeof SamaNaffaRoute
   SetupPasswordRoute: typeof SetupPasswordRoute
   SouscrireApeRoute: typeof SouscrireApeRoute
+  AdminLayoutRoute: typeof AdminLayoutRoute
   AdminLoginRoute: typeof AdminLoginRoute
   PortalApeRoute: typeof PortalApeRoute
   PortalCompareRoute: typeof PortalCompareRoute
@@ -511,6 +704,13 @@ export interface RootRouteChildren {
   PortalSamaNaffaRoute: typeof PortalSamaNaffaRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   PortalIndexRoute: typeof PortalIndexRoute
+  AdminApeSubscriptionsIdRoute: typeof AdminApeSubscriptionsIdRoute
+  AdminKycIdRoute: typeof AdminKycIdRoute
+  AdminLeadsAbandonedRoute: typeof AdminLeadsAbandonedRoute
+  AdminLeadsPeeRoute: typeof AdminLeadsPeeRoute
+  AdminSponsorCodesIdRoute: typeof AdminSponsorCodesIdRoute
+  AdminTransactionsIdRoute: typeof AdminTransactionsIdRoute
+  AdminUsersIdRoute: typeof AdminUsersIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAuthCheckAvailabilityRoute: typeof ApiAuthCheckAvailabilityRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
@@ -521,6 +721,14 @@ export interface RootRouteChildren {
   ApiAuthSignOutRoute: typeof ApiAuthSignOutRoute
   ApiAuthVerifyAndCreateAccountRoute: typeof ApiAuthVerifyAndCreateAccountRoute
   ApiAuthVerifyOtpRoute: typeof ApiAuthVerifyOtpRoute
+  AdminApeSubscriptionsIndexRoute: typeof AdminApeSubscriptionsIndexRoute
+  AdminKycIndexRoute: typeof AdminKycIndexRoute
+  AdminNotificationsIndexRoute: typeof AdminNotificationsIndexRoute
+  AdminReconciliationIndexRoute: typeof AdminReconciliationIndexRoute
+  AdminSettingsIndexRoute: typeof AdminSettingsIndexRoute
+  AdminSponsorCodesIndexRoute: typeof AdminSponsorCodesIndexRoute
+  AdminTransactionsIndexRoute: typeof AdminTransactionsIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -707,6 +915,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/_layout': {
+      id: '/admin/_layout'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/transactions/': {
+      id: '/admin/transactions/'
+      path: '/admin/transactions'
+      fullPath: '/admin/transactions/'
+      preLoaderRoute: typeof AdminTransactionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/sponsor-codes/': {
+      id: '/admin/sponsor-codes/'
+      path: '/admin/sponsor-codes'
+      fullPath: '/admin/sponsor-codes/'
+      preLoaderRoute: typeof AdminSponsorCodesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/': {
+      id: '/admin/settings/'
+      path: '/admin/settings'
+      fullPath: '/admin/settings/'
+      preLoaderRoute: typeof AdminSettingsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reconciliation/': {
+      id: '/admin/reconciliation/'
+      path: '/admin/reconciliation'
+      fullPath: '/admin/reconciliation/'
+      preLoaderRoute: typeof AdminReconciliationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/notifications/': {
+      id: '/admin/notifications/'
+      path: '/admin/notifications'
+      fullPath: '/admin/notifications/'
+      preLoaderRoute: typeof AdminNotificationsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/kyc/': {
+      id: '/admin/kyc/'
+      path: '/admin/kyc'
+      fullPath: '/admin/kyc/'
+      preLoaderRoute: typeof AdminKycIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/ape-subscriptions/': {
+      id: '/admin/ape-subscriptions/'
+      path: '/admin/ape-subscriptions'
+      fullPath: '/admin/ape-subscriptions/'
+      preLoaderRoute: typeof AdminApeSubscriptionsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/portal/sama-naffa/payment-success': {
       id: '/portal/sama-naffa/payment-success'
       path: '/payment-success'
@@ -791,6 +1062,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/users/$id': {
+      id: '/admin/users/$id'
+      path: '/admin/users/$id'
+      fullPath: '/admin/users/$id'
+      preLoaderRoute: typeof AdminUsersIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/transactions/$id': {
+      id: '/admin/transactions/$id'
+      path: '/admin/transactions/$id'
+      fullPath: '/admin/transactions/$id'
+      preLoaderRoute: typeof AdminTransactionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/sponsor-codes/$id': {
+      id: '/admin/sponsor-codes/$id'
+      path: '/admin/sponsor-codes/$id'
+      fullPath: '/admin/sponsor-codes/$id'
+      preLoaderRoute: typeof AdminSponsorCodesIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/leads/pee': {
+      id: '/admin/leads/pee'
+      path: '/admin/leads/pee'
+      fullPath: '/admin/leads/pee'
+      preLoaderRoute: typeof AdminLeadsPeeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/leads/abandoned': {
+      id: '/admin/leads/abandoned'
+      path: '/admin/leads/abandoned'
+      fullPath: '/admin/leads/abandoned'
+      preLoaderRoute: typeof AdminLeadsAbandonedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/kyc/$id': {
+      id: '/admin/kyc/$id'
+      path: '/admin/kyc/$id'
+      fullPath: '/admin/kyc/$id'
+      preLoaderRoute: typeof AdminKycIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/ape-subscriptions/$id': {
+      id: '/admin/ape-subscriptions/$id'
+      path: '/admin/ape-subscriptions/$id'
+      fullPath: '/admin/ape-subscriptions/$id'
+      preLoaderRoute: typeof AdminApeSubscriptionsIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -848,6 +1168,7 @@ const rootRouteChildren: RootRouteChildren = {
   SamaNaffaRoute: SamaNaffaRoute,
   SetupPasswordRoute: SetupPasswordRoute,
   SouscrireApeRoute: SouscrireApeRoute,
+  AdminLayoutRoute: AdminLayoutRoute,
   AdminLoginRoute: AdminLoginRoute,
   PortalApeRoute: PortalApeRoute,
   PortalCompareRoute: PortalCompareRoute,
@@ -857,6 +1178,13 @@ const rootRouteChildren: RootRouteChildren = {
   PortalSamaNaffaRoute: PortalSamaNaffaRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   PortalIndexRoute: PortalIndexRoute,
+  AdminApeSubscriptionsIdRoute: AdminApeSubscriptionsIdRoute,
+  AdminKycIdRoute: AdminKycIdRoute,
+  AdminLeadsAbandonedRoute: AdminLeadsAbandonedRoute,
+  AdminLeadsPeeRoute: AdminLeadsPeeRoute,
+  AdminSponsorCodesIdRoute: AdminSponsorCodesIdRoute,
+  AdminTransactionsIdRoute: AdminTransactionsIdRoute,
+  AdminUsersIdRoute: AdminUsersIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthCheckAvailabilityRoute: ApiAuthCheckAvailabilityRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
@@ -867,6 +1195,14 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSignOutRoute: ApiAuthSignOutRoute,
   ApiAuthVerifyAndCreateAccountRoute: ApiAuthVerifyAndCreateAccountRoute,
   ApiAuthVerifyOtpRoute: ApiAuthVerifyOtpRoute,
+  AdminApeSubscriptionsIndexRoute: AdminApeSubscriptionsIndexRoute,
+  AdminKycIndexRoute: AdminKycIndexRoute,
+  AdminNotificationsIndexRoute: AdminNotificationsIndexRoute,
+  AdminReconciliationIndexRoute: AdminReconciliationIndexRoute,
+  AdminSettingsIndexRoute: AdminSettingsIndexRoute,
+  AdminSponsorCodesIndexRoute: AdminSponsorCodesIndexRoute,
+  AdminTransactionsIndexRoute: AdminTransactionsIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

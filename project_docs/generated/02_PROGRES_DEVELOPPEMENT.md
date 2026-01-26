@@ -23,6 +23,13 @@
 
 ## 1. RÉSUMÉ EXÉCUTIF
 
+### Mise à jour récente (Janvier 2026)
+
+- ✅ **Refonte sidebar admin** : titres de groupes ajustés, densité améliorée, style modernisé.
+- ✅ **Navigation collapsible** : sidebar réductible avec état persisté (localStorage).
+- ✅ **Highlight route exacte** : correction pour éviter l’activation multiple des liens.
+- ✅ **Nettoyage composants** : suppression des duplicats legacy (AdminSidebar/AdminHeader/DataTable).
+
 ### Vue d'Ensemble
 
 En **6 semaines de développement solo intensif** (15 septembre - 24 octobre 2025), la plateforme Everest Finance a évolué d'un concept de mini-site de pré-inscription à une **solution digitale full-stack complète** pour deux produits financiers majeurs au Sénégal.
