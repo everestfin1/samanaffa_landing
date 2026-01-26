@@ -9,8 +9,8 @@ import {
   ColumnFiltersState,
   RowSelectionState,
 } from '@tanstack/react-table';
-import DataTableToolbar from './DataTableToolbar';
-import DataTablePagination from './DataTablePagination';
+import DataTableToolbar, { type DataTableToolbarProps } from './DataTableToolbar';
+import DataTablePagination, { type DataTablePaginationProps } from './DataTablePagination';
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[];
@@ -28,6 +28,8 @@ interface DataTableProps<TData> {
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   isLoading?: boolean;
+  toolbarProps?: DataTableToolbarProps;
+  paginationProps?: DataTablePaginationProps;
 }
 
 export function DataTable<TData>({
@@ -35,6 +37,8 @@ export function DataTable<TData>({
   data,
   pageCount,
   isLoading,
+  toolbarProps,
+  paginationProps,
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -48,7 +52,7 @@ export function DataTable<TData>({
 
   return (
     <div className="space-y-4">
-      <DataTableToolbar />
+      <DataTableToolbar {...(toolbarProps ?? {})} />
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-slate-50 border-b border-slate-200">
@@ -94,7 +98,7 @@ export function DataTable<TData>({
           </tbody>
         </table>
       </div>
-      <DataTablePagination />
+      {paginationProps ? <DataTablePagination {...paginationProps} /> : null}
     </div>
   );
 }
