@@ -87,57 +87,25 @@ const DataTableToolbar = <TData,>({
     setUncontrolledDate(value);
   };
 
+  const hasFilters = statusOptions.length > 0 || facetedFilters.length > 0;
   const hasActiveFilters = search || status || date || facetedFilters.some(f => f.value);
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm animate-fade-in">
-      {/* Search and Primary Filters */}
+      {/* Search Input */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 flex-wrap items-center gap-3">
-          <div className="w-full lg:max-w-xs">
-            <SearchInput 
-              value={search} 
-              onChange={setSearch} 
-              placeholder={searchPlaceholder} 
-              className="sama-input" 
-            />
-          </div>
-          <div className="w-full lg:w-48">
-            <Select 
-              value={status} 
-              onChange={setStatus} 
-              options={statusOptions} 
-              placeholder="Filtrer par statut"
-            />
-          </div>
-          <div className="w-full lg:w-48">
-            <DatePicker 
-              value={date} 
-              onChange={setDate} 
-              placeholder="Filtrer par date"
-            />
-          </div>
-          
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearch('');
-                setStatus('');
-                setDate('');
-                facetedFilters.forEach(f => f.onChange?.(''));
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-            >
-              <X className="h-4 w-4" />
-              Réinitialiser
-            </button>
-          )}
+        <div className="w-full lg:max-w-xs">
+          <SearchInput 
+            value={search} 
+            onChange={setSearch} 
+            placeholder={searchPlaceholder} 
+            className="sama-input" 
+          />
         </div>
         
         {/* Secondary Actions (Export, Visibility) */}
-        <div className="flex items-center gap-2 border-t border-slate-100 pt-3 lg:border-t-0 lg:pt-0">
-          <DataTableViewOptions table={table} />
+        <div className="flex items-center gap-2">
+          {table ? <DataTableViewOptions table={table as any} /> : null}
           <button
             type="button"
             onClick={onExportClick}
@@ -149,9 +117,41 @@ const DataTableToolbar = <TData,>({
         </div>
       </div>
 
-      {/* Grouped Secondary/Faceted Filters */}
-      {facetedFilters.length > 0 && (
+      {/* Grouped Filters Section (Status, Date, and Faceted Filters) */}
+      {(statusOptions.length > 0 || facetedFilters.length > 0) && (
         <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-slate-50 pt-3">
+          {/* Status Filter */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <div className="h-1 w-1 rounded-full bg-emerald-500" />
+              Statut
+            </span>
+            <div className="w-40">
+              <Select 
+                value={status} 
+                onChange={setStatus} 
+                options={statusOptions} 
+                placeholder="Filtrer par statut"
+              />
+            </div>
+          </div>
+
+          {/* Date Filter */}
+          <div className="flex flex-col gap-1.5">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+              <div className="h-1 w-1 rounded-full bg-emerald-500" />
+              Date
+            </span>
+            <div className="w-40">
+              <DatePicker 
+                value={date} 
+                onChange={setDate} 
+                placeholder="Filtrer par date"
+              />
+            </div>
+          </div>
+
+          {/* Faceted Filters */}
           {facetedFilters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
@@ -169,6 +169,23 @@ const DataTableToolbar = <TData,>({
               </div>
             </div>
           ))}
+
+          {/* Reset Button */}
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setStatus('');
+                setDate('');
+                facetedFilters.forEach(f => f.onChange?.(''));
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            >
+              <X className="h-4 w-4" />
+              Réinitialiser
+            </button>
+          )}
         </div>
       )}
     </div>
