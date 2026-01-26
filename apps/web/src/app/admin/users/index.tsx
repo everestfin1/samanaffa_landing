@@ -4,20 +4,17 @@ import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { userColumns } from './columns';
+import { useUsers } from './queries';
 import { Users, UserCheck, Clock, UserX } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
-// Placeholder data
-const users = [
-  { id: '1', name: 'Aliou Wade', email: 'aliou@example.com', status: 'Active', createdAt: new Date().toISOString() },
-  { id: '2', name: 'Astou Ndiaye', email: 'astou@example.com', status: 'Pending', createdAt: new Date().toISOString() },
+const userStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'Approuvé', value: 'approved' },
+  { label: 'Rejeté', value: 'rejected' },
+  { label: 'En révision', value: 'under_review' },
 ];
-
-const stats = {
-  total: 123,
-  active: 100,
-  pendingKyc: 15,
-  suspended: 8,
-};
 
 export const Route = createFileRoute('/admin/users/')({
   validateSearch: (search) => {
@@ -42,6 +39,11 @@ function UsersPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
 
+  const { data, isLoading } = useUsers({ page, pageSize });
+
+  const users = data?.users ?? [];
+  const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
+
   const filteredUsers = React.useMemo(() => {
     const qNorm = q.trim().toLowerCase();
     const statusNorm = status.trim().toLowerCase();
@@ -49,24 +51,26 @@ function UsersPage() {
     return users.filter((u) => {
       const matchesQ =
         qNorm.length === 0 ||
-        u.name.toLowerCase().includes(qNorm) ||
-        u.email.toLowerCase().includes(qNorm);
+        `${u.firstName} ${u.lastName}`.toLowerCase().includes(qNorm) ||
+        u.email.toLowerCase().includes(qNorm) ||
+        u.phone.toLowerCase().includes(qNorm);
 
       const matchesStatus =
-        statusNorm.length === 0 ||
-        u.status.toLowerCase().includes(statusNorm);
+        statusNorm.length === 0 || u.kycStatus.toLowerCase().includes(statusNorm);
 
       const matchesDate = date.length === 0 || u.createdAt.slice(0, 10) === date;
 
       return matchesQ && matchesStatus && matchesDate;
     });
-  }, [q, status, date]);
+  }, [users, q, status, date]);
 
-  const total = filteredUsers.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedUsers = filteredUsers.slice(startIndex, startIndex + pageSize);
+const stats = React.useMemo(() => {
+    const total = pagination.total;
+    const pending = users.filter(u => u.kycStatus === 'PENDING').length;
+    const approved = users.filter(u => u.kycStatus === 'APPROVED').length;
+    const rejected = users.filter(u => u.kycStatus === 'REJECTED').length;
+    return { total, pending, approved, rejected };
+  }, [users, pagination.total]);
 
   return (
     <div className="space-y-6">
@@ -76,13 +80,14 @@ function UsersPage() {
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard label="Total" value={stats.total} icon={Users} color="info" />
-        <StatCard label="Actifs" value={stats.active} icon={UserCheck} color="success" />
-        <StatCard label="KYC en attente" value={stats.pendingKyc} icon={Clock} color="warning" />
-        <StatCard label="Suspendus" value={stats.suspended} icon={UserX} color="danger" />
+        <StatCard label="Approuvés" value={stats.approved} icon={UserCheck} color="success" />
+        <StatCard label="KYC en attente" value={stats.pending} icon={Clock} color="warning" />
+        <StatCard label="Rejetés" value={stats.rejected} icon={UserX} color="danger" />
       </div>
       <DataTable
         columns={userColumns}
-        data={pagedUsers}
+        data={users}
+        isLoading={isLoading}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>
@@ -102,11 +107,13 @@ function UsersPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: userStatusOptions,
+          searchPlaceholder: 'Rechercher par nom, email, téléphone...',
         }}
         paginationProps={{
-          page: currentPage,
+          page,
           pageSize,
-          total,
+          total: pagination.total,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

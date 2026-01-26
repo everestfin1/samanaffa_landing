@@ -1,17 +1,26 @@
 import * as React from 'react';
-import { SlidersHorizontal, Download } from 'lucide-react';
+import { Download, X } from 'lucide-react';
 import SearchInput from '../../forms/SearchInput';
 import Select from '../../forms/Select';
 import DatePicker from '../../forms/DatePicker';
+import DataTableFacetedFilter, { type FacetOption } from './DataTableFacetedFilter';
+import DataTableViewOptions from './DataTableViewOptions';
+import { Table } from '@tanstack/react-table';
 
-const statusOptions = [
+export interface StatusOption {
+  label: string;
+  value: string;
+}
+
+const defaultStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
   { label: 'En attente', value: 'pending' },
   { label: 'Approuvé', value: 'approved' },
   { label: 'Rejeté', value: 'rejected' },
 ];
 
-export interface DataTableToolbarProps {
+export interface DataTableToolbarProps<TData> {
+  table?: Table<TData>;
   search?: string;
   onSearchChange?: (value: string) => void;
   status?: string;
@@ -19,10 +28,21 @@ export interface DataTableToolbarProps {
   date?: string;
   onDateChange?: (value: string) => void;
   onExportClick?: () => void;
-  onColumnsClick?: () => void;
+  statusOptions?: StatusOption[];
+  statusLabel?: string;
+  searchPlaceholder?: string;
+  selectedCount?: number;
+  facetedFilters?: Array<{
+    columnId?: string;
+    label: string;
+    options: FacetOption[];
+    value?: string;
+    onChange?: (value: string) => void;
+  }>;
 }
 
-const DataTableToolbar = ({
+const DataTableToolbar = <TData,>({
+  table,
   search: controlledSearch,
   onSearchChange,
   status: controlledStatus,
@@ -30,8 +50,11 @@ const DataTableToolbar = ({
   date: controlledDate,
   onDateChange,
   onExportClick,
-  onColumnsClick,
-}: DataTableToolbarProps) => {
+  statusOptions = defaultStatusOptions,
+  searchPlaceholder,
+  selectedCount,
+  facetedFilters = [],
+}: DataTableToolbarProps<TData>) => {
   const [uncontrolledSearch, setUncontrolledSearch] = React.useState('');
   const [uncontrolledStatus, setUncontrolledStatus] = React.useState('');
   const [uncontrolledDate, setUncontrolledDate] = React.useState('');
@@ -64,50 +87,88 @@ const DataTableToolbar = ({
     setUncontrolledDate(value);
   };
 
+  const hasActiveFilters = search || status || date || facetedFilters.some(f => f.value);
+
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-1 flex-col gap-2 lg:flex-row lg:items-center">
-          <SearchInput value={search} onChange={setSearch} className="w-full lg:max-w-xs" />
-          <Select value={status} onChange={setStatus} options={statusOptions} className="w-full lg:w-48" />
-          <DatePicker value={date} onChange={setDate} className="w-full lg:w-48" />
+    <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm animate-fade-in">
+      {/* Search and Primary Filters */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
+          <div className="w-full lg:max-w-xs">
+            <SearchInput 
+              value={search} 
+              onChange={setSearch} 
+              placeholder={searchPlaceholder} 
+              className="sama-input" 
+            />
+          </div>
+          <div className="w-full lg:w-48">
+            <Select 
+              value={status} 
+              onChange={setStatus} 
+              options={statusOptions} 
+              placeholder="Filtrer par statut"
+            />
+          </div>
+          <div className="w-full lg:w-48">
+            <DatePicker 
+              value={date} 
+              onChange={setDate} 
+              placeholder="Filtrer par date"
+            />
+          </div>
+          
+          {hasActiveFilters && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch('');
+                setStatus('');
+                setDate('');
+                facetedFilters.forEach(f => f.onChange?.(''));
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+            >
+              <X className="h-4 w-4" />
+              Réinitialiser
+            </button>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={onColumnsClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
-          >
-            <SlidersHorizontal className="h-4 w-4" />
-            Colonnes
-          </button>
+        
+        {/* Secondary Actions (Export, Visibility) */}
+        <div className="flex items-center gap-2 border-t border-slate-100 pt-3 lg:border-t-0 lg:pt-0">
+          <DataTableViewOptions table={table} />
           <button
             type="button"
             onClick={onExportClick}
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
+            className="sama-button sama-button-primary inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold h-[38px]"
           >
             <Download className="h-4 w-4" />
-            Export
+            {typeof selectedCount === 'number' && selectedCount > 0 ? `Exporter (${selectedCount})` : 'Export CSV'}
           </button>
         </div>
       </div>
-      {(search || status || date) && (
-        <div className="flex flex-wrap items-center gap-2 text-xs text-slate-500">
-          <span>Filtres actifs :</span>
-          {search && <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700">Recherche</span>}
-          {status && <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700">Statut</span>}
-          {date && <span className="rounded-full bg-emerald-50 px-2 py-1 text-emerald-700">Date</span>}
-          <button
-            type="button"
-            onClick={() => {
-              setSearch('');
-              setStatus('');
-              setDate('');
-            }}
-            className="text-emerald-700 underline"
-          >
-            Effacer
-          </button>
+
+      {/* Grouped Secondary/Faceted Filters */}
+      {facetedFilters.length > 0 && (
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-slate-50 pt-3">
+          {facetedFilters.map((filter) => (
+            <div key={filter.label} className="flex flex-col gap-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                <div className="h-1 w-1 rounded-full bg-emerald-500" />
+                {filter.label}
+              </span>
+              <div className="w-40">
+                <DataTableFacetedFilter
+                  label={filter.label}
+                  options={filter.options}
+                  value={filter.value}
+                  onChange={filter.onChange}
+                  simple
+                />
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { db, desc, sql } from '../../lib/db.js'
+import { db, desc, asc, sql, and, or, like, gte, lte } from '../../lib/db.js'
 import { users } from '../../lib/schema.js'
 import { requireAdmin } from '../../middleware/auth.js'
 
@@ -11,11 +11,48 @@ app.get('/', async (c) => {
   try {
     const page = parseInt(c.req.query('page') || '1')
     const pageSize = parseInt(c.req.query('pageSize') || '20')
+    const q = c.req.query('q') || ''
+    const status = c.req.query('status') || ''
+    const date = c.req.query('date') || ''
+    const sortBy = c.req.query('sortBy') || 'createdAt'
+    const sortOrder = c.req.query('sortOrder') || 'desc'
     const offset = (page - 1) * pageSize
 
+    const conditions = []
+
+    if (q) {
+      const searchTerm = `%${q.toLowerCase()}%`
+      conditions.push(
+        or(
+          like(sql`lower(${users.firstName})`, searchTerm),
+          like(sql`lower(${users.lastName})`, searchTerm),
+          like(sql`lower(${users.email})`, searchTerm),
+          like(sql`lower(${users.phone})`, searchTerm)
+        )
+      )
+    }
+
+    if (status) {
+      conditions.push(like(sql`lower(${users.kycStatus}::text)`, `%${status.toLowerCase()}%`))
+    }
+
+    if (date) {
+      const startOfDay = new Date(date)
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+      conditions.push(and(gte(users.createdAt, startOfDay), lte(users.createdAt, endOfDay)))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const sortColumn = sortBy === 'name' ? users.firstName : 
+                       sortBy === 'email' ? users.email : 
+                       sortBy === 'status' ? users.kycStatus : users.createdAt
+    const orderFn = sortOrder === 'asc' ? asc : desc
+
     const [userList, countResult] = await Promise.all([
-      db.select().from(users).orderBy(desc(users.createdAt)).limit(pageSize).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(users)
+      db.select().from(users).where(whereClause).orderBy(orderFn(sortColumn)).limit(pageSize).offset(offset),
+      db.select({ count: sql<number>`count(*)` }).from(users).where(whereClause)
     ])
 
     return c.json({

@@ -1,33 +1,99 @@
 import { createColumnHelper } from '@tanstack/react-table';
-
-// Placeholder type
-type Transaction = {
-  id: string;
-  user: string;
-  amount: number;
-  status: string;
-  type: string;
-  createdAt: string;
-};
+import type { Transaction } from './queries';
+import { Eye } from 'lucide-react';
 
 const columnHelper = createColumnHelper<Transaction>();
 
-export const transactionColumns = [
-  columnHelper.accessor('user', {
-    header: 'Utilisateur',
+const statusBadgeColors: Record<string, string> = {
+  PENDING: 'bg-yellow-100 text-yellow-800',
+  PROCESSING: 'bg-blue-100 text-blue-800',
+  COMPLETED: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-gray-100 text-gray-800',
+  FAILED: 'bg-red-100 text-red-800',
+};
+
+const statusLabels: Record<string, string> = {
+  PENDING: 'En attente',
+  PROCESSING: 'En cours',
+  COMPLETED: 'Complétée',
+  CANCELLED: 'Annulée',
+  FAILED: 'Échouée',
+};
+
+const typeLabels: Record<string, string> = {
+  DEPOSIT: 'Dépôt',
+  INVESTMENT: 'Investissement',
+  WITHDRAWAL: 'Retrait',
+};
+
+export const createTransactionColumns = (onViewDetails: (transaction: Transaction) => void) => [
+  columnHelper.accessor('referenceNumber', {
+    header: 'Référence',
+    cell: (info) => (
+      <span className="font-mono text-sm">{info.getValue()}</span>
+    ),
   }),
   columnHelper.accessor('amount', {
     header: 'Montant',
-    cell: (info) => `${info.getValue().toLocaleString()} FCFA`,
+    cell: (info) => (
+      <span className="font-medium">{parseFloat(info.getValue()).toLocaleString()} FCFA</span>
+    ),
+  }),
+  columnHelper.accessor('intentType', {
+    header: 'Type',
+    cell: (info) => typeLabels[info.getValue()] || info.getValue(),
+    filterFn: (row, id, value) => {
+      if (!value) return true;
+      return String(row.getValue(id)).toLowerCase() === String(value).toLowerCase();
+    },
   }),
   columnHelper.accessor('status', {
     header: 'Statut',
+    cell: (info) => {
+      const status = info.getValue();
+      return (
+        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusBadgeColors[status] || 'bg-gray-100 text-gray-800'}`}>
+          {statusLabels[status] || status}
+        </span>
+      );
+    },
+    filterFn: (row, id, value) => {
+      if (!value) return true;
+      const cell = String(row.getValue(id)).toLowerCase();
+      return cell.includes(String(value).toLowerCase());
+    },
   }),
-  columnHelper.accessor('type', {
-    header: 'Type',
+  columnHelper.accessor('paymentMethod', {
+    header: 'Méthode',
+    cell: (info) => (
+      <span className="text-slate-600">{info.getValue()}</span>
+    ),
+    filterFn: (row, id, value) => {
+      if (!value) return true;
+      return String(row.getValue(id)).toLowerCase() === String(value).toLowerCase();
+    },
   }),
   columnHelper.accessor('createdAt', {
     header: 'Date',
-    cell: (info) => new Date(info.getValue()).toLocaleString(),
+    cell: (info) => new Date(info.getValue()).toLocaleString('fr-FR'),
+    filterFn: (row, id, value) => {
+      if (!value) return true;
+      const cellValue = String(row.getValue(id));
+      return cellValue.slice(0, 10) === String(value);
+    },
+  }),
+  columnHelper.display({
+    id: 'actions',
+    cell: (info) => (
+      <button
+        onClick={() => onViewDetails(info.row.original)}
+        className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
+        title="Voir les détails"
+      >
+        <Eye className="h-4 w-4" />
+      </button>
+    ),
   }),
 ];
+
+export const transactionColumns = createTransactionColumns(() => {});

@@ -4,12 +4,16 @@ import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { kycColumns } from './columns';
+import { useKycDocuments } from './queries';
 import { FileCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
-// Placeholder data
-const kycDocuments = [
-  { id: '1', user: 'Moussa Diop', documentType: 'ID Card', status: 'Pending', submittedAt: new Date().toISOString() },
-  { id: '2', user: 'Fatou Sow', documentType: 'Passport', status: 'Approved', submittedAt: new Date().toISOString() },
+const kycStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'Approuvé', value: 'approved' },
+  { label: 'Rejeté', value: 'rejected' },
+  { label: 'En révision', value: 'under_review' },
 ];
 
 export const Route = createFileRoute('/admin/kyc/')({
@@ -35,6 +39,11 @@ function KycPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
 
+  const { data, isLoading } = useKycDocuments({ page, pageSize });
+
+  const kycDocuments = data?.kycDocuments ?? [];
+  const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
+
   const filteredKycDocuments = React.useMemo(() => {
     const qNorm = q.trim().toLowerCase();
     const statusNorm = status.trim().toLowerCase();
@@ -42,24 +51,26 @@ function KycPage() {
     return kycDocuments.filter((d) => {
       const matchesQ =
         qNorm.length === 0 ||
-        d.user.toLowerCase().includes(qNorm) ||
-        d.documentType.toLowerCase().includes(qNorm);
+        d.documentType.toLowerCase().includes(qNorm) ||
+        d.fileName.toLowerCase().includes(qNorm) ||
+        d.userId.toLowerCase().includes(qNorm);
 
       const matchesStatus =
-        statusNorm.length === 0 ||
-        d.status.toLowerCase().includes(statusNorm);
+        statusNorm.length === 0 || d.verificationStatus.toLowerCase().includes(statusNorm);
 
-      const matchesDate = date.length === 0 || d.submittedAt.slice(0, 10) === date;
+      const matchesDate = date.length === 0 || d.uploadDate.slice(0, 10) === date;
 
       return matchesQ && matchesStatus && matchesDate;
     });
-  }, [q, status, date]);
+  }, [kycDocuments, q, status, date]);
 
-  const total = filteredKycDocuments.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedKycDocuments = filteredKycDocuments.slice(startIndex, startIndex + pageSize);
+  const stats = React.useMemo(() => {
+    const total = pagination.total;
+    const pending = kycDocuments.filter(d => d.verificationStatus === 'PENDING').length;
+    const approved = kycDocuments.filter(d => d.verificationStatus === 'APPROVED').length;
+    const rejected = kycDocuments.filter(d => d.verificationStatus === 'REJECTED').length;
+    return { total, pending, approved, rejected };
+  }, [kycDocuments, pagination.total]);
 
   return (
     <div className="space-y-6">
@@ -68,14 +79,15 @@ function KycPage() {
         description="Gérez les documents KYC des utilisateurs"
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={45} icon={FileCheck} color="info" />
-        <StatCard label="En attente" value={12} icon={Clock} color="warning" />
-        <StatCard label="Approuvés" value={30} icon={CheckCircle} color="success" />
-        <StatCard label="Rejetés" value={3} icon={XCircle} color="danger" />
+        <StatCard label="Total" value={stats.total} icon={FileCheck} color="info" />
+        <StatCard label="En attente" value={stats.pending} icon={Clock} color="warning" />
+        <StatCard label="Approuvés" value={stats.approved} icon={CheckCircle} color="success" />
+        <StatCard label="Rejetés" value={stats.rejected} icon={XCircle} color="danger" />
       </div>
       <DataTable
         columns={kycColumns}
-        data={pagedKycDocuments}
+        data={kycDocuments}
+        isLoading={isLoading}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>
@@ -95,11 +107,13 @@ function KycPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: kycStatusOptions,
+          searchPlaceholder: 'Rechercher par type, fichier...',
         }}
         paginationProps={{
-          page: currentPage,
+          page,
           pageSize,
-          total,
+          total: pagination.total,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),

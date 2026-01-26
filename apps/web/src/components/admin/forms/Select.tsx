@@ -14,15 +14,19 @@ interface SelectProps {
 }
 
 const Select = ({ value, onChange, options, placeholder = 'Sélectionner', className = '' }: SelectProps) => {
+  const hasEmptyOption = options.some((opt) => opt.value === '');
+  
   return (
     <select
       value={value}
       onChange={(event) => onChange?.(event.target.value)}
       className={`rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/30 ${className}`}
     >
-      <option value="" disabled>
-        {placeholder}
-      </option>
+      {!hasEmptyOption && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
       {options.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}

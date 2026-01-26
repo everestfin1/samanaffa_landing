@@ -3,21 +3,36 @@ import * as React from 'react';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
-import { transactionColumns } from './columns';
+import { createTransactionColumns } from './columns';
+import { useTransactions, type Transaction } from './queries';
 import { Wallet, Clock, CheckCircle, XCircle } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
+import type { FacetOption } from '../../../components/admin/data-display/DataTable/DataTableFacetedFilter';
+import Sheet from '../../../components/admin/feedback/Sheet';
 
-// Placeholder data
-const transactions = [
-  { id: '1', user: 'Aliou Wade', amount: 50000, status: 'Completed', type: 'Deposit', createdAt: new Date().toISOString() },
-  { id: '2', user: 'Astou Ndiaye', amount: 25000, status: 'Pending', type: 'Deposit', createdAt: new Date().toISOString() },
+const transactionStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'En cours', value: 'processing' },
+  { label: 'Complétée', value: 'completed' },
+  { label: 'Annulée', value: 'cancelled' },
+  { label: 'Échouée', value: 'failed' },
 ];
 
-const stats = {
-  totalVolume: 1250000,
-  pending: 5,
-  completed: 150,
-  failed: 2,
-};
+const typeFacetOptions: FacetOption[] = [
+  { label: 'Tous', value: '' },
+  { label: 'Dépôt', value: 'DEPOSIT' },
+  { label: 'Investissement', value: 'INVESTMENT' },
+  { label: 'Retrait', value: 'WITHDRAWAL' },
+];
+
+const paymentFacetOptions: FacetOption[] = [
+  { label: 'Tous', value: '' },
+  { label: 'Intouch', value: 'INTOUCH' },
+  { label: 'Carte', value: 'CARD' },
+  { label: 'Wave', value: 'WAVE' },
+  { label: 'Orange Money', value: 'ORANGE_MONEY' },
+];
 
 export const Route = createFileRoute('/admin/transactions/')({
   validateSearch: (search) => {
@@ -41,6 +56,19 @@ export const Route = createFileRoute('/admin/transactions/')({
 function TransactionsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
+  const [typeFilter, setTypeFilter] = React.useState('');
+  const [paymentFilter, setPaymentFilter] = React.useState('');
+  const [selectedTransaction, setSelectedTransaction] = React.useState<Transaction | null>(null);
+
+  const { data, isLoading } = useTransactions({ page, pageSize });
+
+  const transactions = data?.transactions ?? [];
+  const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
+
+  const columns = React.useMemo(() => 
+    createTransactionColumns((transaction) => setSelectedTransaction(transaction)),
+    []
+  );
 
   const filteredTransactions = React.useMemo(() => {
     const qNorm = q.trim().toLowerCase();
@@ -49,25 +77,30 @@ function TransactionsPage() {
     return transactions.filter((t) => {
       const matchesQ =
         qNorm.length === 0 ||
-        t.user.toLowerCase().includes(qNorm) ||
-        String(t.amount).includes(qNorm) ||
-        t.type.toLowerCase().includes(qNorm);
+        t.referenceNumber.toLowerCase().includes(qNorm) ||
+        t.paymentMethod.toLowerCase().includes(qNorm) ||
+        t.intentType.toLowerCase().includes(qNorm) ||
+        String(t.amount).includes(qNorm);
 
       const matchesStatus =
-        statusNorm.length === 0 ||
-        t.status.toLowerCase().includes(statusNorm);
+        statusNorm.length === 0 || t.status.toLowerCase().includes(statusNorm);
 
       const matchesDate = date.length === 0 || t.createdAt.slice(0, 10) === date;
 
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [q, status, date]);
+      const matchesType = !typeFilter || t.intentType === typeFilter;
+      const matchesPayment = !paymentFilter || t.paymentMethod === paymentFilter;
 
-  const total = filteredTransactions.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedTransactions = filteredTransactions.slice(startIndex, startIndex + pageSize);
+      return matchesQ && matchesStatus && matchesDate && matchesType && matchesPayment;
+    });
+  }, [transactions, q, status, date, typeFilter, paymentFilter]);
+
+  const stats = React.useMemo(() => {
+    const totalVolume = filteredTransactions.reduce((sum, t) => sum + parseFloat(t.amount || '0'), 0);
+    const pending = filteredTransactions.filter(t => t.status === 'PENDING').length;
+    const completed = filteredTransactions.filter(t => t.status === 'COMPLETED').length;
+    const failed = filteredTransactions.filter(t => t.status === 'FAILED').length;
+    return { totalVolume, pending, completed, failed };
+  }, [filteredTransactions]);
 
   return (
     <div className="space-y-6">
@@ -82,8 +115,9 @@ function TransactionsPage() {
         <StatCard label="Échouées" value={stats.failed} icon={XCircle} color="danger" />
       </div>
       <DataTable
-        columns={transactionColumns}
-        data={pagedTransactions}
+        columns={columns}
+        data={filteredTransactions}
+        isLoading={isLoading}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>
@@ -103,11 +137,29 @@ function TransactionsPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: transactionStatusOptions,
+          searchPlaceholder: 'Rechercher par référence, montant...',
+          facetedFilters: [
+            {
+              columnId: 'intentType',
+              label: 'Type de transaction',
+              options: typeFacetOptions,
+              value: typeFilter,
+              onChange: (value) => setTypeFilter(value),
+            },
+            {
+              columnId: 'paymentMethod',
+              label: 'Moyen de paiement',
+              options: paymentFacetOptions,
+              value: paymentFilter,
+              onChange: (value) => setPaymentFilter(value),
+            },
+          ],
         }}
         paginationProps={{
-          page: currentPage,
+          page,
           pageSize,
-          total,
+          total: pagination.total,
           onPageChange: (nextPage) =>
             navigate({
               search: (prev) => ({ ...prev, page: nextPage }),
@@ -120,6 +172,75 @@ function TransactionsPage() {
             }),
         }}
       />
+
+      <Sheet
+        isOpen={!!selectedTransaction}
+        onClose={() => setSelectedTransaction(null)}
+        title="Détails de la transaction"
+        description={selectedTransaction?.referenceNumber}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={() => setSelectedTransaction(null)}
+              className="sama-button sama-button-outline px-4 py-2"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {selectedTransaction && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Référence</p>
+                <p className="font-mono text-slate-900">{selectedTransaction.referenceNumber}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
+                <div className="flex">
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                    selectedTransaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+                    selectedTransaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-slate-100 text-slate-800'
+                  }`}>
+                    {selectedTransaction.status}
+                  </span>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Montant</p>
+                <p className="text-lg font-bold text-slate-900">
+                  {parseFloat(selectedTransaction.amount).toLocaleString()} FCFA
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date</p>
+                <p className="text-slate-900">{new Date(selectedTransaction.createdAt).toLocaleString('fr-FR')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Type de transaction</span>
+                <span className="font-medium text-slate-900">{selectedTransaction.intentType}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Moyen de paiement</span>
+                <span className="font-medium text-slate-900">{selectedTransaction.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID Utilisateur</span>
+                <span className="font-mono text-slate-600">{selectedTransaction.userId}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID Provider</span>
+                <span className="font-mono text-slate-600">{selectedTransaction.providerTransactionId || 'N/A'}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   );
 }
