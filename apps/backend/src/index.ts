@@ -26,7 +26,8 @@ app.use(
   '*',
   cors({
     origin: (origin) => {
-      if (!origin) return origin
+      // Allow requests without Origin header (e.g., favicon.ico, same-origin requests)
+      if (!origin) return '*'
 
       const allowed = new Set<string>([
         'http://localhost:3000',
@@ -39,9 +40,11 @@ app.use(
         const url = new URL(origin)
         if (url.hostname.endsWith('.vercel.app')) return origin
       } catch {
+        // Invalid URL, reject
         return null
       }
 
+      // Origin not in allowed list, reject
       return null
     },
     credentials: true,
