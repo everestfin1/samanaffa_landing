@@ -15,7 +15,7 @@ export type SponsorCode = {
 
 const columnHelper = createColumnHelper<SponsorCode>();
 
-export const createSponsorCodeColumns = (onViewDetails: (code: SponsorCode) => void) => [
+export const createSponsorCodeColumns = (onViewDetails: (id: string) => void) => [
   columnHelper.accessor('code', {
     header: 'Code',
     cell: (info) => <span className="font-mono text-sm text-slate-900">{info.getValue()}</span>,
@@ -42,7 +42,7 @@ export const createSponsorCodeColumns = (onViewDetails: (code: SponsorCode) => v
     id: 'actions',
     cell: (info) => (
       <button
-        onClick={() => onViewDetails(info.row.original)}
+        onClick={() => onViewDetails(info.row.original.id)}
         className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
         title="Voir les détails"
       >

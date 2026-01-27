@@ -15,7 +15,7 @@ export type ApeSubscription = {
 
 const columnHelper = createColumnHelper<ApeSubscription>();
 
-export const createApeSubscriptionColumns = (onViewDetails: (sub: ApeSubscription) => void) => [
+export const createApeSubscriptionColumns = (onViewDetails: (id: string) => void) => [
   columnHelper.accessor('user', {
     header: 'Utilisateur',
     cell: (info) => <span className="font-medium text-slate-900">{info.getValue()}</span>,
@@ -44,7 +44,7 @@ export const createApeSubscriptionColumns = (onViewDetails: (sub: ApeSubscriptio
     id: 'actions',
     cell: (info) => (
       <button
-        onClick={() => onViewDetails(info.row.original)}
+        onClick={() => onViewDetails(info.row.original.id)}
         className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
         title="Voir les détails"
       >

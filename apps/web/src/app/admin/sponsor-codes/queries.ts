@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export interface SponsorCodesParams {
   page?: number
@@ -68,5 +68,85 @@ export const useSponsorCodes = (params: SponsorCodesParams = {}) => {
     queryFn: () => fetchSponsorCodes(params),
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+  })
+}
+
+export type CreateSponsorCodeInput = {
+  code?: string
+  description?: string | null
+  maxUsage?: number | null
+  expiresAt?: string | null
+}
+
+export async function createSponsorCode(input: CreateSponsorCodeInput) {
+  const token = localStorage.getItem('admin_token')
+
+  const response = await fetch('/api/admin/sponsor-codes', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(input),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to create sponsor code')
+  }
+
+  return response.json() as Promise<{ success: boolean; sponsorCode: SponsorCode }>
+}
+
+export type UpdateSponsorCodeInput = {
+  id: string
+  status?: string
+  description?: string | null
+  maxUsage?: number | null
+  expiresAt?: string | null
+}
+
+export async function updateSponsorCode(input: UpdateSponsorCodeInput) {
+  const token = localStorage.getItem('admin_token')
+
+  const response = await fetch(`/api/admin/sponsor-codes/${input.id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: input.status,
+      description: input.description,
+      maxUsage: input.maxUsage,
+      expiresAt: input.expiresAt,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to update sponsor code')
+  }
+
+  return response.json() as Promise<{ success: boolean; sponsorCode: SponsorCode }>
+}
+
+export function useCreateSponsorCode() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: createSponsorCode,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'sponsor-codes'] })
+    },
+  })
+}
+
+export function useUpdateSponsorCode() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateSponsorCode,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'sponsor-codes'] })
+    },
   })
 }

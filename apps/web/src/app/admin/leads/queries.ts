@@ -1,4 +1,4 @@
-import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export interface AbandonedLeadsParams {
   page?: number;
@@ -150,3 +150,79 @@ export const usePeeLeads = (params: PeeLeadsParams = {}) => {
     staleTime: 30_000,
   });
 };
+
+export type UpdatePeeLeadInput = {
+  id: string;
+  status?: string;
+  adminNotes?: string | null;
+};
+
+export async function updatePeeLead(input: UpdatePeeLeadInput) {
+  const token = localStorage.getItem('admin_token');
+  const response = await fetch(`/api/admin/pee-leads/${input.id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: input.status,
+      adminNotes: input.adminNotes,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update PEE lead');
+  }
+
+  return response.json() as Promise<{ success: boolean; peeLead: PeeLeadApiItem }>;
+}
+
+export function useUpdatePeeLead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updatePeeLead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'pee-leads'] });
+    },
+  });
+}
+
+export type UpdateAbandonedLeadInput = {
+  id: string;
+  status?: string;
+  adminNotes?: string | null;
+};
+
+export async function updateAbandonedLead(input: UpdateAbandonedLeadInput) {
+  const token = localStorage.getItem('admin_token');
+  const response = await fetch(`/api/admin/abandoned-leads/${input.id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: input.status,
+      adminNotes: input.adminNotes,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to update abandoned lead');
+  }
+
+  return response.json() as Promise<{ success: boolean; draft: AbandonedLead }>;
+}
+
+export function useUpdateAbandonedLead() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: updateAbandonedLead,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'abandoned-leads'] });
+    },
+  });
+}

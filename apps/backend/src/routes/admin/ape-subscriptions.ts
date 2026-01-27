@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { db, desc, asc, sql, eq, and, or, like, gte, lte } from '../../lib/db.js'
-import { apeSubscriptions, apeSponsorCodes } from '../../lib/schema.js'
+import { apeSubscriptions, apeSponsorCodes, adminAuditLogs } from '../../lib/schema.js'
 import { requireAdmin, type AdminVariables } from '../../middleware/auth.js'
 
 type Env = { Variables: AdminVariables }
@@ -123,6 +123,54 @@ app.get('/sponsor-codes', async (c) => {
     return c.json({ success: true, codes })
   } catch (error) {
     console.error('Error fetching sponsor codes:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+app.patch('/:id', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const adminId = c.get('adminId')
+    const body = await c.req.json()
+
+    const { status, providerTransactionId, adminNotes } = body ?? {}
+
+    const updateData: Record<string, unknown> = {
+      updatedAt: new Date(),
+    }
+
+    if (status) updateData.status = status
+    if (providerTransactionId !== undefined) updateData.providerTransactionId = providerTransactionId
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes
+
+    const [updated] = await db
+      .update(apeSubscriptions)
+      .set(updateData)
+      .where(eq(apeSubscriptions.id, id))
+      .returning()
+
+    if (!updated) {
+      return c.json({ success: false, error: 'Subscription not found' }, 404)
+    }
+
+    await db.insert(adminAuditLogs).values({
+      id: crypto.randomUUID(),
+      adminId,
+      action: 'APE_SUBSCRIPTION_MANUAL_UPDATE',
+      resourceType: 'ape_subscription',
+      resourceId: id,
+      details: {
+        status,
+        providerTransactionId,
+        adminNotes,
+      },
+      ipAddress: c.req.header('x-forwarded-for') ?? null,
+      userAgent: c.req.header('user-agent') ?? null,
+    })
+
+    return c.json({ success: true, subscription: updated })
+  } catch (error) {
+    console.error('Error updating APE subscription:', error)
     return c.json({ success: false, error: 'Internal server error' }, 500)
   }
 })

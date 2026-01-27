@@ -139,6 +139,7 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   status: apeSubscriptionStatusEnum('status').notNull().default('PENDING'),
   providerTransactionId: text('providerTransactionId'),
   providerStatus: text('providerStatus'),
+  adminNotes: text('adminNotes'),
   paymentCallbackPayload: json('paymentCallbackPayload'),
   paymentInitiatedAt: timestamp('paymentInitiatedAt', { mode: 'date' }),
   paymentCompletedAt: timestamp('paymentCompletedAt', { mode: 'date' }),

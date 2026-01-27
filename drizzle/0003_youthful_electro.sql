@@ -1,4 +1,8 @@
-CREATE TYPE "public"."SponsorCodeStatus" AS ENUM('ACTIVE', 'INACTIVE', 'EXPIRED');--> statement-breakpoint
+DO $$ BEGIN
+    CREATE TYPE "public"."SponsorCodeStatus" AS ENUM('ACTIVE', 'INACTIVE', 'EXPIRED');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;--> statement-breakpoint
 CREATE TABLE "ape_sponsor_codes" (
 	"id" text PRIMARY KEY NOT NULL,
 	"code" text NOT NULL,

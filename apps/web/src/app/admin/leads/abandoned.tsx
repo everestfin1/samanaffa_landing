@@ -6,11 +6,30 @@ import StatCard from '../../../components/admin/data-display/StatCard';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import Badge from '../../../components/admin/data-display/Badge';
 import Sheet from '../../../components/admin/feedback/Sheet';
-import { useAbandonedLeads } from './queries';
+import Select from '../../../components/admin/forms/Select';
+import { useAbandonedLeads, useUpdateAbandonedLead } from './queries';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
-import { Users, UserCheck, Phone, XCircle, Eye } from 'lucide-react';
+import { 
+  User, 
+  Phone, 
+  Mail, 
+  Globe, 
+  Building2, 
+  Calendar, 
+  Hash, 
+  CreditCard,
+  FileText,
+  ShieldCheck,
+  MousePointer2,
+  Activity,
+  UserCheck,
+  Clock,
+  Eye,
+  Users,
+  XCircle
+} from 'lucide-react';
 import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
 import { 
   abandonedLeadStatusLabels, 
@@ -107,8 +126,11 @@ function AbandonedLeadsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
   const [selectedLead, setSelectedLead] = React.useState<AbandonedLead | null>(null);
+  const [editStatus, setEditStatus] = React.useState<string>('');
+  const [editAdminNotes, setEditAdminNotes] = React.useState<string>('');
 
   const { data, isLoading } = useAbandonedLeads({ page, pageSize, q, status, date });
+  const updateMutation = useUpdateAbandonedLead();
 
   const drafts = data?.drafts ?? [];
   const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
@@ -126,6 +148,24 @@ function AbandonedLeadsPage() {
     () => createAbandonedColumns((lead) => setSelectedLead(lead)),
     []
   );
+
+  React.useEffect(() => {
+    if (!selectedLead) return
+    setEditStatus(selectedLead.status ?? '')
+    setEditAdminNotes(selectedLead.adminNotes ?? '')
+  }, [selectedLead])
+
+  const handleSave = async () => {
+    if (!selectedLead) return
+
+    await updateMutation.mutateAsync({
+      id: selectedLead.id,
+      status: editStatus,
+      adminNotes: editAdminNotes ? editAdminNotes : null,
+    })
+
+    setSelectedLead(null)
+  }
 
   return (
     <PageContainer>
@@ -186,58 +226,153 @@ function AbandonedLeadsPage() {
       <Sheet
         isOpen={!!selectedLead}
         onClose={() => setSelectedLead(null)}
-        title="Détails du lead"
+        title="Détails du Lead Abandonné"
         description={selectedLead?.id}
         footer={
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100 rounded-b-2xl">
             <button
               onClick={() => setSelectedLead(null)}
-              className="sama-button sama-button-outline px-4 py-2"
+              className="px-6 py-2.5 text-[14px] font-black text-slate-600 hover:text-slate-900 transition-all"
             >
-              Fermer
+              Annuler
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!selectedLead || updateMutation.isPending}
+              className="sama-button sama-button-primary px-8 py-2.5 text-[14px] font-black"
+            >
+              {updateMutation.isPending ? 'Enregistrement...' : 'Enregistrer les modifications'}
             </button>
           </div>
         }
       >
         {selectedLead && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</p>
-                <p className="text-slate-900">{selectedLead.email || 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Téléphone</p>
-                <p className="text-slate-900">{selectedLead.phone || 'N/A'}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
-                <div className="flex">
-                  <Badge
-                    variant={getStatusVariant(selectedLead.status, 'abandonedLead')}
-                  >
-                    {abandonedLeadStatusLabels[selectedLead.status] || selectedLead.status}
-                  </Badge>
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              {/* Status & Score */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Activity className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Score d'engagement</p>
+                      <p className={`text-[18px] font-black ${selectedLead.score >= 50 ? 'text-emerald-600' : 'text-slate-900'}`}>
+                        {selectedLead.score}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <Badge variant={getStatusVariant(selectedLead.status, 'abandonedLead')}>
+                      {abandonedLeadStatusLabels[selectedLead.status] || selectedLead.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Clock className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Dernière Activité</p>
+                      <p className="text-[15px] font-bold text-slate-900">
+                        {new Date(selectedLead.lastActivityAt).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[13px] font-medium text-slate-500">
+                    Heure: {new Date(selectedLead.lastActivityAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Dernière activité</p>
-                <p className="text-slate-900">{new Date(selectedLead.lastActivityAt).toLocaleString('fr-FR')}</p>
-              </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID</span>
-                <span className="font-mono text-slate-600">{selectedLead.id}</span>
+              {/* Contact Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <User className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Coordonnées Prospect</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Email</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Mail className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-[14px] font-medium truncate">{selectedLead.email || 'Non renseigné'}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Téléphone</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-[14px] font-medium">{selectedLead.phone || 'Non renseigné'}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-2 space-y-1 pt-2 border-t border-slate-50">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Étape atteinte</p>
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <MousePointer2 className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-[14px] font-medium">{selectedLead.stepReached || 'N/A'}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Étape atteinte</span>
-                <span className="font-medium text-slate-900">{selectedLead.stepReached || 'N/A'}</span>
+
+              {/* Admin Actions Form */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Gestion Administrative</h3>
+                </div>
+                <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 space-y-5">
+                  <div className="space-y-2">
+                    <label className="text-[12px] font-black text-slate-500 uppercase tracking-widest px-1">
+                      Mettre à jour le statut
+                    </label>
+                    <Select
+                      value={editStatus}
+                      onChange={setEditStatus}
+                      options={abandonedLeadStatusOptions.filter(o => o.value !== '')}
+                      placeholder="Choisir un nouveau statut"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[12px] font-black text-slate-500 uppercase tracking-widest px-1">
+                      Notes Internes
+                    </label>
+                    <div className="relative group">
+                      <FileText className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                      <textarea
+                        value={editAdminNotes}
+                        onChange={(e) => setEditAdminNotes(e.target.value)}
+                        className="w-full pl-11 pr-4 py-3 min-h-[120px] rounded-xl border border-slate-200 bg-white text-[14px] font-medium text-slate-900 shadow-sm focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all placeholder:text-slate-300 resize-none"
+                        placeholder="Ajouter des précisions sur la relance..."
+                      />
+                    </div>
+                  </div>
+
+                  {updateMutation.isError && (
+                    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border border-rose-100 bg-rose-50 text-[13px] font-bold text-rose-600 animate-in fade-in slide-in-from-top-2">
+                      <div className="w-5 h-5 rounded-full bg-rose-100 flex items-center justify-center flex-shrink-0">
+                        <Hash className="w-3 h-3" />
+                      </div>
+                      Erreur lors de la mise à jour des informations
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Score</span>
-                <span className="font-medium text-slate-900">{selectedLead.score}%</span>
+
+              {/* Technical Info */}
+              <div className="space-y-4 pt-4 border-t border-slate-100">
+                <div className="flex justify-between text-[12px] px-1">
+                  <span className="text-slate-500 font-medium">ID Système</span>
+                  <span className="font-mono text-slate-400">{selectedLead.id}</span>
+                </div>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export interface ApeSubscriptionsParams {
   page?: number
@@ -25,6 +25,7 @@ export interface ApeSubscriptionApiItem {
   status: string
   providerTransactionId: string | null
   providerStatus: string | null
+  adminNotes: string | null
   paymentCallbackPayload: unknown
   paymentInitiatedAt: string | null
   paymentCompletedAt: string | null
@@ -82,5 +83,46 @@ export const useApeSubscriptions = (params: ApeSubscriptionsParams = {}) => {
     queryFn: () => fetchApeSubscriptions(params),
     placeholderData: keepPreviousData,
     staleTime: 30_000,
+  })
+}
+
+export type UpdateApeSubscriptionInput = {
+  id: string
+  status?: string
+  providerTransactionId?: string | null
+  adminNotes?: string | null
+}
+
+export async function updateApeSubscription(input: UpdateApeSubscriptionInput) {
+  const token = localStorage.getItem('admin_token')
+
+  const response = await fetch(`/api/admin/ape-subscriptions/${input.id}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      status: input.status,
+      providerTransactionId: input.providerTransactionId,
+      adminNotes: input.adminNotes,
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error('Failed to update APE subscription')
+  }
+
+  return response.json() as Promise<{ success: boolean; subscription: ApeSubscriptionApiItem }>
+}
+
+export function useUpdateApeSubscription() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: updateApeSubscription,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin', 'ape-subscriptions'] })
+    },
   })
 }

@@ -10,7 +10,10 @@ import {
   Upload, 
   Search,
   History,
-  ChevronRight
+  ChevronRight,
+  Database,
+  ArrowRightLeft,
+  FileCheck
 } from 'lucide-react'
 import {
   analyzeReconciliation,
@@ -32,6 +35,9 @@ function ReconciliationPage() {
   const [applying, setApplying] = React.useState(false)
   const [result, setResult] = React.useState<ReconciliationResult | null>(null)
   const [selectedMatches, setSelectedMatches] = React.useState<Set<string>>(new Set())
+  const [analyzeError, setAnalyzeError] = React.useState<string | null>(null)
+  const [applyError, setApplyError] = React.useState<string | null>(null)
+  const [applySuccess, setApplySuccess] = React.useState<string | null>(null)
 
   const toggleMatch = (ref: string) => {
     setSelectedMatches((prev) => {
@@ -56,6 +62,9 @@ function ReconciliationPage() {
     if (!file) return
 
     setFileName(file.name)
+    setAnalyzeError(null)
+    setApplyError(null)
+    setApplySuccess(null)
     const text = await file.text()
     const parsed = parseIntouchCsv(text)
     setParsedTransactions(parsed)
@@ -67,6 +76,9 @@ function ReconciliationPage() {
     if (parsedTransactions.length === 0) return
 
     setAnalyzing(true)
+    setAnalyzeError(null)
+    setApplyError(null)
+    setApplySuccess(null)
     try {
       const res = await analyzeReconciliation(parsedTransactions)
       setResult(res.result)
@@ -75,6 +87,8 @@ function ReconciliationPage() {
         res.result.matches.filter((m) => m.matchType === 'exact').map((m) => m.apeReferenceNumber)
       )
       setSelectedMatches(autoSelected)
+    } catch (e) {
+      setAnalyzeError('Erreur lors de l\'analyse du fichier. Vérifiez le format CSV et réessayez.')
     } finally {
       setAnalyzing(false)
     }
@@ -87,11 +101,15 @@ function ReconciliationPage() {
     const matchesToApply: ReconciliationMatch[] = result.matches.filter((m) => selectedMatches.has(m.apeReferenceNumber))
 
     setApplying(true)
+    setApplyError(null)
+    setApplySuccess(null)
     try {
       const res = await applyReconciliation(matchesToApply)
       if (res.success) {
-        alert(`Réconciliation terminée: ${res.updated} souscriptions mises à jour.`)
+        setApplySuccess(`Réconciliation terminée: ${res.updated} souscriptions mises à jour.`)
       }
+    } catch (e) {
+      setApplyError('Erreur lors de la réconciliation. Réessayez ou vérifiez votre sélection.')
     } finally {
       setApplying(false)
     }
@@ -220,6 +238,91 @@ function ReconciliationPage() {
               </div>
             </div>
           )}
+
+          {result && (
+            <div className="grid grid-cols-1 gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 overflow-hidden">
+                <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
+                      <AlertCircle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-[15px] font-black text-slate-900">Transactions Intouch non trouvées dans APE</h3>
+                      <p className="text-[12px] font-bold text-slate-400 mt-0.5">{result.notFoundInApe.length} élément(s) orphelins</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-0">
+                  {result.notFoundInApe.length === 0 ? (
+                    <div className="p-12 text-center">
+                      <p className="text-[14px] font-bold text-slate-400 italic">Toutes les transactions Intouch ont été identifiées dans APE.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-50/50">
+                            <th className="px-8 py-3 text-[11px] font-black text-slate-400 uppercase tracking-wider">ID Partenaire</th>
+                            <th className="px-4 py-3 text-[11px] font-black text-slate-400 uppercase tracking-wider">Téléphone</th>
+                            <th className="px-8 py-3 text-[11px] font-black text-slate-400 uppercase tracking-wider text-right">Montant</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {result.notFoundInApe.slice(0, 25).map((t) => (
+                            <tr key={t.idTransaction} className="hover:bg-slate-50/80 transition-colors">
+                              <td className="px-8 py-4 font-mono text-[13px] font-bold text-slate-700">{t.idPartenaireDistributeur}</td>
+                              <td className="px-4 py-4 font-mono text-[13px] text-slate-500">{t.telephone}</td>
+                              <td className="px-8 py-4 text-[14px] font-black text-slate-900 text-right">{Number(t.montant).toLocaleString('fr-FR')} FCFA</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {result.notFoundInApe.length > 25 && (
+                        <div className="px-8 py-4 bg-slate-50/50 border-t border-slate-100 text-[12px] font-bold text-slate-400 text-center uppercase tracking-widest">
+                          + {result.notFoundInApe.length - 25} autres éléments masqués
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 overflow-hidden">
+                <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/30">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-rose-50 flex items-center justify-center border border-rose-100">
+                      <Database className="w-5 h-5 text-rose-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-[15px] font-black text-slate-900">Souscriptions APE non trouvées dans Intouch</h3>
+                      <p className="text-[12px] font-bold text-slate-400 mt-0.5">{result.notFoundInIntouch.length} élément(s) en attente</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-8">
+                  {result.notFoundInIntouch.length === 0 ? (
+                    <div className="text-center py-4">
+                      <p className="text-[14px] font-bold text-slate-400 italic">Toutes les souscriptions APE sont présentes dans le rapport Intouch.</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {result.notFoundInIntouch.slice(0, 40).map((ref) => (
+                        <div key={ref} className="flex items-center justify-center rounded-xl border border-slate-100 bg-slate-50/50 px-4 py-2.5 hover:bg-white hover:border-emerald-200 hover:shadow-sm transition-all group">
+                          <span className="font-mono text-[12px] font-black text-slate-600 group-hover:text-emerald-700">{ref}</span>
+                        </div>
+                      ))}
+                      {result.notFoundInIntouch.length > 40 && (
+                        <div className="flex items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white px-4 py-2.5">
+                          <span className="text-[11px] font-black text-slate-400 uppercase">+{result.notFoundInIntouch.length - 40} autres</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Actions */}
@@ -229,6 +332,22 @@ function ReconciliationPage() {
               <h2 className="text-[18px] font-black text-slate-900">Actions</h2>
             </div>
             <div className="p-6 space-y-4">
+              {analyzeError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-[13px] font-bold text-rose-700">
+                  {analyzeError}
+                </div>
+              )}
+              {applyError && (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-[13px] font-bold text-rose-700">
+                  {applyError}
+                </div>
+              )}
+              {applySuccess && (
+                <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-[13px] font-bold text-[#435933]">
+                  {applySuccess}
+                </div>
+              )}
+
               <div className="relative group">
                 <input 
                   type="file" 
@@ -257,7 +376,7 @@ function ReconciliationPage() {
                 <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:rotate-6 transition-transform">
                   <Search className="w-6 h-6" strokeWidth={2.5} />
                 </div>
-                <span className="flex-1">Lancer l'analyse</span>
+                <span className="flex-1">{analyzing ? 'Analyse...' : 'Lancer l\'analyse'}</span>
                 <ChevronRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
               </button>
 
