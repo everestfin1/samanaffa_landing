@@ -30,6 +30,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.1",
+    "@types/twilio": "^3.19.3",
     "drizzle-kit": "^0.31.5",
     "typescript": "^5",
     "vite": "^6.4.0"

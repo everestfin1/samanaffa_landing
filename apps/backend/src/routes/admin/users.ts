@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
-import { db, desc, asc, sql, and, or, like, gte, lte } from '../../lib/db.js'
+import { db, desc, asc, sql, and, or, like, gte, lte, eq } from '../../lib/db.js'
 import { users } from '../../lib/schema.js'
 import { requireAdmin } from '../../middleware/auth.js'
+import { notifyKycStatusChange } from '../../lib/notifications.js'
 
 const app = new Hono()
 
@@ -67,6 +68,39 @@ app.get('/', async (c) => {
     })
   } catch (error) {
     console.error('Error fetching users:', error)
+    return c.json({ success: false, error: 'Internal server error' }, 500)
+  }
+})
+
+app.patch('/:id/kyc-status', async (c) => {
+  try {
+    const id = c.req.param('id')
+    const { status } = await c.req.json()
+
+    if (!['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW'].includes(status)) {
+      return c.json({ success: false, error: 'Invalid status' }, 400)
+    }
+
+    const [updated] = await db.update(users)
+      .set({ kycStatus: status, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning()
+
+    if (!updated) {
+      return c.json({ success: false, error: 'User not found' }, 404)
+    }
+
+    // Trigger email/SMS notification for KYC status change
+    try {
+      await notifyKycStatusChange(updated, status);
+    } catch (error) {
+      console.error('Failed to send KYC notification:', error);
+      // We don't fail the request if notification fails
+    }
+
+    return c.json({ success: true, user: updated })
+  } catch (error) {
+    console.error('Error updating user KYC status:', error)
     return c.json({ success: false, error: 'Internal server error' }, 500)
   }
 })

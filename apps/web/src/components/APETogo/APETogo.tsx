@@ -227,7 +227,7 @@ export default function APETogo() {
     e.preventDefault();
     setSubmitMessage(null);
     
-    const result = await submitForm();
+    const result = await submitForm('TOGO');
     
     if (!result.success) {
       setSubmitMessage(result.message);

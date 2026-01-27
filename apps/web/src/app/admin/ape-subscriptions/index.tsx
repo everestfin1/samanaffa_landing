@@ -35,6 +35,7 @@ export const Route = createFileRoute('/admin/ape-subscriptions/')({
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
     const status = normalizeStatusParam(search.status);
+    const country = typeof search.country === 'string' ? search.country : '';
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {
@@ -42,6 +43,7 @@ export const Route = createFileRoute('/admin/ape-subscriptions/')({
       pageSize: [10, 25, 50, 100].includes(pageSize) ? pageSize : 25,
       q,
       status,
+      country,
       date,
     };
   },
@@ -50,13 +52,13 @@ export const Route = createFileRoute('/admin/ape-subscriptions/')({
 
 function ApeSubscriptionsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
-  const { page, pageSize, q, status, date } = Route.useSearch();
+  const { page, pageSize, q, status, country, date } = Route.useSearch();
   const [selectedSubscriptionId, setSelectedSubscriptionId] = React.useState<string | null>(null);
   const [editStatus, setEditStatus] = React.useState<string>('');
   const [editProviderTransactionId, setEditProviderTransactionId] = React.useState<string>('');
   const [editAdminNotes, setEditAdminNotes] = React.useState<string>('');
 
-  const { data } = useApeSubscriptions({ page, pageSize, q, status, date })
+  const { data } = useApeSubscriptions({ page, pageSize, q, status, country, date })
   const updateMutation = useUpdateApeSubscription()
   const stats = data?.stats
   const pagination = data?.pagination
@@ -150,6 +152,23 @@ function ApeSubscriptionsPage() {
             }),
           statusOptions: apeSubscriptionStatusOptions,
           searchPlaceholder: 'Rechercher par utilisateur, plan...',
+          facetedFilters: [
+            {
+              columnId: 'country',
+              label: 'Pays',
+              options: [
+                { label: 'Tous', value: '' },
+                { label: 'Sénégal', value: 'SENEGAL' },
+                { label: 'Togo', value: 'TOGO' },
+              ],
+              value: country,
+              onChange: (value) =>
+                navigate({
+                  search: (prev) => ({ ...prev, country: value, page: 1 }),
+                  replace: true,
+                }),
+            },
+          ],
         }}
         paginationProps={{
           page: currentPage,

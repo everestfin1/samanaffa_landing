@@ -262,7 +262,7 @@ export default function APE() {
     e.preventDefault();
     setSubmitMessage(null);
     
-    const result = await submitForm();
+    const result = await submitForm('SENEGAL');
     
     if (!result.success) {
       setSubmitMessage(result.message);

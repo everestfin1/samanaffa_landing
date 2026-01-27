@@ -28,7 +28,8 @@ import {
   Clock,
   Eye,
   Users,
-  XCircle
+  XCircle,
+  Database
 } from 'lucide-react';
 import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
 import { 
@@ -366,6 +367,24 @@ function AbandonedLeadsPage() {
                   )}
                 </div>
               </div>
+
+              {/* Draft Data Snapshot */}
+              {selectedLead.draftData && Object.keys(selectedLead.draftData as object).length > 0 && (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 px-1">
+                    <Database className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Données Saisies (Draft)</h3>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                    <div className="p-4 bg-slate-50/50 border-b border-slate-100">
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Contenu JSON</p>
+                    </div>
+                    <pre className="p-6 text-[12px] font-mono text-slate-600 overflow-auto max-h-[300px] custom-scrollbar bg-slate-50/20">
+                      {JSON.stringify(selectedLead.draftData, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
 
               {/* Technical Info */}
               <div className="space-y-4 pt-4 border-t border-slate-100">

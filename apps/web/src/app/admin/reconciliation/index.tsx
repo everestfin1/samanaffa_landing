@@ -386,7 +386,7 @@ function ReconciliationPage() {
                 style={{ backgroundColor: '#F0F9FF', color: '#0284C7' }}
                 onClick={() => navigate({ 
                   to: '/admin/ape-subscriptions',
-                  search: { page: 1, pageSize: 25, q: '', status: '', date: '' }
+                  search: { page: 1, pageSize: 25, q: '', status: '', country: '', date: '' }
                 })}
               >
                 <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:rotate-6 transition-transform">

@@ -15,6 +15,7 @@ app.get('/', async (c) => {
     const pageSize = parseInt(c.req.query('pageSize') || '20')
     const q = c.req.query('q') || ''
     const status = c.req.query('status') || ''
+    const country = c.req.query('country') || ''
     const date = c.req.query('date') || ''
     const sortBy = c.req.query('sortBy') || 'createdAt'
     const sortOrder = c.req.query('sortOrder') || 'desc'
@@ -37,6 +38,10 @@ app.get('/', async (c) => {
 
     if (status) {
       conditions.push(like(sql`lower(${apeSubscriptions.status}::text)`, `%${status.toLowerCase()}%`))
+    }
+
+    if (country) {
+      conditions.push(eq(apeSubscriptions.country, country.toUpperCase() as any))
     }
 
     if (date) {

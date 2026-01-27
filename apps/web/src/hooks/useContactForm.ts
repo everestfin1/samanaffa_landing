@@ -19,6 +19,8 @@ export interface FormData {
   code_parrainage: string;
 }
 
+export type ApeCountry = 'SENEGAL' | 'TOGO'
+
 export interface FormErrors {
   civilite?: string;
   prenom?: string;
@@ -152,7 +154,7 @@ export function useContactForm() {
     return Object.keys(newErrors).length === 0;
   }, [formData, telemetry]);
 
-  const submitForm = useCallback(async (): Promise<{ 
+  const submitForm = useCallback(async (apeCountry: ApeCountry): Promise<{ 
     success: boolean; 
     message: string;
     subscription?: {
@@ -174,7 +176,10 @@ export function useContactForm() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ape_country: apeCountry,
+        }),
       });
 
       const result = await response.json();

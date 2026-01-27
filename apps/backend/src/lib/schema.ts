@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, boolean, decimal, integer, json, pgEnum } from 'drizzle-orm/pg-core'
 
 // Enums
+export const countryEnum = pgEnum('Country', ['SENEGAL', 'TOGO'])
 export const kycStatusEnum = pgEnum('KycStatus', ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW'])
 export const accountTypeEnum = pgEnum('AccountType', ['SAMA_NAFFA', 'APE_INVESTMENT'])
 export const accountStatusEnum = pgEnum('AccountStatus', ['ACTIVE', 'INACTIVE', 'SUSPENDED'])
@@ -134,6 +135,7 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   ville: text('ville').notNull(),
   categorieSocioprofessionnelle: text('categorieSocioprofessionnelle').notNull(),
   trancheInteresse: text('trancheInteresse').notNull(),
+  country: countryEnum('country').notNull().default('SENEGAL'),
   montantCfa: decimal('montantCfa', { precision: 15, scale: 2 }).notNull(),
   codeParrainage: text('codeParrainage'),
   status: apeSubscriptionStatusEnum('status').notNull().default('PENDING'),
@@ -178,6 +180,7 @@ export const peeLeads = pgTable('pee_leads', {
   pays: text('pays').notNull(),
   ville: text('ville').notNull(),
   telephone: text('telephone').notNull(),
+  country: countryEnum('country').notNull().default('SENEGAL'),
   email: text('email'),
   status: text('status').notNull().default('NEW'),
   adminNotes: text('adminNotes'),

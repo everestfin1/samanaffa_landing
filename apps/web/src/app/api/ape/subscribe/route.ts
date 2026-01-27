@@ -29,6 +29,10 @@ function parseAmount(amountStr: string): number {
   return parseInt(amountStr.replace(/\s/g, ''), 10);
 }
 
+function isValidApeCountry(value: unknown): value is 'SENEGAL' | 'TOGO' {
+  return value === 'SENEGAL' || value === 'TOGO'
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -45,6 +49,7 @@ export async function POST(request: NextRequest) {
       tranche_interesse,
       montant_cfa,
       code_parrainage,
+      ape_country,
     } = body;
 
     // Validate required fields
@@ -59,6 +64,7 @@ export async function POST(request: NextRequest) {
       { field: 'categorie_socioprofessionnelle', value: categorie_socioprofessionnelle },
       { field: 'tranche_interesse', value: tranche_interesse },
       { field: 'montant_cfa', value: montant_cfa },
+      { field: 'ape_country', value: ape_country },
     ];
 
     const missingFields = requiredFields.filter(f => !f.value || f.value.trim() === '');
@@ -85,6 +91,13 @@ export async function POST(request: NextRequest) {
     if (!isValidPhone(telephone)) {
       return NextResponse.json(
         { success: false, error: 'Numéro de téléphone invalide' },
+        { status: 400 }
+      );
+    }
+
+    if (!isValidApeCountry(ape_country)) {
+      return NextResponse.json(
+        { success: false, error: 'Pays APE invalide' },
         { status: 400 }
       );
     }
@@ -118,6 +131,7 @@ export async function POST(request: NextRequest) {
         ville: ville.trim(),
         categorieSocioprofessionnelle: categorie_socioprofessionnelle.trim(),
         trancheInteresse: tranche_interesse.trim(),
+        country: ape_country,
         montantCfa: amount.toString(),
         codeParrainage: code_parrainage?.trim() || null,
         status: 'PENDING',

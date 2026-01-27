@@ -1,11 +1,12 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 export interface ApeSubscriptionsParams {
-  page?: number
-  pageSize?: number
-  q?: string
-  status?: string
-  date?: string
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  status?: string;
+  country?: string;
+  date?: string;
 }
 
 export interface ApeSubscriptionApiItem {
@@ -57,11 +58,12 @@ const fetchApeSubscriptions = async (params: ApeSubscriptionsParams): Promise<Ap
   const token = localStorage.getItem('admin_token')
   const searchParams = new URLSearchParams()
 
-  if (params.page) searchParams.set('page', String(params.page))
-  if (params.pageSize) searchParams.set('pageSize', String(params.pageSize))
-  if (params.q) searchParams.set('q', params.q)
-  if (params.status) searchParams.set('status', params.status)
-  if (params.date) searchParams.set('date', params.date)
+  if (params.page) searchParams.set('page', String(params.page));
+  if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
+  if (params.q) searchParams.set('q', params.q);
+  if (params.status) searchParams.set('status', params.status);
+  if (params.country) searchParams.set('country', params.country);
+  if (params.date) searchParams.set('date', params.date);
 
   const response = await fetch(`/api/admin/ape-subscriptions?${searchParams.toString()}`, {
     headers: {

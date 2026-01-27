@@ -16,6 +16,8 @@ export const notificationPriorityEnum = pgEnum('NotificationPriority', ['LOW', '
 export const apeSubscriptionStatusEnum = pgEnum('ApeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
 export const formDraftStatusEnum = pgEnum('FormDraftStatus', ['ABANDONED', 'CONTACTED', 'CONVERTED', 'DISMISSED']);
 
+export const countryEnum = pgEnum('Country', ['SENEGAL', 'TOGO']);
+
 // Sponsor code status enum
 export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
 
@@ -311,6 +313,7 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   categorieSocioprofessionnelle: text('categorieSocioprofessionnelle').notNull(),
   // Investment info
   trancheInteresse: text('trancheInteresse').notNull(),
+  country: countryEnum('country').notNull().default('SENEGAL'),
   montantCfa: decimal('montantCfa', { precision: 15, scale: 2 }).notNull(),
   // Marketing tracking
   codeParrainage: text('codeParrainage'),

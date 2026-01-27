@@ -14,6 +14,7 @@ import adminAbandonedLeads from './routes/admin/abandoned-leads.js'
 import adminAccounts from './routes/admin/accounts.js'
 import adminSettings from './routes/admin/settings.js'
 import adminReconciliation from './routes/admin/reconciliation.js'
+import telemetry from './routes/telemetry.js'
 import paymentsIntouch from './routes/payments/intouch.js'
 
 const app = new Hono()
@@ -42,6 +43,7 @@ app.route('/admin/abandoned-leads', adminAbandonedLeads)
 app.route('/admin/reconciliation', adminReconciliation)
 app.route('/admin/accounts', adminAccounts)
 app.route('/admin/settings', adminSettings)
+app.route('/api/telemetry', telemetry)
 
 // API prefixed admin routes (for frontend proxy)
 app.route('/api/admin/auth', adminAuth)
