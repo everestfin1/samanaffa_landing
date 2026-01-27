@@ -4,24 +4,22 @@ import PageContainer from '../../../components/admin/layout/PageContainer';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
+import Sheet from '../../../components/admin/feedback/Sheet';
+import Badge from '../../../components/admin/data-display/Badge';
+import { peeLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
+import { createPeeLeadColumns, type PeeLead } from './peeColumns';
 
 // Placeholder data and columns
 const peeLeads = [
-  { id: '1', name: 'Ousmane Ba', email: 'ousmane@example.com', status: 'New', createdAt: new Date().toISOString() },
-  { id: '2', name: 'Aissatou Diallo', email: 'aissatou@example.com', status: 'Contacted', createdAt: new Date().toISOString() },
-];
-
-const columns = [
-  { header: 'Name', accessorKey: 'name' },
-  { header: 'Email', accessorKey: 'email' },
-  { header: 'Status', accessorKey: 'status' },
-  { header: 'Date', accessorKey: 'createdAt' },
+  { id: '1', name: 'Ousmane Ba', email: 'ousmane@example.com', status: 'NEW', createdAt: new Date().toISOString() },
+  { id: '2', name: 'Aissatou Diallo', email: 'aissatou@example.com', status: 'CONTACTED', createdAt: new Date().toISOString() },
 ];
 
 const peeStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'Nouveau', value: 'new' },
-  { label: 'Contacté', value: 'contacted' },
+  { label: 'Nouveau', value: 'NEW' },
+  { label: 'Contacté', value: 'CONTACTED' },
 ];
 
 export const Route = createFileRoute('/admin/leads/pee')({
@@ -29,7 +27,8 @@ export const Route = createFileRoute('/admin/leads/pee')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const status = typeof search.status === 'string' ? search.status : '';
+    const statusRaw = typeof search.status === 'string' ? search.status : '';
+    const status = statusRaw ? statusRaw.toUpperCase() : '';
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {
@@ -46,10 +45,11 @@ export const Route = createFileRoute('/admin/leads/pee')({
 function PeeLeadsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
+  const [selectedLead, setSelectedLead] = React.useState<PeeLead | null>(null);
 
   const filteredLeads = React.useMemo(() => {
     const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toLowerCase();
+    const statusNorm = status.trim().toUpperCase();
 
     return peeLeads.filter((l) => {
       const matchesQ =
@@ -58,8 +58,7 @@ function PeeLeadsPage() {
         l.email.toLowerCase().includes(qNorm);
 
       const matchesStatus =
-        statusNorm.length === 0 ||
-        l.status.toLowerCase().includes(statusNorm);
+        statusNorm.length === 0 || l.status === statusNorm;
 
       const matchesDate = date.length === 0 || l.createdAt.slice(0, 10) === date;
 
@@ -72,6 +71,8 @@ function PeeLeadsPage() {
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * pageSize;
   const pagedLeads = filteredLeads.slice(startIndex, startIndex + pageSize);
+
+  const columns = React.useMemo(() => createPeeLeadColumns((lead) => setSelectedLead(lead)), []);
 
   return (
     <PageContainer>
@@ -121,6 +122,57 @@ function PeeLeadsPage() {
             }),
         }}
       />
+
+      <Sheet
+        isOpen={!!selectedLead}
+        onClose={() => setSelectedLead(null)}
+        title="Détails du lead"
+        description={selectedLead?.id}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={() => setSelectedLead(null)}
+              className="sama-button sama-button-outline px-4 py-2"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {selectedLead && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Nom</p>
+                <p className="font-medium text-slate-900">{selectedLead.name}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
+                <div className="flex">
+                  <Badge variant={getStatusVariant(selectedLead.status, 'peeLead')}>
+                    {peeLeadStatusLabels[selectedLead.status] || selectedLead.status}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</p>
+                <p className="text-slate-900">{selectedLead.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date</p>
+                <p className="text-slate-900">{new Date(selectedLead.createdAt).toLocaleString('fr-FR')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID</span>
+                <span className="font-mono text-slate-600">{selectedLead.id}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </PageContainer>
   );
 }

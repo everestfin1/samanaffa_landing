@@ -1,39 +1,39 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import { Eye } from 'lucide-react';
 import Badge from '../../../components/admin/data-display/Badge';
-import { apeSubscriptionStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { peeLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
-export type ApeSubscription = {
+export type PeeLead = {
   id: string;
-  user: string;
-  plan: string;
+  name: string;
+  email: string;
   status: string;
-  startDate: string;
+  createdAt: string;
 };
 
-const columnHelper = createColumnHelper<ApeSubscription>();
+const columnHelper = createColumnHelper<PeeLead>();
 
-export const createApeSubscriptionColumns = (onViewDetails: (sub: ApeSubscription) => void) => [
-  columnHelper.accessor('user', {
-    header: 'Utilisateur',
+export const createPeeLeadColumns = (onViewDetails: (lead: PeeLead) => void) => [
+  columnHelper.accessor('name', {
+    header: 'Nom',
     cell: (info) => <span className="font-medium text-slate-900">{info.getValue()}</span>,
   }),
-  columnHelper.accessor('plan', {
-    header: 'Plan',
+  columnHelper.accessor('email', {
+    header: 'Email',
     cell: (info) => <span className="text-slate-600">{info.getValue()}</span>,
   }),
   columnHelper.accessor('status', {
     header: 'Statut',
     cell: (info) => {
       const status = info.getValue();
-      const variant = getStatusVariant(status, 'apeSubscription');
-      return <Badge variant={variant}>{apeSubscriptionStatusLabels[status] || status}</Badge>;
+      const variant = getStatusVariant(status, 'peeLead');
+      return <Badge variant={variant}>{peeLeadStatusLabels[status] || status}</Badge>;
     },
   }),
-  columnHelper.accessor('startDate', {
-    header: 'Date de début',
-    cell: (info) => new Date(info.getValue()).toLocaleDateString('fr-FR'),
+  columnHelper.accessor('createdAt', {
+    header: 'Date',
+    cell: (info) => new Date(info.getValue()).toLocaleString('fr-FR'),
   }),
   columnHelper.display({
     id: 'actions',
@@ -49,4 +49,4 @@ export const createApeSubscriptionColumns = (onViewDetails: (sub: ApeSubscriptio
   }),
 ];
 
-export const apeSubscriptionColumns = createApeSubscriptionColumns(() => {});
+export const peeLeadColumns = createPeeLeadColumns(() => {});

@@ -19,3 +19,24 @@ export const abandonedLeadStatusLabels: Record<string, string> = {
   CONVERTED: 'Converti',
   DISMISSED: 'Rejeté',
 };
+
+export const apeSubscriptionStatusLabels: Record<string, string> = {
+  ACTIVE: 'Active',
+  CANCELLED: 'Annulée',
+};
+
+export const sponsorCodeStatusLabels: Record<string, string> = {
+  ACTIVE: 'Actif',
+  INACTIVE: 'Inactif',
+  EXPIRED: 'Expiré',
+};
+
+export const reconciliationStatusLabels: Record<string, string> = {
+  MATCHED: 'Correspondante',
+  MISMATCHED: 'Divergente',
+};
+
+export const peeLeadStatusLabels: Record<string, string> = {
+  NEW: 'Nouveau',
+  CONTACTED: 'Contacté',
+};
