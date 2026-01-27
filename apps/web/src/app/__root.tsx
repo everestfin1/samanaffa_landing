@@ -6,6 +6,7 @@ import {
   redirect,
   useRouterState,
 } from "@tanstack/react-router";
+import * as React from 'react'
 import appCss from "./globals.css?url";
 import Navigation from "../components/Navigation";
 import Footer from "@/components/Footer";
@@ -84,8 +85,85 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootLayout,
+  errorComponent: RootErrorComponent,
   notFoundComponent: NotFound,
 });
+
+function RootErrorComponent(props: { error: unknown }) {
+  const error = props.error
+  const isDev = import.meta.env.DEV
+
+  const message =
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : 'Une erreur inattendue est survenue.'
+
+  const stack = error instanceof Error ? error.stack : undefined
+
+  const [showDetails, setShowDetails] = React.useState(false)
+  const [copied, setCopied] = React.useState(false)
+
+  const copyDetails = async () => {
+    if (!isDev) return
+
+    const text = stack ?? String(error)
+
+    if (typeof navigator === 'undefined' || !navigator.clipboard) return
+
+    await navigator.clipboard.writeText(text)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  const reload = () => {
+    if (typeof window === 'undefined') return
+    window.location.reload()
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-4xl px-4 py-16">
+      <h1 className="text-2xl font-semibold">Erreur</h1>
+      <p className="mt-2 text-sm text-gray-700">{message}</p>
+
+      <div className="mt-6 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={reload}
+          className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-black/90"
+        >
+          Recharger
+        </button>
+
+        {isDev ? (
+          <>
+            <button
+              type="button"
+              onClick={() => setShowDetails((v) => !v)}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+            >
+              {showDetails ? 'Masquer les détails' : 'Afficher les détails'}
+            </button>
+            <button
+              type="button"
+              onClick={copyDetails}
+              className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-50"
+            >
+              {copied ? 'Copié' : 'Copier la stack trace'}
+            </button>
+          </>
+        ) : null}
+      </div>
+
+      {isDev && showDetails ? (
+        <pre className="mt-6 overflow-auto rounded-md bg-gray-50 p-4 text-xs text-gray-900">
+          {stack ?? String(error)}
+        </pre>
+      ) : null}
+    </div>
+  )
+}
 
 function RootLayout() {
   const routerState = useRouterState();
