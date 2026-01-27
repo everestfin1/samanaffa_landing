@@ -4,5 +4,6 @@
   "installCommand": "bun install",
   "rewrites": [
     { "source": "/(.*)", "destination": "/api" }
-  ]
+  ],
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../../packages/shared"
 }

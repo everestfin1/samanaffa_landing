@@ -3,5 +3,6 @@
   "framework": null,
   "buildCommand": "bun run build",
   "installCommand": "bun install",
-  "outputDirectory": ".output"
+  "outputDirectory": ".output",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet -- . ../../packages/shared"
 }
