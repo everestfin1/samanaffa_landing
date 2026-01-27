@@ -12,6 +12,7 @@ import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import { Users, UserCheck, Phone, XCircle, Eye } from 'lucide-react';
 import { abandonedLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 const abandonedStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -61,14 +62,7 @@ const createAbandonedColumns = (onViewDetails: (lead: AbandonedLead) => void) =>
     header: 'Statut',
     cell: (info) => {
       const status = info.getValue();
-      const variant =
-        status === 'CONVERTED'
-          ? 'success'
-          : status === 'ABANDONED' || status === 'CONTACTED'
-            ? 'warning'
-            : status === 'DISMISSED'
-              ? 'danger'
-              : 'default';
+      const variant = getStatusVariant(status, 'abandonedLead');
       return (
         <Badge variant={variant}>{abandonedLeadStatusLabels[status] || status}</Badge>
       );
@@ -224,15 +218,7 @@ function AbandonedLeadsPage() {
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
                 <div className="flex">
                   <Badge
-                    variant={
-                      selectedLead.status === 'CONVERTED'
-                        ? 'success'
-                        : selectedLead.status === 'ABANDONED' || selectedLead.status === 'CONTACTED'
-                          ? 'warning'
-                          : selectedLead.status === 'DISMISSED'
-                            ? 'danger'
-                            : 'default'
-                    }
+                    variant={getStatusVariant(selectedLead.status, 'abandonedLead')}
                   >
                     {abandonedLeadStatusLabels[selectedLead.status] || selectedLead.status}
                   </Badge>

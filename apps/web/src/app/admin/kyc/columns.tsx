@@ -3,6 +3,7 @@ import type { KycDocument } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
 import { Eye } from 'lucide-react';
 import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 const columnHelper = createColumnHelper<KycDocument>();
 
@@ -43,14 +44,7 @@ export const createKycColumns = (onViewDetails: (doc: KycDocument) => void) => [
     header: 'Statut',
     cell: (info) => {
       const status = info.getValue();
-      const variant =
-        status === 'APPROVED'
-          ? 'success'
-          : status === 'PENDING' || status === 'UNDER_REVIEW'
-            ? 'warning'
-            : status === 'REJECTED'
-              ? 'danger'
-              : 'default';
+      const variant = getStatusVariant(status, 'kyc');
       return (
         <Badge variant={variant}>{kycStatusLabels[status] || status}</Badge>
       );

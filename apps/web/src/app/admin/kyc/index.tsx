@@ -12,6 +12,7 @@ import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import type { KycDocument } from './queries';
 import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 const kycStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -154,16 +155,7 @@ function KycPage() {
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
                 <div className="flex">
                   <Badge
-                    variant={
-                      selectedDoc.verificationStatus === 'APPROVED'
-                        ? 'success'
-                        : selectedDoc.verificationStatus === 'PENDING' ||
-                            selectedDoc.verificationStatus === 'UNDER_REVIEW'
-                          ? 'warning'
-                          : selectedDoc.verificationStatus === 'REJECTED'
-                            ? 'danger'
-                            : 'default'
-                    }
+                    variant={getStatusVariant(selectedDoc.verificationStatus, 'kyc')}
                   >
                     {kycStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
                   </Badge>

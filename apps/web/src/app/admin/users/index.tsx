@@ -11,6 +11,7 @@ import Sheet from '../../../components/admin/feedback/Sheet';
 import type { User } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
 import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 const userStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -145,15 +146,7 @@ const stats = React.useMemo(() => {
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut KYC</p>
                 <div className="flex">
                   <Badge
-                    variant={
-                      selectedUser.kycStatus === 'APPROVED'
-                        ? 'success'
-                        : selectedUser.kycStatus === 'PENDING' || selectedUser.kycStatus === 'UNDER_REVIEW'
-                          ? 'warning'
-                          : selectedUser.kycStatus === 'REJECTED'
-                            ? 'danger'
-                            : 'default'
-                    }
+                    variant={getStatusVariant(selectedUser.kycStatus, 'kyc')}
                   >
                     {kycStatusLabels[selectedUser.kycStatus] ?? selectedUser.kycStatus}
                   </Badge>

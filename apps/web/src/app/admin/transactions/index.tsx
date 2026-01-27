@@ -11,6 +11,7 @@ import type { FacetOption } from '../../../components/admin/data-display/DataTab
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import { transactionStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 const transactionStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -199,16 +200,7 @@ function TransactionsPage() {
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
                 <div className="flex">
                   <Badge
-                    variant={
-                      selectedTransaction.status === 'COMPLETED'
-                        ? 'success'
-                        : selectedTransaction.status === 'PENDING' ||
-                            selectedTransaction.status === 'PROCESSING'
-                          ? 'warning'
-                          : selectedTransaction.status === 'FAILED'
-                            ? 'danger'
-                            : 'default'
-                    }
+                    variant={getStatusVariant(selectedTransaction.status, 'transaction')}
                   >
                     {transactionStatusLabels[selectedTransaction.status] ?? selectedTransaction.status}
                   </Badge>
