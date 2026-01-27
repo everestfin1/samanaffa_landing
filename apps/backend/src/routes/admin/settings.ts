@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import { requireAdmin } from '../../middleware/auth'
+import { requireAdmin } from '../../middleware/auth.js'
 
 const app = new Hono()
 
