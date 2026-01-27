@@ -21,14 +21,18 @@ const app = new Hono<Env>()
 
 // POST /admin/auth/login
 app.post('/login', async (c) => {
+  console.log('[AUTH] Login request received')
   try {
     const { email, password } = await c.req.json()
+    console.log('[AUTH] Parsed request body, email:', email)
 
     if (!email || !password) {
       return c.json({ success: false, error: 'Email and password are required' }, 400)
     }
 
+    console.log('[AUTH] Querying database for admin user...')
     const results = await db.select().from(adminUsers).where(eq(adminUsers.email, email.toLowerCase())).limit(1)
+    console.log('[AUTH] Database query completed, found:', results.length, 'results')
     const admin = results[0]
 
     if (!admin) {
