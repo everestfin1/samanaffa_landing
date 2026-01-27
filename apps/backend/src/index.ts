@@ -22,10 +22,31 @@ const app = new Hono()
 
 // Middleware
 app.use('*', logger())
-app.use('*', cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true,
-}))
+app.use(
+  '*',
+  cors({
+    origin: (origin) => {
+      if (!origin) return origin
+
+      const allowed = new Set<string>([
+        'http://localhost:3000',
+        process.env.FRONTEND_URL,
+      ].filter(Boolean) as string[])
+
+      if (allowed.has(origin)) return origin
+
+      try {
+        const url = new URL(origin)
+        if (url.hostname.endsWith('.vercel.app')) return origin
+      } catch {
+        return null
+      }
+
+      return null
+    },
+    credentials: true,
+  }),
+)
 
 // Health check
 app.get('/', (c) => c.json({ status: 'ok', service: 'samanaffa-backend' }))

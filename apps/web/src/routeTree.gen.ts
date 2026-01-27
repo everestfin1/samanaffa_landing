@@ -54,6 +54,7 @@ import { Route as ApiAuthSessionRouteImport } from './app/api/auth/session'
 import { Route as ApiAuthSendOtpRouteImport } from './app/api/auth/send-otp'
 import { Route as ApiAuthResetPasswordRouteImport } from './app/api/auth/reset-password'
 import { Route as ApiAuthLoginRouteImport } from './app/api/auth/login'
+import { Route as ApiAuthGetSessionRouteImport } from './app/api/auth/get-session'
 import { Route as ApiAuthCheckAvailabilityRouteImport } from './app/api/auth/check-availability'
 import { Route as ApiAuthSplatRouteImport } from './app/api/auth/$'
 import { Route as AdminUsersIdRouteImport } from './app/admin/users/$id'
@@ -295,6 +296,11 @@ const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
   path: '/api/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthGetSessionRoute = ApiAuthGetSessionRouteImport.update({
+  id: '/api/auth/get-session',
+  path: '/api/auth/get-session',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthCheckAvailabilityRoute =
   ApiAuthCheckAvailabilityRouteImport.update({
     id: '/api/auth/check-availability',
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
@@ -434,6 +441,7 @@ export interface FileRoutesByTo {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
@@ -491,6 +499,7 @@ export interface FileRoutesById {
   '/admin/users/$id': typeof AdminUsersIdRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
   '/api/auth/check-availability': typeof ApiAuthCheckAvailabilityRoute
+  '/api/auth/get-session': typeof ApiAuthGetSessionRoute
   '/api/auth/login': typeof ApiAuthLoginRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/send-otp': typeof ApiAuthSendOtpRoute
@@ -549,6 +558,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
+    | '/api/auth/get-session'
     | '/api/auth/login'
     | '/api/auth/reset-password'
     | '/api/auth/send-otp'
@@ -604,6 +614,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
+    | '/api/auth/get-session'
     | '/api/auth/login'
     | '/api/auth/reset-password'
     | '/api/auth/send-otp'
@@ -660,6 +671,7 @@ export interface FileRouteTypes {
     | '/admin/users/$id'
     | '/api/auth/$'
     | '/api/auth/check-availability'
+    | '/api/auth/get-session'
     | '/api/auth/login'
     | '/api/auth/reset-password'
     | '/api/auth/send-otp'
@@ -713,6 +725,7 @@ export interface RootRouteChildren {
   AdminUsersIdRoute: typeof AdminUsersIdRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ApiAuthCheckAvailabilityRoute: typeof ApiAuthCheckAvailabilityRoute
+  ApiAuthGetSessionRoute: typeof ApiAuthGetSessionRoute
   ApiAuthLoginRoute: typeof ApiAuthLoginRoute
   ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
   ApiAuthSendOtpRoute: typeof ApiAuthSendOtpRoute
@@ -1048,6 +1061,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/get-session': {
+      id: '/api/auth/get-session'
+      path: '/api/auth/get-session'
+      fullPath: '/api/auth/get-session'
+      preLoaderRoute: typeof ApiAuthGetSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/check-availability': {
       id: '/api/auth/check-availability'
       path: '/api/auth/check-availability'
@@ -1187,6 +1207,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminUsersIdRoute: AdminUsersIdRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
   ApiAuthCheckAvailabilityRoute: ApiAuthCheckAvailabilityRoute,
+  ApiAuthGetSessionRoute: ApiAuthGetSessionRoute,
   ApiAuthLoginRoute: ApiAuthLoginRoute,
   ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
   ApiAuthSendOtpRoute: ApiAuthSendOtpRoute,
