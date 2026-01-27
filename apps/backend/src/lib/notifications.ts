@@ -1,22 +1,42 @@
 import nodemailer from 'nodemailer';
-// @ts-ignore - twilio types resolution issue
-import twilio from 'twilio';
 
-// Email configuration
-const emailTransporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: parseInt(process.env.SMTP_PORT || '587'),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-});
+// Lazy-initialized clients to avoid import-time crashes on Vercel serverless
+let _emailTransporter: ReturnType<typeof nodemailer.createTransport> | null = null;
+let _twilioClient: any = null;
+let _twilioLoaded = false;
 
-// Twilio configuration
-const twilioClient = process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN
-  ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
-  : null;
+function getEmailTransporter() {
+  if (_emailTransporter) return _emailTransporter;
+  _emailTransporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port: parseInt(process.env.SMTP_PORT || '587'),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+  });
+  return _emailTransporter;
+}
+
+async function getTwilioClient() {
+  if (_twilioLoaded) return _twilioClient;
+  _twilioLoaded = true;
+  
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) {
+    return null;
+  }
+  
+  try {
+    // Dynamic import to avoid loading twilio at module init
+    const twilio = (await import('twilio')).default;
+    _twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+  } catch (error) {
+    console.error('Failed to load Twilio SDK:', error);
+    _twilioClient = null;
+  }
+  return _twilioClient;
+}
 
 export async function sendEmail({ to, subject, html }: { to: string; subject: string; html: string }) {
   try {
@@ -24,7 +44,8 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
       console.warn('SMTP_HOST not configured, skipping email');
       return;
     }
-    await emailTransporter.sendMail({
+    const transporter = getEmailTransporter();
+    await transporter.sendMail({
       from: process.env.SMTP_FROM || '"Sama Naffa" <noreply@samanaffa.com>',
       to,
       subject,
@@ -37,11 +58,12 @@ export async function sendEmail({ to, subject, html }: { to: string; subject: st
 
 export async function sendSms({ to, body }: { to: string; body: string }) {
   try {
-    if (!twilioClient) {
+    const client = await getTwilioClient();
+    if (!client) {
       console.warn('Twilio not configured, skipping SMS');
       return;
     }
-    await twilioClient.messages.create({
+    await client.messages.create({
       body,
       from: process.env.TWILIO_FROM_NUMBER,
       to,
