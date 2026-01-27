@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
+import { getDb } from './lib/db.js'
 
 import adminAuth from './routes/admin/auth.js'
 import adminDashboard from './routes/admin/dashboard.js'
@@ -38,22 +39,55 @@ app.use(
 
       try {
         const url = new URL(origin)
+        // Allow all vercel.app domains for now
         if (url.hostname.endsWith('.vercel.app')) return origin
       } catch {
         // Invalid URL, reject
         return null
       }
 
+      // For debugging: allow any origin in development/preview
+      if (process.env.VERCEL_ENV === 'preview' || process.env.NODE_ENV === 'development') {
+        return origin
+      }
+
       // Origin not in allowed list, reject
       return null
     },
     credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
   }),
 )
 
 // Health check
-app.get('/', (c) => c.json({ status: 'ok', service: 'samanaffa-backend' }))
-app.get('/health', (c) => c.json({ status: 'healthy', timestamp: new Date().toISOString() }))
+app.get('/', (c) => {
+  try {
+    return c.json({ status: 'ok', service: 'samanaffa-backend' })
+  } catch (error) {
+    console.error('Health check error:', error)
+    return c.json({ status: 'error', message: 'Health check failed' }, 500)
+  }
+})
+
+app.get('/health', (c) => {
+  try {
+    // Test database connection
+    const db = getDb()
+    return c.json({ 
+      status: 'healthy', 
+      timestamp: new Date().toISOString(),
+      env: process.env.VERCEL_ENV || process.env.NODE_ENV || 'unknown'
+    })
+  } catch (error) {
+    console.error('Health check error:', error)
+    return c.json({ 
+      status: 'error', 
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    }, 500)
+  }
+})
 
 // Admin routes (dual prefix for compatibility)
 app.route('/admin/auth', adminAuth)
