@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Shield, AlertCircle, Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react'
+import { apiUrl } from '../../lib/api-config'
 
 export const Route = createFileRoute('/admin/login')({
   component: AdminLogin,
@@ -21,7 +22,7 @@ export default function AdminLogin() {
     setError('')
 
     try {
-      const response = await fetch('/api/admin/auth/login', {
+      const response = await fetch(apiUrl('/api/admin/auth/login'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

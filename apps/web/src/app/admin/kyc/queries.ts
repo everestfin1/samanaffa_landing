@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { apiUrl } from '../../../lib/api-config';
 
 export interface KycParams {
   page?: number;
@@ -42,7 +43,7 @@ const fetchKycDocuments = async (params: KycParams): Promise<KycResponse> => {
   if (params.status) searchParams.set('status', params.status);
   if (params.date) searchParams.set('date', params.date);
 
-  const response = await fetch(`/api/admin/kyc?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/kyc?${searchParams.toString()}`), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

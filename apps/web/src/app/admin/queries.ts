@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiUrl } from '../../lib/api-config';
 
 export interface DashboardStats {
   users: {
@@ -40,7 +41,7 @@ export interface DashboardResponse {
 const fetchDashboardStats = async (): Promise<DashboardResponse> => {
   const token = localStorage.getItem('admin_token');
   
-  const response = await fetch('/api/admin/dashboard/stats', {
+  const response = await fetch(apiUrl('/api/admin/dashboard/stats'), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

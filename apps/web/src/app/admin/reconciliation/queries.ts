@@ -1,3 +1,5 @@
+import { apiUrl } from '../../../lib/api-config'
+
 export interface IntouchTransaction {
   id: string
   idTransaction: string
@@ -48,7 +50,7 @@ export interface ApplyReconciliationResponse {
 export async function analyzeReconciliation(intouchTransactions: IntouchTransaction[]): Promise<AnalyzeReconciliationResponse> {
   const token = localStorage.getItem('admin_token')
 
-  const response = await fetch('/api/admin/reconciliation/analyze', {
+  const response = await fetch(apiUrl('/api/admin/reconciliation/analyze'), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -67,7 +69,7 @@ export async function analyzeReconciliation(intouchTransactions: IntouchTransact
 export async function applyReconciliation(matches: ReconciliationMatch[]): Promise<ApplyReconciliationResponse> {
   const token = localStorage.getItem('admin_token')
 
-  const response = await fetch('/api/admin/reconciliation/apply', {
+  const response = await fetch(apiUrl('/api/admin/reconciliation/apply'), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,

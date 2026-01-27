@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiUrl } from '../../../lib/api-config';
 
 export interface AbandonedLeadsParams {
   page?: number;
@@ -95,7 +96,7 @@ const fetchAbandonedLeads = async (params: AbandonedLeadsParams): Promise<Abando
   if (params.sortBy) searchParams.set('sortBy', params.sortBy);
   if (params.sortOrder) searchParams.set('sortOrder', params.sortOrder);
 
-  const response = await fetch(`/api/admin/abandoned-leads?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/abandoned-leads?${searchParams.toString()}`), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -128,7 +129,7 @@ const fetchPeeLeads = async (params: PeeLeadsParams): Promise<PeeLeadsResponse> 
   if (params.status) searchParams.set('status', params.status);
   if (params.date) searchParams.set('date', params.date);
 
-  const response = await fetch(`/api/admin/pee-leads?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/pee-leads?${searchParams.toString()}`), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -159,7 +160,7 @@ export type UpdatePeeLeadInput = {
 
 export async function updatePeeLead(input: UpdatePeeLeadInput) {
   const token = localStorage.getItem('admin_token');
-  const response = await fetch(`/api/admin/pee-leads/${input.id}`, {
+  const response = await fetch(apiUrl(`/api/admin/pee-leads/${input.id}`), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -197,7 +198,7 @@ export type UpdateAbandonedLeadInput = {
 
 export async function updateAbandonedLead(input: UpdateAbandonedLeadInput) {
   const token = localStorage.getItem('admin_token');
-  const response = await fetch(`/api/admin/abandoned-leads/${input.id}`, {
+  const response = await fetch(apiUrl(`/api/admin/abandoned-leads/${input.id}`), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,

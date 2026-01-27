@@ -1,4 +1,5 @@
 import { useQuery, keepPreviousData } from '@tanstack/react-query';
+import { apiUrl } from '../../../lib/api-config';
 
 export interface TransactionsParams {
   page?: number;
@@ -45,7 +46,7 @@ const fetchTransactions = async (params: TransactionsParams): Promise<Transactio
   if (params.status) searchParams.set('status', params.status);
   if (params.date) searchParams.set('date', params.date);
 
-  const response = await fetch(`/api/admin/transactions?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/transactions?${searchParams.toString()}`), {
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',

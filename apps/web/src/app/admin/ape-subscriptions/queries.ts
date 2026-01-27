@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiUrl } from '../../../lib/api-config'
 
 export interface ApeSubscriptionsParams {
   page?: number;
@@ -65,7 +66,7 @@ const fetchApeSubscriptions = async (params: ApeSubscriptionsParams): Promise<Ap
   if (params.country) searchParams.set('country', params.country);
   if (params.date) searchParams.set('date', params.date);
 
-  const response = await fetch(`/api/admin/ape-subscriptions?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/ape-subscriptions?${searchParams.toString()}`), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -98,7 +99,7 @@ export type UpdateApeSubscriptionInput = {
 export async function updateApeSubscription(input: UpdateApeSubscriptionInput) {
   const token = localStorage.getItem('admin_token')
 
-  const response = await fetch(`/api/admin/ape-subscriptions/${input.id}`, {
+  const response = await fetch(apiUrl(`/api/admin/ape-subscriptions/${input.id}`), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,

@@ -1,4 +1,5 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { apiUrl } from '../../../lib/api-config'
 
 export interface SponsorCodesParams {
   page?: number
@@ -48,7 +49,7 @@ const fetchSponsorCodes = async (params: SponsorCodesParams): Promise<SponsorCod
   if (params.status) searchParams.set('status', params.status)
   if (params.date) searchParams.set('date', params.date)
 
-  const response = await fetch(`/api/admin/sponsor-codes?${searchParams.toString()}`, {
+  const response = await fetch(apiUrl(`/api/admin/sponsor-codes?${searchParams.toString()}`), {
     headers: {
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -81,7 +82,7 @@ export type CreateSponsorCodeInput = {
 export async function createSponsorCode(input: CreateSponsorCodeInput) {
   const token = localStorage.getItem('admin_token')
 
-  const response = await fetch('/api/admin/sponsor-codes', {
+  const response = await fetch(apiUrl('/api/admin/sponsor-codes'), {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -108,7 +109,7 @@ export type UpdateSponsorCodeInput = {
 export async function updateSponsorCode(input: UpdateSponsorCodeInput) {
   const token = localStorage.getItem('admin_token')
 
-  const response = await fetch(`/api/admin/sponsor-codes/${input.id}`, {
+  const response = await fetch(apiUrl(`/api/admin/sponsor-codes/${input.id}`), {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${token}`,
