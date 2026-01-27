@@ -46,6 +46,9 @@ next-env.d.ts
 **/dist
 **/.output
 
+# nitro
+**/.nitro
+
 # tanstack
 .tanstack
 

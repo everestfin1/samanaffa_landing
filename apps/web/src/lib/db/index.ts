@@ -1,10 +1,6 @@
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool } from '@neondatabase/serverless';
 import * as schema from './schema';
-import * as dotenv from 'dotenv';
-
-// Load environment variables from .env.local
-dotenv.config({ path: '.env.local' });
 
 const isBrowser = typeof globalThis !== 'undefined' && 'window' in globalThis
 
