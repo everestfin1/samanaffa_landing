@@ -11,24 +11,19 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import type { KycDocument } from './queries';
-import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  kycStatusLabels, 
+  kycStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-const kycStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'PENDING' },
-  { label: 'Approuvé', value: 'APPROVED' },
-  { label: 'Rejeté', value: 'REJECTED' },
-  { label: 'En révision', value: 'UNDER_REVIEW' },
-];
 
 export const Route = createFileRoute('/admin/kyc/')({
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

@@ -8,24 +8,20 @@ import { Tag, CheckCircle, XCircle, Users } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
-import { sponsorCodeStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  sponsorCodeStatusLabels, 
+  sponsorCodeStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 import { useSponsorCodes } from './queries';
-
-const sponsorCodeStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'Actif', value: 'ACTIVE' },
-  { label: 'Inactif', value: 'INACTIVE' },
-  { label: 'Expiré', value: 'EXPIRED' },
-];
 
 export const Route = createFileRoute('/admin/sponsor-codes/')({
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

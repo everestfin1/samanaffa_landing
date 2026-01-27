@@ -13,6 +13,7 @@ import adminPeeLeads from './routes/admin/pee-leads.js'
 import adminAbandonedLeads from './routes/admin/abandoned-leads.js'
 import adminAccounts from './routes/admin/accounts.js'
 import adminSettings from './routes/admin/settings.js'
+import adminReconciliation from './routes/admin/reconciliation.js'
 import paymentsIntouch from './routes/payments/intouch.js'
 
 const app = new Hono()
@@ -38,6 +39,7 @@ app.route('/admin/ape-subscriptions', adminApeSubscriptions)
 app.route('/admin/sponsor-codes', adminSponsorCodes)
 app.route('/admin/pee-leads', adminPeeLeads)
 app.route('/admin/abandoned-leads', adminAbandonedLeads)
+app.route('/admin/reconciliation', adminReconciliation)
 app.route('/admin/accounts', adminAccounts)
 app.route('/admin/settings', adminSettings)
 
@@ -51,6 +53,7 @@ app.route('/api/admin/ape-subscriptions', adminApeSubscriptions)
 app.route('/api/admin/sponsor-codes', adminSponsorCodes)
 app.route('/api/admin/pee-leads', adminPeeLeads)
 app.route('/api/admin/abandoned-leads', adminAbandonedLeads)
+app.route('/api/admin/reconciliation', adminReconciliation)
 app.route('/api/admin/accounts', adminAccounts)
 app.route('/api/admin/settings', adminSettings)
 

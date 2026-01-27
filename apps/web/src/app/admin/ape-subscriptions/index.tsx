@@ -8,26 +8,20 @@ import { Landmark, CheckCircle, XCircle, Wallet } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
-import { apeSubscriptionStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  apeSubscriptionStatusLabels, 
+  apeSubscriptionStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 import { useApeSubscriptions } from './queries';
-
-const apeSubscriptionStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'PENDING' },
-  { label: 'Paiement initié', value: 'PAYMENT_INITIATED' },
-  { label: 'Paiement réussi', value: 'PAYMENT_SUCCESS' },
-  { label: 'Paiement échoué', value: 'PAYMENT_FAILED' },
-  { label: 'Annulée', value: 'CANCELLED' },
-];
 
 export const Route = createFileRoute('/admin/ape-subscriptions/')({
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

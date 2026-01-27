@@ -6,24 +6,21 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
-import { peeLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  peeLeadStatusLabels, 
+  peeLeadStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 import { createPeeLeadColumns, type PeeLead } from './peeColumns';
 import { usePeeLeads } from './queries';
-
-const peeStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'Nouveau', value: 'NEW' },
-  { label: 'Contacté', value: 'CONTACTED' },
-];
 
 export const Route = createFileRoute('/admin/leads/pee')({
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {
@@ -89,7 +86,7 @@ function PeeLeadsPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
-          statusOptions: peeStatusOptions,
+          statusOptions: peeLeadStatusOptions,
           searchPlaceholder: 'Rechercher par nom, email...',
         }}
         paginationProps={{

@@ -10,17 +10,12 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import type { FacetOption } from '../../../components/admin/data-display/DataTable/DataTableFacetedFilter';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
-import { transactionStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  transactionStatusLabels, 
+  transactionStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-const transactionStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'PENDING' },
-  { label: 'En cours', value: 'PROCESSING' },
-  { label: 'Complétée', value: 'COMPLETED' },
-  { label: 'Annulée', value: 'CANCELLED' },
-  { label: 'Échouée', value: 'FAILED' },
-];
 
 const typeFacetOptions: FacetOption[] = [
   { label: 'Tous', value: '' },
@@ -42,8 +37,7 @@ export const Route = createFileRoute('/admin/transactions/')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

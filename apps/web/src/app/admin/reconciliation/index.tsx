@@ -1,193 +1,351 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import * as React from 'react';
-import PageHeader from '../../../components/admin/layout/PageHeader';
-import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
-import StatCard from '../../../components/admin/data-display/StatCard';
-import { createReconciliationColumns, type Reconciliation } from './columns';
-import { RefreshCcw, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
-import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
-import Sheet from '../../../components/admin/feedback/Sheet';
-import Badge from '../../../components/admin/data-display/Badge';
-import { reconciliationStatusLabels } from '../../../components/admin/utils/statusLabels';
-import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-// Placeholder data
-const reconciliationData = [
-  { id: '1', transactionId: 'TX123', intouchId: 'IT456', status: 'MATCHED', amount: 50000, date: new Date().toISOString() },
-  { id: '2', transactionId: 'TX789', intouchId: 'IT012', status: 'MISMATCHED', amount: 25000, date: new Date().toISOString() },
-];
-
-const reconciliationStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'Correspondante', value: 'MATCHED' },
-  { label: 'Divergente', value: 'MISMATCHED' },
-];
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import * as React from 'react'
+import PageHeader from '../../../components/admin/layout/PageHeader'
+import StatCard from '../../../components/admin/data-display/StatCard'
+import { 
+  FileSpreadsheet, 
+  CheckCircle, 
+  AlertCircle, 
+  XCircle, 
+  Upload, 
+  Search,
+  History,
+  ChevronRight
+} from 'lucide-react'
+import {
+  analyzeReconciliation,
+  applyReconciliation,
+  type IntouchTransaction,
+  type ReconciliationMatch,
+  type ReconciliationResult,
+} from './queries'
 
 export const Route = createFileRoute('/admin/reconciliation/')({
-  validateSearch: (search) => {
-    const page = Number(search.page) || 1;
-    const pageSize = Number(search.pageSize) || 25;
-    const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
-    const date = typeof search.date === 'string' ? search.date : '';
-
-    return {
-      page: Math.max(1, page),
-      pageSize: [10, 25, 50, 100].includes(pageSize) ? pageSize : 25,
-      q,
-      status,
-      date,
-    };
-  },
   component: ReconciliationPage,
 });
 
 function ReconciliationPage() {
-  const navigate = useNavigate({ from: Route.fullPath });
-  const { page, pageSize, q, status, date } = Route.useSearch();
-  const [selectedItem, setSelectedItem] = React.useState<Reconciliation | null>(null);
+  const navigate = useNavigate();
+  const [fileName, setFileName] = React.useState<string | null>(null)
+  const [parsedTransactions, setParsedTransactions] = React.useState<IntouchTransaction[]>([])
+  const [analyzing, setAnalyzing] = React.useState(false)
+  const [applying, setApplying] = React.useState(false)
+  const [result, setResult] = React.useState<ReconciliationResult | null>(null)
+  const [selectedMatches, setSelectedMatches] = React.useState<Set<string>>(new Set())
 
-  const filteredReconciliation = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toUpperCase();
+  const toggleMatch = (ref: string) => {
+    setSelectedMatches((prev) => {
+      const next = new Set(prev)
+      if (next.has(ref)) next.delete(ref)
+      else next.add(ref)
+      return next
+    })
+  }
 
-    return reconciliationData.filter((r) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        r.transactionId.toLowerCase().includes(qNorm) ||
-        r.intouchId.toLowerCase().includes(qNorm) ||
-        String(r.amount).includes(qNorm);
+  const toggleAll = () => {
+    if (!result) return
 
-      const matchesStatus =
-        statusNorm.length === 0 || r.status === statusNorm;
+    setSelectedMatches((prev) => {
+      if (prev.size === result.matches.length) return new Set()
+      return new Set(result.matches.map((m) => m.apeReferenceNumber))
+    })
+  }
 
-      const matchesDate = date.length === 0 || r.date.slice(0, 10) === date;
+  const onFileChange: React.ChangeEventHandler<HTMLInputElement> = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
 
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [q, status, date]);
+    setFileName(file.name)
+    const text = await file.text()
+    const parsed = parseIntouchCsv(text)
+    setParsedTransactions(parsed)
+    setResult(null)
+    setSelectedMatches(new Set())
+  }
 
-  const total = filteredReconciliation.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedReconciliation = filteredReconciliation.slice(startIndex, startIndex + pageSize);
+  const onAnalyze = async () => {
+    if (parsedTransactions.length === 0) return
 
-  const columns = React.useMemo(
-    () => createReconciliationColumns((item) => setSelectedItem(item)),
-    []
-  );
+    setAnalyzing(true)
+    try {
+      const res = await analyzeReconciliation(parsedTransactions)
+      setResult(res.result)
+
+      const autoSelected = new Set(
+        res.result.matches.filter((m) => m.matchType === 'exact').map((m) => m.apeReferenceNumber)
+      )
+      setSelectedMatches(autoSelected)
+    } finally {
+      setAnalyzing(false)
+    }
+  }
+
+  const onApply = async () => {
+    if (!result) return
+    if (selectedMatches.size === 0) return
+
+    const matchesToApply: ReconciliationMatch[] = result.matches.filter((m) => selectedMatches.has(m.apeReferenceNumber))
+
+    setApplying(true)
+    try {
+      const res = await applyReconciliation(matchesToApply)
+      if (res.success) {
+        alert(`Réconciliation terminée: ${res.updated} souscriptions mises à jour.`)
+      }
+    } finally {
+      setApplying(false)
+    }
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-[1600px] mx-auto">
       <PageHeader
         title="Réconciliation"
         description="Réconciliez les transactions avec Intouch"
       />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total" value={234} icon={RefreshCcw} color="info" />
-        <StatCard label="Correspondantes" value={220} icon={CheckCircle} color="success" />
-        <StatCard label="Divergences" value={8} icon={AlertTriangle} color="danger" />
-        <StatCard label="En attente" value={6} icon={Clock} color="warning" />
-      </div>
-      <DataTable
-        columns={columns}
-        data={pagedReconciliation}
-        toolbarProps={{
-          search: q,
-          onSearchChange: (value) =>
-            navigate({
-              search: (prev) => ({ ...prev, q: value, page: 1 }),
-              replace: true,
-            }),
-          status,
-          onStatusChange: (value) =>
-            navigate({
-              search: (prev) => ({ ...prev, status: value, page: 1 }),
-              replace: true,
-            }),
-          date,
-          onDateChange: (value) =>
-            navigate({
-              search: (prev) => ({ ...prev, date: value, page: 1 }),
-              replace: true,
-            }),
-          statusOptions: reconciliationStatusOptions,
-          searchPlaceholder: 'Rechercher par TX, Intouch...',
-        }}
-        paginationProps={{
-          page: currentPage,
-          pageSize,
-          total,
-          totalPages,
-          onPageChange: (nextPage) =>
-            navigate({
-              search: (prev) => ({ ...prev, page: nextPage }),
-              replace: true,
-            }),
-          onPageSizeChange: (nextPageSize) =>
-            navigate({
-              search: (prev) => ({ ...prev, pageSize: nextPageSize, page: 1 }),
-              replace: true,
-            }),
-        }}
-      />
 
-      <Sheet
-        isOpen={!!selectedItem}
-        onClose={() => setSelectedItem(null)}
-        title="Détails de la réconciliation"
-        description={selectedItem?.id}
-        footer={
-          <div className="flex justify-end">
-            <button
-              onClick={() => setSelectedItem(null)}
-              className="sama-button sama-button-outline px-4 py-2"
-            >
-              Fermer
-            </button>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Left Column: Stats & Table */}
+        <div className="lg:col-span-2 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <StatCard label="Total CSV" value={result?.summary.total ?? 0} icon={FileSpreadsheet} color="info" />
+            <StatCard label="Matches Exacts" value={result?.summary.exact ?? 0} icon={CheckCircle} color="success" />
+            <StatCard label="Écarts" value={result?.summary.amountMismatch ?? 0} icon={AlertCircle} color="warning" />
+            <StatCard label="Inconnus" value={result?.summary.notFound ?? 0} icon={XCircle} color="danger" />
           </div>
-        }
-      >
-        {selectedItem && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">ID Transaction</p>
-                <p className="font-mono text-slate-900">{selectedItem.transactionId}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
-                <div className="flex">
-                  <Badge variant={getStatusVariant(selectedItem.status, 'reconciliation')}>
-                    {reconciliationStatusLabels[selectedItem.status] || selectedItem.status}
-                  </Badge>
+
+          {result ? (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 overflow-hidden">
+              <div className="px-8 py-6 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                  <h2 className="text-[18px] font-bold text-slate-900">Résultats de l'analyse</h2>
+                  <p className="text-xs font-bold text-slate-400 mt-1">{selectedMatches.size} sélectionnés pour réconciliation</p>
+                </div>
+                <div className="flex gap-2">
+                  <button 
+                    type="button" 
+                    className="px-4 py-2 text-[13px] font-black text-slate-600 hover:bg-slate-50 rounded-xl transition-all"
+                    onClick={toggleAll}
+                  >
+                    {selectedMatches.size === result.matches.length ? 'Désélectionner tout' : 'Tout sélectionner'}
+                  </button>
+                  <button 
+                    type="button" 
+                    className="px-6 py-2 text-[13px] font-black text-white bg-[#435933] hover:bg-[#30461f] rounded-xl transition-all shadow-sm disabled:opacity-50"
+                    disabled={applying || selectedMatches.size === 0}
+                    onClick={onApply}
+                  >
+                    {applying ? 'Traitement...' : `Réconcilier (${selectedMatches.size})`}
+                  </button>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">ID Intouch</p>
-                <p className="font-mono text-slate-600">{selectedItem.intouchId}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Montant</p>
-                <p className="text-slate-900">{selectedItem.amount.toLocaleString()} FCFA</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date</p>
-                <p className="text-slate-900">{new Date(selectedItem.date).toLocaleString('fr-FR')}</p>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/50">
+                      <th className="px-8 py-4 w-12">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-slate-300 text-[#435933] focus:ring-[#435933]"
+                          checked={selectedMatches.size === result.matches.length && result.matches.length > 0}
+                          onChange={toggleAll}
+                        />
+                      </th>
+                      <th className="px-4 py-4 text-[12px] font-black text-slate-400 uppercase tracking-wider">Référence / Client</th>
+                      <th className="px-4 py-4 text-[12px] font-black text-slate-400 uppercase tracking-wider">Montant</th>
+                      <th className="px-4 py-4 text-[12px] font-black text-slate-400 uppercase tracking-wider text-right px-8">Statut</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {result.matches.map((m) => {
+                      const checked = selectedMatches.has(m.apeReferenceNumber)
+                      const isMismatch = m.matchType === 'amount_mismatch'
+                      return (
+                        <tr key={m.apeReferenceNumber} className="hover:bg-slate-50/80 transition-colors group">
+                          <td className="px-8 py-5">
+                            <input 
+                              type="checkbox" 
+                              className="w-4 h-4 rounded border-slate-300 text-[#435933] focus:ring-[#435933]"
+                              checked={checked} 
+                              onChange={() => toggleMatch(m.apeReferenceNumber)} 
+                            />
+                          </td>
+                          <td className="px-4 py-5">
+                            <div className="flex flex-col">
+                              <span className="text-[14px] font-black text-slate-900 font-mono leading-none">{m.apeReferenceNumber}</span>
+                              <span className="text-[12px] font-bold text-slate-400 mt-1">{m.apeTelephone}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-5">
+                            <div className="flex flex-col">
+                              <span className="text-[14px] font-black text-slate-900 leading-none">
+                                {m.intouchMontant.toLocaleString('fr-FR')} FCFA
+                              </span>
+                              {isMismatch && (
+                                <span className="text-[11px] font-bold text-amber-600 mt-1">
+                                  Attendu: {m.apeMontant.toLocaleString('fr-FR')}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-5 text-right px-8">
+                            {isMismatch ? (
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-amber-50 text-amber-700 text-[12px] font-black border border-amber-100">
+                                <AlertCircle className="w-3.5 h-3.5" /> Écart
+                              </div>
+                            ) : (
+                              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-50 text-[#435933] text-[12px] font-black border border-emerald-100">
+                                <CheckCircle className="w-3.5 h-3.5" /> Exact
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
-
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID</span>
-                <span className="font-mono text-slate-600">{selectedItem.id}</span>
+          ) : (
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-12 text-center flex flex-col items-center justify-center space-y-4">
+              <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-300 border border-slate-100">
+                <Search className="w-10 h-10" strokeWidth={1.5} />
               </div>
+              <div className="max-w-xs">
+                <h3 className="text-[16px] font-black text-slate-900">Prêt pour l'analyse</h3>
+                <p className="text-[13px] font-bold text-slate-400 mt-1">
+                  Importez un fichier CSV Intouch à droite pour commencer la réconciliation.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Column: Actions */}
+        <div className="space-y-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 flex flex-col">
+            <div className="px-8 py-6 border-b border-slate-100">
+              <h2 className="text-[18px] font-black text-slate-900">Actions</h2>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="relative group">
+                <input 
+                  type="file" 
+                  accept=".csv,text/csv" 
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" 
+                  onChange={onFileChange} 
+                />
+                <div className="w-full flex items-center gap-4 px-5 py-5 text-[15px] font-black text-left rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-slate-200/50 hover:-translate-y-1 group bg-slate-50 text-slate-600 border-2 border-dashed border-slate-200 group-hover:border-[#435933]/30">
+                  <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:rotate-6 transition-transform">
+                    <Upload className="w-6 h-6 text-[#435933]" strokeWidth={2.5} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate">{fileName ?? 'Importer CSV'}</p>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mt-0.5">Rapport Intouch</p>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                type="button"
+                className="w-full flex items-center gap-4 px-5 py-5 text-[15px] font-black text-left rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-[#435933]/5 hover:-translate-y-1 group border-2 border-transparent disabled:opacity-50 disabled:hover:translate-y-0"
+                style={{ backgroundColor: '#F2F8F4', color: '#435933' }}
+                disabled={analyzing || parsedTransactions.length === 0}
+                onClick={onAnalyze}
+              >
+                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:rotate-6 transition-transform">
+                  <Search className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <span className="flex-1">Lancer l'analyse</span>
+                <ChevronRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </button>
+
+              <button 
+                type="button"
+                className="w-full flex items-center gap-4 px-5 py-5 text-[15px] font-black text-left rounded-2xl transition-all duration-300 hover:shadow-xl hover:shadow-[#0284C7]/5 hover:-translate-y-1 group border-2 border-transparent"
+                style={{ backgroundColor: '#F0F9FF', color: '#0284C7' }}
+                onClick={() => navigate({ 
+                  to: '/admin/ape-subscriptions',
+                  search: { page: 1, pageSize: 25, q: '', status: '', date: '' }
+                })}
+              >
+                <div className="w-11 h-11 rounded-xl bg-white flex items-center justify-center flex-shrink-0 shadow-sm group-hover:rotate-6 transition-transform">
+                  <History className="w-6 h-6" strokeWidth={2.5} />
+                </div>
+                <span className="flex-1">Voir historique APE</span>
+                <ChevronRight className="w-5 h-5 opacity-40 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+              </button>
             </div>
           </div>
-        )}
-      </Sheet>
+
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200/50 p-6">
+            <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-widest mb-4">Informations</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start gap-3 text-[13px] font-bold text-slate-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#435933] mt-1.5 flex-shrink-0" />
+                Le séparateur CSV doit être le point-virgule (;)
+              </li>
+              <li className="flex items-start gap-3 text-[13px] font-bold text-slate-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#435933] mt-1.5 flex-shrink-0" />
+                La colonne "ID Partenaire DIST" est utilisée pour le matching
+              </li>
+              <li className="flex items-start gap-3 text-[13px] font-bold text-slate-500">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#435933] mt-1.5 flex-shrink-0" />
+                Les correspondances exactes sont pré-sélectionnées par défaut
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-  );
+  )
 }
+
+function parseIntouchCsv(text: string): IntouchTransaction[] {
+  const lines = text
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0)
+
+  if (lines.length === 0) return []
+
+  const header = lines[0].split(';').map((h) => h.trim().toLowerCase())
+  const idx = (name: string) => header.indexOf(name)
+
+  const idxId = idx('id')
+  const idxIdTransaction = idx('idtransaction')
+  const idxTelephone = header.findIndex((h) => h.includes('telephone'))
+  const idxMontant = header.findIndex((h) => h.includes('montant'))
+  const idxDate = header.findIndex((h) => h.includes('date'))
+  const idxIdPartenaire = header.findIndex((h) => h.includes('id partenaire') || h.includes('id_partenaire') || h.includes('id partenaire dist'))
+
+  const out: IntouchTransaction[] = []
+
+  for (const line of lines.slice(1)) {
+    const cells = line.split(';')
+
+    const id = (idxId >= 0 ? cells[idxId] : '')?.trim()
+    const idTransaction = (idxIdTransaction >= 0 ? cells[idxIdTransaction] : '')?.trim()
+    const telephone = (idxTelephone >= 0 ? cells[idxTelephone] : '')?.trim()
+    const montantRaw = (idxMontant >= 0 ? cells[idxMontant] : '')?.trim().replace(',', '.')
+    const date = (idxDate >= 0 ? cells[idxDate] : '')?.trim()
+    const idPartenaireDistributeur = (idxIdPartenaire >= 0 ? cells[idxIdPartenaire] : '')?.trim()
+
+    if (!idPartenaireDistributeur) continue
+
+    const montant = Number(montantRaw)
+
+    out.push({
+      id: id || crypto.randomUUID(),
+      idTransaction,
+      telephone,
+      montant: Number.isFinite(montant) ? montant : 0,
+      date,
+      idPartenaireDistributeur,
+    })
+  }
+
+  return out
+}
+

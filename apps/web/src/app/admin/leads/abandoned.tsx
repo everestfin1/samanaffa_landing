@@ -11,16 +11,12 @@ import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import { Users, UserCheck, Phone, XCircle, Eye } from 'lucide-react';
-import { abandonedLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
+import { normalizeStatusParam } from '../../../components/admin/utils/searchParams';
+import { 
+  abandonedLeadStatusLabels, 
+  abandonedLeadStatusOptions 
+} from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-const abandonedStatusOptions: StatusOption[] = [
-  { label: 'Tous les statuts', value: '' },
-  { label: 'Abandonné', value: 'ABANDONED' },
-  { label: 'Contacté', value: 'CONTACTED' },
-  { label: 'Converti', value: 'CONVERTED' },
-  { label: 'Rejeté', value: 'DISMISSED' },
-];
 
 const columnHelper = createColumnHelper<AbandonedLead>();
 
@@ -93,8 +89,7 @@ export const Route = createFileRoute('/admin/leads/abandoned')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const statusRaw = typeof search.status === 'string' ? search.status : '';
-    const status = statusRaw ? statusRaw.toUpperCase() : '';
+    const status = normalizeStatusParam(search.status);
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {
@@ -167,7 +162,7 @@ function AbandonedLeadsPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
-          statusOptions: abandonedStatusOptions,
+          statusOptions: abandonedLeadStatusOptions,
           searchPlaceholder: 'Rechercher par email, téléphone...',
         }}
         paginationProps={{
