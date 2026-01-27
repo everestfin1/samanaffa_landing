@@ -2,6 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import type { Transaction } from './queries';
 import { Eye } from 'lucide-react';
 import Badge from '../../../components/admin/data-display/Badge';
+import { transactionStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const columnHelper = createColumnHelper<Transaction>();
 
@@ -11,14 +12,6 @@ const statusBadgeColors: Record<string, string> = {
   COMPLETED: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-gray-100 text-gray-800',
   FAILED: 'bg-red-100 text-red-800',
-};
-
-const statusLabels: Record<string, string> = {
-  PENDING: 'En attente',
-  PROCESSING: 'En cours',
-  COMPLETED: 'Complétée',
-  CANCELLED: 'Annulée',
-  FAILED: 'Échouée',
 };
 
 const typeLabels: Record<string, string> = {
@@ -63,7 +56,7 @@ export const createTransactionColumns = (onViewDetails: (transaction: Transactio
                 ? 'danger'
                 : 'default';
       return (
-        <Badge variant={variant}>{statusLabels[status] || status}</Badge>
+        <Badge variant={variant}>{transactionStatusLabels[status] || status}</Badge>
       );
     },
     filterFn: (row, id, value) => {

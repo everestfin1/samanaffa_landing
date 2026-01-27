@@ -2,6 +2,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import type { User } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
 import { Eye } from 'lucide-react';
+import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const columnHelper = createColumnHelper<User>();
 
@@ -10,13 +11,6 @@ const statusBadgeColors: Record<string, string> = {
   APPROVED: 'bg-green-100 text-green-800',
   REJECTED: 'bg-red-100 text-red-800',
   UNDER_REVIEW: 'bg-blue-100 text-blue-800',
-};
-
-const statusLabels: Record<string, string> = {
-  PENDING: 'En attente',
-  APPROVED: 'Approuvé',
-  REJECTED: 'Rejeté',
-  UNDER_REVIEW: 'En révision',
 };
 
 export const createUserColumns = (onViewDetails: (user: User) => void) => [
@@ -52,7 +46,7 @@ export const createUserColumns = (onViewDetails: (user: User) => void) => [
               ? 'danger'
               : 'default';
       return (
-        <Badge variant={variant}>{statusLabels[status] || status}</Badge>
+        <Badge variant={variant}>{kycStatusLabels[status] || status}</Badge>
       );
     },
   }),

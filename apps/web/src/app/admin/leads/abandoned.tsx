@@ -11,6 +11,7 @@ import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import { Users, UserCheck, Phone, XCircle, Eye } from 'lucide-react';
+import { abandonedLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const abandonedStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -27,13 +28,6 @@ const statusBadgeColors: Record<string, string> = {
   CONTACTED: 'bg-blue-100 text-blue-800',
   CONVERTED: 'bg-green-100 text-green-800',
   DISMISSED: 'bg-gray-100 text-gray-800',
-};
-
-const statusLabels: Record<string, string> = {
-  ABANDONED: 'Abandonné',
-  CONTACTED: 'Contacté',
-  CONVERTED: 'Converti',
-  DISMISSED: 'Rejeté',
 };
 
 const createAbandonedColumns = (onViewDetails: (lead: AbandonedLead) => void) => [
@@ -76,7 +70,7 @@ const createAbandonedColumns = (onViewDetails: (lead: AbandonedLead) => void) =>
               ? 'danger'
               : 'default';
       return (
-        <Badge variant={variant}>{statusLabels[status] || status}</Badge>
+        <Badge variant={variant}>{abandonedLeadStatusLabels[status] || status}</Badge>
       );
     },
   }),
@@ -240,7 +234,7 @@ function AbandonedLeadsPage() {
                             : 'default'
                     }
                   >
-                    {statusLabels[selectedLead.status] || selectedLead.status}
+                    {abandonedLeadStatusLabels[selectedLead.status] || selectedLead.status}
                   </Badge>
                 </div>
               </div>

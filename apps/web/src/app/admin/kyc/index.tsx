@@ -11,13 +11,7 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import type { KycDocument } from './queries';
-
-const verificationStatusLabels: Record<string, string> = {
-  PENDING: 'En attente',
-  APPROVED: 'Approuvé',
-  REJECTED: 'Rejeté',
-  UNDER_REVIEW: 'En révision',
-};
+import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const kycStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -171,7 +165,7 @@ function KycPage() {
                             : 'default'
                     }
                   >
-                    {verificationStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
+                    {kycStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
                   </Badge>
                 </div>
               </div>

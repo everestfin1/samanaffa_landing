@@ -10,13 +10,7 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import Sheet from '../../../components/admin/feedback/Sheet';
 import type { User } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
-
-const kycStatusLabels: Record<string, string> = {
-  PENDING: 'En attente',
-  APPROVED: 'Approuvé',
-  REJECTED: 'Rejeté',
-  UNDER_REVIEW: 'En révision',
-};
+import { kycStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const userStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },

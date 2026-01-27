@@ -36,3 +36,4 @@ The admin tables use a shared `DataTable` component (TanStack Table). Recent upd
 
 - Improved runtime safety around optional table state (e.g. grouping/expanded)
 - More consistent detail Sheets across tables (Badges and French status labels)
+- Centralized status label mappings in `apps/web/src/components/admin/utils/statusLabels.ts`

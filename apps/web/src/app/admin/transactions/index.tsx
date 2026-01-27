@@ -10,14 +10,7 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import type { FacetOption } from '../../../components/admin/data-display/DataTable/DataTableFacetedFilter';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
-
-const transactionStatusLabels: Record<string, string> = {
-  PENDING: 'En attente',
-  PROCESSING: 'En cours',
-  COMPLETED: 'Complétée',
-  CANCELLED: 'Annulée',
-  FAILED: 'Échouée',
-};
+import { transactionStatusLabels } from '../../../components/admin/utils/statusLabels';
 
 const transactionStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
