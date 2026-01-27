@@ -1,11 +1,18 @@
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import * as React from 'react';
 
-// Placeholder: This will be moved to a proper auth hook
 const isAdminAuthenticated = () => {
-  // For now, let's assume the admin is always authenticated.
-  // In a real app, this would check for a valid token.
-  return true;
+  if (typeof window === 'undefined') return false;
+  const token = localStorage.getItem('admin_token');
+  if (!token) return false;
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const isExpired = payload.exp * 1000 < Date.now();
+    return !isExpired;
+  } catch {
+    return false;
+  }
 };
 
 export const Route = createFileRoute('/admin/_layout')({

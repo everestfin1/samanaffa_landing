@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 
 import adminAuth from './routes/admin/auth.js'
+import adminDashboard from './routes/admin/dashboard.js'
 import adminUsers from './routes/admin/users.js'
 import adminTransactions from './routes/admin/transactions.js'
 import adminLeads from './routes/admin/leads.js'
@@ -32,6 +33,7 @@ app.get('/health', (c) => c.json({ status: 'healthy', timestamp: new Date().toIS
 
 // Admin routes (dual prefix for compatibility)
 app.route('/admin/auth', adminAuth)
+app.route('/admin/dashboard', adminDashboard)
 app.route('/admin/users', adminUsers)
 app.route('/admin/transactions', adminTransactions)
 app.route('/admin/leads', adminLeads)
@@ -47,6 +49,7 @@ app.route('/api/telemetry', telemetry)
 
 // API prefixed admin routes (for frontend proxy)
 app.route('/api/admin/auth', adminAuth)
+app.route('/api/admin/dashboard', adminDashboard)
 app.route('/api/admin/users', adminUsers)
 app.route('/api/admin/transactions', adminTransactions)
 app.route('/api/admin/leads', adminLeads)
