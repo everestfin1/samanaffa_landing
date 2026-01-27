@@ -29,6 +29,8 @@
 - ✅ **Navigation collapsible** : sidebar réductible avec état persisté (localStorage).
 - ✅ **Highlight route exacte** : correction pour éviter l’activation multiple des liens.
 - ✅ **Nettoyage composants** : suppression des duplicats legacy (AdminSidebar/AdminHeader/DataTable).
+- ✅ **Admin (API wiring)** : remplacement des mocks par des endpoints réels (Sponsor Codes, APE Subscriptions, PEE Leads) avec pagination/filtres.
+- ✅ **APE Subscriptions (admin)** : ajout de la colonne **Montant (FCFA)** et alignement des statuts avec le backend.
 
 ### Vue d'Ensemble
 

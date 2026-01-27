@@ -8,7 +8,7 @@ export type SponsorCode = {
   id: string;
   code: string;
   usageCount: number;
-  maxUsage: number;
+  maxUsage: number | null;
   status: string;
   createdAt: string;
 };
@@ -23,7 +23,7 @@ export const createSponsorCodeColumns = (onViewDetails: (code: SponsorCode) => v
   columnHelper.accessor('usageCount', {
     header: 'Utilisations',
     cell: (info) => (
-      <span className="text-slate-600">{info.getValue()} / {info.row.original.maxUsage}</span>
+      <span className="text-slate-600">{info.getValue()} / {info.row.original.maxUsage ?? '—'}</span>
     ),
   }),
   columnHelper.accessor('status', {

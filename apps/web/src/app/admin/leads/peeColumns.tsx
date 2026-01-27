@@ -7,7 +7,7 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 export type PeeLead = {
   id: string;
   name: string;
-  email: string;
+  email: string | null;
   status: string;
   createdAt: string;
 };
@@ -21,7 +21,7 @@ export const createPeeLeadColumns = (onViewDetails: (lead: PeeLead) => void) => 
   }),
   columnHelper.accessor('email', {
     header: 'Email',
-    cell: (info) => <span className="text-slate-600">{info.getValue()}</span>,
+    cell: (info) => <span className="text-slate-600">{info.getValue() ?? '—'}</span>,
   }),
   columnHelper.accessor('status', {
     header: 'Statut',

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { db, desc, sql, eq } from '../../lib/db.js'
+import { db, desc, asc, sql, eq, and, or, like, gte, lte } from '../../lib/db.js'
 import { apeSubscriptions, apeSponsorCodes } from '../../lib/schema.js'
 import { requireAdmin, type AdminVariables } from '../../middleware/auth.js'
 
@@ -13,16 +13,97 @@ app.get('/', async (c) => {
   try {
     const page = parseInt(c.req.query('page') || '1')
     const pageSize = parseInt(c.req.query('pageSize') || '20')
+    const q = c.req.query('q') || ''
+    const status = c.req.query('status') || ''
+    const date = c.req.query('date') || ''
+    const sortBy = c.req.query('sortBy') || 'createdAt'
+    const sortOrder = c.req.query('sortOrder') || 'desc'
     const offset = (page - 1) * pageSize
 
-    const [subscriptions, countResult] = await Promise.all([
-      db.select().from(apeSubscriptions).orderBy(desc(apeSubscriptions.createdAt)).limit(pageSize).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(apeSubscriptions)
+    const conditions = []
+
+    if (q) {
+      const searchTerm = `%${q.toLowerCase()}%`
+      conditions.push(
+        or(
+          like(sql`lower(${apeSubscriptions.referenceNumber})`, searchTerm),
+          like(sql`lower(${apeSubscriptions.prenom})`, searchTerm),
+          like(sql`lower(${apeSubscriptions.nom})`, searchTerm),
+          like(sql`lower(${apeSubscriptions.email})`, searchTerm),
+          like(sql`lower(${apeSubscriptions.telephone})`, searchTerm)
+        )
+      )
+    }
+
+    if (status) {
+      conditions.push(like(sql`lower(${apeSubscriptions.status}::text)`, `%${status.toLowerCase()}%`))
+    }
+
+    if (date) {
+      const startOfDay = new Date(date)
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+      conditions.push(and(gte(apeSubscriptions.createdAt, startOfDay), lte(apeSubscriptions.createdAt, endOfDay)))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
+    const sortColumn =
+      sortBy === 'amount'
+        ? apeSubscriptions.montantCfa
+        : sortBy === 'status'
+          ? apeSubscriptions.status
+          : sortBy === 'referenceNumber'
+            ? apeSubscriptions.referenceNumber
+            : apeSubscriptions.createdAt
+    const orderFn = sortOrder === 'asc' ? asc : desc
+
+    const [subscriptions, countResult, statsResult, volumeResult] = await Promise.all([
+      db
+        .select()
+        .from(apeSubscriptions)
+        .where(whereClause)
+        .orderBy(orderFn(sortColumn))
+        .limit(pageSize)
+        .offset(offset),
+      db.select({ count: sql<number>`count(*)` }).from(apeSubscriptions).where(whereClause),
+      db
+        .select({
+          status: apeSubscriptions.status,
+          count: sql<number>`count(*)`,
+        })
+        .from(apeSubscriptions)
+        .where(whereClause)
+        .groupBy(apeSubscriptions.status),
+      db
+        .select({
+          totalVolume: sql<number>`coalesce(sum(${apeSubscriptions.montantCfa}::numeric), 0)`,
+        })
+        .from(apeSubscriptions)
+        .where(whereClause),
     ])
+
+    const stats = {
+      total: Number(countResult[0]?.count ?? 0),
+      pending: 0,
+      payment_initiated: 0,
+      payment_success: 0,
+      payment_failed: 0,
+      cancelled: 0,
+      totalVolume: Number(volumeResult[0]?.totalVolume ?? 0),
+    }
+
+    for (const row of statsResult) {
+      const key = String(row.status).toLowerCase() as keyof typeof stats
+      if (key in stats) {
+        ;(stats as any)[key] = Number(row.count)
+      }
+    }
 
     return c.json({
       success: true,
       subscriptions,
+      stats,
       pagination: {
         page,
         pageSize,

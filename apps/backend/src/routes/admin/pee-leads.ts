@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import { db, desc, sql, eq } from '../../lib/db.js'
+import { db, desc, sql, eq, and, or, like, gte, lte } from '../../lib/db.js'
 import { peeLeads } from '../../lib/schema.js'
 import { requireAdmin } from '../../middleware/auth.js'
 
@@ -11,11 +11,41 @@ app.get('/', async (c) => {
   try {
     const page = parseInt(c.req.query('page') || '1')
     const pageSize = parseInt(c.req.query('pageSize') || '20')
+    const q = c.req.query('q') || ''
+    const status = c.req.query('status') || ''
+    const date = c.req.query('date') || ''
     const offset = (page - 1) * pageSize
 
+    const conditions = []
+
+    if (q) {
+      const searchTerm = `%${q.toLowerCase()}%`
+      conditions.push(
+        or(
+          like(sql`lower(${peeLeads.prenom})`, searchTerm),
+          like(sql`lower(${peeLeads.nom})`, searchTerm),
+          like(sql`lower(coalesce(${peeLeads.email}, ''))`, searchTerm),
+          like(sql`lower(${peeLeads.telephone})`, searchTerm)
+        )
+      )
+    }
+
+    if (status) {
+      conditions.push(like(sql`lower(${peeLeads.status}::text)`, `%${status.toLowerCase()}%`))
+    }
+
+    if (date) {
+      const startOfDay = new Date(date)
+      const endOfDay = new Date(date)
+      endOfDay.setHours(23, 59, 59, 999)
+      conditions.push(and(gte(peeLeads.createdAt, startOfDay), lte(peeLeads.createdAt, endOfDay)))
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined
+
     const [leads, countResult] = await Promise.all([
-      db.select().from(peeLeads).orderBy(desc(peeLeads.createdAt)).limit(pageSize).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(peeLeads)
+      db.select().from(peeLeads).where(whereClause).orderBy(desc(peeLeads.createdAt)).limit(pageSize).offset(offset),
+      db.select({ count: sql<number>`count(*)` }).from(peeLeads).where(whereClause)
     ])
 
     return c.json({

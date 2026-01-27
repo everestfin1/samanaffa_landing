@@ -21,7 +21,10 @@ export const abandonedLeadStatusLabels: Record<string, string> = {
 };
 
 export const apeSubscriptionStatusLabels: Record<string, string> = {
-  ACTIVE: 'Active',
+  PENDING: 'En attente',
+  PAYMENT_INITIATED: 'Paiement initié',
+  PAYMENT_SUCCESS: 'Paiement réussi',
+  PAYMENT_FAILED: 'Paiement échoué',
   CANCELLED: 'Annulée',
 };
 

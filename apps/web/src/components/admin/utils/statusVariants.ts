@@ -34,8 +34,9 @@ export function getStatusVariant(status: string, domain: StatusDomain): BadgeVar
     }
 
     case 'apeSubscription': {
-      if (status === 'ACTIVE') return 'success';
-      if (status === 'CANCELLED') return 'danger';
+      if (status === 'PAYMENT_SUCCESS') return 'success';
+      if (status === 'PAYMENT_INITIATED' || status === 'PENDING') return 'warning';
+      if (status === 'PAYMENT_FAILED' || status === 'CANCELLED') return 'danger';
       return 'default';
     }
 

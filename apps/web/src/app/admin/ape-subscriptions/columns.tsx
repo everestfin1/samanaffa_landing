@@ -8,6 +8,7 @@ export type ApeSubscription = {
   id: string;
   user: string;
   plan: string;
+  amount: number;
   status: string;
   startDate: string;
 };
@@ -22,6 +23,10 @@ export const createApeSubscriptionColumns = (onViewDetails: (sub: ApeSubscriptio
   columnHelper.accessor('plan', {
     header: 'Plan',
     cell: (info) => <span className="text-slate-600">{info.getValue()}</span>,
+  }),
+  columnHelper.accessor('amount', {
+    header: 'Montant',
+    cell: (info) => <span className="text-slate-600">{Math.round(info.getValue()).toLocaleString('fr-FR')} FCFA</span>,
   }),
   columnHelper.accessor('status', {
     header: 'Statut',

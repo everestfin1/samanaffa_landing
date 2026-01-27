@@ -10,16 +10,14 @@ import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import { apeSubscriptionStatusLabels } from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-// Placeholder data
-const apeSubscriptions = [
-  { id: '1', user: 'Cheikh Fall', plan: 'APE Premium', status: 'ACTIVE', startDate: new Date().toISOString() },
-  { id: '2', user: 'Awa Gueye', plan: 'APE Basic', status: 'CANCELLED', startDate: new Date().toISOString() },
-];
+import { useApeSubscriptions } from './queries';
 
 const apeSubscriptionStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'Active', value: 'ACTIVE' },
+  { label: 'En attente', value: 'PENDING' },
+  { label: 'Paiement initié', value: 'PAYMENT_INITIATED' },
+  { label: 'Paiement réussi', value: 'PAYMENT_SUCCESS' },
+  { label: 'Paiement échoué', value: 'PAYMENT_FAILED' },
   { label: 'Annulée', value: 'CANCELLED' },
 ];
 
@@ -48,30 +46,29 @@ function ApeSubscriptionsPage() {
   const { page, pageSize, q, status, date } = Route.useSearch();
   const [selectedSubscription, setSelectedSubscription] = React.useState<ApeSubscription | null>(null);
 
-  const filteredSubscriptions = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toUpperCase();
+  const { data } = useApeSubscriptions({ page, pageSize, q, status, date })
+  const stats = data?.stats
+  const pagination = data?.pagination
 
-    return apeSubscriptions.filter((s) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        s.user.toLowerCase().includes(qNorm) ||
-        s.plan.toLowerCase().includes(qNorm);
+  const subscriptions: ApeSubscription[] = React.useMemo(() => {
+    return (data?.subscriptions ?? []).map((s) => ({
+      id: s.id,
+      user: `${s.prenom} ${s.nom}`.trim(),
+      plan: s.trancheInteresse,
+      amount: Number(s.montantCfa),
+      status: s.status,
+      startDate: s.createdAt,
+    }))
+  }, [data?.subscriptions])
 
-      const matchesStatus =
-        statusNorm.length === 0 || s.status === statusNorm;
+  const total = pagination?.total ?? subscriptions.length
+  const totalPages = pagination?.totalPages ?? 1
+  const currentPage = pagination?.page ?? page
 
-      const matchesDate = date.length === 0 || s.startDate.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [q, status, date]);
-
-  const total = filteredSubscriptions.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedSubscriptions = filteredSubscriptions.slice(startIndex, startIndex + pageSize);
+  const volumeLabel = React.useMemo(() => {
+    const value = stats?.totalVolume ?? 0
+    return `${Math.round(value).toLocaleString('fr-FR')} FCFA`
+  }, [stats?.totalVolume])
 
   const columns = React.useMemo(
     () => createApeSubscriptionColumns((sub) => setSelectedSubscription(sub)),
@@ -85,14 +82,14 @@ function ApeSubscriptionsPage() {
         description="Gérez les souscriptions au programme APE"
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total souscriptions" value={156} icon={Landmark} color="info" />
-        <StatCard label="Actives" value={142} icon={CheckCircle} color="success" />
-        <StatCard label="Annulées" value={14} icon={XCircle} color="danger" />
-        <StatCard label="Volume" value="78M FCFA" icon={Wallet} color="success" />
+        <StatCard label="Total souscriptions" value={stats?.total ?? 0} icon={Landmark} color="info" />
+        <StatCard label="Paiements réussis" value={stats?.payment_success ?? 0} icon={CheckCircle} color="success" />
+        <StatCard label="Paiements échoués" value={stats?.payment_failed ?? 0} icon={XCircle} color="danger" />
+        <StatCard label="Volume" value={volumeLabel} icon={Wallet} color="success" />
       </div>
       <DataTable
         columns={columns}
-        data={pagedSubscriptions}
+        data={subscriptions}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>

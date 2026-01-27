@@ -10,12 +10,7 @@ import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import { sponsorCodeStatusLabels } from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-
-// Placeholder data
-const sponsorCodes = [
-  { id: '1', code: 'SPONSOR10', usageCount: 25, maxUsage: 100, status: 'ACTIVE', createdAt: new Date().toISOString() },
-  { id: '2', code: 'WELCOME5', usageCount: 50, maxUsage: 50, status: 'INACTIVE', createdAt: new Date().toISOString() },
-];
+import { useSponsorCodes } from './queries';
 
 const sponsorCodeStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -49,31 +44,14 @@ function SponsorCodesPage() {
   const { page, pageSize, q, status, date } = Route.useSearch();
   const [selectedCode, setSelectedCode] = React.useState<SponsorCode | null>(null);
 
-  const filteredSponsorCodes = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toUpperCase();
+  const { data } = useSponsorCodes({ page, pageSize, q, status, date })
+  const sponsorCodes = (data?.sponsorCodes ?? []) as SponsorCode[]
+  const stats = data?.stats
+  const pagination = data?.pagination
 
-    return sponsorCodes.filter((c) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        c.code.toLowerCase().includes(qNorm) ||
-        String(c.usageCount).includes(qNorm) ||
-        String(c.maxUsage).includes(qNorm);
-
-      const matchesStatus =
-        statusNorm.length === 0 || c.status === statusNorm;
-
-      const matchesDate = date.length === 0 || c.createdAt.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [q, status, date]);
-
-  const total = filteredSponsorCodes.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedSponsorCodes = filteredSponsorCodes.slice(startIndex, startIndex + pageSize);
+  const total = pagination?.total ?? sponsorCodes.length
+  const totalPages = pagination?.totalPages ?? 1
+  const currentPage = pagination?.page ?? page
 
   const columns = React.useMemo(
     () => createSponsorCodeColumns((code) => setSelectedCode(code)),
@@ -87,14 +65,14 @@ function SponsorCodesPage() {
         description="Gérez les codes de parrainage et leurs utilisations"
       />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Total codes" value={48} icon={Tag} color="info" />
-        <StatCard label="Actifs" value={35} icon={CheckCircle} color="success" />
-        <StatCard label="Expirés" value={13} icon={XCircle} color="danger" />
-        <StatCard label="Utilisations" value={1245} icon={Users} color="success" />
+        <StatCard label="Total codes" value={stats?.total ?? 0} icon={Tag} color="info" />
+        <StatCard label="Actifs" value={stats?.active ?? 0} icon={CheckCircle} color="success" />
+        <StatCard label="Expirés" value={stats?.expired ?? 0} icon={XCircle} color="danger" />
+        <StatCard label="Utilisations" value={stats?.totalUsage ?? 0} icon={Users} color="success" />
       </div>
       <DataTable
         columns={columns}
-        data={pagedSponsorCodes}
+        data={sponsorCodes}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>

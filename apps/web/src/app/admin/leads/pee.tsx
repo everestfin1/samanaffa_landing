@@ -9,12 +9,7 @@ import Badge from '../../../components/admin/data-display/Badge';
 import { peeLeadStatusLabels } from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 import { createPeeLeadColumns, type PeeLead } from './peeColumns';
-
-// Placeholder data and columns
-const peeLeads = [
-  { id: '1', name: 'Ousmane Ba', email: 'ousmane@example.com', status: 'NEW', createdAt: new Date().toISOString() },
-  { id: '2', name: 'Aissatou Diallo', email: 'aissatou@example.com', status: 'CONTACTED', createdAt: new Date().toISOString() },
-];
+import { usePeeLeads } from './queries';
 
 const peeStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -47,30 +42,22 @@ function PeeLeadsPage() {
   const { page, pageSize, q, status, date } = Route.useSearch();
   const [selectedLead, setSelectedLead] = React.useState<PeeLead | null>(null);
 
-  const filteredLeads = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toUpperCase();
+  const { data } = usePeeLeads({ page, pageSize, q, status, date })
+  const pagination = data?.pagination
 
-    return peeLeads.filter((l) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        l.name.toLowerCase().includes(qNorm) ||
-        l.email.toLowerCase().includes(qNorm);
+  const leads: PeeLead[] = React.useMemo(() => {
+    return (data?.peeLeads ?? []).map((l) => ({
+      id: l.id,
+      name: `${l.prenom} ${l.nom}`.trim(),
+      email: l.email,
+      status: l.status,
+      createdAt: l.createdAt,
+    }))
+  }, [data?.peeLeads])
 
-      const matchesStatus =
-        statusNorm.length === 0 || l.status === statusNorm;
-
-      const matchesDate = date.length === 0 || l.createdAt.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [q, status, date]);
-
-  const total = filteredLeads.length;
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const startIndex = (currentPage - 1) * pageSize;
-  const pagedLeads = filteredLeads.slice(startIndex, startIndex + pageSize);
+  const total = pagination?.total ?? leads.length
+  const totalPages = pagination?.totalPages ?? 1
+  const currentPage = pagination?.page ?? page
 
   const columns = React.useMemo(() => createPeeLeadColumns((lead) => setSelectedLead(lead)), []);
 
@@ -82,7 +69,7 @@ function PeeLeadsPage() {
       />
       <DataTable
         columns={columns}
-        data={pagedLeads}
+        data={leads}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>
@@ -156,7 +143,7 @@ function PeeLeadsPage() {
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</p>
-                <p className="text-slate-900">{selectedLead.email}</p>
+                <p className="text-slate-900">{selectedLead.email ?? '—'}</p>
               </div>
               <div className="space-y-1">
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date</p>
