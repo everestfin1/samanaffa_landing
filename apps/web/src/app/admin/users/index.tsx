@@ -15,10 +15,10 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 
 const userStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'pending' },
-  { label: 'Approuvé', value: 'approved' },
-  { label: 'Rejeté', value: 'rejected' },
-  { label: 'En révision', value: 'under_review' },
+  { label: 'En attente', value: 'PENDING' },
+  { label: 'Approuvé', value: 'APPROVED' },
+  { label: 'Rejeté', value: 'REJECTED' },
+  { label: 'En révision', value: 'UNDER_REVIEW' },
 ];
 
 export const Route = createFileRoute('/admin/users/')({
@@ -26,7 +26,8 @@ export const Route = createFileRoute('/admin/users/')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const status = typeof search.status === 'string' ? search.status : '';
+    const statusRaw = typeof search.status === 'string' ? search.status : '';
+    const status = statusRaw ? statusRaw.toUpperCase() : '';
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

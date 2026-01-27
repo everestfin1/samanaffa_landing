@@ -16,10 +16,10 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 
 const abandonedStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'Abandonné', value: 'abandoned' },
-  { label: 'Contacté', value: 'contacted' },
-  { label: 'Converti', value: 'converted' },
-  { label: 'Rejeté', value: 'dismissed' },
+  { label: 'Abandonné', value: 'ABANDONED' },
+  { label: 'Contacté', value: 'CONTACTED' },
+  { label: 'Converti', value: 'CONVERTED' },
+  { label: 'Rejeté', value: 'DISMISSED' },
 ];
 
 const columnHelper = createColumnHelper<AbandonedLead>();
@@ -93,7 +93,8 @@ export const Route = createFileRoute('/admin/leads/abandoned')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const status = typeof search.status === 'string' ? search.status : '';
+    const statusRaw = typeof search.status === 'string' ? search.status : '';
+    const status = statusRaw ? statusRaw.toUpperCase() : '';
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

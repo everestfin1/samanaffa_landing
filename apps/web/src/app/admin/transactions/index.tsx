@@ -15,11 +15,11 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 
 const transactionStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'pending' },
-  { label: 'En cours', value: 'processing' },
-  { label: 'Complétée', value: 'completed' },
-  { label: 'Annulée', value: 'cancelled' },
-  { label: 'Échouée', value: 'failed' },
+  { label: 'En attente', value: 'PENDING' },
+  { label: 'En cours', value: 'PROCESSING' },
+  { label: 'Complétée', value: 'COMPLETED' },
+  { label: 'Annulée', value: 'CANCELLED' },
+  { label: 'Échouée', value: 'FAILED' },
 ];
 
 const typeFacetOptions: FacetOption[] = [
@@ -42,7 +42,8 @@ export const Route = createFileRoute('/admin/transactions/')({
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;
     const q = typeof search.q === 'string' ? search.q : '';
-    const status = typeof search.status === 'string' ? search.status : '';
+    const statusRaw = typeof search.status === 'string' ? search.status : '';
+    const status = statusRaw ? statusRaw.toUpperCase() : '';
     const date = typeof search.date === 'string' ? search.date : '';
 
     return {

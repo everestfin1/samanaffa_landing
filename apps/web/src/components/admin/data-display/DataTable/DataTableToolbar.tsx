@@ -14,9 +14,9 @@ export interface StatusOption {
 
 const defaultStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
-  { label: 'En attente', value: 'pending' },
-  { label: 'Approuvé', value: 'approved' },
-  { label: 'Rejeté', value: 'rejected' },
+  { label: 'En attente', value: 'PENDING' },
+  { label: 'Approuvé', value: 'APPROVED' },
+  { label: 'Rejeté', value: 'REJECTED' },
 ];
 
 export interface DataTableToolbarProps<TData> {
