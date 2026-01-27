@@ -31,6 +31,10 @@
 - ✅ **Nettoyage composants** : suppression des duplicats legacy (AdminSidebar/AdminHeader/DataTable).
 - ✅ **Admin (API wiring)** : remplacement des mocks par des endpoints réels (Sponsor Codes, APE Subscriptions, PEE Leads) avec pagination/filtres.
 - ✅ **APE Subscriptions (admin)** : ajout de la colonne **Montant (FCFA)** et alignement des statuts avec le backend.
+- ✅ **Réconciliation Intouch (admin)** : import CSV → analyse → sélection → application (mise à jour APE vers `PAYMENT_SUCCESS`).
+- ✅ **Cohérence UX admin** : refonte UI de la page réconciliation pour s’aligner sur le style du dashboard `/admin`.
+- ✅ **DX admin** : normalisation des paramètres de recherche (`normalizeStatusParam`) et centralisation des `statusOptions`.
+- ✅ **Checklist smoke admin** : ajout d’un guide rapide de vérification post-changement.
 
 ### Vue d'Ensemble
 

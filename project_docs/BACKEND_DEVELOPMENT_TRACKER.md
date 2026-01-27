@@ -703,6 +703,7 @@ const smsOTPTemplate = `Votre code Sama Naffa: {OTP_CODE}. Expire dans 5min.`
 | 2025-09-19 | Admin dashboard with JWT security | ✅ Complete | Assistant |
 | 2025-09-19 | Frontend integration plan created | ✅ Complete | Assistant |
 | 2026-01-27 | Admin API wiring: Sponsor Codes + APE Subscriptions (+ stats/filters) + PEE Leads (+ q/status/date) | ✅ Complete | Assistant |
+| 2026-01-27 | Reconciliation: endpoints /api/admin/reconciliation (analyze/apply) for CSV-based Intouch matching | ✅ Complete | Assistant |
 | TBD | Frontend authentication integration | 🔄 Next | - |
 | TBD | Frontend profile management integration | ⏳ Pending | - |
 | TBD | Frontend transaction integration | ⏳ Pending | - |
