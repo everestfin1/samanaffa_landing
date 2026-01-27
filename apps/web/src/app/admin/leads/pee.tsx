@@ -28,7 +28,7 @@ import {
   peeLeadStatusOptions 
 } from '../../../components/admin/utils/statusLabels';
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
-import { createPeeLeadColumns, type PeeLead } from './peeColumns';
+import { createPeeLeadColumns, type PeeLead } from './-peeColumns';
 import { usePeeLeads, useUpdatePeeLead } from './queries';
 
 export const Route = createFileRoute('/admin/leads/pee')({

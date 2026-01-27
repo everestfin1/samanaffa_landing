@@ -9,15 +9,7 @@ export default defineConfig({
   server: {
     port: Number(process.env.PORT) || 3000,
     proxy: {
-      '/api/admin': {
-        target: 'http://localhost:8787',
-        changeOrigin: true,
-      },
-      '/api/kyc': {
-        target: 'http://localhost:8787',
-        changeOrigin: true,
-      },
-      '/api/payments': {
+      '/api': {
         target: 'http://localhost:8787',
         changeOrigin: true,
       },
@@ -26,7 +18,22 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tsconfigPaths(),
-    nitro(),
+    nitro({
+      devProxy: {
+        '/api/admin': {
+          target: 'http://localhost:8787',
+          changeOrigin: true,
+        },
+        '/api/kyc': {
+          target: 'http://localhost:8787',
+          changeOrigin: true,
+        },
+        '/api/payments': {
+          target: 'http://localhost:8787',
+          changeOrigin: true,
+        },
+      },
+    }),
     tanstackStart({
       srcDirectory: 'src',
       start: {

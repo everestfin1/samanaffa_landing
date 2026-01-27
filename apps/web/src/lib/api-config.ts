@@ -2,6 +2,11 @@
 // In development, calls go to localhost. In production, calls go to the deployed backend.
 
 export const getApiUrl = () => {
+  // In development, use the backend URL directly since proxy isn't working
+  if (import.meta.env.DEV) {
+    return 'http://localhost:8787';
+  }
+  
   // Check for Vite environment variable first
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
@@ -12,7 +17,7 @@ export const getApiUrl = () => {
     return process.env.VITE_API_URL;
   }
   
-  // Default to relative path (works when frontend proxies to backend)
+  // Default to relative path
   return '';
 };
 
