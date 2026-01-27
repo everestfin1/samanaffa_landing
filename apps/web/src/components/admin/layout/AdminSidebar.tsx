@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import {
   LayoutDashboard,
   ArrowLeftRight,
@@ -17,6 +17,7 @@ import {
   ChevronRight,
   type LucideIcon,
 } from 'lucide-react';
+import { useAdminAuth } from '../hooks/useAdminAuth';
 
 interface NavItem {
   name: string;
@@ -69,7 +70,7 @@ const navGroups: NavGroup[] = [
 ];
 
 const AdminSidebar = () => {
-  const navigate = useNavigate();
+  const { logout } = useAdminAuth();
   const [collapsed, setCollapsed] = React.useState(false);
 
   React.useEffect(() => {
@@ -88,9 +89,7 @@ const AdminSidebar = () => {
   };
 
   const handleLogout = () => {
-    // Implement actual logout logic here
-    console.log('Logging out...');
-    (navigate as any)({ to: '/admin/login' });
+    logout();
   };
 
   return (

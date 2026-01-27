@@ -7,6 +7,7 @@ import type { StatusOption } from '../../../components/admin/data-display/DataTa
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
 import Select from '../../../components/admin/forms/Select';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { 
   User, 
   Phone, 
@@ -31,6 +32,7 @@ import { createPeeLeadColumns, type PeeLead } from './peeColumns';
 import { usePeeLeads, useUpdatePeeLead } from './queries';
 
 export const Route = createFileRoute('/admin/leads/pee')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

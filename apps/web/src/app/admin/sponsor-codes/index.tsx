@@ -4,6 +4,7 @@ import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createSponsorCodeColumns, type SponsorCode } from './columns';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { 
   Tag, 
   CheckCircle, 
@@ -30,6 +31,7 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 import { useCreateSponsorCode, useSponsorCodes, useUpdateSponsorCode } from './queries';
 
 export const Route = createFileRoute('/admin/sponsor-codes/')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

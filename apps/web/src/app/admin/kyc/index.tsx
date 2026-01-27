@@ -6,6 +6,7 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createKycColumns } from './columns';
 import { useKycDocuments } from './queries';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { 
   FileCheck, 
   Clock, 
@@ -31,6 +32,7 @@ import {
 import { getStatusVariant } from '../../../components/admin/utils/statusVariants';
 
 export const Route = createFileRoute('/admin/kyc/')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

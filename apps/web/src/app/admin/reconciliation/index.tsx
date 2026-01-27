@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import * as React from 'react'
 import PageHeader from '../../../components/admin/layout/PageHeader'
 import StatCard from '../../../components/admin/data-display/StatCard'
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth'
 import { 
   FileSpreadsheet, 
   CheckCircle, 
@@ -24,6 +25,7 @@ import {
 } from './queries'
 
 export const Route = createFileRoute('/admin/reconciliation/')({
+  beforeLoad: requireAdminAuth,
   component: ReconciliationPage,
 });
 

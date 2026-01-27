@@ -11,6 +11,7 @@ import { useAbandonedLeads, useUpdateAbandonedLead } from './queries';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { 
   User, 
   Phone, 
@@ -105,6 +106,7 @@ const createAbandonedColumns = (onViewDetails: (lead: AbandonedLead) => void) =>
 const abandonedColumns = createAbandonedColumns(() => {});
 
 export const Route = createFileRoute('/admin/leads/abandoned')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

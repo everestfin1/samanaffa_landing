@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import PageContainer from '../../../components/admin/layout/PageContainer';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { Settings, Shield, User, Bell, Palette } from 'lucide-react';
 
 export const Route = createFileRoute('/admin/settings/')({
+  beforeLoad: requireAdminAuth,
   component: SettingsPage,
 })
 

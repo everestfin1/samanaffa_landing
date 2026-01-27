@@ -5,6 +5,7 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createTransactionColumns } from './columns';
 import { useTransactions, type Transaction } from './queries';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { 
   Wallet, 
   Clock, 
@@ -45,6 +46,7 @@ const paymentFacetOptions: FacetOption[] = [
 ];
 
 export const Route = createFileRoute('/admin/transactions/')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

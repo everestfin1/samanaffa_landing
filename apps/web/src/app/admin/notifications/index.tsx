@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import PageContainer from '../../../components/admin/layout/PageContainer';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { Bell } from 'lucide-react';
 
 export const Route = createFileRoute('/admin/notifications/')({
+  beforeLoad: requireAdminAuth,
   component: NotificationsPage,
 })
 

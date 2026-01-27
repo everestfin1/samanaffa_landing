@@ -4,6 +4,7 @@ import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createApeSubscriptionColumns, type ApeSubscription } from './columns';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 import { Landmark, CheckCircle, XCircle, Wallet } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import Sheet from '../../../components/admin/feedback/Sheet';
@@ -30,6 +31,7 @@ import { getStatusVariant } from '../../../components/admin/utils/statusVariants
 import { useApeSubscriptions, useUpdateApeSubscription } from './queries';
 
 export const Route = createFileRoute('/admin/ape-subscriptions/')({
+  beforeLoad: requireAdminAuth,
   validateSearch: (search) => {
     const page = Number(search.page) || 1;
     const pageSize = Number(search.pageSize) || 25;

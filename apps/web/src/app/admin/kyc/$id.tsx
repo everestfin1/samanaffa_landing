@@ -1,8 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router';
 import * as React from 'react';
 import PageContainer from '../../../components/admin/layout/PageContainer';
+import { requireAdminAuth } from '../../../components/admin/hooks/useAdminAuth';
 
 export const Route = createFileRoute('/admin/kyc/$id')({
+  beforeLoad: requireAdminAuth,
   component: KycDetailPage,
 });
 
