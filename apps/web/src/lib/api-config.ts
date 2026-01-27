@@ -17,6 +17,16 @@ export const getApiUrl = () => {
     return process.env.VITE_API_URL;
   }
   
+  // Auto-detect backend URL based on frontend URL pattern for Vercel deployments
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // Pattern: samanaffa-landing-xxx.vercel.app -> sn-ape-backend-xxx.vercel.app
+    if (hostname.includes('samanaffa-landing') && hostname.endsWith('.vercel.app')) {
+      const backendHost = hostname.replace('samanaffa-landing', 'sn-ape-backend');
+      return `https://${backendHost}`;
+    }
+  }
+  
   // Default to relative path
   return '';
 };
