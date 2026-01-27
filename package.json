@@ -6,6 +6,12 @@
     "apps/*",
     "packages/*"
   ],
+  "resolutions": {
+    "zod": "3.24.2"
+  },
+  "overrides": {
+    "zod": "3.24.2"
+  },
   "scripts": {
     "dev": "bun run --filter @samanaffa/web dev",
     "dev:backend": "bun run --filter @samanaffa/backend dev",
