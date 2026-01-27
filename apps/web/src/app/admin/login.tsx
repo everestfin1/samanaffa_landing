@@ -22,13 +22,23 @@ export default function AdminLogin() {
     setError('')
 
     try {
-      const response = await fetch(apiUrl('/api/admin/auth/login'), {
+      const url = apiUrl('/api/admin/auth/login')
+      console.log('[AdminLogin] Request URL:', url)
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 15000)
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, password }),
+        signal: controller.signal,
       })
+
+      clearTimeout(timeoutId)
+      console.log('[AdminLogin] Response status:', response.status)
 
       const text = await response.text()
       let data: any
@@ -46,8 +56,13 @@ export default function AdminLogin() {
       } else {
         setError(data?.error || 'Identifiants invalides')
       }
-    } catch {
-      setError('Échec de connexion. Veuillez réessayer.')
+    } catch (err) {
+      console.error('[AdminLogin] Login error:', err)
+      if (err instanceof DOMException && err.name === 'AbortError') {
+        setError('Délai dépassé. Vérifiez la configuration Vercel et réessayez.')
+      } else {
+        setError('Échec de connexion. Veuillez réessayer.')
+      }
     } finally {
       setLoading(false)
     }

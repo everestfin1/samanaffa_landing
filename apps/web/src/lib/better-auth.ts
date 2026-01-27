@@ -3,7 +3,13 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { db } from './db'
 import * as authSchema from './db/auth-schema'
 
+ const authSecret =
+   process.env.BETTER_AUTH_SECRET ||
+   process.env.ADMIN_SESSION_SECRET ||
+   process.env.NEXTAUTH_SECRET
+
 export const auth = betterAuth({
+  secret: authSecret || 'dev-secret',
   database: drizzleAdapter(db, {
     provider: 'pg',
     schema: {
