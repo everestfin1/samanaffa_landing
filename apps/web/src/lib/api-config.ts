@@ -17,7 +17,7 @@ export const getApiUrl = () => {
 };
 
 export const apiUrl = (path: string) => {
-  const base = getApiUrl();
+  const base = getApiUrl().replace(/\/+$/, '');
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
   return `${base}${normalizedPath}`;
