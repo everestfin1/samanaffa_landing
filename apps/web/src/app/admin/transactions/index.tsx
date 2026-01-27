@@ -5,7 +5,19 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createTransactionColumns } from './columns';
 import { useTransactions, type Transaction } from './queries';
-import { Wallet, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  Wallet, 
+  Clock, 
+  CheckCircle, 
+  XCircle,
+  Hash,
+  Calendar,
+  User,
+  CreditCard,
+  ArrowRightLeft,
+  Activity,
+  FileText
+} from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import type { FacetOption } from '../../../components/admin/data-display/DataTable/DataTableFacetedFilter';
 import Sheet from '../../../components/admin/feedback/Sheet';
@@ -174,10 +186,10 @@ function TransactionsPage() {
         title="Détails de la transaction"
         description={selectedTransaction?.referenceNumber}
         footer={
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100 rounded-b-2xl">
             <button
               onClick={() => setSelectedTransaction(null)}
-              className="sama-button sama-button-outline px-4 py-2"
+              className="px-6 py-2.5 text-[14px] font-black text-slate-600 hover:text-slate-900 transition-all"
             >
               Fermer
             </button>
@@ -185,50 +197,90 @@ function TransactionsPage() {
         }
       >
         {selectedTransaction && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Référence</p>
-                <p className="font-mono text-slate-900">{selectedTransaction.referenceNumber}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
-                <div className="flex">
-                  <Badge
-                    variant={getStatusVariant(selectedTransaction.status, 'transaction')}
-                  >
-                    {transactionStatusLabels[selectedTransaction.status] ?? selectedTransaction.status}
-                  </Badge>
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              {/* Status & Highlights */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Hash className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Montant</p>
+                      <p className="text-[18px] font-black text-slate-900">
+                        {parseFloat(selectedTransaction.amount).toLocaleString('fr-FR')} FCFA
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <Badge variant={getStatusVariant(selectedTransaction.status, 'transaction')}>
+                      {transactionStatusLabels[selectedTransaction.status] ?? selectedTransaction.status}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Calendar className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Date & Heure</p>
+                      <p className="text-[15px] font-bold text-slate-900">
+                        {new Date(selectedTransaction.createdAt).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[13px] font-medium text-slate-500">
+                    {new Date(selectedTransaction.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Montant</p>
-                <p className="text-lg font-bold text-slate-900">
-                  {parseFloat(selectedTransaction.amount).toLocaleString()} FCFA
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date</p>
-                <p className="text-slate-900">{new Date(selectedTransaction.createdAt).toLocaleString('fr-FR')}</p>
-              </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Type de transaction</span>
-                <span className="font-medium text-slate-900">{selectedTransaction.intentType}</span>
+              {/* Transaction Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <ArrowRightLeft className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Type & Paiement</h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Type</p>
+                    <div className="flex items-center gap-2">
+                      <Activity className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-[14px] font-bold text-slate-900">{selectedTransaction.intentType}</p>
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Méthode</p>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="w-3.5 h-3.5 text-slate-400" />
+                      <p className="text-[14px] font-bold text-slate-900">{selectedTransaction.paymentMethod}</p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Moyen de paiement</span>
-                <span className="font-medium text-slate-900">{selectedTransaction.paymentMethod}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID Utilisateur</span>
-                <span className="font-mono text-slate-600">{selectedTransaction.userId}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID Provider</span>
-                <span className="font-mono text-slate-600">{selectedTransaction.providerTransactionId || 'N/A'}</span>
+
+              {/* Technical IDs */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <FileText className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Identifiants</h3>
+                </div>
+                <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">ID Utilisateur</span>
+                    <span className="font-mono text-[12px] font-bold text-slate-600">{selectedTransaction.userId}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm pt-3 border-t border-slate-100">
+                    <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">ID Provider</span>
+                    <span className="font-mono text-[12px] font-bold text-slate-600">{selectedTransaction.providerTransactionId || 'N/A'}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

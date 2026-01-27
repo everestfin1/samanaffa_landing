@@ -6,7 +6,19 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { createKycColumns } from './columns';
 import { useKycDocuments } from './queries';
-import { FileCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { 
+  FileCheck, 
+  Clock, 
+  CheckCircle, 
+  XCircle,
+  FileText,
+  User,
+  Calendar,
+  ShieldCheck,
+  ExternalLink,
+  Hash,
+  Eye
+} from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import Sheet from '../../../components/admin/feedback/Sheet';
 import Badge from '../../../components/admin/data-display/Badge';
@@ -128,10 +140,10 @@ function KycPage() {
         title="Détails du document KYC"
         description={selectedDoc?.fileName}
         footer={
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3 px-6 py-4 bg-slate-50 border-t border-slate-100 rounded-b-2xl">
             <button
               onClick={() => setSelectedDoc(null)}
-              className="sama-button sama-button-outline px-4 py-2"
+              className="px-6 py-2.5 text-[14px] font-black text-slate-600 hover:text-slate-900 transition-all"
             >
               Fermer
             </button>
@@ -139,46 +151,94 @@ function KycPage() {
         }
       >
         {selectedDoc && (
-          <div className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Utilisateur</p>
-                <p className="font-medium text-slate-900">
-                  {(selectedDoc.userName ?? '').trim() || selectedDoc.userId.slice(0, 8)}
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
-                <div className="flex">
-                  <Badge
-                    variant={getStatusVariant(selectedDoc.verificationStatus, 'kyc')}
-                  >
-                    {kycStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
-                  </Badge>
+          <div className="flex flex-col h-full overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+              {/* Status & Highlights */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <FileCheck className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Type de Document</p>
+                      <p className="text-[15px] font-black text-slate-900">{selectedDoc.documentType}</p>
+                    </div>
+                  </div>
+                  <div className="flex">
+                    <Badge variant={getStatusVariant(selectedDoc.verificationStatus, 'kyc')}>
+                      {kycStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shadow-sm">
+                      <Calendar className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Date de soumission</p>
+                      <p className="text-[15px] font-bold text-slate-900">
+                        {new Date(selectedDoc.uploadDate).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                  <p className="text-[13px] font-medium text-slate-500">
+                    {new Date(selectedDoc.uploadDate).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                  </p>
                 </div>
               </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Type de document</p>
-                <p className="text-slate-900">{selectedDoc.documentType}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date de soumission</p>
-                <p className="text-slate-900">{new Date(selectedDoc.uploadDate).toLocaleString('fr-FR')}</p>
-              </div>
-            </div>
 
-            <div className="space-y-4 pt-4 border-t border-slate-100">
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID Document</span>
-                <span className="font-mono text-slate-600">{selectedDoc.id}</span>
+              {/* Identity Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <User className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Identité Utilisateur</h3>
+                </div>
+                <div className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+                  <div className="space-y-1">
+                    <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Nom / ID</p>
+                    <p className="text-[15px] font-bold text-slate-900">
+                      {(selectedDoc.userName ?? '').trim() || selectedDoc.userId.slice(0, 8)}
+                    </p>
+                    <p className="text-[12px] font-mono text-slate-400">{selectedDoc.userId}</p>
+                  </div>
+                </div>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">ID Utilisateur</span>
-                <span className="font-mono text-slate-600">{selectedDoc.userId}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Fichier</span>
-                <span className="font-medium text-slate-900">{selectedDoc.fileName}</span>
+
+              {/* File Info */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 px-1">
+                  <FileText className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-[14px] font-black text-slate-900 uppercase tracking-wider">Fichier</h3>
+                </div>
+                <div className="bg-slate-50/50 rounded-2xl p-6 border border-slate-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="min-w-0">
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Nom du fichier</p>
+                      <p className="text-[14px] font-medium text-slate-900 truncate">{selectedDoc.fileName}</p>
+                    </div>
+                    <a 
+                      href={selectedDoc.fileUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-4 py-2 bg-white rounded-xl border border-slate-200 text-[13px] font-black text-slate-700 hover:text-emerald-600 hover:border-emerald-200 hover:shadow-sm transition-all"
+                    >
+                      <Eye className="w-4 h-4" />
+                      Visualiser
+                    </a>
+                  </div>
+                  <div className="pt-3 border-t border-slate-100">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[11px] font-black text-slate-400 uppercase tracking-widest">ID Document</span>
+                      <span className="font-mono text-[12px] font-bold text-slate-600">{selectedDoc.id}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
