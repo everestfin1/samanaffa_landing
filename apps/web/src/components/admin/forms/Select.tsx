@@ -14,7 +14,8 @@ interface SelectProps {
 }
 
 const Select = ({ value, onChange, options, placeholder = 'Sélectionner', className = '' }: SelectProps) => {
-  const hasEmptyOption = options.some((opt) => opt.value === '');
+  const safeOptions = options ?? [];
+  const hasEmptyOption = safeOptions.some((opt) => opt.value === '');
   
   return (
     <select
@@ -27,7 +28,7 @@ const Select = ({ value, onChange, options, placeholder = 'Sélectionner', class
           {placeholder}
         </option>
       )}
-      {options.map((option) => (
+      {safeOptions.map((option) => (
         <option key={option.value} value={option.value}>
           {option.label}
         </option>

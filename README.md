@@ -29,3 +29,10 @@ Backend APIs are intended to run as **Vercel Functions** under `/api/**` (using 
 ## Auth
 
 Authentication is planned to migrate from NextAuth to **better-auth**.
+
+## Admin UI
+
+The admin tables use a shared `DataTable` component (TanStack Table). Recent updates include:
+
+- Improved runtime safety around optional table state (e.g. grouping/expanded)
+- More consistent detail Sheets across tables (Badges and French status labels)

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { db, desc, asc, sql, eq, and, or, like, gte, lte } from '../../lib/db.js'
-import { kycDocuments } from '../../lib/schema.js'
+import { kycDocuments, users } from '../../lib/schema.js'
 import { requireAdmin } from '../../middleware/auth.js'
 
 const app = new Hono()
@@ -26,7 +26,9 @@ app.get('/', async (c) => {
         or(
           like(sql`lower(${kycDocuments.documentType})`, searchTerm),
           like(sql`lower(${kycDocuments.fileName})`, searchTerm),
-          like(sql`lower(${kycDocuments.userId})`, searchTerm)
+          like(sql`lower(${kycDocuments.userId})`, searchTerm),
+          like(sql`lower(${users.firstName})`, searchTerm),
+          like(sql`lower(${users.lastName})`, searchTerm)
         )
       )
     }
@@ -49,8 +51,27 @@ app.get('/', async (c) => {
     const orderFn = sortOrder === 'asc' ? asc : desc
 
     const [docs, countResult] = await Promise.all([
-      db.select().from(kycDocuments).where(whereClause).orderBy(orderFn(sortColumn)).limit(pageSize).offset(offset),
-      db.select({ count: sql<number>`count(*)` }).from(kycDocuments).where(whereClause)
+      db.select({
+        id: kycDocuments.id,
+        userId: kycDocuments.userId,
+        documentType: kycDocuments.documentType,
+        fileUrl: kycDocuments.fileUrl,
+        fileName: kycDocuments.fileName,
+        uploadDate: kycDocuments.uploadDate,
+        verificationStatus: kycDocuments.verificationStatus,
+        adminNotes: kycDocuments.adminNotes,
+        userName: sql<string>`${users.firstName} || ' ' || ${users.lastName}`
+      })
+      .from(kycDocuments)
+      .leftJoin(users, eq(kycDocuments.userId, users.id))
+      .where(whereClause)
+      .orderBy(orderFn(sortColumn))
+      .limit(pageSize)
+      .offset(offset),
+      db.select({ count: sql<number>`count(*)` })
+      .from(kycDocuments)
+      .leftJoin(users, eq(kycDocuments.userId, users.id))
+      .where(whereClause)
     ])
 
     return c.json({

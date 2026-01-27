@@ -5,11 +5,18 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { apeSubscriptionColumns } from './columns';
 import { Landmark, CheckCircle, XCircle, Wallet } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
 // Placeholder data
 const apeSubscriptions = [
   { id: '1', user: 'Cheikh Fall', plan: 'APE Premium', status: 'Active', startDate: new Date().toISOString() },
   { id: '2', user: 'Awa Gueye', plan: 'APE Basic', status: 'Cancelled', startDate: new Date().toISOString() },
+];
+
+const apeSubscriptionStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'Active', value: 'active' },
+  { label: 'Annulée', value: 'cancelled' },
 ];
 
 export const Route = createFileRoute('/admin/ape-subscriptions/')({
@@ -95,6 +102,8 @@ function ApeSubscriptionsPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: apeSubscriptionStatusOptions,
+          searchPlaceholder: 'Rechercher par utilisateur, plan...',
         }}
         paginationProps={{
           page: currentPage,

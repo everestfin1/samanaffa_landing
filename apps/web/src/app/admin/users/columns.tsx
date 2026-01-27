@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { User } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
+import { Eye } from 'lucide-react';
 
 const columnHelper = createColumnHelper<User>();
 
@@ -18,7 +19,7 @@ const statusLabels: Record<string, string> = {
   UNDER_REVIEW: 'En révision',
 };
 
-export const userColumns = [
+export const createUserColumns = (onViewDetails: (user: User) => void) => [
   columnHelper.accessor((row) => `${row.firstName} ${row.lastName}`, {
     id: 'name',
     header: 'Nom',
@@ -59,4 +60,18 @@ export const userColumns = [
     header: 'Date inscription',
     cell: (info) => new Date(info.getValue()).toLocaleDateString('fr-FR'),
   }),
+  columnHelper.display({
+    id: 'actions',
+    cell: (info) => (
+      <button
+        onClick={() => onViewDetails(info.row.original)}
+        className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
+        title="Voir les détails"
+      >
+        <Eye className="h-4 w-4" />
+      </button>
+    ),
+  }),
 ];
+
+export const userColumns = createUserColumns(() => {});

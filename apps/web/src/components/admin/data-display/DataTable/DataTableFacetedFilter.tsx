@@ -15,6 +15,7 @@ interface DataTableFacetedFilterProps {
 }
 
 const DataTableFacetedFilter = ({ label, options, value, onChange, simple }: DataTableFacetedFilterProps) => {
+  const safeOptions = options ?? [];
   const current = value ?? '';
 
   if (simple) {
@@ -22,7 +23,7 @@ const DataTableFacetedFilter = ({ label, options, value, onChange, simple }: Dat
       <Select 
         value={current} 
         onChange={(val) => onChange?.(val)} 
-        options={options} 
+        options={safeOptions} 
         placeholder={label}
       />
     );
@@ -34,7 +35,7 @@ const DataTableFacetedFilter = ({ label, options, value, onChange, simple }: Dat
         {label}
       </div>
       <div className="flex flex-wrap items-center gap-2">
-        {options.map((option) => (
+        {safeOptions.map((option) => (
           <button
             key={option.value}
             type="button"
@@ -45,7 +46,7 @@ const DataTableFacetedFilter = ({ label, options, value, onChange, simple }: Dat
           </button>
         ))}
         <div className="min-w-[160px]">
-          <Select value={current} onChange={(val) => onChange?.(val)} options={options} />
+          <Select value={current} onChange={(val) => onChange?.(val)} options={safeOptions} />
         </div>
       </div>
     </div>

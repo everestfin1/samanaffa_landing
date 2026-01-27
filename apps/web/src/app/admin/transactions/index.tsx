@@ -9,6 +9,15 @@ import { Wallet, Clock, CheckCircle, XCircle } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 import type { FacetOption } from '../../../components/admin/data-display/DataTable/DataTableFacetedFilter';
 import Sheet from '../../../components/admin/feedback/Sheet';
+import Badge from '../../../components/admin/data-display/Badge';
+
+const transactionStatusLabels: Record<string, string> = {
+  PENDING: 'En attente',
+  PROCESSING: 'En cours',
+  COMPLETED: 'Complétée',
+  CANCELLED: 'Annulée',
+  FAILED: 'Échouée',
+};
 
 const transactionStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -196,13 +205,20 @@ function TransactionsPage() {
               <div className="space-y-1">
                 <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
                 <div className="flex">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                    selectedTransaction.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                    selectedTransaction.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-slate-100 text-slate-800'
-                  }`}>
-                    {selectedTransaction.status}
-                  </span>
+                  <Badge
+                    variant={
+                      selectedTransaction.status === 'COMPLETED'
+                        ? 'success'
+                        : selectedTransaction.status === 'PENDING' ||
+                            selectedTransaction.status === 'PROCESSING'
+                          ? 'warning'
+                          : selectedTransaction.status === 'FAILED'
+                            ? 'danger'
+                            : 'default'
+                    }
+                  >
+                    {transactionStatusLabels[selectedTransaction.status] ?? selectedTransaction.status}
+                  </Badge>
                 </div>
               </div>
               <div className="space-y-1">

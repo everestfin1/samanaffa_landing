@@ -3,10 +3,20 @@ import * as React from 'react';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
-import { userColumns } from './columns';
+import { createUserColumns } from './columns';
 import { useUsers } from './queries';
 import { Users, UserCheck, Clock, UserX } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
+import Sheet from '../../../components/admin/feedback/Sheet';
+import type { User } from './queries';
+import Badge from '../../../components/admin/data-display/Badge';
+
+const kycStatusLabels: Record<string, string> = {
+  PENDING: 'En attente',
+  APPROVED: 'Approuvé',
+  REJECTED: 'Rejeté',
+  UNDER_REVIEW: 'En révision',
+};
 
 const userStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -38,31 +48,12 @@ export const Route = createFileRoute('/admin/users/')({
 function UsersPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
+  const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
 
-  const { data, isLoading } = useUsers({ page, pageSize });
+  const { data, isLoading } = useUsers({ page, pageSize, q, status, date });
 
   const users = data?.users ?? [];
   const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
-
-  const filteredUsers = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toLowerCase();
-
-    return users.filter((u) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        `${u.firstName} ${u.lastName}`.toLowerCase().includes(qNorm) ||
-        u.email.toLowerCase().includes(qNorm) ||
-        u.phone.toLowerCase().includes(qNorm);
-
-      const matchesStatus =
-        statusNorm.length === 0 || u.kycStatus.toLowerCase().includes(statusNorm);
-
-      const matchesDate = date.length === 0 || u.createdAt.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [users, q, status, date]);
 
 const stats = React.useMemo(() => {
     const total = pagination.total;
@@ -71,6 +62,11 @@ const stats = React.useMemo(() => {
     const rejected = users.filter(u => u.kycStatus === 'REJECTED').length;
     return { total, pending, approved, rejected };
   }, [users, pagination.total]);
+
+  const columns = React.useMemo(
+    () => createUserColumns((user) => setSelectedUser(user)),
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -85,7 +81,7 @@ const stats = React.useMemo(() => {
         <StatCard label="Rejetés" value={stats.rejected} icon={UserX} color="danger" />
       </div>
       <DataTable
-        columns={userColumns}
+        columns={columns}
         data={users}
         isLoading={isLoading}
         toolbarProps={{
@@ -127,6 +123,71 @@ const stats = React.useMemo(() => {
             }),
         }}
       />
+
+      <Sheet
+        isOpen={!!selectedUser}
+        onClose={() => setSelectedUser(null)}
+        title="Détails de l'utilisateur"
+        description={selectedUser ? `${selectedUser.firstName} ${selectedUser.lastName}` : undefined}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={() => setSelectedUser(null)}
+              className="sama-button sama-button-outline px-4 py-2"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {selectedUser && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Nom</p>
+                <p className="font-medium text-slate-900">{selectedUser.firstName} {selectedUser.lastName}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut KYC</p>
+                <div className="flex">
+                  <Badge
+                    variant={
+                      selectedUser.kycStatus === 'APPROVED'
+                        ? 'success'
+                        : selectedUser.kycStatus === 'PENDING' || selectedUser.kycStatus === 'UNDER_REVIEW'
+                          ? 'warning'
+                          : selectedUser.kycStatus === 'REJECTED'
+                            ? 'danger'
+                            : 'default'
+                    }
+                  >
+                    {kycStatusLabels[selectedUser.kycStatus] ?? selectedUser.kycStatus}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</p>
+                <p className="text-slate-900">{selectedUser.email}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Téléphone</p>
+                <p className="text-slate-900">{selectedUser.phone}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID Utilisateur</span>
+                <span className="font-mono text-slate-600">{selectedUser.id}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Date d'inscription</span>
+                <span className="font-medium text-slate-900">{new Date(selectedUser.createdAt).toLocaleString('fr-FR')}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   );
 }

@@ -5,11 +5,19 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { sponsorCodeColumns } from './columns';
 import { Tag, CheckCircle, XCircle, Users } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
 // Placeholder data
 const sponsorCodes = [
   { id: '1', code: 'SPONSOR10', usageCount: 25, maxUsage: 100, status: 'Active', createdAt: new Date().toISOString() },
   { id: '2', code: 'WELCOME5', usageCount: 50, maxUsage: 50, status: 'Inactive', createdAt: new Date().toISOString() },
+];
+
+const sponsorCodeStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'Actif', value: 'active' },
+  { label: 'Inactif', value: 'inactive' },
+  { label: 'Expiré', value: 'expired' },
 ];
 
 export const Route = createFileRoute('/admin/sponsor-codes/')({
@@ -96,6 +104,8 @@ function SponsorCodesPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: sponsorCodeStatusOptions,
+          searchPlaceholder: 'Rechercher par code, usages...',
         }}
         paginationProps={{
           page: currentPage,

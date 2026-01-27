@@ -11,6 +11,11 @@ import {
   SortingState,
   ColumnFiltersState,
   RowSelectionState,
+  ExpandedState,
+  OnChangeFn,
+  getExpandedRowModel,
+  getGroupedRowModel,
+  GroupingState,
 } from '@tanstack/react-table';
 import DataTableToolbar, { type DataTableToolbarProps } from './DataTableToolbar';
 import DataTablePagination, { type DataTablePaginationProps } from './DataTablePagination';
@@ -32,6 +37,10 @@ interface DataTableProps<TData> {
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   enableRowSelection?: boolean;
+  expanded?: ExpandedState;
+  onExpandedChange?: OnChangeFn<ExpandedState>;
+  grouping?: GroupingState;
+  onGroupingChange?: OnChangeFn<GroupingState>;
   statusFilterId?: string;
   dateFilterId?: string;
   isLoading?: boolean;
@@ -44,6 +53,10 @@ export function DataTable<TData>({
   data,
   isLoading,
   enableRowSelection = true,
+  expanded,
+  onExpandedChange,
+  grouping,
+  onGroupingChange,
   statusFilterId = 'status',
   dateFilterId = 'createdAt',
   toolbarProps,
@@ -53,10 +66,15 @@ export function DataTable<TData>({
   const [globalFilter, setGlobalFilter] = React.useState('');
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [internalExpanded, setInternalExpanded] = React.useState<ExpandedState>({});
+  const [internalGrouping, setInternalGrouping] = React.useState<GroupingState>([]);
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: paginationProps?.pageSize ?? 25,
   });
+
+  const expandedState = expanded ?? internalExpanded;
+  const groupingState = grouping ?? internalGrouping;
 
   React.useEffect(() => {
     if (typeof toolbarProps?.search !== 'string') return;
@@ -146,18 +164,24 @@ export function DataTable<TData>({
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
     state: {
       sorting,
       globalFilter,
       rowSelection,
       columnFilters,
       pagination,
+      expanded: expandedState,
+      grouping: groupingState,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     onRowSelectionChange: setRowSelection,
     onColumnFiltersChange: setColumnFilters,
     onPaginationChange: setPagination,
+    onExpandedChange: onExpandedChange ?? setInternalExpanded,
+    onGroupingChange: onGroupingChange ?? setInternalGrouping,
     enableRowSelection: true,
     isMultiSortEvent: (e: any) => e.shiftKey,
   });
@@ -250,10 +274,38 @@ export function DataTable<TData>({
               </tr>
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <tr key={row.id} className="hover:bg-slate-50 transition-colors">
+                <tr 
+                  key={row.id} 
+                  className={`
+                    transition-colors
+                    ${row.getIsGrouped() ? 'bg-slate-50/80 font-bold' : 'hover:bg-slate-50'}
+                  `}
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-3 text-slate-700">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <td 
+                      key={cell.id} 
+                      className={`
+                        px-4 py-3 text-slate-700
+                        ${cell.getIsGrouped() ? 'font-bold text-emerald-700' : ''}
+                        ${cell.getIsPlaceholder() ? 'opacity-0' : ''}
+                      `}
+                    >
+                      {cell.getIsGrouped() ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={row.getToggleExpandedHandler()}
+                            className="p-1 hover:bg-emerald-100 rounded text-emerald-600 transition-colors"
+                          >
+                            {row.getIsExpanded() ? '▼' : '▶'}
+                          </button>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                          <span className="ml-2 text-xs font-medium text-slate-400">
+                            ({row.subRows.length})
+                          </span>
+                        </div>
+                      ) : cell.getIsPlaceholder() ? null : (
+                        flexRender(cell.column.columnDef.cell, cell.getContext())
+                      )}
                     </td>
                   ))}
                 </tr>

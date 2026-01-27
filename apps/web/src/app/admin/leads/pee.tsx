@@ -3,6 +3,7 @@ import * as React from 'react';
 import PageContainer from '../../../components/admin/layout/PageContainer';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
 // Placeholder data and columns
 const peeLeads = [
@@ -15,6 +16,12 @@ const columns = [
   { header: 'Email', accessorKey: 'email' },
   { header: 'Status', accessorKey: 'status' },
   { header: 'Date', accessorKey: 'createdAt' },
+];
+
+const peeStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'Nouveau', value: 'new' },
+  { label: 'Contacté', value: 'contacted' },
 ];
 
 export const Route = createFileRoute('/admin/leads/pee')({
@@ -94,6 +101,8 @@ function PeeLeadsPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: peeStatusOptions,
+          searchPlaceholder: 'Rechercher par nom, email...',
         }}
         paginationProps={{
           page: currentPage,

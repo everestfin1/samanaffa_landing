@@ -50,14 +50,17 @@ const DataTableToolbar = <TData,>({
   date: controlledDate,
   onDateChange,
   onExportClick,
-  statusOptions = defaultStatusOptions,
+  statusOptions,
   searchPlaceholder,
   selectedCount,
-  facetedFilters = [],
+  facetedFilters,
 }: DataTableToolbarProps<TData>) => {
   const [uncontrolledSearch, setUncontrolledSearch] = React.useState('');
   const [uncontrolledStatus, setUncontrolledStatus] = React.useState('');
   const [uncontrolledDate, setUncontrolledDate] = React.useState('');
+
+  const safeStatusOptions = statusOptions ?? defaultStatusOptions;
+  const safeFacetedFilters = facetedFilters ?? [];
 
   const search = controlledSearch ?? uncontrolledSearch;
   const status = controlledStatus ?? uncontrolledStatus;
@@ -87,8 +90,8 @@ const DataTableToolbar = <TData,>({
     setUncontrolledDate(value);
   };
 
-  const hasFilters = statusOptions.length > 0 || facetedFilters.length > 0;
-  const hasActiveFilters = search || status || date || facetedFilters.some(f => f.value);
+  const hasFilters = safeStatusOptions.length > 0 || safeFacetedFilters.length > 0;
+  const hasActiveFilters = search || status || date || safeFacetedFilters.some(f => f.value);
 
   return (
     <div className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm animate-fade-in">
@@ -118,7 +121,7 @@ const DataTableToolbar = <TData,>({
       </div>
 
       {/* Grouped Filters Section (Status, Date, and Faceted Filters) */}
-      {(statusOptions.length > 0 || facetedFilters.length > 0) && (
+      {(safeStatusOptions.length > 0 || safeFacetedFilters.length > 0) && (
         <div className="flex flex-wrap items-center gap-x-8 gap-y-4 border-t border-slate-50 pt-3">
           {/* Status Filter */}
           <div className="flex flex-col gap-1.5">
@@ -130,7 +133,7 @@ const DataTableToolbar = <TData,>({
               <Select 
                 value={status} 
                 onChange={setStatus} 
-                options={statusOptions} 
+                options={safeStatusOptions} 
                 placeholder="Filtrer par statut"
               />
             </div>
@@ -152,7 +155,7 @@ const DataTableToolbar = <TData,>({
           </div>
 
           {/* Faceted Filters */}
-          {facetedFilters.map((filter) => (
+          {safeFacetedFilters.map((filter) => (
             <div key={filter.label} className="flex flex-col gap-1.5">
               <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1">
                 <div className="h-1 w-1 rounded-full bg-emerald-500" />
@@ -178,7 +181,7 @@ const DataTableToolbar = <TData,>({
                 setSearch('');
                 setStatus('');
                 setDate('');
-                facetedFilters.forEach(f => f.onChange?.(''));
+                safeFacetedFilters.forEach(f => f.onChange?.(''));
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
             >

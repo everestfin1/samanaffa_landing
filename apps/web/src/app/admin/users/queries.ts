@@ -3,6 +3,9 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 export interface UsersParams {
   page?: number;
   pageSize?: number;
+  q?: string;
+  status?: string;
+  date?: string;
 }
 
 export interface User {
@@ -43,6 +46,9 @@ const fetchUsers = async (params: UsersParams): Promise<UsersResponse> => {
   
   if (params.page) searchParams.set('page', String(params.page));
   if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
+  if (params.q) searchParams.set('q', params.q);
+  if (params.status) searchParams.set('status', params.status);
+  if (params.date) searchParams.set('date', params.date);
 
   const response = await fetch(`/api/admin/users?${searchParams.toString()}`, {
     headers: {

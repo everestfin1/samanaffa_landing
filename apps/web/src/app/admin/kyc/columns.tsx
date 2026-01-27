@@ -1,6 +1,7 @@
 import { createColumnHelper } from '@tanstack/react-table';
 import type { KycDocument } from './queries';
 import Badge from '../../../components/admin/data-display/Badge';
+import { Eye } from 'lucide-react';
 
 const columnHelper = createColumnHelper<KycDocument>();
 
@@ -18,12 +19,19 @@ const statusLabels: Record<string, string> = {
   UNDER_REVIEW: 'En révision',
 };
 
-export const kycColumns = [
-  columnHelper.accessor('userId', {
-    header: 'ID Utilisateur',
-    cell: (info) => (
-      <span className="font-mono text-sm text-slate-600">{info.getValue().slice(0, 8)}...</span>
-    ),
+export const createKycColumns = (onViewDetails: (doc: KycDocument) => void) => [
+  columnHelper.accessor('userGroupKey', {
+    header: 'Utilisateur',
+    cell: (info) => {
+      const name = (info.row.original.userName ?? '').trim();
+      const shortId = info.row.original.userId.slice(0, 8);
+
+      return (
+        <span className="font-medium text-slate-900">
+          {name.length > 0 ? `${name} (${shortId})` : shortId}
+        </span>
+      );
+    },
   }),
   columnHelper.accessor('documentType', {
     header: 'Type de document',
@@ -58,4 +66,23 @@ export const kycColumns = [
     header: 'Date de soumission',
     cell: (info) => new Date(info.getValue()).toLocaleString('fr-FR'),
   }),
+  columnHelper.display({
+    id: 'actions',
+    cell: (info) => {
+      if (info.row.getIsGrouped?.()) return null;
+      if (!info.row.original) return null;
+
+      return (
+        <button
+          onClick={() => onViewDetails(info.row.original)}
+          className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
+          title="Voir les détails"
+        >
+          <Eye className="h-4 w-4" />
+        </button>
+      );
+    },
+  }),
 ];
+
+export const kycColumns = createKycColumns(() => {});

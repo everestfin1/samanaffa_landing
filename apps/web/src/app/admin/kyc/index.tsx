@@ -1,12 +1,23 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import * as React from 'react';
+import type { GroupingState, ExpandedState } from '@tanstack/react-table';
 import PageHeader from '../../../components/admin/layout/PageHeader';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import StatCard from '../../../components/admin/data-display/StatCard';
-import { kycColumns } from './columns';
+import { createKycColumns } from './columns';
 import { useKycDocuments } from './queries';
 import { FileCheck, Clock, CheckCircle, XCircle } from 'lucide-react';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
+import Sheet from '../../../components/admin/feedback/Sheet';
+import Badge from '../../../components/admin/data-display/Badge';
+import type { KycDocument } from './queries';
+
+const verificationStatusLabels: Record<string, string> = {
+  PENDING: 'En attente',
+  APPROVED: 'Approuvé',
+  REJECTED: 'Rejeté',
+  UNDER_REVIEW: 'En révision',
+};
 
 const kycStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -38,31 +49,14 @@ export const Route = createFileRoute('/admin/kyc/')({
 function KycPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
+  const [grouping, setGrouping] = React.useState<GroupingState>(['userGroupKey']);
+  const [expanded, setExpanded] = React.useState<ExpandedState>({});
+  const [selectedDoc, setSelectedDoc] = React.useState<KycDocument | null>(null);
 
-  const { data, isLoading } = useKycDocuments({ page, pageSize });
+  const { data, isLoading } = useKycDocuments({ page, pageSize, q, status, date });
 
   const kycDocuments = data?.kycDocuments ?? [];
   const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
-
-  const filteredKycDocuments = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toLowerCase();
-
-    return kycDocuments.filter((d) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        d.documentType.toLowerCase().includes(qNorm) ||
-        d.fileName.toLowerCase().includes(qNorm) ||
-        d.userId.toLowerCase().includes(qNorm);
-
-      const matchesStatus =
-        statusNorm.length === 0 || d.verificationStatus.toLowerCase().includes(statusNorm);
-
-      const matchesDate = date.length === 0 || d.uploadDate.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [kycDocuments, q, status, date]);
 
   const stats = React.useMemo(() => {
     const total = pagination.total;
@@ -71,6 +65,11 @@ function KycPage() {
     const rejected = kycDocuments.filter(d => d.verificationStatus === 'REJECTED').length;
     return { total, pending, approved, rejected };
   }, [kycDocuments, pagination.total]);
+
+  const columns = React.useMemo(
+    () => createKycColumns((doc) => setSelectedDoc(doc)),
+    []
+  );
 
   return (
     <div className="space-y-6">
@@ -85,9 +84,13 @@ function KycPage() {
         <StatCard label="Rejetés" value={stats.rejected} icon={XCircle} color="danger" />
       </div>
       <DataTable
-        columns={kycColumns}
+        columns={columns}
         data={kycDocuments}
         isLoading={isLoading}
+        grouping={grouping}
+        onGroupingChange={setGrouping}
+        expanded={expanded}
+        onExpandedChange={setExpanded}
         toolbarProps={{
           search: q,
           onSearchChange: (value) =>
@@ -127,6 +130,78 @@ function KycPage() {
             }),
         }}
       />
+
+      <Sheet
+        isOpen={!!selectedDoc}
+        onClose={() => setSelectedDoc(null)}
+        title="Détails du document KYC"
+        description={selectedDoc?.fileName}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={() => setSelectedDoc(null)}
+              className="sama-button sama-button-outline px-4 py-2"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {selectedDoc && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Utilisateur</p>
+                <p className="font-medium text-slate-900">
+                  {(selectedDoc.userName ?? '').trim() || selectedDoc.userId.slice(0, 8)}
+                </p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
+                <div className="flex">
+                  <Badge
+                    variant={
+                      selectedDoc.verificationStatus === 'APPROVED'
+                        ? 'success'
+                        : selectedDoc.verificationStatus === 'PENDING' ||
+                            selectedDoc.verificationStatus === 'UNDER_REVIEW'
+                          ? 'warning'
+                          : selectedDoc.verificationStatus === 'REJECTED'
+                            ? 'danger'
+                            : 'default'
+                    }
+                  >
+                    {verificationStatusLabels[selectedDoc.verificationStatus] ?? selectedDoc.verificationStatus}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Type de document</p>
+                <p className="text-slate-900">{selectedDoc.documentType}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Date de soumission</p>
+                <p className="text-slate-900">{new Date(selectedDoc.uploadDate).toLocaleString('fr-FR')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID Document</span>
+                <span className="font-mono text-slate-600">{selectedDoc.id}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID Utilisateur</span>
+                <span className="font-mono text-slate-600">{selectedDoc.userId}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Fichier</span>
+                <span className="font-medium text-slate-900">{selectedDoc.fileName}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </div>
   );
 }

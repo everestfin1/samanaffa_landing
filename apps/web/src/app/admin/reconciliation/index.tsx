@@ -5,11 +5,18 @@ import { DataTable } from '../../../components/admin/data-display/DataTable/Data
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { reconciliationColumns } from './columns';
 import { RefreshCcw, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
+import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
 
 // Placeholder data
 const reconciliationData = [
   { id: '1', transactionId: 'TX123', intouchId: 'IT456', status: 'Matched', amount: 50000, date: new Date().toISOString() },
   { id: '2', transactionId: 'TX789', intouchId: 'IT012', status: 'Mismatched', amount: 25000, date: new Date().toISOString() },
+];
+
+const reconciliationStatusOptions: StatusOption[] = [
+  { label: 'Tous les statuts', value: '' },
+  { label: 'Correspondante', value: 'matched' },
+  { label: 'Divergente', value: 'mismatched' },
 ];
 
 export const Route = createFileRoute('/admin/reconciliation/')({
@@ -96,6 +103,8 @@ function ReconciliationPage() {
               search: (prev) => ({ ...prev, date: value, page: 1 }),
               replace: true,
             }),
+          statusOptions: reconciliationStatusOptions,
+          searchPlaceholder: 'Rechercher par TX, Intouch...',
         }}
         paginationProps={{
           page: currentPage,

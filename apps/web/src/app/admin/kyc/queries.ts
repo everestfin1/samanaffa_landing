@@ -3,11 +3,16 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 export interface KycParams {
   page?: number;
   pageSize?: number;
+  q?: string;
+  status?: string;
+  date?: string;
 }
 
 export interface KycDocument {
   id: string;
   userId: string;
+  userName?: string;
+  userGroupKey?: string;
   documentType: string;
   fileUrl: string;
   fileName: string;
@@ -33,6 +38,9 @@ const fetchKycDocuments = async (params: KycParams): Promise<KycResponse> => {
   
   if (params.page) searchParams.set('page', String(params.page));
   if (params.pageSize) searchParams.set('pageSize', String(params.pageSize));
+  if (params.q) searchParams.set('q', params.q);
+  if (params.status) searchParams.set('status', params.status);
+  if (params.date) searchParams.set('date', params.date);
 
   const response = await fetch(`/api/admin/kyc?${searchParams.toString()}`, {
     headers: {
@@ -45,7 +53,21 @@ const fetchKycDocuments = async (params: KycParams): Promise<KycResponse> => {
     throw new Error('Failed to fetch KYC documents');
   }
 
-  return response.json();
+  const json = (await response.json()) as KycResponse;
+  const kycDocuments = (json.kycDocuments ?? []).map((d) => {
+    const name = (d.userName ?? '').trim();
+    const id = d.userId;
+    const key = `${name}__${id}`;
+    return {
+      ...d,
+      userGroupKey: key,
+    };
+  });
+
+  return {
+    ...json,
+    kycDocuments,
+  };
 };
 
 export const useKycDocuments = (params: KycParams = {}) => {

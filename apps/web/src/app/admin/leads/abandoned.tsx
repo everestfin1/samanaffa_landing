@@ -5,11 +5,12 @@ import PageHeader from '../../../components/admin/layout/PageHeader';
 import StatCard from '../../../components/admin/data-display/StatCard';
 import { DataTable } from '../../../components/admin/data-display/DataTable/DataTable';
 import Badge from '../../../components/admin/data-display/Badge';
+import Sheet from '../../../components/admin/feedback/Sheet';
 import { useAbandonedLeads } from './queries';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { AbandonedLead } from './queries';
 import type { StatusOption } from '../../../components/admin/data-display/DataTable/DataTableToolbar';
-import { Users, UserCheck, Phone, XCircle } from 'lucide-react';
+import { Users, UserCheck, Phone, XCircle, Eye } from 'lucide-react';
 
 const abandonedStatusOptions: StatusOption[] = [
   { label: 'Tous les statuts', value: '' },
@@ -35,7 +36,7 @@ const statusLabels: Record<string, string> = {
   DISMISSED: 'Rejeté',
 };
 
-const abandonedColumns = [
+const createAbandonedColumns = (onViewDetails: (lead: AbandonedLead) => void) => [
   columnHelper.accessor('email', {
     header: 'Email',
     cell: (info) => (
@@ -83,7 +84,21 @@ const abandonedColumns = [
     header: 'Dernière activité',
     cell: (info) => new Date(info.getValue()).toLocaleString('fr-FR'),
   }),
+  columnHelper.display({
+    id: 'actions',
+    cell: (info) => (
+      <button
+        onClick={() => onViewDetails(info.row.original)}
+        className="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-emerald-600 transition-colors"
+        title="Voir les détails"
+      >
+        <Eye className="h-4 w-4" />
+      </button>
+    ),
+  }),
 ];
+
+const abandonedColumns = createAbandonedColumns(() => {});
 
 export const Route = createFileRoute('/admin/leads/abandoned')({
   validateSearch: (search) => {
@@ -107,42 +122,26 @@ export const Route = createFileRoute('/admin/leads/abandoned')({
 function AbandonedLeadsPage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const { page, pageSize, q, status, date } = Route.useSearch();
+  const [selectedLead, setSelectedLead] = React.useState<AbandonedLead | null>(null);
 
   const { data, isLoading } = useAbandonedLeads({ page, pageSize, q, status, date });
 
   const drafts = data?.drafts ?? [];
   const pagination = data?.pagination ?? { total: 0, totalPages: 1 };
-  const statsFallback = data?.stats ?? { total: 0, abandoned: 0, contacted: 0, converted: 0, dismissed: 0 };
-
-  const filteredDrafts = React.useMemo(() => {
-    const qNorm = q.trim().toLowerCase();
-    const statusNorm = status.trim().toLowerCase();
-
-    return drafts.filter((d) => {
-      const matchesQ =
-        qNorm.length === 0 ||
-        (d.email ?? '').toLowerCase().includes(qNorm) ||
-        (d.phone ?? '').toLowerCase().includes(qNorm) ||
-        (d.stepReached ?? '').toLowerCase().includes(qNorm) ||
-        d.formType.toLowerCase().includes(qNorm);
-
-      const matchesStatus =
-        statusNorm.length === 0 || d.status.toLowerCase().includes(statusNorm);
-
-      const matchesDate = date.length === 0 || d.lastActivityAt.slice(0, 10) === date;
-
-      return matchesQ && matchesStatus && matchesDate;
-    });
-  }, [drafts, q, status, date]);
 
   const stats = React.useMemo(() => {
-    const total = filteredDrafts.length;
-    const abandoned = filteredDrafts.filter((d) => d.status === 'ABANDONED').length;
-    const contacted = filteredDrafts.filter((d) => d.status === 'CONTACTED').length;
-    const converted = filteredDrafts.filter((d) => d.status === 'CONVERTED').length;
-    const dismissed = filteredDrafts.filter((d) => d.status === 'DISMISSED').length;
+    const total = pagination.total;
+    const abandoned = drafts.filter((d) => d.status === 'ABANDONED').length;
+    const contacted = drafts.filter((d) => d.status === 'CONTACTED').length;
+    const converted = drafts.filter((d) => d.status === 'CONVERTED').length;
+    const dismissed = drafts.filter((d) => d.status === 'DISMISSED').length;
     return { total, abandoned, contacted, converted, dismissed };
-  }, [filteredDrafts]);
+  }, [drafts, pagination.total]);
+
+  const columns = React.useMemo(
+    () => createAbandonedColumns((lead) => setSelectedLead(lead)),
+    []
+  );
 
   return (
     <PageContainer>
@@ -157,8 +156,8 @@ function AbandonedLeadsPage() {
         <StatCard label="Convertis" value={stats.converted} icon={UserCheck} color="success" />
       </div>
       <DataTable
-        columns={abandonedColumns}
-        data={filteredDrafts}
+        columns={columns}
+        data={drafts}
         isLoading={isLoading}
         toolbarProps={{
           search: q,
@@ -199,6 +198,75 @@ function AbandonedLeadsPage() {
             }),
         }}
       />
+
+      <Sheet
+        isOpen={!!selectedLead}
+        onClose={() => setSelectedLead(null)}
+        title="Détails du lead"
+        description={selectedLead?.id}
+        footer={
+          <div className="flex justify-end">
+            <button
+              onClick={() => setSelectedLead(null)}
+              className="sama-button sama-button-outline px-4 py-2"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {selectedLead && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Email</p>
+                <p className="text-slate-900">{selectedLead.email || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Téléphone</p>
+                <p className="text-slate-900">{selectedLead.phone || 'N/A'}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Statut</p>
+                <div className="flex">
+                  <Badge
+                    variant={
+                      selectedLead.status === 'CONVERTED'
+                        ? 'success'
+                        : selectedLead.status === 'ABANDONED' || selectedLead.status === 'CONTACTED'
+                          ? 'warning'
+                          : selectedLead.status === 'DISMISSED'
+                            ? 'danger'
+                            : 'default'
+                    }
+                  >
+                    {statusLabels[selectedLead.status] || selectedLead.status}
+                  </Badge>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">Dernière activité</p>
+                <p className="text-slate-900">{new Date(selectedLead.lastActivityAt).toLocaleString('fr-FR')}</p>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-slate-100">
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">ID</span>
+                <span className="font-mono text-slate-600">{selectedLead.id}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Étape atteinte</span>
+                <span className="font-medium text-slate-900">{selectedLead.stepReached || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-slate-500">Score</span>
+                <span className="font-medium text-slate-900">{selectedLead.score}%</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </Sheet>
     </PageContainer>
   );
 }
