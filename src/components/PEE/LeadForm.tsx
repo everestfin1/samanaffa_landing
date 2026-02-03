@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import ReactCountryFlag from 'react-country-flag';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -189,11 +189,20 @@ export default function LeadForm() {
     pays: 'SN',
     ville: '',
     telephone: '',
-    email: ''
+    email: '',
+    montant_cfa: ''
   });
   
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'payment_pending' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState('');
+  const [scriptsLoaded, setScriptsLoaded] = useState(false);
+  const MIN_PEE_INVESTMENT_CFA = 30000;
+const PEE_INVESTMENT_INCREMENT_CFA = 5000;
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    setFormData(prev => ({ ...prev, montant_cfa: value }));
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -201,6 +210,8 @@ export default function LeadForm() {
   };
 
   const isFormValid = () => {
+    const amount = parseInt(formData.montant_cfa.replace(/\s/g, ''), 10);
+    const validIncrement = (amount - MIN_PEE_INVESTMENT_CFA) % PEE_INVESTMENT_INCREMENT_CFA === 0;
     return (
       formData.civilite &&
       formData.prenom &&
@@ -208,9 +219,100 @@ export default function LeadForm() {
       formData.categorie &&
       formData.pays &&
       formData.ville &&
-      formData.telephone
+      formData.telephone &&
+      !isNaN(amount) &&
+      amount >= MIN_PEE_INVESTMENT_CFA &&
+      validIncrement
     );
   };
+
+  const loadPaymentScripts = useCallback(async () => {
+    if (typeof window === 'undefined') return;
+    if ((window as any).sendPaymentInfos) {
+      setScriptsLoaded(true);
+      return;
+    }
+
+    const loadCryptoJS = () => new Promise<void>((resolve, reject) => {
+      if ((window as any).CryptoJS) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error('Failed to load CryptoJS'));
+      document.head.appendChild(script);
+    });
+
+    const loadIntouch = () => new Promise<void>((resolve, reject) => {
+      if ((window as any).sendPaymentInfos) { resolve(); return; }
+      const script = document.createElement('script');
+      script.src = 'https://touchpay.gutouch.net/touchpayv2/script/touchpaynr/prod_touchpay-0.0.1.js';
+      script.onload = () => setTimeout(() => {
+        if ((window as any).sendPaymentInfos) resolve();
+        else reject(new Error('sendPaymentInfos not available'));
+      }, 500);
+      script.onerror = () => reject(new Error('Failed to load Intouch script'));
+      document.head.appendChild(script);
+    });
+
+    try {
+      await loadCryptoJS();
+      await loadIntouch();
+      setScriptsLoaded(true);
+      console.log('[PEE] Payment scripts loaded successfully');
+    } catch (err) {
+      console.error('[PEE] Error loading payment scripts:', err);
+      setScriptsLoaded(false);
+    }
+  }, []);
+
+  const triggerIntouchPayment = (referenceNumber: string, amount: number) => {
+    if (typeof window === 'undefined' || typeof (window as any).sendPaymentInfos !== 'function') {
+      setErrorMessage('Le système de paiement n\'est pas disponible. Veuillez rafraîchir la page.');
+      setStatus('error');
+      return;
+    }
+
+    const baseUrl = window.location.origin;
+    const statusUrl = `${baseUrl}/pee/payment-status?referenceNumber=${referenceNumber}&amount=${amount}&source=intouch`;
+
+    fetch('/api/payments/intouch/config')
+      .then(res => res.json())
+      .then(config => {
+        if (config.error) {
+          setErrorMessage(config.error);
+          setStatus('error');
+          return;
+        }
+        if (config.apiKey && config.merchantId) {
+          (window as any).sendPaymentInfos(
+            referenceNumber,
+            config.merchantId,
+            config.apiKey,
+            config.domain,
+            statusUrl,
+            statusUrl,
+            Number(amount),
+            'Dakar',
+            formData.email,
+            formData.prenom,
+            formData.nom,
+            formData.telephone
+          );
+        } else {
+          setErrorMessage('Configuration de paiement manquante.');
+          setStatus('error');
+        }
+      })
+      .catch(() => {
+        setErrorMessage('Erreur lors de l\'initialisation du paiement.');
+        setStatus('error');
+      });
+  };
+
+  // Load payment scripts when component mounts
+  useEffect(() => {
+    loadPaymentScripts();
+  }, [loadPaymentScripts]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -220,29 +322,38 @@ export default function LeadForm() {
     setErrorMessage('');
 
     try {
-      const submitData = {
-        ...formData,
-        pays: countryCodeToName[formData.pays]
-      };
-      const response = await fetch('/api/lead-pee', {
+      const response = await fetch('/api/pee/subscribe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submitData),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          pays: countryCodeToName[formData.pays]
+        }),
       });
 
       const data = await response.json();
 
-      if (response.ok) {
-        setStatus('success');
-        // Trigger GA4 event
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-          (window as any).gtag('event', 'lead_submit_pee', {
-            'event_category': 'lead',
-            'event_label': 'PEE Subscription'
-          });
+      if (response.ok && data.success) {
+        setStatus('payment_pending');
+        
+        await fetch('/api/pee/subscribe', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            referenceNumber: data.subscription.referenceNumber,
+            status: 'PAYMENT_INITIATED',
+          }),
+        });
+
+        // Ensure scripts are loaded before triggering payment
+        if (!scriptsLoaded) {
+          await loadPaymentScripts();
         }
+        
+        // Small delay to ensure scripts are ready
+        setTimeout(() => {
+          triggerIntouchPayment(data.subscription.referenceNumber, data.subscription.amount);
+        }, 100);
       } else {
         setStatus('error');
         setErrorMessage(data.error || 'Une erreur est survenue.');
@@ -273,7 +384,8 @@ export default function LeadForm() {
                   pays: 'SN',
                   ville: '',
                   telephone: '',
-                  email: ''
+                  email: '',
+                  montant_cfa: ''
                 });
               }}
               className="bg-[#C09037] text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold text-sm sm:text-base hover:bg-[#b3830f] transition-all duration-300 hover:shadow-lg"
@@ -295,7 +407,7 @@ export default function LeadForm() {
             <span className="text-[#2e0e36]">simplifiez-vous</span>
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-[#2e0e36]/70">
-            Laissez vos coordonnées, nous vous recontactons rapidement.
+            Souscrivez au PEE dès {MIN_PEE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA et bénéficiez d'un rendement attractif.
           </p>
         </div>
 
@@ -450,19 +562,88 @@ export default function LeadForm() {
               </div>
             </div>
 
+            {/* Montant */}
+            <div>
+              <label htmlFor="montant_cfa" className="block text-sm sm:text-base font-medium text-[#2e0e36] mb-1.5 sm:mb-2">
+                Montant en FCFA * (minimum {MIN_PEE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA)
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = parseInt(formData.montant_cfa.replace(/\s/g, ''), 10) || MIN_PEE_INVESTMENT_CFA;
+                    const newVal = Math.max(MIN_PEE_INVESTMENT_CFA, current - PEE_INVESTMENT_INCREMENT_CFA);
+                    setFormData(prev => ({ ...prev, montant_cfa: newVal.toString() }));
+                  }}
+                  className="flex-shrink-0 w-12 h-12 rounded-lg border border-gray-300 bg-gray-50 hover:bg-gray-100 text-xl font-bold text-[#2e0e36] transition-colors"
+                >
+                  −
+                </button>
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    name="montant_cfa"
+                    id="montant_cfa"
+                    required
+                    inputMode="numeric"
+                    placeholder={MIN_PEE_INVESTMENT_CFA.toLocaleString('fr-FR')}
+                    value={formData.montant_cfa ? parseInt(formData.montant_cfa.replace(/\s/g, ''), 10).toLocaleString('fr-FR') : ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.replace(/\D/g, '');
+                      setFormData(prev => ({ ...prev, montant_cfa: raw }));
+                    }}
+                    className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#C09037] focus:border-[#C09037] transition-all duration-200 text-sm sm:text-base text-center font-semibold"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">FCFA</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const current = parseInt(formData.montant_cfa.replace(/\s/g, ''), 10) || (MIN_PEE_INVESTMENT_CFA - PEE_INVESTMENT_INCREMENT_CFA);
+                    const newVal = current + PEE_INVESTMENT_INCREMENT_CFA;
+                    setFormData(prev => ({ ...prev, montant_cfa: newVal.toString() }));
+                  }}
+                  className="flex-shrink-0 w-12 h-12 rounded-lg border border-gray-300 bg-[#C09037] hover:bg-[#b3830f] text-xl font-bold text-white transition-colors"
+                >
+                  +
+                </button>
+              </div>
+              <p className="mt-1.5 text-xs text-gray-500">
+                Incréments de {PEE_INVESTMENT_INCREMENT_CFA.toLocaleString('fr-FR')} FCFA
+              </p>
+            </div>
+
+            {/* Payment pending */}
+            {status === 'payment_pending' && (
+              <div className="p-4 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                <div className="flex items-center">
+                  <svg className="animate-spin h-5 w-5 mr-3 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Redirection vers le portail de paiement Intouch...
+                </div>
+              </div>
+            )}
+
             {/* Submit Button */}
             <div className="pt-4 sm:pt-6">
               <button
                 type="submit"
-                disabled={!isFormValid() || status === 'submitting'}
-                className={`inline-flex items-center justify-center bg-[#C09037]/50 px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base text-white shadow-md transition-all duration-300 ${
-                  !isFormValid() || status === 'submitting'
+                disabled={!isFormValid() || status === 'submitting' || status === 'payment_pending' || !scriptsLoaded}
+                className={`inline-flex items-center justify-center px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-bold text-sm sm:text-base text-white shadow-md transition-all duration-300 ${
+                  !isFormValid() || status === 'submitting' || status === 'payment_pending' || !scriptsLoaded
                     ? 'bg-[#C09037]/50 cursor-not-allowed'
                     : 'bg-[#b3830f] hover:shadow-lg hover:scale-[1.02]'
                 }`}
               >
-                {status === 'submitting' ? 'Envoi en cours...' : 'Envoyer →'}
+                {!scriptsLoaded ? 'Chargement du paiement...' : status === 'payment_pending' ? 'Redirection...' : status === 'submitting' ? 'Traitement...' : 'Procéder au paiement →'}
               </button>
+              {!scriptsLoaded && (
+                <p className="mt-2 text-xs text-gray-500 text-center">
+                  Initialisation du système de paiement...
+                </p>
+              )}
             </div>
 
             {/* Error Message */}

@@ -240,9 +240,14 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
-// PEE Leads table - stores PEE (Plan Épargne Éducation) lead submissions
+// PEE Subscription Status enum
+export const peeSubscriptionStatusEnum = pgEnum('PeeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
+
+// PEE Leads table - stores PEE (Plan Épargne Éducation) subscription data with payment
 export const peeLeads = pgTable('pee_leads', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  referenceNumber: text('referenceNumber').notNull().unique(),
+  // Personal info
   civilite: text('civilite').notNull(),
   prenom: text('prenom').notNull(),
   nom: text('nom').notNull(),
@@ -251,8 +256,18 @@ export const peeLeads = pgTable('pee_leads', {
   ville: text('ville').notNull(),
   telephone: text('telephone').notNull(),
   email: text('email'),
-  status: text('status').notNull().default('NEW'),
+  // Investment info
+  montantCfa: decimal('montantCfa', { precision: 15, scale: 2 }).notNull(),
+  // Payment info
+  status: peeSubscriptionStatusEnum('status').notNull().default('PENDING'),
+  providerTransactionId: text('providerTransactionId'),
+  providerStatus: text('providerStatus'),
+  paymentCallbackPayload: json('paymentCallbackPayload'),
+  paymentInitiatedAt: timestamp('paymentInitiatedAt', { mode: 'date' }),
+  paymentCompletedAt: timestamp('paymentCompletedAt', { mode: 'date' }),
+  // Admin
   adminNotes: text('adminNotes'),
+  // Timestamps
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
@@ -355,3 +370,5 @@ export type ApeSubscription = typeof apeSubscriptions.$inferSelect;
 export type NewApeSubscription = typeof apeSubscriptions.$inferInsert;
 export type ApeSponsorCode = typeof apeSponsorCodes.$inferSelect;
 export type NewApeSponsorCode = typeof apeSponsorCodes.$inferInsert;
+export type PeeLead = typeof peeLeads.$inferSelect;
+export type NewPeeLead = typeof peeLeads.$inferInsert;
