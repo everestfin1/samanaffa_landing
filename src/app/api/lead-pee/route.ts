@@ -38,8 +38,12 @@ export async function POST(req: Request) {
       }
     }
 
-    // Save to database
+    // Generate reference number for legacy submissions
+    const referenceNumber = `PEE-LEGACY-${Date.now()}`;
+
+    // Save to database with required new fields
     const [newLead] = await db.insert(peeLeads).values({
+      referenceNumber,
       civilite,
       prenom,
       nom,
@@ -48,7 +52,8 @@ export async function POST(req: Request) {
       ville,
       telephone,
       email: email || null,
-      status: 'NEW',
+      montantCfa: '0', // Legacy submissions have no amount
+      status: 'PENDING',
     }).returning();
 
     // Send Email notification
