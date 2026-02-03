@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import APETogo from "@/components/APETogo/APETogo";
 
 export const metadata = {
@@ -6,6 +7,10 @@ export const metadata = {
     "Appel Public à l'Épargne de l'État du Togo 2026-2031. EVEREST Finance, co-chef de file de l'opération.",
 };
 
-export default function APETogoPage() {
+export default async function APETogoPage() {
+  
+  // Route is deactivated - redirect to home
+  redirect('/');
+  
   return <APETogo />;
 }
