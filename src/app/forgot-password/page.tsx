@@ -29,6 +29,7 @@ function ForgotPasswordForm() {
   const [step, setStep] = useState<'email' | 'otp' | 'password'>('email');
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
+  const [otpSessionId, setOtpSessionId] = useState<string | null>(null);
   const [phoneValidation, setPhoneValidation] = useState({ isValid: true, error: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -158,6 +159,7 @@ function ForgotPasswordForm() {
         setSuccess(data.message);
         setOtpSent(true);
         setStep('otp');
+        if (data.sessionId) setOtpSessionId(data.sessionId);
         startOtpTimer();
       } else {
         setError(data.error || 'Erreur lors de l\'envoi du code OTP');
@@ -193,7 +195,8 @@ function ForgotPasswordForm() {
           email: inputType === 'email' ? formData.contact : null,
           phone: inputType === 'phone' ? formData.phone : null,
           otp: formData.otp,
-          type: 'password_reset'
+          type: 'password_reset',
+          ...(otpSessionId ? { sessionId: otpSessionId } : {}),
         }),
       });
 

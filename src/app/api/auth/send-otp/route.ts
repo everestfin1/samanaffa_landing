@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
+import { sendEmailOTP, sendSMSOTP } from '@/lib/notifications'
 import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkOTPRateLimit } from '@/lib/rate-limit'
+import { findLegacyAuthUser } from '@/lib/legacy-auth-user'
 import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, type, method, registrationData } = await request.json()
+    const body = await request.json()
+    const email = body.email ? body.email.toString().trim().toLowerCase() : undefined
+    const phone = body.phone ? body.phone.toString().trim() : undefined
+    const type = body.type
+    const method = body.method
+    const registrationData = body.registrationData
 
     // Check rate limiting for OTP requests
     const identifier = email || phone
@@ -117,16 +124,27 @@ export async function POST(request: NextRequest) {
       }
 
       if (!user) {
+        if (email) {
+          user = await findLegacyAuthUser({ email })
+        }
+      }
+
+      if (!user) {
         return NextResponse.json(
           { error: 'Utilisateur non trouvé' },
           { status: 404 }
         )
       }
 
-      const otpResult = await sendOTP(user.id, 'login')
+      const otpResult = await sendOTP(
+        user.email || undefined,
+        user.phone || undefined,
+        'login',
+        method || (email ? 'email' : 'sms')
+      )
       if (!otpResult.success) {
         return NextResponse.json(
-          { error: 'Erreur lors de l\'envoi du code OTP' },
+          { error: otpResult.message || 'Erreur lors de l\'envoi du code OTP' },
           { status: 500 }
         )
       }
@@ -134,7 +152,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: true,
         message: 'Code OTP envoyé avec succès',
-        method: method || 'email'
+        method: method || (email ? 'email' : 'sms')
       })
     }
 
@@ -163,18 +181,70 @@ export async function POST(request: NextRequest) {
       }
 
       if (!user) {
+        if (email) {
+          user = await findLegacyAuthUser({ email })
+        }
+      }
+
+      if (!user) {
         return NextResponse.json(
           { error: 'Utilisateur non trouvé' },
           { status: 404 }
         )
       }
 
-      // Send OTP using the provided method (email or phone)
+      // Check if this user exists in the main `users` table or only in legacy `user`
+      const userInMainTable = await prisma.user.findFirst({ where: { id: user.id } })
+
+      if (!userInMainTable) {
+        // Legacy user: use a temporary registration session as OTP carrier
+        // to avoid FK constraint violation against `users` table
+        const deliveryEmail = email || user.email
+        const deliveryPhone = phone || user.phone
+        const otpMethod = method || (deliveryEmail ? 'email' : 'sms')
+        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+        const sessionExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+        const session = await prisma.registrationSession.create({
+          data: {
+            email: user.email,
+            phone: user.phone,
+            data: JSON.stringify({ userId: user.id, purpose: 'password_reset' }),
+            expiresAt: sessionExpiry,
+            type: 'REGISTRATION',
+          }
+        })
+
+        await prisma.otpCode.create({
+          data: {
+            userId: null,
+            registrationSessionId: session.id,
+            code: otp,
+            type: otpMethod === 'email' ? 'EMAIL' : 'SMS',
+            expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+          }
+        })
+
+        if (otpMethod === 'email' && deliveryEmail) {
+          await sendEmailOTP(deliveryEmail, otp)
+        } else if (deliveryPhone) {
+          await sendSMSOTP(deliveryPhone, otp)
+        }
+
+        return NextResponse.json({
+          success: true,
+          message: 'Code OTP envoyé avec succès',
+          method: otpMethod,
+          sessionId: session.id,
+        })
+      }
+
+      // Standard user: normal OTP flow
       const otpResult = await sendOTP(
-        email || user.email,
-        phone || user.phone,
+        email || user.email || undefined,
+        phone || user.phone || undefined,
         'login',
-        email ? 'email' : 'sms'
+        method || (email ? 'email' : 'sms')
       )
 
       if (!otpResult.success) {

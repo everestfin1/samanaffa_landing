@@ -3,11 +3,18 @@ import { verifyOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber, normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
+import { findLegacyAuthUser } from '@/lib/legacy-auth-user'
 import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, otp, type, userData } = await request.json()
+    const body = await request.json()
+    const email = body.email ? body.email.toString().trim().toLowerCase() : undefined
+    const phone = body.phone ? body.phone.toString().trim() : undefined
+    const otp = body.otp
+    const type = body.type
+    const userData = body.userData
+    const sessionId: string | undefined = body.sessionId
 
     if (!email && !phone) {
       return NextResponse.json(
@@ -59,14 +66,21 @@ export async function POST(request: NextRequest) {
     }
 
     if (!user) {
+      if (email) {
+        user = await findLegacyAuthUser({ email })
+      }
+    }
+
+    if (!user) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
         { status: 404 }
       )
     }
 
-    // Verify OTP
-    const isValidOTP = await verifyOTP(user.id, otp)
+    // Verify OTP — use sessionId carrier for legacy users if provided
+    const otpIdentifier = sessionId || user.id
+    const isValidOTP = await verifyOTP(otpIdentifier, otp)
     if (!isValidOTP) {
       return NextResponse.json(
         { error: 'Code OTP invalide ou expiré' },

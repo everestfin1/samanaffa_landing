@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { sql } from 'drizzle-orm'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkLoginRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { sanitizeText, validateEmail } from '@/lib/sanitization'
+import { findLegacyAuthUser, resetLegacyAuthLockState, updateLegacyAuthLockState } from '@/lib/legacy-auth-user'
 import bcrypt from 'bcryptjs'
 import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, password, type } = await request.json()
+    const body = await request.json()
+    const { password, type } = body
 
     // Sanitize and validate input
-    const sanitizedEmail = email ? sanitizeText(email) : undefined
-    const sanitizedPhone = phone ? sanitizeText(phone) : undefined
+    const sanitizedEmail = body.email ? sanitizeText(body.email).trim().toLowerCase() : undefined
+    const sanitizedPhone = body.phone ? sanitizeText(body.phone).trim() : undefined
     
     if (sanitizedEmail && !validateEmail(sanitizedEmail)) {
       return NextResponse.json(
@@ -57,6 +61,7 @@ export async function POST(request: NextRequest) {
 
     // Find user by email or phone (try multiple phone formats for better compatibility)
     let user: User | null = null
+    let userSource: 'users' | 'legacy_user' = 'users'
 
     if (sanitizedEmail) {
       // First try email lookup
@@ -80,6 +85,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Fallback to legacy NextAuth user table during migration
+    if (!user && sanitizedEmail) {
+      user = await findLegacyAuthUser({ email: sanitizedEmail })
+      if (user) {
+        userSource = 'legacy_user'
+      }
+    }
+
     if (!user) {
       return NextResponse.json(
         { error: 'Identifiants incorrects' },
@@ -96,34 +109,70 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user has a password set
-    if (!user.passwordHash) {
+    // Check if user has a password set - check both users table and legacy account table
+    let hasPassword = !!user.passwordHash
+    
+    // Also check the account table for legacy users (even if found in users table)
+    if (!hasPassword) {
+      try {
+        const legacyAccountResult = await db.execute(sql`
+          select password from "account"
+          where "user_id" = ${user.id} and "provider_id" = 'credential'
+          limit 1
+        `)
+        const legacyAccount = (legacyAccountResult as any).rows?.[0]
+        hasPassword = !!legacyAccount?.password
+      } catch (error) {
+        console.error('Error checking legacy account password:', error)
+      }
+    }
+    
+    if (!hasPassword) {
       return NextResponse.json(
         { error: 'password_not_set' },
         { status: 400 }
       )
     }
 
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash)
-    if (!isPasswordValid) {
-      // Increment failed attempts
-      const failedAttempts = (user.failedAttempts || 0) + 1
-      const maxAttempts = 3
-      
-      let lockedUntil: Date | null = null
-      if (failedAttempts >= maxAttempts) {
-        lockedUntil = new Date(Date.now() + 30 * 60 * 1000) // Lock for 30 minutes
+    // Verify password - check both users table and legacy account table
+    let isPasswordValid = false
+    
+    // First check users table
+    if (user.passwordHash) {
+      try {
+        isPasswordValid = await bcrypt.compare(password, user.passwordHash)
+      } catch (e) {
+        console.error('Error comparing users table password:', e)
       }
-
-      await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          failedAttempts,
-          lockedUntil
+    }
+    
+    // If not valid, also check legacy account table
+    if (!isPasswordValid) {
+      try {
+        const legacyAccountResult = await db.execute(sql`
+          select password from "account"
+          where "user_id" = ${user.id} and "provider_id" = 'credential'
+          limit 1
+        `)
+        const legacyAccount = (legacyAccountResult as any).rows?.[0]
+        if (legacyAccount?.password) {
+          let hashToCompare = legacyAccount.password
+          if (legacyAccount.password.includes(':')) {
+            const [, hashPart] = legacyAccount.password.split(':')
+            hashToCompare = hashPart
+          }
+          try {
+            isPasswordValid = await bcrypt.compare(password, hashToCompare)
+          } catch (e) {
+            console.error('Error comparing legacy password:', e)
+          }
         }
-      })
-
+      } catch (legacyError) {
+        console.error('Error checking legacy account:', legacyError)
+      }
+    }
+    
+    if (!isPasswordValid) {
       return NextResponse.json(
         { error: 'Identifiants incorrects' },
         { status: 401 }
@@ -139,13 +188,17 @@ export async function POST(request: NextRequest) {
     }
 
     // Reset failed attempts and rate limit on successful login
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        failedAttempts: 0,
-        lockedUntil: null
-      }
-    })
+    if (userSource === 'legacy_user') {
+      await resetLegacyAuthLockState(user.id)
+    } else {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          failedAttempts: 0,
+          lockedUntil: null
+        }
+      })
+    }
     resetRateLimit(request, 'login', identifier)
 
     return NextResponse.json({

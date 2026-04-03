@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { findLegacyAuthUser, updateLegacyAuthUserPassword } from '@/lib/legacy-auth-user'
 import bcrypt from 'bcryptjs'
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, phone, newPassword } = await request.json()
+    const body = await request.json()
+    const email = body.email ? body.email.toString().trim().toLowerCase() : undefined
+    const phone = body.phone ? body.phone.toString().trim() : undefined
+    const newPassword = body.newPassword
 
     if (!email && !phone) {
       return NextResponse.json(
@@ -43,7 +47,13 @@ export async function POST(request: NextRequest) {
       }
     })
 
-    if (!user) {
+    const fallbackLegacyUser = !user && email
+      ? await findLegacyAuthUser({ email })
+      : null
+
+    const resolvedUser = user || fallbackLegacyUser
+
+    if (!resolvedUser) {
       return NextResponse.json(
         { error: 'Utilisateur non trouvé' },
         { status: 404 }
@@ -55,13 +65,17 @@ export async function POST(request: NextRequest) {
     const passwordHash = await bcrypt.hash(newPassword, saltRounds)
 
     // Update user password
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash: passwordHash,
-        updatedAt: new Date()
-      }
-    })
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          passwordHash: passwordHash,
+          updatedAt: new Date()
+        }
+      })
+    } else {
+      await updateLegacyAuthUserPassword(resolvedUser.id, passwordHash)
+    }
 
     return NextResponse.json({
       success: true,

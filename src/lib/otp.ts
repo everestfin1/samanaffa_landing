@@ -64,22 +64,30 @@ export async function verifyOTP(identifier: string, code: string): Promise<boole
 
 export async function sendOTP(email?: string, phone?: string, type: 'login' | 'register' = 'login', preferredMethod?: 'email' | 'sms', registrationSessionId?: string): Promise<{ success: boolean; message: string }> {
   try {
-    if (!email && !phone) {
+    // Normalize inputs
+    const normalizedEmail = email ? email.trim().toLowerCase() : undefined
+    const normalizedPhoneInput = phone ? phone.trim() : undefined
+
+    if (!normalizedEmail && !normalizedPhoneInput) {
       return { success: false, message: 'Email ou numéro de téléphone requis' }
     }
+
+    // Use normalized values throughout
+    const emailToUse = normalizedEmail
+    const phoneToUse = normalizedPhoneInput
 
     let user: User | null = null
 
     // For registration sessions, we don't need to find/create a user yet
     if (registrationSessionId) {
       // For registration sessions, just check for duplicates but don't create user yet
-      if (!email || !phone) {
+      if (!emailToUse || !phoneToUse) {
         return { success: false, message: 'Email et numéro de téléphone requis pour l\'inscription' }
       }
 
       // Check if email is already taken
       const existingEmailUser = await prisma.user.findFirst({
-        where: { email }
+        where: { email: emailToUse }
       })
 
       if (existingEmailUser) {
@@ -88,11 +96,11 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
 
       // Check if phone is already taken (try multiple formats)
       const phoneFormats = [
-        phone, // normalized format (should be +221XXXXXXXXX)
-        phone.replace('+221', ''), // without country code
-        phone.replace('+', ''), // without + sign
-        `+221${phone.replace('+221', '')}`, // ensure +221 prefix
-      ].filter((format, index, arr) => arr.indexOf(format) === index) // remove duplicates
+        phoneToUse,
+        phoneToUse.replace('+221', ''),
+        phoneToUse.replace('+', ''),
+        `+221${phoneToUse.replace('+221', '')}`,
+      ].filter((format, index, arr) => arr.indexOf(format) === index)
 
       for (const phoneFormat of phoneFormats) {
         const existingPhoneUser = await prisma.user.findFirst({
@@ -107,17 +115,17 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       // Original logic for login and direct registration (without session)
       // Find user - try multiple phone formats for better compatibility
 
-      if (email) {
+      if (emailToUse) {
         // First try email lookup
         user = await prisma.user.findFirst({
-          where: { email }
+          where: { email: emailToUse }
         })
-        console.log('🔍 Email lookup result:', { email, found: !!user })
+        console.log('🔍 Email lookup result:', { email: emailToUse, found: !!user })
       }
 
-      if (!user && phone) {
+      if (!user && phoneToUse) {
         // Try multiple phone number formats for lookup
-        const phoneFormats = generatePhoneFormats(phone)
+        const phoneFormats = generatePhoneFormats(phoneToUse)
 
         console.log('🔍 Phone lookup formats to try:', phoneFormats)
 
@@ -142,13 +150,13 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
 
         // For registration: check for duplicates before creating user
         if (type === 'register') {
-          if (!email || !phone) {
+          if (!emailToUse || !phoneToUse) {
             return { success: false, message: 'Email et numéro de téléphone requis pour l\'inscription' }
           }
 
           // Check if email is already taken
           const existingEmailUser = await prisma.user.findFirst({
-            where: { email }
+            where: { email: emailToUse }
           })
 
           if (existingEmailUser) {
@@ -156,7 +164,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
           }
 
           // Check if phone is already taken (try multiple formats)
-          const phoneFormats = generatePhoneFormats(phone)
+          const phoneFormats = generatePhoneFormats(phoneToUse)
 
           for (const phoneFormat of phoneFormats) {
             const existingPhoneUser = await prisma.user.findFirst({
@@ -171,8 +179,8 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
           // Create new user since no duplicates found
           user = await prisma.user.create({
             data: {
-              email,
-              phone,
+              email: emailToUse,
+              phone: phoneToUse,
               firstName: 'Temporary', // Will be updated after OTP verification
               lastName: 'User',
             }
@@ -187,8 +195,8 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
     }
 
     // Determine OTP delivery method based on user preference or available options
-    const isEmail = email && email.includes('@')
-    const isPhone = phone && phone.startsWith('+')
+    const isEmail = emailToUse && emailToUse.includes('@')
+    const isPhone = phoneToUse && phoneToUse.startsWith('+')
 
     let otpType: 'email' | 'sms'
     let deliveryMethod: string
@@ -199,11 +207,11 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
       if (preferredMethod === 'email' && isEmail) {
         otpType = 'email'
         deliveryMethod = 'email'
-        deliveryValue = email
+        deliveryValue = emailToUse!
       } else if (preferredMethod === 'sms' && isPhone) {
         otpType = 'sms'
         deliveryMethod = 'SMS'
-        deliveryValue = phone
+        deliveryValue = phoneToUse!
       } else if (preferredMethod === 'email' && !isEmail) {
         return { success: false, message: 'Email requis pour l\'envoi du code par email' }
       } else if (preferredMethod === 'sms' && !isPhone) {
@@ -217,15 +225,15 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
         // Both email and phone provided - prioritize SMS for better mobile UX
         otpType = 'sms'
         deliveryMethod = 'SMS'
-        deliveryValue = phone
+        deliveryValue = phoneToUse!
       } else if (isEmail) {
         otpType = 'email'
         deliveryMethod = 'email'
-        deliveryValue = email
+        deliveryValue = emailToUse!
       } else if (isPhone) {
         otpType = 'sms'
         deliveryMethod = 'SMS'
-        deliveryValue = phone
+        deliveryValue = phoneToUse!
       } else {
         return { success: false, message: 'Format d\'email ou numéro de téléphone invalide' }
       }
