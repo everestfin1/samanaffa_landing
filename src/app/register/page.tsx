@@ -27,6 +27,7 @@ import Step4Documents from '@/components/registration/Step4Documents';
 import Step5Terms from '@/components/registration/Step5Terms';
 import OTPVerificationStep from '@/components/registration/OTPVerificationStep';
 import type { FormData, Step } from '@/components/registration/types';
+import regionsSenegal from '../../../regions_senegal.json';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -516,7 +517,6 @@ export default function RegisterPage() {
       
       // Check arrondissement requirement if department has arrondissements
       try {
-        const regionsSenegal = await import('../../../regions_senegal.json');
         const regionData = regionsSenegal.find((region: any) => 
           region.name.toLowerCase() === formData.region.toLowerCase()
         );
