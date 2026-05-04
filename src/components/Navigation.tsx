@@ -25,7 +25,7 @@ export default function Navigation() {
   const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
   const isPortalPage = pathname.startsWith('/portal');
-  const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
+  const isApePage = pathname.startsWith('/ape') || pathname.startsWith('/apesenegal');
   const isPeePage = pathname.startsWith('/pee');
   const isMaintenancePage = pathname === '/maintenance';
 
@@ -180,7 +180,7 @@ export default function Navigation() {
               </Link>
 
               <Link
-                href="/pee"
+                href="/apesenegal"
                 className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
                   isOverLightBackground
                     ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
@@ -189,7 +189,21 @@ export default function Navigation() {
                       : 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
                 }`}
               >
-                Plan Épargne Éducation
+                APE
+              </Link>
+
+              <Link
+                href="/pee"
+                className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
+                  isOverLightBackground
+                    ? 'sama-nav-text-secondary hover:drop-shadow-md'
+                    : isHomePage
+                      ? 'sama-text-primary/80 hover:drop-shadow-md'
+                      : 'sama-nav-text-secondary hover:drop-shadow-md'
+                }`}
+                style={{ color: pathname === '/pee' ? '#461D4C' : undefined }}
+              >
+                PEE
               </Link>
             </div>
           </div>
@@ -352,11 +366,19 @@ export default function Navigation() {
                   </Link>
 
                   <Link
-                    href="/pee"
+                    href="/apesenegal"
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>Plan Épargne Éducation</span>
+                    <span>APE</span>
+                  </Link>
+
+                  <Link
+                    href="/pee"
+                    className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-[#461D4C]/10 hover:text-[#461D4C] transition-all duration-200"
+                  >
+                    <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
+                    <span>PEE</span>
                   </Link>
                 </div>
               </div>
