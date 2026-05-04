@@ -16,6 +16,7 @@ export async function proxy(request: NextRequest) {
                           request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|json|webmanifest)$/);
     const isAllowedRoute = request.nextUrl.pathname.startsWith('/admin') ||
                           request.nextUrl.pathname.startsWith('/pee') ||
+                           request.nextUrl.pathname.startsWith('/apesenegal') ||
                           request.nextUrl.pathname.startsWith('/login') ||
                           request.nextUrl.pathname.startsWith('/register') ||
                           request.nextUrl.pathname.startsWith('/forgot-password') ||

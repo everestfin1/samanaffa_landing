@@ -10,7 +10,8 @@ import {
   CheckIcon,
   ChevronDownIcon,
   SpeakerXMarkIcon,
-  SpeakerWaveIcon
+  SpeakerWaveIcon,
+  AcademicCapIcon
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -511,7 +512,7 @@ export default function Home() {
         </section>
 
         {/* Diaspora Bond Banner */}
-        <section className="pt-16" aria-label="Diaspora Bond Banner">
+        {/* <section className="pt-16" aria-label="Diaspora Bond Banner">
           <div className="max-w-6xl mx-auto px-6">
             <Link href="/register">
               <Image
@@ -523,14 +524,14 @@ export default function Home() {
               />
             </Link>
           </div>
-        </section>
+        </section> */}
 
         {/* Services Section */}
         <section className="pt-16 pb-32 " aria-label="Nos services">
           <div className="max-w-6xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-5xl lg:text-6xl sama-text-primary font-extralight mb-6 tracking-tight">
-                Deux solutions,
+                Trois solutions,
                 <span className="block sama-text-gold font-light">
                   un objectif
                 </span>
@@ -540,11 +541,11 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-10">
+            <div className="grid lg:grid-cols-3 gap-10">
               {/* Sama Naffa Card */}
-              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-primary-green/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-primary-green/10 hover:-translate-y-2">
+              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-primary-green/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-primary-green/10 hover:-translate-y-2 overflow-hidden">
                 {/* Subtle accent */}
-                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-primary rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 <div className="space-y-8">
                   <div className="flex items-start gap-6">
@@ -583,16 +584,16 @@ export default function Home() {
                     href="/sama-naffa"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
-                    <span className="text-lg">Découvrir Sama Naffa</span>
+                    <span className="text-lg">Découvrir</span>
                     <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
                   </Link>
                 </div>
               </div>
 
               {/* APE Card */}
-              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-accent-gold/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-accent-gold/10 hover:-translate-y-2">
+              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-accent-gold/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-accent-gold/10 hover:-translate-y-2 overflow-hidden">
                 {/* Subtle accent */}
-                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-accent rounded-t-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-accent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 
                 <div className="space-y-8">
                   <div className="flex items-start gap-6">
@@ -603,7 +604,7 @@ export default function Home() {
                       <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light sama-text-primary mb-2">Emprunt Obligataire</h3>
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">APE Sénégal</h3>
                       <p className="sama-text-secondary text-lg font-light">Appel Public à l'Épargne</p>
                     </div>
                   </div>
@@ -628,10 +629,59 @@ export default function Home() {
                   </div>
                   
                   <Link 
-                    href="/pee"
+                    href="/apesenegal"
                     className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
                   >
-                    <span className="text-lg">Explorer le PEE</span>
+                    <span className="text-lg">Découvrir</span>
+                    <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
+                  </Link>
+                </div>
+              </div>
+
+              {/* PEE Card */}
+              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-[#461D4C]/40 transition-all duration-700 hover:shadow-2xl hover:shadow-[#20163B]/15 hover:-translate-y-2 overflow-hidden">
+                {/* Subtle accent */}
+                <div className="absolute top-0 left-0 w-full h-1 opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
+                
+                <div className="space-y-8">
+                  <div className="flex items-start gap-6">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-3xl flex items-center justify-center transition-all duration-300" style={{ backgroundColor: 'rgba(32,22,59,0.08)' }}>
+                        <AcademicCapIcon className="w-8 h-8" style={{ color: '#461D4C' }} />
+                      </div>
+                      <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">PEE</h3>
+                      <p className="sama-text-secondary text-lg font-light">Plan Épargne Éducation</p>
+                    </div>
+                  </div>
+                  
+                  <p className="sama-text-secondary leading-relaxed text-lg font-light">
+                    Préparez dès aujourd'hui l'avenir scolaire de vos enfants. Épargne progressive avec rendement attractif pour financer les études supérieures.
+                  </p>
+                  
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
+                      <span className="sama-text-secondary font-light">Épargne dès 30 000 FCFA/mois</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
+                      <span className="sama-text-secondary font-light">Rendement attractif à partir de 4,5%</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="w-2 h-2 rounded-full" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
+                      <span className="sama-text-secondary font-light">Sécurisé pour l'avenir de vos enfants</span>
+                    </div>
+                  </div>
+                  
+                  <Link 
+                    href="/pee"
+                    className="inline-flex items-center gap-3 font-medium transition-all duration-300 group/link pt-4"
+                    style={{ color: '#20163B' }}
+                  >
+                    <span className="text-lg">Découvrir</span>
                     <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
                   </Link>
                 </div>

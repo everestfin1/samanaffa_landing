@@ -1,6 +1,9 @@
-import { redirect } from "next/navigation";
+import APE from "@/components/APE/APE";
 
-export default function APEPage() {
-  redirect("/");
+export default function APEPageComponent() {
+  
+  return <APE />
+
+
 }
 
