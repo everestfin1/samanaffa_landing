@@ -189,7 +189,7 @@ export default function Navigation() {
                       : 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
                 }`}
               >
-                APE
+                Emprunt obligataire
               </Link>
 
               <Link
@@ -203,7 +203,7 @@ export default function Navigation() {
                 }`}
                 style={{ color: pathname === '/pee' ? '#461D4C' : undefined }}
               >
-                PEE
+                Educ'épargne
               </Link>
             </div>
           </div>
@@ -370,7 +370,7 @@ export default function Navigation() {
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>APE</span>
+                    <span>Emprunt obligataire</span>
                   </Link>
 
                   <Link
@@ -378,7 +378,7 @@ export default function Navigation() {
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-[#461D4C]/10 hover:text-[#461D4C] transition-all duration-200"
                   >
                     <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>PEE</span>
+                    <span>Educ'épargne</span>
                   </Link>
                 </div>
               </div>

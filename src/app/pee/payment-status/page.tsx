@@ -140,7 +140,7 @@ function PaymentStatusContent() {
     if (subscriptionData?.status === 'PAYMENT_SUCCESS') {
       return {
         title: 'Paiement Réussi !',
-        message: 'Votre souscription PEE a été enregistrée avec succès.',
+        message: 'Votre souscription Educ\'épargne a été enregistrée avec succès.',
         statusBadge: 'Confirmé',
         statusColor: 'green'
       };
@@ -233,7 +233,7 @@ function PaymentStatusContent() {
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Produit</span>
-                  <span className="font-medium text-gray-900">Plan Épargne Éducation (PEE)</span>
+                  <span className="font-medium text-gray-900">Educ'épargne</span>
                 </div>
 
                 <div className="flex justify-between">

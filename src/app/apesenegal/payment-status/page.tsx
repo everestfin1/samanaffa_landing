@@ -149,7 +149,7 @@ function PaymentStatusContent() {
     if (subscriptionData?.status === 'PAYMENT_SUCCESS') {
       return {
         title: 'Paiement Réussi !',
-        message: 'Votre souscription APE a été enregistrée avec succès.',
+        message: 'Votre souscription Emprunt obligataire a été enregistrée avec succès.',
         statusBadge: 'Confirmé',
         statusColor: 'green'
       };

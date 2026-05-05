@@ -407,7 +407,7 @@ const PEE_INVESTMENT_INCREMENT_CFA = 5000;
             <span className="text-[#2e0e36]">simplifiez-vous</span>
           </h2>
           <p className="text-base sm:text-lg lg:text-xl text-[#2e0e36]/70">
-            Souscrivez au PEE dès {MIN_PEE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA et bénéficiez d'un rendement attractif.
+            Souscrivez à Educ'épargne dès {MIN_PEE_INVESTMENT_CFA.toLocaleString('fr-FR')} FCFA et bénéficiez d'un rendement attractif.
           </p>
         </div>
 

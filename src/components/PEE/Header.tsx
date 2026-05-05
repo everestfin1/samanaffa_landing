@@ -25,8 +25,8 @@ export default function Header() {
 
   const navLinks = [
     { name: 'Accueil', id: 'hero' },
-    { name: 'Pourquoi un (PEE) ?', id: 'why' },
-    { name: 'Avantages du (PEE)', id: 'advantages' },
+    { name: 'Pourquoi Educ\'épargne ?', id: 'why' },
+    { name: 'Avantages d\'Educ\'épargne', id: 'advantages' },
     { name: 'Contact', id: 'contact' },
   ];
 

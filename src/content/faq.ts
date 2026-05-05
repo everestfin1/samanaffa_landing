@@ -10,7 +10,7 @@ export const faqItems: FAQItem[] = [
   {
     id: 'what-is-sama-naffa',
     question: 'Qu\'est-ce que Sama Naffa ?',
-    answer: 'Sama Naffa est une plateforme d\'épargne digitale mobile-first qui permet aux Sénégalais d\'épargner facilement et en toute sécurité. Nous proposons des programmes d\'épargne personnalisés et des investissements APE avec confirmation immédiate et conformité BCEAO.',
+    answer: 'Sama Naffa est une plateforme d\'épargne digitale mobile-first qui permet aux Sénégalais d\'épargner facilement et en toute sécurité. Nous proposons des programmes d\'épargne personnalisés et des investissements Emprunt obligataire avec confirmation immédiate et conformité BCEAO.',
     category: 'general'
   },
   {
@@ -22,7 +22,7 @@ export const faqItems: FAQItem[] = [
   {
     id: 'minimum-amount',
     question: 'Quel est le montant minimum pour commencer ?',
-    answer: 'Le montant minimum varie selon le profil choisi. Pour l\'épargne personnalisée, vous pouvez commencer avec 10 000 FCFA par mois. Pour l\'APE, le minimum est de 50 000 FCFA.',
+    answer: 'Le montant minimum varie selon le profil choisi. Pour l\'épargne personnalisée, vous pouvez commencer avec 10 000 FCFA par mois. Pour l\'Emprunt obligataire, le minimum est de 50 000 FCFA.',
     category: 'general'
   },
 
@@ -55,25 +55,25 @@ export const faqItems: FAQItem[] = [
   // APE Questions
   {
     id: 'what-is-ape',
-    question: 'Qu\'est-ce que l\'Actionnariat Populaire Economique (APE) ?',
-    answer: 'L\'APE est un programme d\'investissement citoyen lancé par l\'État du Sénégal. Il permet aux citoyens d\'investir dans le développement national tout en bénéficiant d\'un rendement garanti de 7.5% annuel.',
+    question: 'Qu\'est-ce que l\'Emprunt obligataire ?',
+    answer: 'L\'Emprunt obligataire est un programme d\'investissement citoyen lancé par l\'État du Sénégal. Il permet aux citoyens d\'investir dans le développement national tout en bénéficiant d\'un rendement garanti de 7.5% annuel.',
     category: 'ape'
   },
   {
     id: 'ape-guarantee',
-    question: 'L\'APE est-il garanti par l\'État ?',
-    answer: 'Oui, l\'APE bénéficie de la garantie totale de l\'État sénégalais. Votre investissement est 100% sécurisé et le rendement de 7.5% annuel est garanti pour toute la durée de votre investissement.',
+    question: 'L\'Emprunt obligataire est-il garanti par l\'État ?',
+    answer: 'Oui, l\'Emprunt obligataire bénéficie de la garantie totale de l\'État sénégalais. Votre investissement est 100% sécurisé et le rendement de 7.5% annuel est garanti pour toute la durée de votre investissement.',
     category: 'ape'
   },
   {
     id: 'ape-duration',
-    question: 'Quelle est la durée minimum pour l\'APE ?',
-    answer: 'La durée minimum pour l\'APE est de 5 ans. Vous pouvez choisir des durées de 5, 7 ou 10 ans selon vos objectifs d\'investissement.',
+    question: 'Quelle est la durée minimum pour l\'Emprunt obligataire ?',
+    answer: 'La durée minimum pour l\'Emprunt obligataire est de 5 ans. Vous pouvez choisir des durées de 5, 7 ou 10 ans selon vos objectifs d\'investissement.',
     category: 'ape'
   },
   {
     id: 'ape-returns',
-    question: 'Quand recevrai-je mes intérêts APE ?',
+    question: 'Quand recevrai-je mes intérêts Emprunt obligataire ?',
     answer: 'Vous pouvez choisir entre deux modes : réinvestissement automatique des intérêts (intérêts composés) ou paiement annuel des intérêts sur votre compte mobile money.',
     category: 'ape'
   },
@@ -122,7 +122,7 @@ export const faqItems: FAQItem[] = [
 export const faqCategories = [
   { id: 'general', name: 'Général', icon: 'ℹ️' },
   { id: 'savings', name: 'Épargne', icon: '💰' },
-  { id: 'ape', name: 'APE', icon: '📈' },
+  { id: 'ape', name: 'Emprunt obligataire', icon: '📈' },
   { id: 'technical', name: 'Technique', icon: '🔧' },
   { id: 'security', name: 'Sécurité', icon: '🛡️' }
 ];

@@ -604,7 +604,7 @@ export default function Home() {
                       <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light sama-text-primary mb-2">APE Sénégal</h3>
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">Emprunt obligataire</h3>
                       <p className="sama-text-secondary text-lg font-light">Appel Public à l'Épargne</p>
                     </div>
                   </div>
@@ -652,7 +652,7 @@ export default function Home() {
                       <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" style={{ background: 'linear-gradient(to right, #20163B, #461D4C)' }}></div>
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-3xl font-light sama-text-primary mb-2">PEE</h3>
+                      <h3 className="text-3xl font-light sama-text-primary mb-2">Educ'épargne</h3>
                       <p className="sama-text-secondary text-lg font-light">Plan Épargne Éducation</p>
                     </div>
                   </div>

@@ -17,7 +17,7 @@ export default function AdvantagesPEE() {
           {/* Text/List Block (Left per design) */}
           <div className="text-white max-md:order-last">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-[#D2BBD6]">
-              Avantages du PEE
+              Avantages d'Educ'épargne
             </h2>
             <ul className="space-y-1 md:space-y-2">
               {advantages.map((advantage, index) => (

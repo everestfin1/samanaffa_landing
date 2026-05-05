@@ -103,7 +103,7 @@ export default function SouscrireAPEPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        throw new Error(errorData?.error || 'Erreur lors de la création du compte APE');
+        throw new Error(errorData?.error || 'Erreur lors de la création du compte Emprunt obligataire');
       }
 
       const data = await response.json();
@@ -112,9 +112,9 @@ export default function SouscrireAPEPage() {
       }
 
       setApeAccount(data.account);
-      setSuccess('Compte APE créé avec succès ! Vous pouvez maintenant effectuer votre premier investissement.');
+      setSuccess('Compte Emprunt obligataire créé avec succès ! Vous pouvez maintenant effectuer votre premier investissement.');
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erreur inconnue lors de la création du compte APE';
+      const message = err instanceof Error ? err.message : 'Erreur inconnue lors de la création du compte Emprunt obligataire';
       setError(message);
     } finally {
       setIsCreatingAccount(false);
@@ -178,11 +178,11 @@ export default function SouscrireAPEPage() {
                 className="inline-flex items-center text-muted-foreground hover:text-foreground transition-colors duration-300 mb-6"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Retour à l&apos;APE
+                Retour à l&apos;Emprunt obligataire
               </Link>
               
               <h1 className="text-4xl font-bold text-card-foreground mb-4">
-                Investissement APE
+                Investissement Emprunt obligataire
               </h1>
               <p className="text-lg text-muted-foreground">
                 {selectionData?.type === 'ape' && selectionData.trancheId 
@@ -245,10 +245,10 @@ export default function SouscrireAPEPage() {
                   
                   <div>
                     <h2 className="text-2xl font-bold text-card-foreground mb-2">
-                      Créer votre compte APE
+                      Créer votre compte Emprunt obligataire
                     </h2>
                     <p className="text-muted-foreground">
-                      Pour investir dans l'APE, vous devez d'abord créer un compte d'investissement.
+                      Pour investir dans l'Emprunt obligataire, vous devez d'abord créer un compte d'investissement.
                     </p>
                   </div>
 
@@ -269,7 +269,7 @@ export default function SouscrireAPEPage() {
                     ) : (
                       <>
                         <PlusIcon className="w-5 h-5" />
-                        <span>Créer mon compte APE</span>
+                        <span>Créer mon compte Emprunt obligataire</span>
                       </>
                     )}
                   </button>
@@ -288,7 +288,7 @@ export default function SouscrireAPEPage() {
                 <div className="space-y-8">
                   {/* Account Summary */}
                   <div className="bg-gradient-to-r from-gold-metallic to-gold-dark rounded-2xl p-6 text-white">
-                    <h3 className="text-lg font-semibold mb-4">Votre compte APE</h3>
+                    <h3 className="text-lg font-semibold mb-4">Votre compte Emprunt obligataire</h3>
                     <div className="grid md:grid-cols-3 gap-6">
                       <div>
                         <div className="text-sm opacity-80">Numéro de compte</div>
@@ -310,7 +310,7 @@ export default function SouscrireAPEPage() {
                     <div className="bg-white rounded-2xl border border-timberwolf/20 p-6">
                       <h4 className="text-lg font-semibold text-night mb-4">Effectuer un investissement</h4>
                       <p className="text-night/70 text-sm mb-6">
-                        Investissez dans l'APE avec des montants flexibles. Minimum 10,000 FCFA.
+                        Investissez dans l'Emprunt obligataire avec des montants flexibles. Minimum 10,000 FCFA.
                       </p>
                       <button
                         onClick={() => setShowTransferModal(true)}
@@ -370,7 +370,7 @@ export default function SouscrireAPEPage() {
           onClose={() => setShowTransferModal(false)}
           currentBalance={apeAccount.balance}
           type="deposit"
-          accountName="Compte APE"
+          accountName="Compte Emprunt obligataire"
           accountType="ape_investment"
           kycStatus={kycStatus}
           onConfirm={handleTransferCompleted}

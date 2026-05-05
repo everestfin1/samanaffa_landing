@@ -55,7 +55,7 @@ export default function Footer() {
                   onClick={() => router.push('/pee')} 
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  PEE • Plan Épargne Éducation
+                  Educ'épargne • Plan Épargne Éducation
                 </button>
               </div>
             </div>

@@ -18,7 +18,7 @@ export default function WhyPEE() {
           {/* Text Block */}
           <div className="space-y-6">
             <h2 className="text-3xl md:text-4xl font-bold text-[#C09037]">
-              Pourquoi un Plan Épargne Éducation ?
+              Pourquoi Educ'épargne ?
             </h2>
             <p className="text-lg leading-relaxed text-gray-200">
               Parce que l’éducation a un coût et que l’anticipation fait la différence. Le Plan Épargne Éducation vous permet de constituer progressivement un capital dédié aux études de votre enfant, en toute sérénité, pour lui offrir la liberté de choisir son avenir.

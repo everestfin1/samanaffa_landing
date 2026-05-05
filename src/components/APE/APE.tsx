@@ -454,7 +454,7 @@ export default function APE() {
       <main id="main">
         <section
           className="relative w-full bg-white"
-          aria-label="APE Hero"
+          aria-label="Emprunt obligataire Hero"
         >
           {/* Background Image */}
           <div className="relative w-full h-auto">
@@ -528,7 +528,7 @@ export default function APE() {
         <InvestmentSimulator />
 
         {/* Investment Tranches - Main Content with animated background */}
-        <section className="relative py-16 sm:py-20" aria-label="Tranches d'investissement APE">
+        <section className="relative py-16 sm:py-20" aria-label="Tranches d'investissement Emprunt obligataire">
           <InvestmentTranchesBackground />
           <div className="relative max-w-7xl mx-auto px-6">
             <div className="text-center text-white mb-10">
