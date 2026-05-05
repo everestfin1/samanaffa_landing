@@ -57,6 +57,12 @@ export default function Footer() {
                 >
                   Educ'épargne • Plan Épargne Éducation
                 </button>
+                <button 
+                  onClick={() => router.push('/apesenegal')} 
+                  className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
+                >
+                  Emprunt obligataire • Appel Public à l'Épargne
+                </button>
               </div>
             </div>
             
