@@ -31,6 +31,7 @@ export default function WebcamCapture({
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isRequestingCamera, setIsRequestingCamera] = useState(false);
   
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -71,9 +72,13 @@ export default function WebcamCapture({
     }
 
     isInitializingRef.current = true;
-    retryCountRef.current = 0;
+    // Only reset retry counter on fresh (non-retry) calls
+    if (!forceNew) {
+      retryCountRef.current = 0;
+    }
     setError('');
     setHasPermission(null);
+    setIsRequestingCamera(true);
 
     try {
       // Check if we already have a stream
@@ -92,7 +97,27 @@ export default function WebcamCapture({
         throw new Error('Webcam not supported');
       }
 
-      console.log('Requesting webcam access...');
+      // Pre-check permission state to avoid unnecessary getUserMedia calls
+      if (navigator.permissions && navigator.permissions.query) {
+        try {
+          const permStatus = await navigator.permissions.query({ name: 'camera' as PermissionName });
+          console.log('Camera permission state:', permStatus.state);
+          if (permStatus.state === 'denied') {
+            setHasPermission(false);
+            setError('Permission d\'accès à la caméra refusée. Cliquez sur l\'icône caméra 🔒 dans la barre d\'adresse de votre navigateur, puis autorisez l\'accès et rechargez la page.');
+            isInitializingRef.current = false;
+            return;
+          }
+        } catch {
+          // permissions.query not supported for camera in all browsers, continue
+        }
+      }
+
+      console.log('Requesting webcam access...', {
+        isSecureContext: window.isSecureContext,
+        protocol: window.location.protocol,
+        hostname: window.location.hostname,
+      });
       
       const constraints: MediaStreamConstraints = {
         video: {
@@ -104,7 +129,14 @@ export default function WebcamCapture({
         audio: false
       };
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      let mediaStream: MediaStream;
+      try {
+        mediaStream = await navigator.mediaDevices.getUserMedia(constraints);
+      } catch (firstErr) {
+        // Fallback: try with minimal constraints (Edge can be strict)
+        console.warn('Full constraints failed, trying minimal {video: true}...', firstErr);
+        mediaStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
       
       // Store stream in ref and state
       streamRef.current = mediaStream;
@@ -112,96 +144,84 @@ export default function WebcamCapture({
       setHasPermission(true);
       setError('');
 
-        // Set up video element with proper error handling
-        if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream;
-
-          // Handle video loading with proper error handling
-          const handleLoadedMetadata = () => {
-            console.log('Video metadata loaded:', videoRef.current?.videoWidth, 'x', videoRef.current?.videoHeight);
-            videoRef.current?.removeEventListener('loadedmetadata', handleLoadedMetadata);
-
-            // Ensure video plays when metadata is loaded
-            if (videoRef.current) {
-              const playVideo = async (retries = 3) => {
-                try {
-                  await videoRef.current!.play();
-                  console.log('Video started playing successfully');
-                  setIsPlaying(true);
-                } catch (playError) {
-                  console.warn('Video play failed, retrying...', playError);
-                  setIsPlaying(false);
-                  if (retries > 0) {
-                    setTimeout(() => playVideo(retries - 1), 100);
-                  } else {
-                    console.error('Video play failed after retries:', playError);
-                    // Don't set error here, let the manual play overlay handle it
-                  }
-                }
-              };
-              playVideo();
-            }
-          };
-
-          const handleCanPlay = () => {
-            console.log('Video can play - ready to display');
-            videoRef.current?.removeEventListener('canplay', handleCanPlay);
-          };
-
-          const handleError = (e: Event) => {
-            console.error('Video element error:', e);
-            videoRef.current?.removeEventListener('error', handleError);
-            videoRef.current?.removeEventListener('loadedmetadata', handleLoadedMetadata);
-            videoRef.current?.removeEventListener('canplay', handleCanPlay);
-            setError('Erreur lors du chargement de la vidéo');
-          };
-
-          // Add event listeners with a small delay to ensure video element is ready
-          setTimeout(() => {
-            if (videoRef.current) {
-              videoRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-              videoRef.current.addEventListener('canplay', handleCanPlay);
-              videoRef.current.addEventListener('error', handleError);
-            }
-          }, 50);
-        }
-
     } catch (err) {
       console.error('Webcam access error:', err);
       setHasPermission(false);
       cleanupStream();
 
+      let shouldRetry = false;
+
       if (err instanceof Error) {
         if (err.name === 'NotAllowedError') {
-          setError('Permission d\'accès à la caméra refusée. Veuillez autoriser l\'accès dans les paramètres de votre navigateur.');
+          // Never retry on permission denied — user must fix browser settings
+          setError('Permission d\'accès à la caméra refusée. Cliquez sur l\'icône caméra 🔒 dans la barre d\'adresse de votre navigateur, puis autorisez l\'accès et rechargez la page.');
         } else if (err.name === 'NotFoundError') {
           setError('Aucune caméra trouvée sur votre appareil.');
         } else if (err.name === 'NotReadableError') {
           setError('La caméra est déjà utilisée par une autre application.');
-          // Add retry logic for this specific case
-          if (retryCountRef.current < maxRetries) {
-            retryCountRef.current++;
-            console.log(`Retrying webcam access (${retryCountRef.current}/${maxRetries})...`);
-            setTimeout(() => requestWebcam(true), 1000);
-            return;
-          }
+          shouldRetry = true;
+        } else if (err.name === 'OverconstrainedError') {
+          setError('Erreur de configuration caméra. Veuillez réessayer.');
+          shouldRetry = true;
         } else {
           setError('Erreur lors de l\'accès à la caméra. Veuillez réessayer.');
+          shouldRetry = true;
         }
       } else {
         setError('Erreur inconnue lors de l\'accès à la caméra.');
       }
 
-      // Auto-retry for general errors
-      if (!error && retryCountRef.current < maxRetries) {
+      // Only retry for recoverable errors, with bounded counter
+      if (shouldRetry && retryCountRef.current < maxRetries) {
         retryCountRef.current++;
-        setTimeout(() => requestWebcam(true), 2000);
+        console.log(`Retrying webcam access (${retryCountRef.current}/${maxRetries})...`);
+        setTimeout(() => requestWebcam(true), 1500);
       }
     } finally {
       isInitializingRef.current = false;
+      setIsRequestingCamera(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cleanupStream, facingMode, isWebcamSupported]);
+
+  useEffect(() => {
+    const currentVideo = videoRef.current;
+    const currentStream = streamRef.current;
+
+    if (!hasPermission || !currentVideo || !currentStream) {
+      return;
+    }
+
+    currentVideo.srcObject = currentStream;
+    currentVideo.muted = true;
+    currentVideo.playsInline = true;
+
+    const handleLoadedMetadata = () => {
+      console.log('Video metadata loaded:', currentVideo.videoWidth, 'x', currentVideo.videoHeight);
+      currentVideo.play()
+        .then(() => {
+          console.log('Video started playing successfully');
+          setIsPlaying(true);
+        })
+        .catch((playError) => {
+          console.warn('Video play failed:', playError);
+          setIsPlaying(false);
+        });
+    };
+
+    const handleError = (event: Event) => {
+      console.error('Video element error:', event);
+      setError('Erreur lors du chargement de la vidéo');
+    };
+
+    currentVideo.addEventListener('loadedmetadata', handleLoadedMetadata);
+    currentVideo.addEventListener('error', handleError);
+
+    return () => {
+      currentVideo.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      currentVideo.removeEventListener('error', handleError);
+    };
+  }, [hasPermission, stream]);
 
   // Capture photo with simplified logic
   const capturePhoto = useCallback(() => {
@@ -280,22 +300,15 @@ export default function WebcamCapture({
       setIsPlaying(false);
       retryCountRef.current = 0;
 
-      // Small delay to ensure DOM is ready
-      const initTimer = setTimeout(() => {
-        requestWebcam();
-      }, 100);
-
-      return () => {
-        clearTimeout(initTimer);
-      };
     } else {
       // Clean up when modal closes
       cleanupStream();
       setError('');
       setHasPermission(null);
       setCapturedImage(null);
+      setIsRequestingCamera(false);
     }
-  }, [isOpen, requestWebcam, cleanupStream]);
+  }, [isOpen, cleanupStream]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -330,8 +343,24 @@ export default function WebcamCapture({
     if (hasPermission === null) {
       return (
         <div className="flex flex-col items-center justify-center py-8">
-          <div className="w-8 h-8 border-2 border-gold-metallic/30 border-t-gold-metallic rounded-full animate-spin mb-3"></div>
-          <p className="text-sm text-gray-600">Initialisation de la caméra...</p>
+          {isRequestingCamera ? (
+            <>
+              <div className="w-8 h-8 border-2 border-gold-metallic/30 border-t-gold-metallic rounded-full animate-spin mb-3"></div>
+              <p className="text-sm text-gray-600">Initialisation de la caméra...</p>
+            </>
+          ) : (
+            <>
+              <CameraIcon className="w-12 h-12 text-gold-metallic mb-3" />
+              <p className="text-sm text-gray-600 text-center mb-4">Cliquez pour autoriser l'accès à la caméra.</p>
+              <button
+                onClick={() => requestWebcam()}
+                className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gold-metallic hover:bg-gold-metallic/90 shadow-lg transition-all duration-200"
+              >
+                <CameraIcon className="w-5 h-5" />
+                <span>Activer la caméra</span>
+              </button>
+            </>
+          )}
         </div>
       );
     }
@@ -487,7 +516,7 @@ export default function WebcamCapture({
     }
 
     return null;
-  }, [error, hasPermission, capturedImage, isCapturing, facingMode, capturePhoto, requestWebcam, isPlaying]);
+  }, [error, hasPermission, capturedImage, isCapturing, facingMode, capturePhoto, requestWebcam, isPlaying, isRequestingCamera]);
 
   if (!isOpen) return null;
 

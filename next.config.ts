@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === 'development';
+
 const nextConfig: NextConfig = {
   /* config options here */
   experimental: {
@@ -67,7 +69,11 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob: https://www.facebook.com https://cdn.jsdelivr.net; connect-src 'self' https://touchpay.gutouch.net https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com; frame-src 'self' https://vercel.live https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self' https://touchpay.gutouch.net; frame-ancestors 'none'; upgrade-insecure-requests",
+            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob: https://www.facebook.com https://cdn.jsdelivr.net; media-src 'self' blob:; connect-src 'self' https://touchpay.gutouch.net https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com; frame-src 'self' https://vercel.live https://www.googletagmanager.com; object-src 'none'; base-uri 'self'; form-action 'self' https://touchpay.gutouch.net; frame-ancestors 'none'${isDev ? '' : '; upgrade-insecure-requests'}`,
+          },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(self), microphone=()',
           },
         ],
       },

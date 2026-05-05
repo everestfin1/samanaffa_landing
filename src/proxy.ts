@@ -113,7 +113,7 @@ export async function proxy(request: NextRequest) {
   response.headers.set('Content-Security-Policy', csp);
 
   // Permissions Policy
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=()');
+  response.headers.set('Permissions-Policy', 'camera=(self), microphone=(), geolocation=(), payment=()');
 
   return response;
 }
