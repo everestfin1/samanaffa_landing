@@ -86,19 +86,19 @@ export default function Footer() {
           <div>
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex items-center gap-3">
-                <PhoneIcon className="w-5 h-5" />
-                <p className="text-lg">+221 33 822 87 00</p>
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex gap-3">
+                <PhoneIcon className="w-5 h-5 mt-1" />
+                <p className="text-lg mb-0 leading-none">+221 33 822 87 00</p>
               </div>
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex items-center gap-3">
-                <EnvelopeIcon className="w-5 h-5" />
-                <p className="text-lg">contact@everestfin.com</p>
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex gap-3">
+                <EnvelopeIcon className="w-5 h-5 mt-1" />
+                <p className="text-lg mb-0 leading-none">contact@everestfin.com</p>
               </div>
-              <div className="pt-2 flex items-center gap-3">
-                <MapPinIcon className="w-5 h-5" />
+              <div className="pt-2 flex gap-3">
+                <MapPinIcon className="w-5 h-5 mt-1" />
                 <div>
-                  <p className="text-white/50">18 Boulevard de la République</p>
-                  <p className="text-white/50">Dakar, Sénégal BP: 11659-13000</p>
+                  <p className="text-white/50 mb-0 leading-none">18 Boulevard de la République</p>
+                  <p className="text-white/50 mb-0 leading-none">Dakar, Sénégal BP: 11659-13000</p>
                 </div>
               </div>
             </div>
