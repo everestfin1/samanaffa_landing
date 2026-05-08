@@ -314,7 +314,7 @@ export default function Step3Address({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Pays de résidence *</label>
+        <label className="block text-sm font-medium text-night mb-2">Pays de résidence *</label>
         <div className="relative" ref={countryDropdownRef}>
           {/* Hidden input for form submission */}
           <input
@@ -355,8 +355,8 @@ export default function Step3Address({
                   }
                 }, 200);
               }}
-              className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-                hasFieldError('country') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+              className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+                hasFieldError('country') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
               }`}
               placeholder={formData.country ? '' : 'Sélectionner un pays'}
               required
@@ -370,7 +370,7 @@ export default function Step3Address({
 
           {/* Dropdown options */}
           {isCountryDropdownOpen && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-sama-border-light rounded-xl shadow-lg max-h-60 overflow-auto">
+            <div className="absolute z-50 w-full mt-1 bg-white border border-timberwolf/30 rounded-lg shadow-lg max-h-60 overflow-auto">
               {filteredCountries.length === 0 ? (
                 <div className="px-4 py-3 text-sm text-gray-500">
                   Aucun pays trouvé
@@ -381,8 +381,8 @@ export default function Step3Address({
                     key={country.code}
                     type="button"
                     onClick={() => handleCountrySelect(country.name)}
-                    className={`w-full px-4 py-3 text-left hover:bg-sama-bg-light-green transition-colors duration-150 ${
-                      formData.country === country.name ? 'bg-sama-bg-light-green-alt font-medium' : ''
+                    className={`w-full px-4 py-3 text-left hover:bg-timberwolf/10 transition-colors ${
+                      formData.country === country.name ? 'bg-timberwolf/10 font-medium' : ''
                     }`}
                   >
                     <span className="text-sm">
@@ -403,15 +403,15 @@ export default function Step3Address({
       {formData.country === 'Senegal' && (
         <>
           <div>
-            <label className="block text-sm font-semibold text-sama-text-primary mb-2">Région *</label>
+            <label className="block text-sm font-medium text-night mb-2">Région *</label>
             <div className="relative">
               <select
                 name="region"
                 value={formData.region}
                 onChange={handleFieldChange}
                 onBlur={onBlur}
-                className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 appearance-none ${
-                  hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors appearance-none ${
+                  hasFieldError('region') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                 }`}
                 required
               >
@@ -423,7 +423,7 @@ export default function Step3Address({
                 ))}
               </select>
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
-                <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-night/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -435,7 +435,7 @@ export default function Step3Address({
 
           {formData.region && (
             <div>
-              <label className="block text-sm font-semibold text-sama-text-primary mb-2">Département *</label>
+              <label className="block text-sm font-medium text-night mb-2">Département *</label>
               {getDepartmentsForRegion(formData.region).length > 0 ? (
                 <div className="relative">
                   <select
@@ -443,8 +443,8 @@ export default function Step3Address({
                     value={formData.department}
                     onChange={handleFieldChange}
                     onBlur={onBlur}
-                    className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 appearance-none ${
-                      hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                    className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors appearance-none ${
+                      hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                     }`}
                     required
                   >
@@ -468,8 +468,8 @@ export default function Step3Address({
                   value={formData.department}
                   onChange={handleFieldChange}
                   onBlur={onBlur}
-                  className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-                    hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                  className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+                    hasFieldError('department') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                   }`}
                   placeholder="Saisir le département"
                   required
@@ -483,15 +483,15 @@ export default function Step3Address({
 
           {formData.region && formData.department && departmentHasArrondissements(formData.region, formData.department) && (
             <div>
-              <label className="block text-sm font-semibold text-sama-text-primary mb-2">Arrondissement *</label>
+              <label className="block text-sm font-medium text-night mb-2">Arrondissement *</label>
               <div className="relative">
                 <select
                   name="arrondissement"
                   value={formData.arrondissement}
                   onChange={handleFieldChange}
                   onBlur={onBlur}
-                  className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 appearance-none ${
-                    hasFieldError('arrondissement') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                  className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors appearance-none ${
+                    hasFieldError('arrondissement') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                   }`}
                   required
                 >
@@ -516,7 +516,7 @@ export default function Step3Address({
 
           {formData.region && formData.department && (
             <div>
-              <label className="block text-sm font-semibold text-sama-text-primary mb-2">Commune *</label>
+              <label className="block text-sm font-medium text-night mb-2">Commune *</label>
               {(() => {
                 let communes: Array<{value: string, display: string}> = [];
                 
@@ -536,8 +536,8 @@ export default function Step3Address({
                       value={formData.district}
                       onChange={handleFieldChange}
                       onBlur={onBlur}
-                      className={`w-full px-4 py-3 pr-12 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 appearance-none ${
-                        hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                      className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors appearance-none ${
+                        hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                       }`}
                       required
                     >
@@ -561,8 +561,8 @@ export default function Step3Address({
                     value={formData.district}
                     onChange={handleFieldChange}
                     onBlur={onBlur}
-                    className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-                      hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+                      hasFieldError('district') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
                     }`}
                     placeholder={
                       departmentHasArrondissements(formData.region, formData.department) && !formData.arrondissement
@@ -583,15 +583,15 @@ export default function Step3Address({
       )}
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Adresse complète *</label>
+        <label className="block text-sm font-medium text-night mb-2">Adresse complète *</label>
         <textarea
           name="address"
           value={formData.address}
           onChange={handleFieldChange}
           onBlur={onBlur}
           rows={3}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 resize-none ${
-            hasFieldError('address') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors resize-none ${
+            hasFieldError('address') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
           placeholder="Ex: 1, Rue de la République..."
           required

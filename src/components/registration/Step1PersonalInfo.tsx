@@ -208,7 +208,7 @@ export default function Step1PersonalInfo({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+        <label className="block text-sm font-medium text-night mb-2">
           Civilité *
         </label>
         <div className="grid grid-cols-3 gap-3">
@@ -218,7 +218,11 @@ export default function Step1PersonalInfo({
           ].map((option) => (
             <label
               key={option.value}
-              className={`flex items-center justify-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-sama-bg-light-green ${formData.civilite === option.value ? 'bg-sama-bg-light-green' : ''} ${formData.civilite === option.value ? 'text-sama-primary-green' : 'text-sama-text-secondary'}`}
+              className={`relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                formData.civilite === option.value
+                  ? 'border-gold-metallic bg-gold-metallic/5 shadow-sm'
+                  : 'border-timberwolf/30 hover:border-timberwolf/50 hover:bg-timberwolf/5'
+              }`}
             >
               <input
                 type="radio"
@@ -228,15 +232,28 @@ export default function Step1PersonalInfo({
                 onChange={onInputChange}
                 className="sr-only"
               />
-              <span
-                className={`font-medium ${
-                  formData.civilite === option.value
-                    ? "text-sama-primary-green"
-                    : "text-sama-text-secondary"
-                }`}
-              >
-                {option.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                    formData.civilite === option.value
+                      ? 'border-gold-metallic'
+                      : 'border-timberwolf/40'
+                  }`}
+                >
+                  {formData.civilite === option.value && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-gold-metallic" />
+                  )}
+                </div>
+                <span
+                  className={`font-medium text-sm ${
+                    formData.civilite === option.value
+                      ? "text-night"
+                      : "text-night/70"
+                  }`}
+                >
+                  {option.label}
+                </span>
+              </div>
             </label>
           ))}
         </div>
@@ -244,7 +261,7 @@ export default function Step1PersonalInfo({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+          <label className="block text-sm font-medium text-night mb-2">
             Prénom *
           </label>
           <input
@@ -253,10 +270,10 @@ export default function Step1PersonalInfo({
             value={formData.firstName}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
               hasFieldError("firstName")
                 ? "border-red-400 bg-red-50"
-                : "border-sama-border-light"
+                : "border-timberwolf/30"
             }`}
             placeholder="Amadou"
             required
@@ -268,7 +285,7 @@ export default function Step1PersonalInfo({
           )}
         </div>
         <div>
-          <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+          <label className="block text-sm font-medium text-night mb-2">
             Nom *
           </label>
           <input
@@ -277,10 +294,10 @@ export default function Step1PersonalInfo({
             value={formData.lastName}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
               hasFieldError("lastName")
                 ? "border-red-400 bg-red-50"
-                : "border-sama-border-light"
+                : "border-timberwolf/30"
             }`}
             placeholder="Diallo"
             required
@@ -305,7 +322,7 @@ export default function Step1PersonalInfo({
       />
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+        <label className="block text-sm font-medium text-night mb-2">
           Adresse email *
         </label>
         <input
@@ -314,10 +331,10 @@ export default function Step1PersonalInfo({
           value={formData.email}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
             hasFieldError("email")
               ? "border-red-400 bg-red-50"
-              : "border-sama-border-light"
+              : "border-timberwolf/30"
           }`}
           placeholder="amadou.diallo@email.com"
           required
@@ -329,7 +346,7 @@ export default function Step1PersonalInfo({
 
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+        <label className="block text-sm font-medium text-night mb-2">
           Statut d'emploi *
         </label>
         <select
@@ -337,10 +354,10 @@ export default function Step1PersonalInfo({
           value={formData.statutEmploi}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
             hasFieldError("statutEmploi")
               ? "border-red-400 bg-red-50"
-              : "border-sama-border-light"
+              : "border-timberwolf/30"
           }`}
           required
         >
@@ -358,7 +375,7 @@ export default function Step1PersonalInfo({
         )}
       </div>
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">
+        <label className="block text-sm font-medium text-night mb-2">
           Métier *
         </label>
         <select
@@ -366,10 +383,10 @@ export default function Step1PersonalInfo({
           value={formData.metiers}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
             hasFieldError("metiers")
               ? "border-red-400 bg-red-50"
-              : "border-sama-border-light"
+              : "border-timberwolf/30"
           }`}
           required
           disabled={!formData.statutEmploi}

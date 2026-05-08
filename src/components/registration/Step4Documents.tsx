@@ -122,8 +122,8 @@ export default function Step4Documents({
   return (
     <div className="space-y-6">
       {/* Selfie Upload */}
-      <div className="border-2 border-dashed border-sama-primary-green/30 rounded-xl p-6 bg-sama-bg-light-green-card">
-        <h4 className="font-semibold text-sama-text-primary mb-4 flex items-center gap-2">
+      <div className="border-2 border-dashed border-gold-metallic/30 rounded-lg p-6 bg-gold-metallic/5">
+        <h4 className="font-semibold text-night mb-4 flex items-center gap-2">
           <UserIcon className="w-5 h-5" />
           Photo de profil pour vérification d'identité
         </h4>
@@ -131,34 +131,34 @@ export default function Step4Documents({
         {formData.selfieImage ? (
           // Show uploaded image preview
           <div className="space-y-4">
-            <div className="relative bg-white rounded-xl p-4 border-2 border-sama-success">
+            <div className="relative bg-white rounded-lg p-4 border-2 border-green-500">
               <div className="flex items-start gap-4">
                 <div className="relative w-24 h-24 flex-shrink-0">
                   <Image
                     src={createImagePreview(formData.selfieImage)}
                     alt="Photo de profil"
-                    className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"
+                    className="w-full h-full object-cover rounded-lg border-2 border-green-500/50"
                     width={100}
                     height={100}
                   />
-                  <div className="absolute -top-2 -right-2 bg-sama-success text-white rounded-full p-1">
+                  <div className="absolute -top-2 -right-2 bg-green-500 text-white rounded-full p-1">
                     <EyeIcon className="w-3 h-3" />
                   </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <UserIcon className="w-4 h-4 text-sama-success" />
-                    <h5 className="font-semibold text-sama-success text-sm">Selfie de vérification</h5>
+                    <UserIcon className="w-4 h-4 text-green-500" />
+                    <h5 className="font-semibold text-green-500 text-sm">Selfie de vérification</h5>
                   </div>
-                  <p className="text-sm text-sama-primary-green-dark font-medium truncate">
+                  <p className="text-sm text-green-700 font-medium truncate">
                     {formData.selfieImage.name}
                   </p>
-                  <p className="text-xs text-sama-success mt-1">
+                  <p className="text-xs text-green-500 mt-1">
                     {formatFileSize(formData.selfieImage.size)}
                   </p>
                   <div className="flex items-center gap-2 mt-2">
-                    <div className="w-2 h-2 bg-sama-success rounded-full"></div>
-                    <span className="text-xs text-sama-success font-medium">Image téléchargée avec succès</span>
+                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                    <span className="text-xs text-green-500 font-medium">Image téléchargée avec succès</span>
                   </div>
                 </div>
                 <button
@@ -179,7 +179,7 @@ export default function Step4Documents({
                 <button
                   type="button"
                   onClick={() => openWebcam('selfie')}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-sama-primary-green border border-sama-primary-green rounded-lg hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors"
                 >
                   <CameraIcon className="w-4 h-4" />
                   Caméra
@@ -196,7 +196,7 @@ export default function Step4Documents({
               />
               <label
                 htmlFor="selfie-replace"
-                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 cursor-pointer transition-all duration-200"
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 cursor-pointer transition-colors"
               >
                 <CameraIcon className="w-4 h-4" />
                 Galerie
@@ -213,7 +213,7 @@ export default function Step4Documents({
                 <button
                   type="button"
                   onClick={() => openWebcam('selfie')}
-                  className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-6 py-4 text-white bg-sama-primary-green border-2 border-sama-primary-green rounded-xl hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200 min-h-[120px]"
+                  className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-6 py-4 text-white bg-gold-metallic border-2 border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors min-h-[120px]"
                 >
                   <CameraIcon className="w-8 h-8 mb-2" />
                   <span className="text-sm font-medium mb-1">Caméra</span>
@@ -232,7 +232,7 @@ export default function Step4Documents({
                 />
                 <label
                   htmlFor="selfie-upload"
-                  className="flex flex-col items-center justify-center w-full px-6 py-4 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-sama-border-medium bg-white hover:bg-sama-bg-light-green text-sama-text-secondary min-h-[120px]"
+                  className="flex flex-col items-center justify-center w-full px-6 py-4 border-2 border-dashed rounded-lg cursor-pointer transition-colors border-timberwolf/30 bg-white hover:bg-timberwolf/10 text-night/70 min-h-[120px]"
                 >
                   <UserIcon className="w-8 h-8 mb-2" />
                   <span className="text-sm font-medium mb-1">Galerie</span>
@@ -263,49 +263,49 @@ export default function Step4Documents({
       </div>
 
       {/* ID Document Upload */}
-      <div className="border-2 border-dashed border-sama-accent-gold/30 rounded-xl p-6 bg-sama-accent-gold/5">
-        <h4 className="font-semibold text-sama-text-primary mb-4 flex items-center gap-2">
+      <div className="border-2 border-dashed border-gold-metallic/30 rounded-lg p-6 bg-gold-metallic/5">
+        <h4 className="font-semibold text-night mb-4 flex items-center gap-2">
           <DocumentTextIcon className="w-5 h-5" />
           Documents d'identité
         </h4>
 
         {/* Front of ID */}
         <div className="mb-4">
-          <label className="block text-sm font-semibold text-sama-text-primary mb-3">Recto de la pièce *</label>
+          <label className="block text-sm font-medium text-night mb-3">Recto de la pièce *</label>
           
           {formData.idFrontImage ? (
             // Show uploaded image preview
             <div className="space-y-3">
-              <div className="relative bg-white rounded-xl p-3 border-2 border-sama-success">
+              <div className="relative bg-white rounded-lg p-3 border-2 border-green-500">
                 <div className="flex items-start gap-3">
                   <div className="relative w-16 h-16 flex-shrink-0">
                     <Image
                       src={createImagePreview(formData.idFrontImage)}
                       alt="Recto pièce d'identité"
-                      className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"
+                      className="w-full h-full object-cover rounded-lg border-2 border-green-500/50"
                       width={100}
                       height={100}
                     />
-                    <div className="absolute -top-1 -right-1 bg-sama-success text-white rounded-full p-0.5">
+                    <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                       <EyeIcon className="w-2.5 h-2.5" />
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <DocumentTextIcon className="w-3.5 h-3.5 text-sama-success" />
-                      <h6 className="font-semibold text-sama-success text-xs">
+                      <DocumentTextIcon className="w-3.5 h-3.5 text-green-500" />
+                      <h6 className="font-semibold text-green-500 text-xs">
                         {formData.idType === 'cni' ? 'CNI - Recto' : 'Passeport - Page principale'}
                       </h6>
                     </div>
-                    <p className="text-xs text-sama-primary-green-dark font-medium truncate">
+                    <p className="text-xs text-green-700 font-medium truncate">
                       {formData.idFrontImage.name}
                     </p>
-                    <p className="text-xs text-sama-success mt-0.5">
+                    <p className="text-xs text-green-500 mt-0.5">
                       {formatFileSize(formData.idFrontImage.size)}
                     </p>
                     <div className="flex items-center gap-1 mt-1">
-                      <div className="w-1.5 h-1.5 bg-sama-success rounded-full"></div>
-                      <span className="text-xs text-sama-success font-medium">Téléchargé</span>
+                      <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                      <span className="text-xs text-green-500 font-medium">Téléchargé</span>
                     </div>
                   </div>
                   <button
@@ -326,7 +326,7 @@ export default function Step4Documents({
                   <button
                     type="button"
                     onClick={() => openWebcam('idFront')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-sama-primary-green border border-sama-primary-green rounded-lg hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors"
                   >
                     <CameraIcon className="w-3.5 h-3.5" />
                     Caméra
@@ -343,7 +343,7 @@ export default function Step4Documents({
                 />
                 <label
                   htmlFor="idFront-replace"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sama-primary-green bg-sama-bg-light-green border border-sama-border-medium rounded-lg hover:bg-sama-bg-light-green-alt hover:border-sama-border-dark cursor-pointer transition-all duration-200"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gold-metallic bg-gold-metallic/10 border border-gold-metallic/30 rounded-lg hover:bg-gold-metallic/20 cursor-pointer transition-colors"
                 >
                   <CameraIcon className="w-3.5 h-3.5" />
                   Galerie
@@ -360,7 +360,7 @@ export default function Step4Documents({
                   <button
                     type="button"
                     onClick={() => openWebcam('idFront')}
-                    className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-sama-primary-green border-2 border-sama-primary-green rounded-xl hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200 min-h-[100px]"
+                    className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-gold-metallic border-2 border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors min-h-[100px]"
                   >
                     <CameraIcon className="w-6 h-6 mb-1" />
                     <span className="text-xs font-medium">Caméra</span>
@@ -379,7 +379,7 @@ export default function Step4Documents({
                   />
                   <label
                     htmlFor="idFront-upload"
-                    className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-sama-border-medium bg-sama-bg-light-green hover:bg-sama-bg-light-green-alt text-sama-text-secondary min-h-[100px]"
+                    className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors border-timberwolf/30 bg-gold-metallic/5 hover:bg-gold-metallic/10 text-night/70 min-h-[100px]"
                   >
                     <DocumentTextIcon className="w-6 h-6 mb-1" />
                     <span className="text-xs font-medium">Galerie</span>
@@ -397,39 +397,39 @@ export default function Step4Documents({
         {/* Back of ID (only for CNI) */}
         {formData.idType === 'cni' && (
           <div>
-            <label className="block text-sm font-semibold text-sama-text-primary mb-3">Verso de la pièce *</label>
+            <label className="block text-sm font-medium text-night mb-3">Verso de la pièce *</label>
             
             {formData.idBackImage ? (
               // Show uploaded image preview
               <div className="space-y-3">
-                <div className="relative bg-white rounded-xl p-3 border-2 border-sama-success">
+                <div className="relative bg-white rounded-lg p-3 border-2 border-green-500">
                   <div className="flex items-start gap-3">
                     <div className="relative w-16 h-16 flex-shrink-0">
                       <Image
                         src={createImagePreview(formData.idBackImage)}
                         alt="Verso pièce d'identité"
-                        className="w-full h-full object-cover rounded-lg border-2 border-sama-success/50"
+                        className="w-full h-full object-cover rounded-lg border-2 border-green-500/50"
                         width={100}
                         height={100}
                       />
-                      <div className="absolute -top-1 -right-1 bg-sama-success text-white rounded-full p-0.5">
+                      <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full p-0.5">
                         <EyeIcon className="w-2.5 h-2.5" />
                       </div>
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <DocumentTextIcon className="w-3.5 h-3.5 text-sama-success" />
-                        <h6 className="font-semibold text-sama-success text-xs">CNI - Verso</h6>
+                        <DocumentTextIcon className="w-3.5 h-3.5 text-green-500" />
+                        <h6 className="font-semibold text-green-500 text-xs">CNI - Verso</h6>
                       </div>
-                      <p className="text-xs text-sama-primary-green-dark font-medium truncate">
+                      <p className="text-xs text-green-700 font-medium truncate">
                         {formData.idBackImage.name}
                       </p>
-                      <p className="text-xs text-sama-success mt-0.5">
+                      <p className="text-xs text-green-500 mt-0.5">
                         {formatFileSize(formData.idBackImage.size)}
                       </p>
                       <div className="flex items-center gap-1 mt-1">
-                        <div className="w-1.5 h-1.5 bg-sama-success rounded-full"></div>
-                        <span className="text-xs text-sama-success font-medium">Téléchargé</span>
+                        <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                        <span className="text-xs text-green-500 font-medium">Téléchargé</span>
                       </div>
                     </div>
                     <button
@@ -450,7 +450,7 @@ export default function Step4Documents({
                     <button
                       type="button"
                       onClick={() => openWebcam('idBack')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-sama-primary-green border border-sama-primary-green rounded-lg hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-gold-metallic border border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors"
                     >
                       <CameraIcon className="w-3.5 h-3.5" />
                       Caméra
@@ -467,7 +467,7 @@ export default function Step4Documents({
                   />
                   <label
                     htmlFor="idBack-replace"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sama-primary-green bg-sama-bg-light-green border border-sama-border-medium rounded-lg hover:bg-sama-bg-light-green-alt hover:border-sama-border-dark cursor-pointer transition-all duration-200"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gold-metallic bg-gold-metallic/10 border border-gold-metallic/30 rounded-lg hover:bg-gold-metallic/20 cursor-pointer transition-colors"
                   >
                     <CameraIcon className="w-3.5 h-3.5" />
                     Galerie
@@ -484,7 +484,7 @@ export default function Step4Documents({
                     <button
                       type="button"
                       onClick={() => openWebcam('idBack')}
-                      className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-sama-primary-green border-2 border-sama-primary-green rounded-xl hover:bg-sama-primary-green-dark cursor-pointer transition-all duration-200 min-h-[100px]"
+                      className="flex-1 sm:flex-initial flex flex-col items-center justify-center px-4 py-3 text-white bg-gold-metallic border-2 border-gold-metallic rounded-lg hover:bg-gold-metallic/90 cursor-pointer transition-colors min-h-[100px]"
                     >
                       <CameraIcon className="w-6 h-6 mb-1" />
                       <span className="text-xs font-medium">Caméra</span>
@@ -503,7 +503,7 @@ export default function Step4Documents({
                     />
                     <label
                       htmlFor="idBack-upload"
-                      className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-xl cursor-pointer transition-all duration-200 border-sama-border-medium bg-sama-bg-light-green hover:bg-sama-bg-light-green-alt text-sama-text-secondary min-h-[100px]"
+                      className="flex flex-col items-center justify-center w-full px-4 py-3 border-2 border-dashed rounded-lg cursor-pointer transition-colors border-timberwolf/30 bg-gold-metallic/5 hover:bg-gold-metallic/10 text-night/70 min-h-[100px]"
                     >
                       <DocumentTextIcon className="w-6 h-6 mb-1" />
                       <span className="text-xs font-medium">Galerie</span>

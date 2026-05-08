@@ -58,12 +58,12 @@ export default function Step2IdentityVerification({
   return (
     <div className="space-y-6">
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Nationalité *</label>
+        <label className="block text-sm font-medium text-night mb-2">Nationalité *</label>
         <select
           name="nationality"
           value={formData.nationality}
           onChange={onInputChange}
-          className="w-full px-4 py-3 border border-sama-border-light rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200"
+          className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors"
           required
         >
           {countries
@@ -82,13 +82,20 @@ export default function Step2IdentityVerification({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Type de pièce *</label>
+        <label className="block text-sm font-medium text-night mb-2">Type de pièce *</label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {[
             { value: 'cni', label: 'Carte Nationale d\'Identité' },
             { value: 'passport', label: 'Passeport' }
           ].map((option) => (
-            <label key={option.value} className="flex items-center p-3 border rounded-xl cursor-pointer transition-all duration-200 hover:bg-sama-bg-light-green">
+            <label 
+              key={option.value} 
+              className={`relative flex items-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                formData.idType === option.value
+                  ? 'border-gold-metallic bg-gold-metallic/5 shadow-sm'
+                  : 'border-timberwolf/30 hover:border-timberwolf/50 hover:bg-timberwolf/5'
+              }`}
+            >
               <input 
                 type="radio" 
                 name="idType" 
@@ -97,16 +104,31 @@ export default function Step2IdentityVerification({
                 onChange={onInputChange} 
                 className="sr-only" 
               />
-              <span className={`text-sm ${formData.idType === option.value ? 'text-sama-primary-green font-medium' : 'text-sama-text-secondary'}`}>
-                {option.label}
-              </span>
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                    formData.idType === option.value
+                      ? 'border-gold-metallic'
+                      : 'border-timberwolf/40'
+                  }`}
+                >
+                  {formData.idType === option.value && (
+                    <div className="w-2.5 h-2.5 rounded-full bg-gold-metallic" />
+                  )}
+                </div>
+                <span className={`text-sm font-medium ${
+                  formData.idType === option.value ? 'text-night' : 'text-night/70'
+                }`}>
+                  {option.label}
+                </span>
+              </div>
             </label>
           ))}
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Numéro de la pièce *</label>
+        <label className="block text-sm font-medium text-night mb-2">Numéro de la pièce *</label>
         <input
           type="text"
           name="idNumber"
@@ -125,8 +147,8 @@ export default function Step2IdentityVerification({
           }}
           onBlur={onBlur}
           maxLength={isUEMOA && formData.nationality === 'Senegal' ? (formData.idType === 'cni' ? 13 : 9) : undefined}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-            hasFieldError('idNumber') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+            hasFieldError('idNumber') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
           placeholder={isUEMOA && formData.nationality === 'Senegal' 
             ? (formData.idType === 'cni' ? "13 caractères max" : "9 caractères max")
@@ -136,15 +158,15 @@ export default function Step2IdentityVerification({
         <div className="flex justify-between items-center mt-1">
           {isUEMOA && formData.nationality === 'Senegal' ? (
             <>
-              <span className="text-xs text-sama-text-muted">
+              <span className="text-xs text-night/60">
                 {formData.idType === 'cni' ? 'CNI (13 caractères)' : 'Passeport (9 caractères)'}
               </span>
-              <span className={`text-xs ${formData.idNumber.length >= (formData.idType === 'cni' ? 13 : 9) ? 'text-sama-success font-medium' : 'text-red-500'}`}>
+              <span className={`text-xs ${formData.idNumber.length >= (formData.idType === 'cni' ? 13 : 9) ? 'text-green-600 font-medium' : 'text-red-500'}`}>
                 {formData.idNumber.length}/{formData.idType === 'cni' ? 13 : 9}
               </span>
             </>
           ) : (
-            <span className="text-xs text-sama-text-muted">
+            <span className="text-xs text-night/60">
               Saisissez le numéro tel qu'il apparaît sur votre document
             </span>
           )}
@@ -156,15 +178,15 @@ export default function Step2IdentityVerification({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-semibold text-sama-text-primary mb-2">Date d'émission *</label>
+          <label className="block text-sm font-medium text-night mb-2">Date d'émission *</label>
           <input
             type="date"
             name="idIssueDate"
             value={formData.idIssueDate}
             onChange={onInputChange}
             onBlur={onBlur}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-              hasFieldError('idIssueDate') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+              hasFieldError('idIssueDate') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
             }`}
             required
           />
@@ -173,7 +195,7 @@ export default function Step2IdentityVerification({
           )}
         </div>
         <div>
-          <label className="block text-sm font-semibold text-sama-text-primary mb-2">Date d'expiration *</label>
+          <label className="block text-sm font-medium text-night mb-2">Date d'expiration *</label>
           <input
             type="date"
             name="idExpiryDate"
@@ -181,17 +203,17 @@ export default function Step2IdentityVerification({
             onChange={onInputChange}
             onBlur={onBlur}
             min={getMinExpiryDate()}
-            className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-              hasFieldError('idExpiryDate') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+              hasFieldError('idExpiryDate') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
             }`}
             required
           />
           {isUEMOA && formData.nationality === 'Senegal' && formData.idIssueDate ? (
-            <p className="text-xs text-sama-text-muted mt-1">
+            <p className="text-xs text-night/60 mt-1">
               Suggestion: {formData.idType === 'cni' ? '10 ans' : '5 ans'} après la date d'émission. Vous pouvez modifier si nécessaire.
             </p>
           ) : (
-            <p className="text-xs text-sama-text-muted mt-1">
+            <p className="text-xs text-night/60 mt-1">
               La date d'expiration doit être postérieure à aujourd'hui
             </p>
           )}
@@ -202,35 +224,35 @@ export default function Step2IdentityVerification({
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Date de naissance *</label>
+        <label className="block text-sm font-medium text-night mb-2">Date de naissance *</label>
         <input
           type="date"
           name="dateOfBirth"
           value={formData.dateOfBirth}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-            hasFieldError('dateOfBirth') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+            hasFieldError('dateOfBirth') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
           required
           max={getMaxBirthDate()}
         />
-        <p className="text-xs text-sama-text-muted mt-1">Vous devez avoir au moins 18 ans</p>
+        <p className="text-xs text-night/60 mt-1">Vous devez avoir au moins 18 ans</p>
         {getFieldError('dateOfBirth') && (
           <p className="text-red-500 text-sm mt-1">{getFieldError('dateOfBirth')}</p>
         )}
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-sama-text-primary mb-2">Lieu de naissance *</label>
+        <label className="block text-sm font-medium text-night mb-2">Lieu de naissance *</label>
         <input
           type="text"
           name="placeOfBirth"
           value={formData.placeOfBirth}
           onChange={onInputChange}
           onBlur={onBlur}
-          className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-sama-primary-green focus:border-transparent transition-all duration-200 ${
-            hasFieldError('placeOfBirth') ? 'border-red-400 bg-red-50' : 'border-sama-border-light'
+          className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent transition-colors ${
+            hasFieldError('placeOfBirth') ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
           }`}
           placeholder="Ex: Dakar, Thiès, Saint-Louis..."
           required

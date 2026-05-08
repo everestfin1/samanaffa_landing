@@ -199,7 +199,7 @@ export default function Step5Terms({
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-night mb-2">Signez ci-dessous *</label>
+            <label className="block text-sm font-medium text-night mb-2">Signez ci-dessous *</label>
             <div className="border-2 border-dashed border-timberwolf/30 rounded-xl p-4 bg-white relative">
               <canvas
                 ref={canvasRef}

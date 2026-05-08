@@ -423,7 +423,7 @@ export default function OTPVerificationStep({ formData, onSuccess }: OTPVerifica
               disabled={otpCode.length !== 6 || isLoading || isUploading}
               className={`flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-200 ${
                 otpCode.length === 6 && !isLoading && !isUploading
-                  ? 'bg-sama-primary-green hover:bg-sama-primary-green/90 text-white shadow-lg hover:shadow-xl'
+                  ? 'bg-gold-metallic hover:bg-gold-metallic/90 text-white shadow-lg hover:shadow-xl'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >

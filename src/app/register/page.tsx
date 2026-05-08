@@ -667,10 +667,10 @@ export default function RegisterPage() {
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-sama-text-primary mb-2">
+          <h1 className="text-3xl font-bold text-night mb-2">
             Créer votre compte
           </h1>
-          <p className="text-sama-text-secondary">
+          <p className="text-night/70">
             Rejoignez Sama Naffa et commencez votre parcours financier
           </p>
         </div>
@@ -681,23 +681,23 @@ export default function RegisterPage() {
             <div className="w-full max-w-2xl">
               {/* Progress Bar */}
               <div className="flex items-center justify-between mb-4">
-                <div className="flex-1 bg-sama-border-light rounded-full h-2 mr-4">
+                <div className="flex-1 bg-timberwolf/30 rounded-full h-2 mr-4">
                   <div 
-                    className="bg-gradient-to-r from-sama-secondary-green to-sama-primary-green h-2 rounded-full transition-all duration-500 ease-out"
+                    className="bg-gold-metallic h-2 rounded-full transition-all duration-500 ease-out"
                     style={{ width: `${((currentStep - 1) / (steps.length - 1)) * 100}%` }}
                   />
                 </div>
-                <div className="text-sm font-medium text-sama-text-secondary">
+                <div className="text-sm font-medium text-night/70">
                   Étape {currentStep} sur {steps.length}
                 </div>
               </div>
               
               {/* Current Step Title */}
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-sama-text-primary">
+                <h3 className="text-lg font-semibold text-night">
                   {steps[currentStep - 1].title}
                 </h3>
-                <p className="text-sm text-sama-text-muted mt-1">
+                <p className="text-sm text-night/60 mt-1">
                   {steps[currentStep - 1].description}
                 </p>
               </div>
@@ -706,7 +706,7 @@ export default function RegisterPage() {
         </div>
 
         {/* Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8 border border-sama-border-light">
+        <div className="bg-white rounded-2xl shadow-xl p-8 border border-timberwolf/10">
 
           {currentStep === 1 && (
             <Step1PersonalInfo
@@ -797,14 +797,14 @@ export default function RegisterPage() {
           )}
 
           {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-sama-border-light">
+          <div className="flex justify-between mt-8 pt-6 border-t border-timberwolf/10">
             <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+              className={`flex items-center space-x-2 px-6 py-3 rounded-lg font-medium transition-colors ${
                 currentStep === 1
-                  ? 'text-sama-text-muted cursor-not-allowed'
-                  : 'text-sama-text-primary hover:bg-sama-bg-light-green hover:shadow-sm'
+                  ? 'text-night/50 cursor-not-allowed'
+                  : 'text-night hover:bg-timberwolf/10'
               }`}
             >
               <ArrowLeftIcon className="w-5 h-5" />
@@ -815,20 +815,20 @@ export default function RegisterPage() {
               <button
                 onClick={handleNext}
                 disabled={uploadingFiles || isLoading}
-                className={`flex items-center space-x-2 px-8 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                className={`flex items-center space-x-2 px-8 py-3 rounded-lg font-semibold transition-colors ${
                   !uploadingFiles && !isLoading
-                    ? 'bg-gradient-to-r from-sama-secondary-green to-sama-primary-green text-white hover:shadow-lg hover:-translate-y-0.5'
-                    : 'bg-sama-border-light text-sama-text-muted cursor-not-allowed'
+                    ? 'bg-gold-metallic text-white hover:bg-gold-metallic/90'
+                    : 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
                 }`}
               >
                 {uploadingFiles ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-night/30 border-t-night rounded-full animate-spin" />
                     <span>Envoi en cours...</span>
                   </>
                 ) : isLoading && currentStep === 1 ? (
                   <>
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-night/30 border-t-night rounded-full animate-spin" />
                     <span>Vérification de la disponibilité...</span>
                   </>
                 ) : (
@@ -844,11 +844,11 @@ export default function RegisterPage() {
 
         {/* Sign In Link */}
         <div className="mt-8 text-center">
-          <p className="text-sama-text-secondary text-sm">
+          <p className="text-night/70 text-sm">
             Déjà un Naffa?{' '}
             <button
               onClick={() => router.push('/login')}
-              className="text-sama-primary-green hover:text-sama-primary-green-dark font-medium transition-colors"
+              className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
             >
               Se connecter
             </button>
