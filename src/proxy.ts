@@ -4,6 +4,13 @@ import { getToken } from 'next-auth/jwt';
 import { checkCSRFToken } from '@/lib/csrf';
 
 export async function proxy(request: NextRequest) {
+  // ==================== DISCONTINUED PRODUCTS ====================
+  // Redirect Educ'épargne (/pee) routes to homepage as product is discontinued
+  if (request.nextUrl.pathname.startsWith('/pee')) {
+    return NextResponse.redirect(new URL('/', request.url), 301);
+  }
+  // =========================================================
+
   // ==================== MAINTENANCE MODE ====================
   // Set to true to enable maintenance mode (redirects all traffic to /apesenegal)
   // Set to false to disable maintenance mode and restore normal operation
