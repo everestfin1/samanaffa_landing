@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation'
 import React from 'react'
+import { PhoneIcon, EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline'
 
 export default function Footer() {
     const router = useRouter();
@@ -85,16 +86,20 @@ export default function Footer() {
           <div>
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex items-center gap-3">
+                <PhoneIcon className="w-5 h-5" />
                 <p className="text-lg">+221 33 822 87 00</p>
-                <p className="text-lg"></p>
               </div>
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer">
+              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex items-center gap-3">
+                <EnvelopeIcon className="w-5 h-5" />
                 <p className="text-lg">contact@everestfin.com</p>
               </div>
-              <div className="pt-2">
-                <p className="text-white/50">18 Boulevard de la République</p>
-                <p className="text-white/50">Dakar, Sénégal BP: 11659-13000</p>
+              <div className="pt-2 flex items-center gap-3">
+                <MapPinIcon className="w-5 h-5" />
+                <div>
+                  <p className="text-white/50">18 Boulevard de la République</p>
+                  <p className="text-white/50">Dakar, Sénégal BP: 11659-13000</p>
+                </div>
               </div>
             </div>
           </div>
