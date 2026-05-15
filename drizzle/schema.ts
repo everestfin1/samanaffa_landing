@@ -154,6 +154,7 @@ export const transactionIntents = pgTable("transaction_intents", {
 	lastCallbackAt: timestamp({ precision: 3, mode: 'string' }),
 	lastCallbackPayload: jsonb(),
 	providerStatus: text(),
+	awaitingKycApproval: boolean().default(false).notNull(),
 }, (table) => [
 	uniqueIndex("transaction_intents_providerTransactionId_key").using("btree", table.providerTransactionId.asc().nullsLast().op("text_ops")),
 	uniqueIndex("transaction_intents_referenceNumber_key").using("btree", table.referenceNumber.asc().nullsLast().op("text_ops")),
@@ -242,6 +243,7 @@ export const users = pgTable("users", {
 	department: text(),
 	failedAttempts: integer().default(0).notNull(),
 	lockedUntil: timestamp({ precision: 3, mode: 'string' }),
+	investorProfile: jsonb(),
 }, (table) => [
 	uniqueIndex("users_email_key").using("btree", table.email.asc().nullsLast().op("text_ops")),
 	uniqueIndex("users_phone_key").using("btree", table.phone.asc().nullsLast().op("text_ops")),

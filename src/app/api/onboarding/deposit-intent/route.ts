@@ -1,0 +1,77 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import { generateReferenceNumber } from '@/lib/utils';
+
+/**
+ * Onboarding T4 — program a first deposit BEFORE KYC validation.
+ *
+ * Per the new flow:
+ *   - The deposit is RECORDED as an intent, not charged.
+ *   - awaitingKycApproval=true flags it for auto-trigger on KYC approval
+ *     (and auto-cancel on KYC rejection — see /api/admin/kyc/[id]/route.ts).
+ *   - No Intouch widget is opened here.
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const { userId, amount, wallet } = await request.json();
+
+    if (!userId || !amount || !wallet) {
+      return NextResponse.json(
+        { error: 'userId, amount et wallet requis' },
+        { status: 400 },
+      );
+    }
+
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount < 1000) {
+      return NextResponse.json({ error: 'Montant invalide (minimum 1 000 FCFA)' }, { status: 400 });
+    }
+
+    const allowedWallets = ['orange_money', 'wave', 'free_money'];
+    if (!allowedWallets.includes(wallet)) {
+      return NextResponse.json({ error: 'Méthode de paiement invalide' }, { status: 400 });
+    }
+
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: { accounts: true },
+    });
+    if (!user) {
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
+    }
+
+    const samaNaffaAccount = user.accounts?.find((a: any) => a.accountType === 'SAMA_NAFFA');
+    if (!samaNaffaAccount) {
+      return NextResponse.json({ error: 'Compte Sama Naffa introuvable' }, { status: 404 });
+    }
+
+    const referenceNumber = generateReferenceNumber('sama_naffa', 'deposit', userId, new Date());
+
+    const intent = await prisma.transactionIntent.create({
+      data: {
+        userId,
+        accountId: samaNaffaAccount.id,
+        accountType: 'SAMA_NAFFA',
+        intentType: 'DEPOSIT',
+        amount: numericAmount.toFixed(2),
+        paymentMethod: wallet,
+        status: 'PENDING',
+        referenceNumber,
+        awaitingKycApproval: true,
+        userNotes: 'Dépôt programmé via nouveau flux onboarding (T4)',
+      },
+    });
+
+    return NextResponse.json({
+      success: true,
+      intentId: intent.id,
+      referenceNumber,
+      amount: numericAmount,
+      wallet,
+      awaitingKycApproval: true,
+    });
+  } catch (error) {
+    console.error('[onboarding/deposit-intent]', error);
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
+  }
+}

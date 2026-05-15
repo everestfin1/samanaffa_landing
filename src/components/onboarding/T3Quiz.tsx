@@ -1,0 +1,241 @@
+'use client';
+
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+interface T3QuizProps {
+  userId: string;
+  firstName: string;
+  onSuccess: (formula: string) => void;
+  onBack?: () => void;
+}
+
+type QuizAnswer = string;
+
+interface Question {
+  id: 'situation' | 'savingsCapacity' | 'experience';
+  prompt: string;
+  options: { value: QuizAnswer; label: string }[];
+}
+
+const QUESTIONS: Question[] = [
+  {
+    id: 'situation',
+    prompt: 'Quelle est ta situation actuelle ?',
+    options: [
+      { value: 'salarie',     label: 'Salarié(e)' },
+      { value: 'commercant',  label: 'Commerçant(e)' },
+      { value: 'etudiant',    label: 'Étudiant(e)' },
+      { value: 'entrepreneur',label: 'Entrepreneur(e)' },
+      { value: 'autre',       label: 'Autre' },
+    ],
+  },
+  {
+    id: 'savingsCapacity',
+    prompt: 'Combien peux-tu épargner par mois ?',
+    options: [
+      { value: '<10k',  label: 'Moins de 10 000 FCFA' },
+      { value: '10-50k',label: '10 000 – 50 000 FCFA' },
+      { value: '>50k',  label: 'Plus de 50 000 FCFA' },
+    ],
+  },
+  {
+    id: 'experience',
+    prompt: 'Quelle est ton expérience avec l\'épargne ?',
+    options: [
+      { value: 'debutant',  label: 'Je débute' },
+      { value: 'parfois',   label: 'J\'épargne parfois' },
+      { value: 'regulier',  label: 'J\'épargne régulièrement' },
+    ],
+  },
+];
+
+const recommendFormula = (answers: Record<string, QuizAnswer>): { name: string; rate: number; description: string; highlights: string[] } => {
+  // Simple rule-based recommender for the mock
+  if (answers.savingsCapacity === '>50k' && answers.experience !== 'debutant') {
+    return { 
+      name: 'Formule Croissance', 
+      rate: 8.5, 
+      description: 'épargne régulière long-terme',
+      highlights: ['Idéal pour un horizon de 5+ ans', 'Rendement maximisé', 'Versements programmés flexibles']
+    };
+  }
+  if (answers.savingsCapacity === '<10k' || answers.experience === 'debutant') {
+    return { 
+      name: 'Formule Libre', 
+      rate: 6.0, 
+      description: 'flexibilité maximale, sans engagement',
+      highlights: ['Aucun engagement de durée', 'Retraits possibles à tout moment', 'Parfait pour commencer']
+    };
+  }
+  return { 
+    name: 'Formule Équilibre', 
+    rate: 7.0, 
+    description: 'équilibre entre rendement et souplesse',
+    highlights: ['Engagement modéré (12-36 mois)', 'Bon compromis rendement/liquidité', 'Protection contre l\'inflation']
+  };
+};
+
+export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizProps) {
+  const [step, setStep] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<ReturnType<typeof recommendFormula> | null>(null);
+
+  const current = QUESTIONS[step];
+
+  const handleAnswer = async (value: QuizAnswer) => {
+    const next = { ...answers, [current.id]: value };
+    setAnswers(next);
+
+    if (step < QUESTIONS.length - 1) {
+      setTimeout(() => setStep(step + 1), 150); // slight delay to show selected state
+      return;
+    }
+
+    // Last question — compute + persist
+    const formula = recommendFormula(next);
+    setResult(formula);
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/onboarding/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          investorProfile: {
+            ...next,
+            recommendedFormula: formula.name,
+            recommendedRate: formula.rate,
+            completedAt: new Date().toISOString(),
+          },
+        }),
+      });
+      if (!res.ok) throw new Error('Erreur de sauvegarde');
+    } catch (e: unknown) {
+      setError('Impossible d\'enregistrer votre profil. Veuillez réessayer.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (result) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md mx-auto px-4 py-16 text-center"
+      >
+        <span className="text-6xl">🎯</span>
+        <h1 className="text-2xl md:text-3xl font-bold text-night mt-4 mb-3">
+          {firstName}, vous êtes fait(e) pour
+        </h1>
+        <div className="bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/30 rounded-2xl p-6 my-6 shadow-sm">
+          <p className="text-xl font-bold text-night">{result.name}</p>
+          <p className="text-4xl font-bold text-gold my-3">{result.rate}% <span className="text-lg text-gold/70">/ an</span></p>
+          <p className="text-sm text-night/70 mb-6">{result.description}</p>
+          
+          <div className="space-y-2 text-left bg-white/50 rounded-xl p-4">
+            {result.highlights.map((highlight, idx) => (
+              <div key={idx} className="flex items-start gap-2 text-sm text-night/80">
+                <span className="text-gold font-bold">✓</span>
+                <span>{highlight}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {error && <p className="text-sm text-red-600 mb-4">{error}</p>}
+        
+        <button
+          onClick={() => {
+            if (error) {
+              // Retry save if it failed
+              handleAnswer(answers[QUESTIONS[QUESTIONS.length - 1].id]);
+            } else {
+              onSuccess(result.name);
+            }
+          }}
+          disabled={loading}
+          className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+        >
+          {loading ? 'Enregistrement...' : error ? 'Réessayer' : 'Programmer mon premier dépôt →'}
+        </button>
+      </motion.div>
+    );
+  }
+
+  const handleBackInQuiz = () => {
+    if (step === 0) {
+      onBack?.();
+    } else {
+      setStep(step - 1);
+    }
+  };
+
+  return (
+    <div className="max-w-md mx-auto px-4 py-12 overflow-hidden">
+      {(onBack || step > 0) && (
+        <button
+          onClick={handleBackInQuiz}
+          className="text-sm text-night/60 hover:text-night mb-4 inline-flex items-center gap-1"
+        >
+          ← {step === 0 ? 'Retour' : 'Question précédente'}
+        </button>
+      )}
+      <div className="text-center mb-2">
+        <p className="text-xs uppercase tracking-widest text-night/40 font-semibold">
+          Question {step + 1} sur {QUESTIONS.length}
+        </p>
+      </div>
+
+      <div className="w-full h-1.5 bg-timberwolf/30 rounded-full mb-10 overflow-hidden">
+        <motion.div
+          className="h-full bg-gold rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
+          transition={{ ease: 'easeInOut', duration: 0.3 }}
+        />
+      </div>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.2 }}
+        >
+          <h2 className="text-xl md:text-2xl font-bold text-night text-center mb-8">
+            {current.prompt}
+          </h2>
+
+          <div className="space-y-3">
+            {current.options.map((opt) => {
+              const isSelected = answers[current.id] === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  onClick={() => handleAnswer(opt.value)}
+                  className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all hover:shadow-md active:scale-[0.98] ${
+                    isSelected 
+                      ? 'border-gold bg-gold/10 text-night' 
+                      : 'bg-white border-timberwolf/30 hover:border-gold/50 text-night'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      </AnimatePresence>
+
+      <p className="text-center text-[10px] text-night/40 mt-10">
+        Profilage investisseur · Instruction N°60/CREPMF/2020
+      </p>
+    </div>
+  );
+}

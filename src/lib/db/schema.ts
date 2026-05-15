@@ -58,6 +58,8 @@ export const users = pgTable('users', {
   // Account lockout fields
   failedAttempts: integer('failedAttempts').notNull().default(0),
   lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
+  // New onboarding flow (T0-T6 mock) — stores quiz answers + recommended formula
+  investorProfile: json('investorProfile'),
 });
 
 // Sessions table
@@ -129,6 +131,8 @@ export const transactionIntents = pgTable('transaction_intents', {
   providerStatus: text('providerStatus'),
   lastCallbackAt: timestamp('lastCallbackAt', { mode: 'date' }),
   lastCallbackPayload: json('lastCallbackPayload'),
+  // New onboarding flow: deposit programmed at T4, awaiting KYC validation before payment is triggered
+  awaitingKycApproval: boolean('awaitingKycApproval').notNull().default(false),
   createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });

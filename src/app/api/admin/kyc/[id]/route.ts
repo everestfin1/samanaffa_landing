@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { transactionIntents } from '@/lib/db/schema'
+import { and, eq } from 'drizzle-orm'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
@@ -111,6 +114,40 @@ export async function PUT(
         where: { id: updatedDocument.userId },
         data: { kycStatus: newKycStatus as KycStatus }
       })
+
+      // New onboarding flow (T4 deposits): when KYC is REJECTED, auto-cancel any
+      // transaction intents that were programmed before validation.
+      // When KYC is APPROVED, intents stay PENDING but lose their awaiting flag,
+      // signalling them ready to be picked up by the deposit-trigger workflow.
+      if (newKycStatus === 'REJECTED') {
+        try {
+          await db
+            .update(transactionIntents)
+            .set({ status: 'CANCELLED', awaitingKycApproval: false, adminNotes: 'Auto-cancelled: KYC rejected' })
+            .where(
+              and(
+                eq(transactionIntents.userId, updatedDocument.userId),
+                eq(transactionIntents.awaitingKycApproval, true),
+              )!
+            )
+        } catch (cancelError) {
+          console.error('Error auto-cancelling awaiting deposits:', cancelError)
+        }
+      } else if (newKycStatus === 'APPROVED') {
+        try {
+          await db
+            .update(transactionIntents)
+            .set({ awaitingKycApproval: false })
+            .where(
+              and(
+                eq(transactionIntents.userId, updatedDocument.userId),
+                eq(transactionIntents.awaitingKycApproval, true),
+              )!
+            )
+        } catch (releaseError) {
+          console.error('Error releasing awaiting deposits:', releaseError)
+        }
+      }
 
       // Create notification for status change
       let title = ''
