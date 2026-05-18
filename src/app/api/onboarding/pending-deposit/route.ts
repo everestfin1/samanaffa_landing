@@ -15,7 +15,7 @@ export async function GET() {
 
     const userId = session.user.id;
 
-    const intent = await prisma.transactionIntent.findFirst({
+    const intents = await prisma.transactionIntent.findMany({
       where: {
         userId,
         intentType: 'DEPOSIT',
@@ -25,8 +25,9 @@ export async function GET() {
         userNotes: { contains: 'onboarding' },
       },
       orderBy: { createdAt: 'desc' },
-      include: { account: true },
+      take: 1,
     });
+    const intent = intents[0];
 
     if (!intent) {
       return NextResponse.json({ success: true, intent: null });

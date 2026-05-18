@@ -31,15 +31,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'sessionId requis' }, { status: 400 });
   }
 
-  const kycDoc = await prisma.kycDocument.findFirst({
+  const kycDocs = await prisma.kycDocument.findMany({
     where: {
       userId,
       documentType: 'didit_kyc_session',
       fileUrl: sessionId,
     },
+    take: 1,
   });
 
-  if (!kycDoc) {
+  if (!kycDocs[0]) {
     return NextResponse.json({ error: 'Session KYC introuvable' }, { status: 403 });
   }
 

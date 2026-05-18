@@ -49,9 +49,9 @@ export default function OnboardingDepositModal({
   };
 
   return (
-    <motionlessOverlay>
-      <motionlessCard>
-        <motionlessHeader
+    <DepositModalOverlay>
+      <DepositModalCard>
+        <DepositModalHeader
           title={
             showIntouchPayment ? 'Paiement via Intouch' : 'Confirmer votre premier dépôt'
           }
@@ -74,7 +74,7 @@ export default function OnboardingDepositModal({
             onCancel={() => setShowIntouchPayment(false)}
           />
         ) : (
-          <motionlessIntro
+          <DepositModalIntro
             amount={intent.amount}
             walletLabel={walletLabel}
             error={error}
@@ -90,12 +90,12 @@ export default function OnboardingDepositModal({
             }}
           />
         )}
-      </motionlessCard>
-    </motionlessOverlay>
+      </DepositModalCard>
+    </DepositModalOverlay>
   );
 }
 
-function motionlessOverlay({ children }: { children: React.ReactNode }) {
+function DepositModalOverlay({ children }: { children: React.ReactNode }) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4">
       {children}
@@ -103,11 +103,11 @@ function motionlessOverlay({ children }: { children: React.ReactNode }) {
   );
 }
 
-function motionlessCard({ children }: { children: React.ReactNode }) {
-  return <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">{children}</motionlessCard>;
+function DepositModalCard({ children }: { children: React.ReactNode }) {
+  return <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">{children}</div>;
 }
 
-function motionlessHeader({ title, onClose }: { title: string; onClose: () => void }) {
+function DepositModalHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-xl font-bold text-night">{title}</h3>
@@ -118,7 +118,7 @@ function motionlessHeader({ title, onClose }: { title: string; onClose: () => vo
   );
 }
 
-function motionlessIntro({
+function DepositModalIntro({
   amount,
   walletLabel,
   error,
