@@ -59,7 +59,7 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
   }, [selected, monthly, duration]);
 
   return (
-    <div className="max-w-md mx-auto px-4 py-10">
+    <div className="max-w-md md:max-w-xl mx-auto px-4 py-10">
       <AnimatePresence mode="wait">
         {!selected ? (
           <motion.div
@@ -70,7 +70,6 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
             transition={{ duration: 0.3 }}
           >
             <div className="text-center mb-8">
-              <p className="text-sm uppercase tracking-widest text-gold mb-2">Étape 0 · Aucune inscription requise</p>
               <h1 className="text-3xl font-bold text-night mb-3">
                 Quel est ton projet de vie ?
               </h1>
@@ -79,7 +78,8 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            {/* 2 cols on mobile → 3 cols on md+ */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
               {PROJECTS.map((p, i) => (
                 <motion.button
                   key={p.id}
@@ -87,10 +87,13 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.05 }}
                   onClick={() => handleSelect(p)}
-                  className="group flex flex-col items-center justify-center p-6 bg-white border-2 border-timberwolf/30 rounded-2xl hover:border-gold hover:shadow-lg active:scale-95 transition-all"
+                  className="group flex flex-col items-center gap-2 py-4 opacity-80 hover:opacity-100 transition-all duration-300 hover:scale-105"
                 >
-                  <span className="text-4xl mb-3 group-hover:scale-110 transition-transform">{p.emoji}</span>
-                  <span className="font-semibold text-night">{p.name}</span>
+                  {/* circular icon — mirrors SamaNaffa ObjectivesSection style */}
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4] group-hover:shadow-lg transition-all duration-300 flex items-center justify-center relative">
+                    <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
+                  </div>
+                  <span className="font-semibold text-sm md:text-base text-night group-hover:text-[#435933] transition-colors text-center">{p.name}</span>
                 </motion.button>
               ))}
             </div>
@@ -156,13 +159,13 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
                 </div>
               </div>
 
-              <div className="bg-night text-white rounded-xl p-5">
-                <p className="text-xs uppercase tracking-wider text-gold mb-1">Au terme</p>
-                <p className="text-3xl font-bold">{formatCurrency(Math.round(projection.final))} FCFA</p>
-                <p className="text-sm text-white/60 mt-1">
-                  Dont {formatCurrency(Math.round(projection.interest))} d&apos;intérêts à {rateForMonths(duration)}%/an
+              <div className="bg-gradient-to-br from-[#F2F8F4] to-white border border-[#435933]/10 rounded-xl p-5">
+                <p className="text-xs uppercase tracking-wider text-[#435933]/70 mb-1">Au terme</p>
+                <p className="text-3xl font-bold text-[#435933]">{formatCurrency(Math.round(projection.final))} FCFA</p>
+                <p className="text-sm text-night/60 mt-1">
+                  Dont <span className="font-semibold text-[#435933]">{formatCurrency(Math.round(projection.interest))}</span> d&apos;intérêts à <span className="font-semibold text-[#435933]">{rateForMonths(duration)}%/an</span>
                 </p>
-                <p className="text-[10px] text-white/30 mt-3 italic">
+                <p className="text-[10px] text-night/40 mt-3 italic">
                   * Simulation indicative, non contractuelle
                 </p>
               </div>
@@ -170,9 +173,10 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
 
             <button
               onClick={() => onContinue({ project: selected.id, monthlyAmount: monthly, durationMonths: duration })}
-              className="w-full mt-6 bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-colors shadow-md active:scale-[0.98]"
+              className="group relative w-full mt-6 px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              Je commence maintenant →
+              <span className="relative z-10">Je commence maintenant</span>
+              <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
             </button>
 
             <p className="text-center text-xs text-night/40 mt-3">

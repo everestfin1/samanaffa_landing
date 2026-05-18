@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-export default function KycCallbackPage() {
+function KycCallbackContent() {
   const params = useSearchParams();
   const status = params.get('status') ?? '';
 
@@ -43,5 +43,20 @@ export default function KycCallbackPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function KycCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="max-w-sm text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-gold border-t-transparent mx-auto" />
+          <p className="text-night/60">Chargement…</p>
+        </div>
+      </div>
+    }>
+      <KycCallbackContent />
+    </Suspense>
   );
 }

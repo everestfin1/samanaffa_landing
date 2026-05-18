@@ -114,7 +114,8 @@ export default function OnboardingPage() {
       </AnimatePresence>
 
       <div className="flex flex-1 flex-col">
-        <div className="my-auto w-full max-w-md mx-auto px-4 py-6 md:py-8">
+        {/* T0 gets more horizontal room for the 3-col project grid */}
+        <div className={`my-auto w-full mx-auto px-4 py-6 md:py-8 transition-all ${step === 'T0' ? 'max-w-xl' : 'max-w-md'}`}>
           <AnimatePresence mode="wait">
 
             {step === 'T0' && (

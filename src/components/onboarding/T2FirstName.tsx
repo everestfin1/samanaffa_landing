@@ -77,9 +77,10 @@ export default function T2FirstName({ userId, initialValue, onSuccess, onBack }:
         <button
           onClick={handleSubmit}
           disabled={loading || !firstName.trim()}
-          className="w-full bg-gold hover:bg-gold/90 disabled:opacity-50 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+          className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
         >
-          {loading ? 'Enregistrement...' : 'Continuer →'}
+          <span className="relative z-10">{loading ? 'Enregistrement...' : 'Continuer'}</span>
+          {!loading && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
         </button>
       </div>
 

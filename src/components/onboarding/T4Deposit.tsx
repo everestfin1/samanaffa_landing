@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
 
 interface T4DepositProps {
   userId: string;
@@ -14,9 +14,9 @@ interface T4DepositProps {
 }
 
 const WALLETS = [
-  { id: 'orange_money', label: 'Orange Money', emoji: '🟠', color: 'bg-[#FF7900]/10 border-[#FF7900]/50 hover:border-[#FF7900]', activeColor: 'bg-[#FF7900] border-[#FF7900] text-white' },
-  { id: 'wave',         label: 'Wave',         emoji: '🔵', color: 'bg-[#1CB5E0]/10 border-[#1CB5E0]/50 hover:border-[#1CB5E0]', activeColor: 'bg-[#1CB5E0] border-[#1CB5E0] text-white' },
-  { id: 'free_money',   label: 'Free Money',   emoji: '⚪️', color: 'bg-[#E3000F]/10 border-[#E3000F]/50 hover:border-[#E3000F]', activeColor: 'bg-[#E3000F] border-[#E3000F] text-white' },
+  { id: 'orange_money', label: 'Orange Money', logo: '/payment-provider-logos/Orange-Money-logo.png', bgColor: 'bg-[#FF7900]/5' },
+  { id: 'wave',         label: 'Wave',         logo: '/payment-provider-logos/wave-logo.png',         bgColor: 'bg-[#1CB5E0]/5' },
+  { id: 'free_money',   label: 'Free Money',   logo: '/payment-provider-logos/free-money-logo.png',  bgColor: 'bg-[#E3000F]/5' },
 ];
 
 const QUICK_AMOUNTS = [10000, 25000, 50000, 100000];
@@ -72,15 +72,15 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
       <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 space-y-6">
         <div>
           <label className="block text-sm font-medium text-night/80 mb-3">Montant</label>
-          <div className="grid grid-cols-2 gap-2 mb-3">
+          <div className="grid grid-cols-2 gap-3 mb-3">
             {QUICK_AMOUNTS.map((a) => (
               <button
                 key={a}
                 onClick={() => setAmountStr(String(a))}
-                className={`py-3 rounded-xl border-2 font-semibold transition-all ${
+                className={`py-3 rounded-xl border-2 font-semibold transition-all duration-300 ${
                   amount === a
-                    ? 'border-gold bg-gold/10 text-night'
-                    : 'border-timberwolf/30 text-night/70 hover:border-gold/50'
+                    ? 'border-[#435933] bg-gradient-to-r from-[#e8f5e8] to-[#d4f4d4] text-[#435933] shadow-sm'
+                    : 'border-timberwolf/30 text-night/70 hover:border-[#435933]/50 hover:bg-[#F2F8F4]'
                 }`}
               >
                 {formatCurrency(a)}
@@ -100,19 +100,34 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
 
         <div>
           <label className="block text-sm font-medium text-night/80 mb-3">Wallet</label>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {WALLETS.map((w) => (
               <button
                 key={w.id}
                 onClick={() => setWallet(w.id)}
-                className={`w-full flex items-center gap-3 p-4 border-2 rounded-xl text-left transition-all ${
+                className={`w-full flex items-center gap-4 p-4 border-2 rounded-xl text-left transition-all duration-300 ${
                   wallet === w.id
-                    ? 'border-gold bg-gold/10'
-                    : 'border-timberwolf/30 hover:border-gold/50'
+                    ? 'border-[#435933] bg-gradient-to-r from-[#e8f5e8] to-[#d4f4d4] shadow-md'
+                    : 'border-timberwolf/30 hover:border-[#435933]/50 hover:bg-[#F2F8F4]'
                 }`}
               >
-                <span className="text-2xl">{w.emoji}</span>
-                <span className="font-semibold text-night">{w.label}</span>
+                <div className={`w-12 h-12 rounded-lg ${w.bgColor} flex items-center justify-center p-1 shrink-0`}>
+                  <Image
+                    src={w.logo}
+                    alt={w.label}
+                    width={40}
+                    height={40}
+                    className="object-contain"
+                  />
+                </div>
+                <span className={`font-semibold ${wallet === w.id ? 'text-[#435933]' : 'text-night'}`}>
+                  {w.label}
+                </span>
+                {wallet === w.id && (
+                  <div className="ml-auto w-5 h-5 rounded-full bg-[#435933] flex items-center justify-center">
+                    <span className="text-white text-xs">✓</span>
+                  </div>
+                )}
               </button>
             ))}
           </div>
@@ -123,9 +138,10 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
         <button
           onClick={handleSubmit}
           disabled={loading || !wallet || amount < 1000}
-          className="w-full bg-gold hover:bg-gold/90 disabled:opacity-50 text-night font-semibold py-4 rounded-xl"
+          className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
         >
-          {loading ? 'Programmation...' : `Programmer ${formatCurrency(amount)} FCFA →`}
+          <span className="relative z-10">{loading ? 'Programmation...' : `Programmer ${formatCurrency(amount)} FCFA`}</span>
+          {!loading && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
         </button>
       </div>
 

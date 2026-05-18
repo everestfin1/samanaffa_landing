@@ -35,6 +35,12 @@ function sanitizeEmail(email?: string): string {
   return email;
 }
 
+function sanitizeLastName(lastName?: string): string {
+  // Clear placeholder values that signal incomplete profiles
+  if (!lastName || lastName === 'Membre' || lastName === 'membre' || lastName === 'Member') return '';
+  return lastName;
+}
+
 export default function ProfileCompletionModal({
   isOpen,
   onClose,
@@ -44,10 +50,24 @@ export default function ProfileCompletionModal({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dobError, setDobError] = useState<string | null>(null);
+
+  const validateAge = (dob: string): string | null => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    if (isNaN(birth.getTime())) return 'Date invalide.';
+    const today = new Date();
+    let age = today.getFullYear() - birth.getFullYear();
+    const m = today.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
+    if (birth > today) return 'Date de naissance invalide.';
+    if (age < 18) return `Vous devez avoir au moins 18 ans (âge actuel : ${age} ans).`;
+    return null;
+  };
 
   const buildFormData = () => ({
     firstName: initialData.firstName || '',
-    lastName: initialData.lastName || '',
+    lastName: sanitizeLastName(initialData.lastName),
     email: sanitizeEmail(initialData.email),
     dateOfBirth: initialData.dateOfBirth || '',
     address: initialData.address || '',
@@ -66,6 +86,7 @@ export default function ProfileCompletionModal({
     if (isOpen) {
       setFormData(buildFormData());
       setError(null);
+      setDobError(null);
     }
   }, [isOpen, initialData]);
 
@@ -86,6 +107,13 @@ export default function ProfileCompletionModal({
       !formData.statutEmploi.trim()
     ) {
       setError('Veuillez remplir tous les champs requis.');
+      setLoading(false);
+      return;
+    }
+
+    const ageErr = validateAge(formData.dateOfBirth);
+    if (ageErr) {
+      setDobError(ageErr);
       setLoading(false);
       return;
     }
@@ -180,6 +208,11 @@ export default function ProfileCompletionModal({
                   className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                   required
                 />
+                {!formData.lastName && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Veuillez saisir votre nom de famille réel.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -223,10 +256,22 @@ export default function ProfileCompletionModal({
               <input
                 type="date"
                 value={formData.dateOfBirth}
-                onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setFormData({ ...formData, dateOfBirth: val });
+                  setDobError(validateAge(val));
+                }}
+                onBlur={(e) => setDobError(validateAge(e.target.value))}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-colors ${
+                  dobError ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
+                }`}
                 required
               />
+              {dobError && (
+                <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
+                  <span>⚠</span> {dobError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -367,7 +412,7 @@ export default function ProfileCompletionModal({
             )}
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || !!dobError}
               className="flex-1 px-6 py-3 bg-gold-metallic text-white rounded-lg font-medium hover:bg-gold-dark disabled:opacity-50 transition-colors"
             >
               {loading ? 'Enregistrement...' : 'Enregistrer'}

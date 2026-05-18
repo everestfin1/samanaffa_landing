@@ -272,9 +272,10 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
             <button
               onClick={handleSendOtp}
               disabled={loading || !isValidLength}
-              className="w-full mt-4 bg-gold hover:bg-gold/90 disabled:opacity-50 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+              className="group relative w-full mt-4 px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              {loading ? 'Envoi...' : 'Envoyer le code par SMS'}
+              <span className="relative z-10">{loading ? 'Envoi...' : 'Envoyer le code par SMS'}</span>
+              {!loading && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
             </button>
           </>
         ) : (
@@ -309,9 +310,10 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
             <button
               onClick={handleVerify}
               disabled={loading || otp.join('').length !== 6}
-              className="w-full bg-gold hover:bg-gold/90 disabled:opacity-50 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+              className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              {loading ? 'Vérification...' : 'Valider'}
+              <span className="relative z-10">{loading ? 'Vérification...' : 'Valider'}</span>
+              {!loading && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
             </button>
             <div className="flex flex-col items-center gap-3 mt-4">
               <button

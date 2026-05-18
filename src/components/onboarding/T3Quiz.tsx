@@ -132,15 +132,15 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
         <h1 className="text-2xl md:text-3xl font-bold text-night mt-4 mb-3">
           {firstName}, vous êtes fait(e) pour
         </h1>
-        <div className="bg-gradient-to-br from-gold/20 to-gold/5 border border-gold/30 rounded-2xl p-6 my-6 shadow-sm">
-          <p className="text-xl font-bold text-night">{result.name}</p>
-          <p className="text-4xl font-bold text-gold my-3">{result.rate}% <span className="text-lg text-gold/70">/ an</span></p>
+        <div className="bg-gradient-to-br from-[#F2F8F4] to-white border border-[#435933]/20 rounded-2xl p-6 my-6 shadow-sm">
+          <p className="text-xl font-bold text-[#435933]">{result.name}</p>
+          <p className="text-4xl font-bold text-[#435933] my-3">{result.rate}% <span className="text-lg text-[#435933]/70">/ an</span></p>
           <p className="text-sm text-night/70 mb-6">{result.description}</p>
           
-          <div className="space-y-2 text-left bg-white/50 rounded-xl p-4">
+          <div className="space-y-2 text-left bg-white/70 rounded-xl p-4">
             {result.highlights.map((highlight, idx) => (
               <div key={idx} className="flex items-start gap-2 text-sm text-night/80">
-                <span className="text-gold font-bold">✓</span>
+                <span className="text-[#435933] font-bold">✓</span>
                 <span>{highlight}</span>
               </div>
             ))}
@@ -159,9 +159,10 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
             }
           }}
           disabled={loading}
-          className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+          className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
         >
-          {loading ? 'Enregistrement...' : error ? 'Réessayer' : 'Programmer mon premier dépôt →'}
+          <span className="relative z-10">{loading ? 'Enregistrement...' : error ? 'Réessayer' : 'Programmer mon premier dépôt'}</span>
+          {!loading && !error && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
         </button>
       </motion.div>
     );
@@ -219,13 +220,20 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
                 <button
                   key={opt.value}
                   onClick={() => handleAnswer(opt.value)}
-                  className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all hover:shadow-md active:scale-[0.98] ${
+                  className={`w-full p-4 border-2 rounded-xl text-left font-medium transition-all duration-300 hover:shadow-md active:scale-[0.98] ${
                     isSelected 
-                      ? 'border-gold bg-gold/10 text-night' 
-                      : 'bg-white border-timberwolf/30 hover:border-gold/50 text-night'
+                      ? 'border-[#435933] bg-gradient-to-r from-[#e8f5e8] to-[#d4f4d4] text-[#435933] shadow-md' 
+                      : 'bg-white border-timberwolf/30 hover:border-[#435933]/50 hover:bg-[#F2F8F4] text-night'
                   }`}
                 >
-                  {opt.label}
+                  <div className="flex items-center gap-3">
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
+                      isSelected ? 'border-[#435933] bg-[#435933]' : 'border-timberwolf/50'
+                    }`}>
+                      {isSelected && <span className="text-white text-xs">✓</span>}
+                    </div>
+                    {opt.label}
+                  </div>
                 </button>
               );
             })}

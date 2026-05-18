@@ -132,9 +132,10 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
               </div>
               <button
                 onClick={startVerification}
-                className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98] shadow-md"
+                className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
               >
-                Commencer la vérification →
+                <span className="relative z-10">Commencer la vérification</span>
+                <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
               </button>
               <p className="text-[10px] text-center text-night/40 italic">
                 S&apos;ouvre dans un nouvel onglet sécurisé
@@ -211,9 +212,10 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
             </div>
             <button
               onClick={onSuccess}
-              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+              className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              Terminer →
+              <span className="relative z-10">Terminer</span>
+              <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
             </button>
           </motion.div>
         )}
@@ -234,9 +236,10 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
             </div>
             <button
               onClick={handleRetry}
-              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+              className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              Réessayer →
+              <span className="relative z-10">Réessayer</span>
+              <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
             </button>
           </motion.div>
         )}
@@ -251,9 +254,10 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
             <p className="text-sm text-red-600">{error || 'Une erreur est survenue.'}</p>
             <button
               onClick={handleRetry}
-              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl"
+              className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
-              Réessayer
+              <span className="relative z-10">Réessayer</span>
+              <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
             </button>
           </motion.div>
         )}

@@ -51,7 +51,7 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
       </motion.div>
 
       <div className="space-y-4">
-        {/* Status Card 1 */}
+        {/* Deposit Status Card */}
         <motion.div 
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -73,32 +73,11 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
           </div>
         </motion.div>
 
-        {/* Status Card 2 */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-white border border-timberwolf/30 rounded-2xl p-5 flex items-start gap-4 shadow-sm"
-        >
-          <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0">
-            <span className="text-xl">🔍</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-1">
-              <h3 className="font-bold text-night">Vérification d'identité</h3>
-              <span className="text-[10px] font-bold uppercase px-2 py-1 bg-orange-100 text-orange-800 rounded-full">En cours</span>
-            </div>
-            <p className="text-sm text-night/60">
-              Tes documents sont en cours d'analyse (max 24h).
-            </p>
-          </div>
-        </motion.div>
-
         {/* Referral CTA */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.3 }}
           className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 text-center shadow-sm"
         >
           <span className="text-4xl mb-3 block">🎁</span>
@@ -118,11 +97,12 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
       <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.8 }}
+        transition={{ delay: 0.5 }}
         onClick={() => router.push('/portal/dashboard')}
-        className="w-full mt-6 text-sm text-night/60 hover:text-night font-medium transition-colors"
+        className="group relative w-full mt-8 px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
       >
-        Aller au tableau de bord complet →
+        <span className="relative z-10">Aller au tableau de bord complet</span>
+        <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
       </motion.button>
     </div>
   );
