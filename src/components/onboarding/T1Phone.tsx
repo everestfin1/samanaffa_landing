@@ -54,6 +54,7 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
   const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [mockOtp, setMockOtp] = useState<string | null>(null);
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [countdown, setCountdown] = useState(0);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -123,6 +124,7 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
       setSessionId(data.sessionId);
+      setMockOtp(data.mockOtp ?? null);
       setCountdown(60);
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);
@@ -294,6 +296,15 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
                 />
               ))}
             </div>
+            {mockOtp && (
+              <button
+                type="button"
+                onClick={() => setOtp(mockOtp.split(''))}
+                className="w-full mb-3 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-sm text-night"
+              >
+                Mode dev : utiliser le code {mockOtp}
+              </button>
+            )}
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
             <button
               onClick={handleVerify}
@@ -313,6 +324,7 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
               <button
                 onClick={() => {
                   setSessionId(null);
+                  setMockOtp(null);
                   setOtp(['', '', '', '', '', '']);
                   setError(null);
                 }}

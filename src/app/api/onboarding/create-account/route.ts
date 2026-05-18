@@ -83,11 +83,24 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: result.message }, { status: 400 });
       }
 
-      return NextResponse.json({
+      const response: Record<string, unknown> = {
         success: true,
         sessionId: session.id,
         message: 'Code envoyé par SMS',
-      });
+      };
+
+      if (process.env.MOCK_OTP === 'true') {
+        const mockOtp = await prisma.otpCode.findFirst({
+          where: {
+            registrationSessionId: session.id,
+            used: false,
+            expiresAt: { gt: new Date() },
+          },
+        });
+        response.mockOtp = mockOtp?.code;
+      }
+
+      return NextResponse.json(response);
     }
 
     // ---------------------------------------------------------------------
@@ -107,7 +120,8 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Session expirée' }, { status: 410 });
       }
 
-      const ok = await verifyOTP(sessionId, otp);
+      const normalizedOtp = String(otp).replace(/\D/g, '').slice(0, 6);
+      const ok = await verifyOTP(sessionId, normalizedOtp);
       if (!ok) {
         return NextResponse.json({ error: 'Code OTP invalide ou expiré' }, { status: 400 });
       }
