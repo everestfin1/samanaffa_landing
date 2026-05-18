@@ -83,10 +83,10 @@ export default function ProfilePage() {
   const [editForm, setEditForm] = useState({
     firstName: '',
     lastName: '',
-    phone: '',
     address: '',
     city: '',
-    preferredLanguage: 'fr'
+    country: '',
+    preferredLanguage: 'fr',
   });
   const [uploadingFile, setUploadingFile] = useState(false);
 
@@ -99,10 +99,10 @@ export default function ProfilePage() {
       setEditForm({
         firstName: userData.firstName,
         lastName: userData.lastName,
-        phone: userData.phone,
         address: userData.address || '',
         city: userData.city || '',
-        preferredLanguage: userData.preferredLanguage || 'fr'
+        country: userData.country || 'Sénégal',
+        preferredLanguage: userData.preferredLanguage || 'fr',
       });
     }
   }, [userData]);
@@ -131,25 +131,38 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSuccess('');
 
+    if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
+      return;
+    }
+
     try {
-      await updateProfileMutation.mutateAsync(editForm);
+      await updateProfileMutation.mutateAsync({
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim(),
+        address: editForm.address.trim(),
+        city: editForm.city.trim(),
+        country: editForm.country.trim(),
+        preferredLanguage: editForm.preferredLanguage,
+      });
       setSuccess('Profil mis à jour avec succès');
       setIsEditing(false);
     } catch (error) {
-      // Error is handled by the mutation hook
       console.error('Profile update failed:', error);
     }
   };
+
+  const displayEmail =
+    userData?.email?.includes('@onboarding.samanaffa.tmp') ? '' : userData?.email;
 
   const handleCancelEdit = () => {
     if (userData) {
       setEditForm({
         firstName: userData.firstName,
         lastName: userData.lastName,
-        phone: userData.phone,
         address: userData.address || '',
         city: userData.city || '',
-        preferredLanguage: userData.preferredLanguage || 'fr'
+        country: userData.country || 'Sénégal',
+        preferredLanguage: userData.preferredLanguage || 'fr',
       });
     }
     setIsEditing(false);
@@ -359,13 +372,36 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-night mb-2">Email</label>
+                      <input
+                        type="email"
+                        value={displayEmail || ''}
+                        readOnly
+                        disabled
+                        placeholder={
+                          userData?.email?.includes('@onboarding.samanaffa.tmp')
+                            ? "À compléter via le formulaire d'inscription"
+                            : undefined
+                        }
+                        className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg bg-timberwolf/10 text-night/60 cursor-not-allowed"
+                      />
+                      <p className="text-xs text-night/50 mt-1">
+                        La modification de l&apos;email n&apos;est pas disponible ici pour le moment.
+                      </p>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-night mb-2">Téléphone</label>
                       <input
                         type="tel"
-                        value={editForm.phone}
-                        onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
-                        className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
+                        value={userData?.phone || ''}
+                        readOnly
+                        disabled
+                        className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg bg-timberwolf/10 text-night/60 cursor-not-allowed"
                       />
+                      <p className="text-xs text-amber-700/90 mt-1">
+                        Le changement de numéro nécessite une vérification par SMS (OTP). Cette option sera
+                        disponible prochainement.
+                      </p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-night mb-2">Adresse</label>
@@ -387,6 +423,15 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div>
+                        <label className="block text-sm font-medium text-night mb-2">Pays</label>
+                        <input
+                          type="text"
+                          value={editForm.country}
+                          onChange={(e) => setEditForm({...editForm, country: e.target.value})}
+                          className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:ring-2 focus:ring-gold-metallic focus:border-transparent"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-night mb-2">Langue préférée</label>
                         <select
                           value={editForm.preferredLanguage}
@@ -430,8 +475,10 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex items-center space-x-3">
                       <EnvelopeIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">{userData?.email}</span>
-                      {userData?.emailVerified && (
+                      <span className="text-night/70">
+                        {displayEmail || 'Email non renseigné — complétez votre profil depuis le tableau de bord'}
+                      </span>
+                      {userData?.emailVerified && displayEmail && (
                         <CheckCircleIcon className="w-4 h-4 text-green-500" />
                       )}
                     </div>
@@ -444,7 +491,11 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex items-center space-x-3">
                       <MapPinIcon className="w-5 h-5 text-night/70" />
-                      <span className="text-night/70">{userData?.address || 'Non renseignée'}</span>
+                      <span className="text-night/70">
+                        {[userData?.address, userData?.city, userData?.country]
+                          .filter(Boolean)
+                          .join(', ') || 'Non renseignée'}
+                      </span>
                     </div>
                     <div className="flex items-center space-x-3">
                       <IdentificationIcon className="w-5 h-5 text-night/70" />

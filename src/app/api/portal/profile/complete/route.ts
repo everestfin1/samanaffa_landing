@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
 
 /**
  * PATCH /api/portal/profile/complete
@@ -61,42 +62,43 @@ export async function PATCH(request: NextRequest) {
       updateData.statutEmploi = statutEmploi.trim();
     }
 
-    // Email validation and uniqueness check
-    if (typeof email === 'string' && email.trim() && email !== currentUser.email) {
+    // Email validation and uniqueness check (case-insensitive vs DB)
+    const currentEmailNorm = (currentUser.email || '').trim().toLowerCase();
+    if (typeof email === 'string' && email.trim()) {
       const trimmedEmail = email.trim().toLowerCase();
 
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-        return NextResponse.json(
-          { error: 'Format d\'email invalide.' },
-          { status: 400 },
-        );
+      if (trimmedEmail !== currentEmailNorm) {
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+          return NextResponse.json(
+            { error: 'Format d\'email invalide.' },
+            { status: 400 },
+          );
+        }
+
+        if (trimmedEmail.includes('@onboarding.samanaffa.tmp')) {
+          return NextResponse.json(
+            { error: 'Veuillez fournir une adresse email réelle.' },
+            { status: 400 },
+          );
+        }
+
+        const existingEmailUser = await prisma.user.findFirst({
+          where: {
+            email: trimmedEmail,
+            id: { not: userId },
+          },
+        });
+
+        if (existingEmailUser) {
+          return NextResponse.json(
+            { error: 'Cet email est déjà associé à un compte existant.' },
+            { status: 409 },
+          );
+        }
+
+        updateData.email = trimmedEmail;
       }
-
-      if (trimmedEmail.includes('@onboarding.samanaffa.tmp')) {
-        return NextResponse.json(
-          { error: 'Veuillez fournir une adresse email réelle.' },
-          { status: 400 },
-        );
-      }
-
-      const existingEmailUser = await prisma.user.findFirst({
-        where: {
-          email: trimmedEmail,
-          id: { not: userId },
-        },
-      });
-
-      if (existingEmailUser) {
-        return NextResponse.json(
-          { error: 'Cet email est déjà associé à un compte existant.' },
-          { status: 409 },
-        );
-      }
-
-      updateData.email = trimmedEmail;
     }
-
-    // Address fields
     if (typeof address === 'string' && address.trim()) {
       updateData.address = address.trim();
     }
@@ -156,18 +158,18 @@ export async function PATCH(request: NextRequest) {
     const mergedTerms = (updateData.termsAccepted as boolean | undefined) ?? currentUser.termsAccepted;
     const mergedPrivacy = (updateData.privacyAccepted as boolean | undefined) ?? currentUser.privacyAccepted;
 
-    const isComplete =
-      mergedFirstName &&
-      mergedLastName &&
-      mergedEmail &&
-      !mergedEmail.includes('@onboarding.samanaffa.tmp') &&
-      mergedDob &&
-      mergedAddress &&
-      mergedCity &&
-      mergedCountry &&
-      mergedStatut &&
-      mergedTerms &&
-      mergedPrivacy;
+    const isComplete = meetsPortalProfileRequirements({
+      firstName: mergedFirstName,
+      lastName: mergedLastName,
+      email: mergedEmail,
+      dateOfBirth: mergedDob,
+      address: mergedAddress,
+      city: mergedCity,
+      country: mergedCountry,
+      statutEmploi: mergedStatut,
+      termsAccepted: mergedTerms,
+      privacyAccepted: mergedPrivacy,
+    });
 
     if (isComplete && currentUser.profileCompletionStatus !== 'COMPLETE') {
       updateData.profileCompletionStatus = 'COMPLETE';

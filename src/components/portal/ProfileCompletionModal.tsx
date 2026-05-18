@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   UserIcon,
   EnvelopeIcon,
@@ -48,6 +50,8 @@ export default function ProfileCompletionModal({
   initialData = {},
 }: ProfileCompletionModalProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dobError, setDobError] = useState<string | null>(null);
@@ -137,7 +141,14 @@ export default function ProfileCompletionModal({
         throw new Error(data.error || 'Erreur lors de la mise à jour du profil');
       }
 
-      // Success - close modal and refresh
+      // Refresh cached profile (dashboard / profile page use TanStack Query, not only RSC)
+      await queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      await queryClient.refetchQueries({ queryKey: ['userProfile'] });
+      // JWT carries email/name — reload token from DB (see auth jwt callback trigger === 'update')
+      if (typeof updateSession === 'function') {
+        await updateSession();
+      }
+
       onClose();
       router.refresh();
     } catch (err: unknown) {

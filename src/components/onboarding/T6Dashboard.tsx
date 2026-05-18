@@ -69,7 +69,9 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
             <p className="text-sm text-night/60 mb-2">
               {formatCurrency(depositAmount)} FCFA vers {formula}
             </p>
-            <p className="text-xs text-night/40 italic">Sera prélevé après validation KYC</p>
+            <p className="text-xs text-night/40 italic">
+              Identité vérifiée — traitement du dépôt en cours. Tu seras notifié(e) avant tout prélèvement.
+            </p>
           </div>
         </motion.div>
 

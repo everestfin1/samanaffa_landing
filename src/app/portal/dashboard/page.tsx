@@ -29,6 +29,7 @@ import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
+import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -88,25 +89,23 @@ export default function DashboardPage() {
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const { data: recentTransactions = [], isLoading: isLoadingTransactions, error: transactionsError } = useRecentTransactions(userData?.id || '', 5);
 
-  // Check if profile is incomplete (has .tmp email or missing required fields)
+  // Check if profile is incomplete (has .tmp email or missing required fields).
+  // GET /api/users/profile must return profileCompletionStatus + consents so this stays in sync with the DB.
   useEffect(() => {
     if (!userData) return;
 
-    const incomplete =
-      userData.email?.includes('@onboarding.samanaffa.tmp') ||
-      !userData.dateOfBirth ||
-      !userData.address ||
-      !userData.city ||
-      !userData.country ||
-      !userData.statutEmploi ||
-      !userData.termsAccepted ||
-      !userData.privacyAccepted ||
-      userData.profileCompletionStatus === 'INCOMPLETE';
+    const done =
+      userData.profileCompletionStatus === 'COMPLETE' ||
+      meetsPortalProfileRequirements(userData);
 
-    setIsProfileIncomplete(!!incomplete);
-    if (incomplete) {
-      setShowProfileModal(true);
+    if (done) {
+      setIsProfileIncomplete(false);
+      setShowProfileModal(false);
+      return;
     }
+
+    setIsProfileIncomplete(true);
+    setShowProfileModal(true);
   }, [userData]);
 
   // Calculate APE investment total from completed transactions

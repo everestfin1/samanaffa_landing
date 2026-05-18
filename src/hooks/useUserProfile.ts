@@ -58,7 +58,9 @@ export const useUserProfile = () => {
 
       return data.user;
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes - data considered fresh
+    // Profile gates UX (e.g. mandatory modal). Avoid stale cache hiding COMPLETE / consents.
+    staleTime: 0,
+    refetchOnMount: 'always',
     gcTime: 10 * 60 * 1000, // 10 minutes - garbage collection
     retry: 3,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -82,24 +84,22 @@ export const useUpdateUserProfile = () => {
         body: JSON.stringify(profileData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to update user profile');
-      }
-
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to update user profile');
+      }
 
       if (!data.success) {
         throw new Error(data.error || 'Failed to update user profile');
       }
 
-      return data.user;
+      return data.user as UserProfile;
     },
     onSuccess: (updatedUser) => {
-      // Update the cached user profile data
-      queryClient.setQueryData(['userProfile'], updatedUser);
-
-      // Optionally invalidate related queries
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
+      queryClient.setQueryData<UserProfile | undefined>(['userProfile'], (prev) =>
+        prev ? { ...prev, ...updatedUser } : updatedUser,
+      );
     },
     onError: (error) => {
       console.error('Profile update failed:', error);

@@ -137,6 +137,22 @@ export const user = {
           .where(and(...accountConditions));
       }
 
+      if (params.include.kycDocuments) {
+        let kycQuery = db.select().from(schema.kycDocuments).where(eq(schema.kycDocuments.userId, user.id));
+        if (params.include.kycDocuments.orderBy) {
+          const orderKey = Object.keys(params.include.kycDocuments.orderBy)[0];
+          const orderDir = params.include.kycDocuments.orderBy[orderKey];
+          const column = (schema.kycDocuments as any)[orderKey];
+          if (column) {
+            kycQuery = kycQuery.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+          }
+        }
+        if (params.include.kycDocuments.take) {
+          kycQuery = kycQuery.limit(params.include.kycDocuments.take) as any;
+        }
+        included.kycDocuments = await kycQuery;
+      }
+
       return included;
     }
 
