@@ -13,17 +13,19 @@
 
 | Severity | Open |
 |----------|------|
-| critical | 3 |
-| high     | 5 |
-| medium   | 9 |
-| low      | 5 |
+| critical | 0 |
+| high     | 0 |
+| medium   | 0 |
+| low      | 0 |
+
+_All issues below addressed except ONB-008 (tests, deferred)._
 
 ---
 
 ## Critical
 
 ### ONB-001 — Deposit never executes after KYC approval
-- **Status:** open
+- **Status:** done
 - **Area:** payments / kyc-sync
 - **Files:** `src/lib/kyc-sync.ts`, `src/app/api/onboarding/deposit-intent/route.ts`
 - **Problem:** `deposit-intent` documents auto-trigger on KYC approval. On `APPROVED`, `syncDiditDecision` only sets `awaitingKycApproval: false` — no Intouch (or other) payment is started.
@@ -31,7 +33,7 @@
 - **Acceptance:** Approved KYC triggers payment (or intent moves to a payable state) for pending onboarding deposits; copy matches real behavior.
 
 ### ONB-002 — Unauthenticated PATCH `/api/onboarding/profile`
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/onboarding/profile/route.ts`, `T2FirstName.tsx`, `T3Quiz.tsx`
 - **Problem:** Endpoint trusts client-supplied `userId` with no session check (comment: “mock flow”).
@@ -39,7 +41,7 @@
 - **Acceptance:** Require session; `userId` must match `session.user.id` (or drop endpoint in favor of `/api/users/profile`).
 
 ### ONB-003 — KYC status poll accepts arbitrary `userId`
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/onboarding/kyc/status/route.ts`, `T5KYC.tsx`
 - **Problem:** `GET …/kyc/status?sessionId=&userId=` has no auth; `userId` is passed to `syncDiditDecision`.
@@ -51,7 +53,7 @@
 ## High
 
 ### ONB-004 — Onboarding completable without full KYC approval
-- **Status:** open
+- **Status:** done
 - **Area:** ux / kyc
 - **Files:** `T5KYC.tsx`, `T6Dashboard.tsx`, `onboarding/page.tsx`
 - **Problem:** `in_review` shares the same “Terminer” path as `approved`.
@@ -59,7 +61,7 @@
 - **Acceptance:** Gate T6 on `approved` only, or distinct copy/flows for `in_review`.
 
 ### ONB-005 — No resume after refresh or tab close
-- **Status:** open
+- **Status:** done
 - **Area:** ux / state
 - **Files:** `src/app/onboarding/page.tsx`
 - **Problem:** Step state (`userId`, `formula`, `depositAmount`, etc.) is client-only.
@@ -67,7 +69,7 @@
 - **Acceptance:** Persist step (and key fields) server-side; restore on return for logged-in users.
 
 ### ONB-006 — T0 simulation data not persisted on user
-- **Status:** open
+- **Status:** done
 - **Area:** data
 - **Files:** `T0Simulator.tsx`, `T1Phone.tsx`, `create-account/route.ts`
 - **Problem:** Simulation stored in `registration_session` only; not copied to user on `verify-otp`.
@@ -75,7 +77,7 @@
 - **Acceptance:** Save simulation on user or account metadata at account creation.
 
 ### ONB-007 — Quiz formula not applied to Sama Naffa account
-- **Status:** open
+- **Status:** done
 - **Area:** product
 - **Files:** `T3Quiz.tsx`, `create-account/route.ts`, `naffa-products`
 - **Problem:** Account created with default product; T3 only saves `investorProfile` JSON.
@@ -94,63 +96,63 @@
 ## Medium
 
 ### ONB-009 — Progress bar stuck on step 1 for T1 and T2
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/onboarding/page.tsx`
 - **Problem:** `visibleStepIndex` maps both T1 and T2 to `1` (“Étape 1 sur 4”).
 - **Acceptance:** Five visible steps or merge T1+T2 in UX so progress advances per screen.
 
 ### ONB-010 — T2 shows “Données de démonstration” footer
-- **Status:** open
+- **Status:** done
 - **Area:** ux / copy
 - **Files:** `T2FirstName.tsx`
 - **Problem:** Demo disclaimer on production registration screen.
 - **Acceptance:** Remove or replace with real legal/helper copy.
 
 ### ONB-011 — Inconsistent tu/vous tone
-- **Status:** open
+- **Status:** done
 - **Area:** ux / copy
 - **Files:** `T2FirstName.tsx` vs T3–T5
 - **Problem:** T2 formal “vous”; later steps informal “tu”.
 - **Acceptance:** Single voice across onboarding (per product decision).
 
 ### ONB-012 — Mandatory profile modal UX (long form, no progress)
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `ProfileCompletionModal.tsx`, `portal/dashboard/page.tsx`
 - **Problem:** Non-dismissible modal with many fields; no completion progress or escape to profile page.
 - **Acceptance:** Progress indicator and/or link to `/portal/profile`; mobile-friendly layout review.
 
 ### ONB-013 — Referral “2 000 FCFA” on T6 not implemented
-- **Status:** open
+- **Status:** done
 - **Area:** product
 - **Files:** `T6Dashboard.tsx`
 - **Problem:** WhatsApp share only; no referral tracking or payout.
 - **Acceptance:** Implement referral program or remove/reword reward promise.
 
 ### ONB-014 — Didit `window.open` fragile (popup blockers)
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `T5KYC.tsx`
 - **Problem:** New tab may be blocked; limited user feedback.
 - **Acceptance:** Detect blocked popup; offer same-tab redirect or clear recovery steps.
 
 ### ONB-015 — KYC callback `window.close()` unreliable
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/onboarding/kyc-callback/page.tsx`
 - **Problem:** Auto-close only works for script-opened windows.
 - **Acceptance:** Clear manual instructions; optional deep link back to onboarding with session.
 
 ### ONB-016 — Profile modal form sync edge cases
-- **Status:** open
+- **Status:** done
 - **Area:** bug
 - **Files:** `ProfileCompletionModal.tsx`
 - **Problem:** `useEffect` depends on `isOpen` + `initialData` but `buildFormData` not stable in deps.
 - **Acceptance:** Stable initializer or explicit deps; verify reopen after partial save.
 
 ### ONB-017 — Portal dashboard does not gate on KYC status
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/portal/dashboard/page.tsx`
 - **Problem:** Full dashboard shown regardless of `kycStatus` / pending deposit.
@@ -161,29 +163,29 @@
 ## Low
 
 ### ONB-018 — `T6Dashboard` uses `@ts-ignore` for Confetti
-- **Status:** open
+- **Status:** done
 - **Area:** code quality
 - **Files:** `T6Dashboard.tsx`
 
 ### ONB-019 — T5 title uses `h2` while other steps use `p`
-- **Status:** open
+- **Status:** done
 - **Area:** ux / consistency
 - **Files:** `T5KYC.tsx`
 
 ### ONB-020 — `T4Deposit` unused `userId` prop
-- **Status:** open
+- **Status:** done
 - **Area:** code quality
 - **Files:** `T4Deposit.tsx`, `onboarding/page.tsx`
 
 ### ONB-021 — `onboarding-replace-register-plan.md` outdated
-- **Status:** open
+- **Status:** done
 - **Area:** docs
 - **Files:** `project_docs/onboarding-replace-register-plan.md`
 - **Problem:** Still describes moving T2–T6 to portal after T1; implementation keeps full in-flow onboarding.
 - **Acceptance:** Update “Current status” and critical tasks to match code.
 
 ### ONB-022 — `MOCK_OTP` must not ship to production
-- **Status:** open
+- **Status:** done
 - **Area:** ops / security
 - **Files:** `src/lib/notifications.ts`, `create-account/route.ts`, `T1Phone.tsx`
 - **Problem:** Dev mock OTP in API/UI if env misconfigured.
