@@ -29,15 +29,6 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
 
   const amount = parseInt(amountStr.replace(/\D/g, ''), 10) || 0;
 
-  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const raw = e.target.value.replace(/\D/g, '');
-    if (raw) {
-      setAmountStr(parseInt(raw, 10).toLocaleString('fr-FR'));
-    } else {
-      setAmountStr('');
-    }
-  };
-
   const handleSubmit = async () => {
     if (!wallet || amount < 1000) return;
     setLoading(true);
@@ -85,7 +76,7 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
             {QUICK_AMOUNTS.map((a) => (
               <button
                 key={a}
-                onClick={() => setAmount(a)}
+                onClick={() => setAmountStr(String(a))}
                 className={`py-3 rounded-xl border-2 font-semibold transition-all ${
                   amount === a
                     ? 'border-gold bg-gold/10 text-night'
@@ -101,7 +92,7 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
             min={1000}
             step={1000}
             value={amount}
-            onChange={(e) => setAmount(Number(e.target.value))}
+            onChange={(e) => setAmountStr(e.target.value)}
             className="w-full px-4 py-3 text-lg text-center border border-timberwolf/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold"
             placeholder="Montant personnalisé"
           />

@@ -54,6 +54,8 @@ export async function POST(request: NextRequest) {
       // Placeholder email (mock flow — email collected later in profile)
       const placeholderEmail = `${normalizedPhone.replace(/\+/g, '')}@onboarding.samanaffa.tmp`;
 
+      await prisma.registrationSession.deleteMany({ where: { phone: normalizedPhone } });
+
       const session = await prisma.registrationSession.create({
         data: {
           email: placeholderEmail,

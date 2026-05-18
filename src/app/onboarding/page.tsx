@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import T0Simulator, { T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone from '@/components/onboarding/T1Phone';
@@ -39,6 +39,13 @@ export default function OnboardingPage() {
     depositAmount: null,
     wallet: null,
   });
+
+  // Guard: if we land on T6 without formula, bounce back to T3
+  useEffect(() => {
+    if (step === 'T6' && !state.formula) {
+      setStep('T3');
+    }
+  }, [step, state.formula]);
 
   // Progress mapping
   const visibleStepIndex: Record<Step, number> = {

@@ -713,6 +713,11 @@ export const registrationSession = {
     
     return results[0] || null;
   },
+
+  async deleteMany(params: { where: { phone: string } }) {
+    await db.delete(schema.registrationSessions)
+      .where(eq(schema.registrationSessions.phone, params.where.phone));
+  },
 };
 
 // Prisma-compatible query builder for KYC Documents

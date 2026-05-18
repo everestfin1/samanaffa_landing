@@ -1,10 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-const WebcamCapture = dynamic(() => import('@/components/common/WebcamCaptureFixed'), { ssr: false });
 
 interface T5KYCProps {
   userId: string;
@@ -14,218 +11,253 @@ interface T5KYCProps {
   onBack?: () => void;
 }
 
-type CaptureStage = 'idle' | 'recto' | 'verso' | 'ocr' | 'done';
+type KycStage = 'idle' | 'loading' | 'verifying' | 'success' | 'in_review' | 'declined' | 'error';
 
-interface OCRResult {
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  idNumber: string;
-}
+const POLL_INTERVAL_MS = 5_000;
 
 export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onBack }: T5KYCProps) {
-  const [stage, setStage] = useState<CaptureStage>('idle');
-  const [rectoFile, setRectoFile] = useState<File | null>(null);
-  const [versoFile, setVersoFile] = useState<File | null>(null);
-  const [webcamOpen, setWebcamOpen] = useState(false);
-  const [webcamMode, setWebcamMode] = useState<'recto' | 'verso'>('recto');
-  const [ocrResult, setOcrResult] = useState<OCRResult | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [stage, setStage] = useState<KycStage>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [diditSessionId, setDiditSessionId] = useState<string | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const openWebcam = (mode: 'recto' | 'verso') => {
-    setWebcamMode(mode);
-    setWebcamOpen(true);
-  };
-
-  const handleCapture = (file: File) => {
-    setWebcamOpen(false);
-    if (webcamMode === 'recto') {
-      setRectoFile(file);
-      setStage('verso');
-    } else {
-      setVersoFile(file);
-      runFakeOCR();
+  const stopPolling = () => {
+    if (pollRef.current !== null) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
     }
   };
 
-  // Fake OCR — 2s animation, then pre-fill with mock data.
-  // In production this would be a call to Didit / Smile ID with confidence scoring.
-  const runFakeOCR = () => {
-    setStage('ocr');
-    setTimeout(() => {
-      setOcrResult({
-        firstName,
-        lastName: 'DIALLO',
-        dateOfBirth: '1995-04-15',
-        idNumber: '1234567890123',
-      });
-      setStage('done');
-    }, 2000);
+  useEffect(() => () => stopPolling(), []);
+
+  const startPolling = (sessionId: string) => {
+    stopPolling();
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === 'approved') {
+          stopPolling();
+          setStage('success');
+        } else if (data.status === 'in_review') {
+          stopPolling();
+          setStage('in_review');
+        } else if (data.status === 'declined') {
+          stopPolling();
+          setStage('declined');
+        }
+      } catch {
+        // network hiccup — keep polling
+      }
+    }, POLL_INTERVAL_MS);
   };
 
-  const uploadFile = async (file: File, documentType: string) => {
-    const fd = new FormData();
-    fd.append('file', file);
-    fd.append('userId', userId);
-    fd.append('documentType', documentType);
-    const res = await fetch('/api/kyc/upload', { method: 'POST', body: fd });
-    if (!res.ok) {
-      const data = await res.json().catch(() => ({}));
-      throw new Error(data.error || 'Upload failed');
-    }
-  };
-
-  const handleConfirm = async () => {
-    if (!rectoFile || !versoFile) return;
-    setUploading(true);
+  const startVerification = async () => {
+    setStage('loading');
     setError(null);
     try {
-      await uploadFile(rectoFile, 'national_id');
-      await uploadFile(versoFile, 'national_id_back');
-      onSuccess();
+      const res = await fetch('/api/onboarding/kyc/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, firstName }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Erreur');
+
+      setDiditSessionId(data.sessionId);
+      window.open(data.verificationUrl, '_blank', 'noopener,noreferrer');
+      setStage('verifying');
+      startPolling(data.sessionId);
     } catch (e: unknown) {
+      setStage('error');
       setError(e instanceof Error ? e.message : 'Erreur');
-    } finally {
-      setUploading(false);
     }
   };
 
-  const handleBackInKyc = () => {
-    if (stage === 'idle') {
-      onBack?.();
-      return;
-    }
-    if (stage === 'verso') {
-      setRectoFile(null);
-      setStage('idle');
-      return;
-    }
-    if (stage === 'done') {
-      setVersoFile(null);
-      setOcrResult(null);
-      setStage('verso');
-      return;
-    }
+  const handleRetry = () => {
+    stopPolling();
+    setStage('idle');
+    setError(null);
+    setDiditSessionId(null);
   };
 
   return (
     <div className="max-w-md mx-auto px-4 py-8">
-      {stage !== 'ocr' && (onBack || stage !== 'idle') && (
+      {stage === 'idle' && onBack && (
         <button
-          onClick={handleBackInKyc}
+          onClick={onBack}
           className="text-sm text-night/60 hover:text-night mb-4 inline-flex items-center gap-1"
         >
           ← Retour
         </button>
       )}
+
       <div className="text-center mb-6">
         <span className="text-5xl">🪪</span>
         <h1 className="text-2xl md:text-3xl font-bold text-night mt-3 mb-2">
-          Dernière étape — on protège ton argent 🔒
+          Vérification d&apos;identité
         </h1>
-        <p className="text-night/60 text-sm">
-          2 minutes, et c&apos;est fait.
-        </p>
+        <p className="text-night/60 text-sm">2 minutes, et c&apos;est fait.</p>
         <div className="mt-3 inline-block bg-gold/10 border border-gold/30 rounded-full px-4 py-2 text-sm text-night">
-          💸 Il ne reste que la vérification pour libérer ton dépôt de{' '}
+          💸 Libère ton dépôt de{' '}
           <strong>{depositAmount.toLocaleString('fr-FR')} FCFA</strong>
         </div>
       </div>
 
-      {stage === 'idle' && (
-        <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 text-center space-y-4">
-          <p className="text-night/80">Prends une photo de ta CNI — recto puis verso.</p>
-          <button
-            onClick={() => openWebcam('recto')}
-            className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl"
+      <AnimatePresence mode="wait">
+        {stage === 'idle' && (
+          <motion.div
+            key="idle"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
           >
-            📷 Photo recto CNI
-          </button>
-        </div>
-      )}
-
-      {stage === 'verso' && (
-        <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 text-center space-y-4">
-          <p className="text-green-700 font-semibold">✓ Recto capturé</p>
-          <p className="text-night/80">Maintenant le verso.</p>
-          <button
-            onClick={() => openWebcam('verso')}
-            className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl"
-          >
-            📷 Photo verso CNI
-          </button>
-        </div>
-      )}
-
-      {stage === 'ocr' && (
-        <div className="bg-white border border-timberwolf/30 rounded-2xl p-10 text-center shadow-sm">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gold border-t-transparent mb-6" />
-          <p className="text-night font-bold text-lg mb-2">{OCR_STEPS[ocrStep]}</p>
-          <div className="w-full h-1.5 bg-timberwolf/30 rounded-full overflow-hidden">
-            <motion.div
-              className="h-full bg-gold rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${((ocrStep + 1) / OCR_STEPS.length) * 100}%` }}
-              transition={{ ease: 'easeInOut', duration: 0.3 }}
-            />
-          </div>
-        </div>
-      )}
-
-      {stage === 'done' && ocrResult && (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white border border-timberwolf/30 rounded-2xl p-6 space-y-4 shadow-sm"
-        >
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div className="w-16 h-10 bg-timberwolf/20 rounded border border-timberwolf/40 flex items-center justify-center overflow-hidden">
-              {rectoFile && <img src={URL.createObjectURL(rectoFile)} alt="Recto" className="w-full h-full object-cover opacity-50" />}
+            <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 space-y-5 shadow-xs">
+              <p className="text-sm text-night/70 text-center">
+                On utilise <strong>Didit</strong> — vérification certifiée, aucun document
+                stocké sur nos serveurs.
+              </p>
+              <div className="space-y-3">
+                {[
+                  { emoji: '🪪', text: 'Ton CNI ou passeport' },
+                  { emoji: '🤳', text: 'Un selfie rapide (détection de vivacité)' },
+                  { emoji: '⚡', text: 'Résultat en moins de 2 minutes' },
+                ].map((item) => (
+                  <div key={item.text} className="flex items-center gap-3 text-sm text-night/70">
+                    <span className="text-xl w-8 text-center shrink-0">{item.emoji}</span>
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={startVerification}
+                className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98] shadow-md"
+              >
+                Commencer la vérification →
+              </button>
+              <p className="text-[10px] text-center text-night/40 italic">
+                S&apos;ouvre dans un nouvel onglet sécurisé
+              </p>
             </div>
-            <div className="w-16 h-10 bg-timberwolf/20 rounded border border-timberwolf/40 flex items-center justify-center overflow-hidden">
-              {versoFile && <img src={URL.createObjectURL(versoFile)} alt="Verso" className="w-full h-full object-cover opacity-50" />}
-            </div>
-          </div>
-          <p className="text-green-700 font-semibold text-center flex items-center justify-center gap-2">
-            <span className="text-xl">✓</span> Documents analysés avec succès
-          </p>
-          <div className="space-y-3 text-sm bg-gray-50/50 p-4 rounded-xl border border-timberwolf/20">
-            <Row label="Prénom" value={ocrResult.firstName} />
-            <Row label="Nom" value={ocrResult.lastName} />
-            <Row label="Date de naissance" value={ocrResult.dateOfBirth} />
-            <Row label="N° CNI" value={ocrResult.idNumber} />
-          </div>
-          <p className="text-xs text-night/50 text-center flex items-center justify-center gap-1">
-            <span>🤖</span> Extraction automatique — zéro ressaisie
-          </p>
-          {error && <p className="text-sm text-red-600 text-center">{error}</p>}
-          <button
-            onClick={handleConfirm}
-            disabled={uploading}
-            className="w-full bg-gold hover:bg-gold/90 disabled:opacity-50 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+          </motion.div>
+        )}
+
+        {stage === 'loading' && (
+          <motion.div
+            key="loading"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="text-center py-16"
           >
-            {uploading ? 'Envoi des documents...' : 'Confirmer et finaliser →'}
-          </button>
-        </motion.div>
-      )}
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gold border-t-transparent mb-4" />
+            <p className="text-night font-semibold">Préparation de la vérification…</p>
+          </motion.div>
+        )}
 
-      <WebcamCapture
-        isOpen={webcamOpen}
-        onClose={() => setWebcamOpen(false)}
-        onCapture={handleCapture}
-        facingMode="environment"
-        title={webcamMode === 'recto' ? 'Photo recto CNI' : 'Photo verso CNI'}
-      />
-    </div>
-  );
-}
+        {stage === 'verifying' && (
+          <motion.div
+            key="verifying"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="bg-white border border-timberwolf/30 rounded-2xl p-8 text-center space-y-5 shadow-xs"
+          >
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-gold border-t-transparent" />
+            <div>
+              <p className="font-bold text-night mb-1">En attente de ta vérification</p>
+              <p className="text-sm text-night/60">
+                Complète la vérification dans l&apos;onglet ouvert.
+              </p>
+              <p className="text-xs text-night/40 mt-2">
+                Cette page se met à jour automatiquement.
+              </p>
+            </div>
+            {diditSessionId && (
+              <button
+                onClick={() =>
+                  window.open(
+                    `https://verify.didit.me/session/${diditSessionId}`,
+                    '_blank',
+                    'noopener,noreferrer',
+                  )
+                }
+                className="text-sm text-gold hover:text-gold/80 font-medium underline underline-offset-2"
+              >
+                Rouvrir le lien de vérification
+              </button>
+            )}
+          </motion.div>
+        )}
 
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between border-b border-timberwolf/20 pb-2">
-      <span className="text-night/60">{label}</span>
-      <span className="font-semibold text-night">{value}</span>
+        {(stage === 'success' || stage === 'in_review') && (
+          <motion.div
+            key="success"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-8 space-y-5"
+          >
+            <span className="text-6xl block">{stage === 'success' ? '✅' : '🔍'}</span>
+            <div>
+              <h2 className="text-xl font-bold text-night mb-2">
+                {stage === 'success' ? 'Identité vérifiée !' : 'En cours d\'examen'}
+              </h2>
+              <p className="text-sm text-night/60">
+                {stage === 'success'
+                  ? 'Ton dossier est approuvé. Bienvenue chez Sama Naffa !'
+                  : 'Notre équipe finalise la vérification (généralement moins de 24h).'}
+              </p>
+            </div>
+            <button
+              onClick={onSuccess}
+              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+            >
+              Terminer →
+            </button>
+          </motion.div>
+        )}
+
+        {stage === 'declined' && (
+          <motion.div
+            key="declined"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white border border-red-200 rounded-2xl p-6 text-center space-y-4 shadow-xs"
+          >
+            <span className="text-5xl block">❌</span>
+            <div>
+              <h2 className="text-lg font-bold text-night mb-2">Vérification non aboutie</h2>
+              <p className="text-sm text-night/60">
+                Ça arrive ! Assure-toi que les photos sont nettes et l&apos;éclairage correct.
+              </p>
+            </div>
+            <button
+              onClick={handleRetry}
+              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl transition-all active:scale-[0.98]"
+            >
+              Réessayer →
+            </button>
+          </motion.div>
+        )}
+
+        {stage === 'error' && (
+          <motion.div
+            key="error"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white border border-red-200 rounded-2xl p-6 text-center space-y-4 shadow-xs"
+          >
+            <p className="text-sm text-red-600">{error || 'Une erreur est survenue.'}</p>
+            <button
+              onClick={handleRetry}
+              className="w-full bg-gold hover:bg-gold/90 text-night font-semibold py-4 rounded-xl"
+            >
+              Réessayer
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
