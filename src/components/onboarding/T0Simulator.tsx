@@ -71,10 +71,10 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
           >
             <div className="text-center mb-8">
               <p className="text-xl md:text-2xl font-bold text-night mb-3 whitespace-nowrap">
-                Quel est ton projet de vie ?
+                Quel est votre projet de vie ?
               </p>
               <p className="text-night/60">
-                Choisis ton projet et découvre combien tu peux épargner.
+                Choisissez votre projet et découvrez combien vous pouvez épargner.
               </p>
             </div>
 

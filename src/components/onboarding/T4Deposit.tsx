@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { formatCurrency } from '@/lib/utils';
 
 interface T4DepositProps {
-  userId: string;
   firstName: string;
   initialAmount?: number;
   initialWallet?: string | null;
@@ -21,7 +20,7 @@ const WALLETS = [
 
 const QUICK_AMOUNTS = [10000, 25000, 50000, 100000];
 
-export default function T4Deposit({ userId, firstName, initialAmount, initialWallet, onSuccess, onBack }: T4DepositProps) {
+export default function T4Deposit({ firstName, initialAmount, initialWallet, onSuccess, onBack }: T4DepositProps) {
   const [amountStr, setAmountStr] = useState(initialAmount ? initialAmount.toString() : '25000');
   const [wallet, setWallet] = useState<string | null>(initialWallet ?? null);
   const [loading, setLoading] = useState(false);
@@ -62,10 +61,11 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
       <div className="text-center mb-6">
         <span className="text-5xl">💸</span>
         <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
-          {firstName}, prépare ton premier dépôt
+          {firstName}, préparez votre premier dépôt
         </p>
         <p className="text-night/60 text-sm">
-          Pendant qu&apos;on vérifie tes documents — ton argent sera crédité dès validation.
+          Aucun prélèvement maintenant. Après validation de votre identité, vous confirmerez le
+          paiement via Intouch depuis votre espace client.
         </p>
       </div>
 
@@ -146,10 +146,10 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
       </div>
 
       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-        <p className="font-semibold mb-1">⏳ Dépôt en attente de validation</p>
+        <p className="font-semibold mb-1">⏳ Dépôt programmé</p>
         <p>
-          Aucun montant n&apos;est prélevé maintenant. Il le sera après validation de tes documents
-          (généralement moins de 24h).
+          Aucun montant n&apos;est prélevé maintenant. Vous finaliserez le paiement via Intouch une
+          fois votre identité validée (généralement moins de 24 h).
         </p>
       </div>
     </div>
