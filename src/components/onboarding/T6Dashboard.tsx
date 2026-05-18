@@ -3,7 +3,6 @@
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-// @ts-ignore
 import Confetti from 'react-confetti';
 import { useState, useEffect } from 'react';
 
@@ -46,7 +45,7 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
           Bienvenue chez Sama Naffa, {firstName} !
         </h1>
         <p className="text-night/60 text-sm">
-          Ton compte est créé. Voici où tu en es.
+          Votre compte est créé. Voici où vous en êtes.
         </p>
       </motion.div>
 
@@ -84,9 +83,9 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
           className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 text-center shadow-sm"
         >
           <span className="text-4xl mb-3 block">🎁</span>
-          <h3 className="font-bold text-green-900 mb-2">Gagne 2 000 FCFA tout de suite</h3>
+          <h3 className="font-bold text-green-900 mb-2">Invitez vos proches</h3>
           <p className="text-sm text-green-800/80 mb-4">
-            Invite un ami à découvrir Sama Naffa. S'il s'inscrit, vous gagnez tous les deux !
+            Partagez Sama Naffa avec vos amis et votre famille.
           </p>
           <button 
             onClick={shareViaWhatsApp}
