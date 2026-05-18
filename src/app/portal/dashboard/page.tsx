@@ -200,8 +200,44 @@ export default function DashboardPage() {
     );
   }
 
+  const kycStatus = (userData?.kycStatus as KYCStatus) || 'PENDING';
+
   const renderApprovedDashboard = () => (
     <div className="space-y-8">
+      {kycStatus !== 'APPROVED' && (
+        <div
+          className={`rounded-2xl p-5 border ${
+            kycStatus === 'REJECTED'
+              ? 'bg-red-50 border-red-200'
+              : 'bg-amber-50 border-amber-200'
+          }`}
+        >
+          <p className="font-semibold text-night">
+            {kycStatus === 'REJECTED'
+              ? 'Vérification d\'identité à reprendre'
+              : kycStatus === 'UNDER_REVIEW'
+                ? 'Vérification d\'identité en cours d\'examen'
+                : 'Vérification d\'identité requise'}
+          </p>
+          <p className="text-sm text-night/70 mt-1">
+            {kycStatus === 'REJECTED'
+              ? 'Veuillez relancer votre vérification pour accéder à toutes les fonctionnalités.'
+              : kycStatus === 'UNDER_REVIEW'
+                ? 'Notre équipe examine votre dossier (généralement moins de 24 h).'
+                : 'Finalisez votre KYC pour débloquer les dépôts et retraits.'}
+          </p>
+          {(kycStatus === 'PENDING' || kycStatus === 'REJECTED') && (
+            <button
+              type="button"
+              onClick={() => router.push('/onboarding')}
+              className="mt-3 text-sm font-medium text-gold-metallic hover:underline"
+            >
+              {kycStatus === 'REJECTED' ? 'Relancer la vérification' : 'Compléter la vérification'}
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Welcome Section */}
       <div className="bg-gradient-to-r from-gold-light/20 to-gold-metallic/10 rounded-2xl p-8 border border-gold-metallic/20">
         <div className="flex items-center justify-between">
