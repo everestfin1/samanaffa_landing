@@ -153,7 +153,7 @@ export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCS
                       Contacter le support
                     </button>
                     <button
-                      onClick={() => router.push('/register')}
+                      onClick={() => router.push('/onboarding')}
                       className="border border-red-600 text-red-600 px-6 py-3 rounded-lg font-medium hover:bg-red-50 transition-colors"
                     >
                       Recommencer l'inscription

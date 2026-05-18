@@ -59,6 +59,8 @@ function LoginForm() {
     const message = searchParams.get('message');
     if (message === 'registration_success') {
       setSuccess('Inscription réussie ! Vous pouvez maintenant vous connecter avec vos identifiants.');
+    } else if (message === 'auto_login_failed') {
+      setSuccess('Compte créé avec succès ! Veuillez vous connecter.');
     }
   }, [searchParams]);
 
@@ -626,7 +628,7 @@ function LoginForm() {
             <p className="text-night/70 text-sm">
               Pas encore de compte ?{' '}
               <button 
-                onClick={() => router.push('/register')}
+                onClick={() => router.push('/onboarding')}
                 className="text-gold-metallic hover:text-gold-metallic/80 font-medium transition-colors"
               >
                 Créer un Naffa

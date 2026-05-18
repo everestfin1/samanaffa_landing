@@ -43,6 +43,13 @@
       "when": 1778838663723,
       "tag": "0005_grey_stone_men",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779102429854,
+      "tag": "0006_lazy_mister_sinister",
+      "breakpoints": true
     }
   ]
 }

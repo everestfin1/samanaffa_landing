@@ -249,7 +249,7 @@ export default function Navigation() {
                 </Link>
                 {!isHomePage && (
                   <Link
-                    href="/register"
+                    href="/onboarding"
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -270,7 +270,7 @@ export default function Navigation() {
                 </Link>
                 {!isHomePage && (
                   <Link
-                    href="/register"
+                    href="/onboarding"
                     className="group relative sama-gradient-accent text-white px-6 py-2.5 rounded-lg font-semibold text-sm hover:sama-hover-accent transition-all duration-300 hover:shadow-lg hover:shadow-sama-accent-gold/25 hover:-translate-y-1 overflow-hidden"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -395,7 +395,7 @@ export default function Navigation() {
                       </Link>
                       {!isHomePage && (
                         <Link
-                          href="/register"
+                          href="/onboarding"
                           className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                         >
                           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
@@ -416,7 +416,7 @@ export default function Navigation() {
                     </Link>
                     {!isHomePage && (
                       <Link 
-                        href="/register"
+                        href="/onboarding"
                         className="group relative w-full sama-gradient-accent text-white px-6 py-3 rounded-lg font-semibold text-base hover:sama-hover-accent transition-all duration-300 text-center overflow-hidden shadow-md hover:shadow-lg block"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>

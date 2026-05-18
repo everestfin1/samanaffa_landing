@@ -327,7 +327,7 @@ export default function SouscrireAPEPage() {
                         kycStatus={kycStatus}
                         variant="inline"
                         onContactSupport={() => window.open('/contact', '_blank')}
-                        onRestartRegistration={() => window.open('/register', '_blank')}
+                        onRestartRegistration={() => window.open('/onboarding', '_blank')}
                       />
                     </div>
                   </div>

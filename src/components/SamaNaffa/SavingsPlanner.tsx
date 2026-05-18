@@ -218,7 +218,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
     if (redirectTo === 'sama-naffa') {
       router.push('/portal/sama-naffa');
     } else {
-      router.push('/register');
+      router.push('/onboarding');
     }
   }
 

@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { signIn } from 'next-auth/react';
 import T0Simulator, { T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone from '@/components/onboarding/T1Phone';
 import T2FirstName from '@/components/onboarding/T2FirstName';
@@ -24,9 +26,16 @@ interface OnboardingState {
   wallet: string | null;
 }
 
-const VISIBLE_STEPS = 4; // per docx: progress shown as "Step X of 4"
+// T0 is the simulator (no progress bar); T1–T5 are the 4 visible registration steps;
+// T6 is the success screen (no progress bar).
+const VISIBLE_STEPS = 4;
+
+const visibleStepIndex: Record<Step, number> = {
+  T0: 0, T1: 1, T2: 1, T3: 2, T4: 3, T5: 4, T6: 4,
+};
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>('T0');
   const [state, setState] = useState<OnboardingState>({
     simulation: null,
@@ -39,28 +48,44 @@ export default function OnboardingPage() {
     depositAmount: null,
     wallet: null,
   });
+  const [authPending, setAuthPending] = useState(false);
 
-  // Guard: if we land on T6 without formula, bounce back to T3
-  useEffect(() => {
-    if (step === 'T6' && !state.formula) {
-      setStep('T3');
-    }
-  }, [step, state.formula]);
-
-  // Progress mapping
-  const visibleStepIndex: Record<Step, number> = {
-    T0: 0, T1: 1, T2: 1, T3: 2, T4: 3, T5: 4, T6: 4,
-  };
   const currentVisible = visibleStepIndex[step];
-
   const showProgress = step !== 'T0' && step !== 'T6';
 
+  // After OTP verification: establish session, then continue to T2 (don't redirect yet).
+  const handleT1Success = async (
+    userId: string,
+    phone: string,
+    displayPhone: string,
+    countryCode: string,
+  ) => {
+    setState((s) => ({ ...s, userId, phone, displayPhone, countryCode }));
+    setAuthPending(true);
+    try {
+      const result = await signIn('credentials', {
+        phone,
+        type: 'register',
+        redirect: false,
+      });
+      if (result?.error) {
+        // Account was created but auto-login failed — send to login with context.
+        router.push('/login?message=auto_login_failed');
+        return;
+      }
+      // Session established — advance to profile personalization.
+      setStep('T2');
+    } catch {
+      router.push('/login?message=auto_login_failed');
+    } finally {
+      setAuthPending(false);
+    }
+  };
+
   return (
-    // min-height fills one screen below the sticky nav; section grows with tall steps.
-    // No nested overflow-y-auto — window scroll reaches the global Footer below this block.
     <div className="flex flex-col min-h-[calc(100dvh-4rem)] md:min-h-[calc(100dvh-8rem)] bg-linear-to-br from-timberwolf/10 to-white overflow-x-hidden">
 
-      {/* Progress bar — only rendered when needed, no reserved space */}
+      {/* Progress bar — only shown during T1–T5 */}
       <AnimatePresence>
         {showProgress && (
           <motion.div
@@ -88,150 +113,153 @@ export default function OnboardingPage() {
         )}
       </AnimatePresence>
 
-      {/* Centers vertically when short; grows so document scroll shows Footer */}
       <div className="flex flex-1 flex-col">
         <div className="my-auto w-full max-w-md mx-auto px-4 py-6 md:py-8">
-            <AnimatePresence mode="wait">
-          {step === 'T0' && (
-            <motion.div
-              key="T0"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T0Simulator
-                initial={state.simulation}
-                onContinue={(result) => {
-                  setState((s) => ({ ...s, simulation: result }));
-                  setStep('T1');
-                }}
-              />
-            </motion.div>
-          )}
+          <AnimatePresence mode="wait">
 
-          {step === 'T1' && (
-            <motion.div
-              key="T1"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T1Phone
-                simulation={state.simulation}
-                initialPhone={state.phone ?? undefined}
-                initialCountry={state.countryCode ?? undefined}
-                onBack={() => setStep('T0')}
-                onSuccess={(userId, phone, displayPhone, countryCode) => {
-                  setState((s) => ({ ...s, userId, phone, displayPhone, countryCode }));
-                  setStep('T2');
-                }}
-              />
-            </motion.div>
-          )}
+            {step === 'T0' && (
+              <motion.div
+                key="T0"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T0Simulator
+                  initial={state.simulation}
+                  onContinue={(result) => {
+                    setState((s) => ({ ...s, simulation: result }));
+                    setStep('T1');
+                  }}
+                />
+              </motion.div>
+            )}
 
-          {step === 'T2' && state.userId && (
-            <motion.div
-              key="T2"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T2FirstName
-                userId={state.userId}
-                initialValue={state.firstName ?? undefined}
-                onSuccess={(firstName) => {
-                  setState((s) => ({ ...s, firstName }));
-                  setStep('T3');
-                }}
-              />
-            </motion.div>
-          )}
+            {step === 'T1' && (
+              <motion.div
+                key="T1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T1Phone
+                  simulation={state.simulation}
+                  initialPhone={state.phone ?? undefined}
+                  initialCountry={state.countryCode ?? undefined}
+                  onBack={() => setStep('T0')}
+                  onSuccess={handleT1Success}
+                />
+                {authPending && (
+                  <p className="mt-4 text-center text-sm text-night/60">
+                    Connexion à votre espace…
+                  </p>
+                )}
+              </motion.div>
+            )}
 
-          {step === 'T3' && state.userId && state.firstName && (
-            <motion.div
-              key="T3"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T3Quiz
-                userId={state.userId}
-                firstName={state.firstName}
-                onBack={() => setStep('T2')}
-                onSuccess={(formula) => {
-                  setState((s) => ({ ...s, formula }));
-                  setStep('T4');
-                }}
-              />
-            </motion.div>
-          )}
+            {step === 'T2' && state.userId && (
+              <motion.div
+                key="T2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T2FirstName
+                  userId={state.userId}
+                  initialValue={state.firstName ?? undefined}
+                  onSuccess={(firstName) => {
+                    setState((s) => ({ ...s, firstName }));
+                    setStep('T3');
+                  }}
+                />
+              </motion.div>
+            )}
 
-          {step === 'T4' && state.userId && state.firstName && (
-            <motion.div
-              key="T4"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T4Deposit
-                userId={state.userId}
-                firstName={state.firstName}
-                initialAmount={state.depositAmount ?? undefined}
-                initialWallet={state.wallet}
-                onBack={() => setStep('T3')}
-                onSuccess={(amount, wallet) => {
-                  setState((s) => ({ ...s, depositAmount: amount, wallet }));
-                  setStep('T5');
-                }}
-              />
-            </motion.div>
-          )}
+            {step === 'T3' && state.userId && state.firstName && (
+              <motion.div
+                key="T3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T3Quiz
+                  userId={state.userId}
+                  firstName={state.firstName}
+                  onBack={() => setStep('T2')}
+                  onSuccess={(formula) => {
+                    setState((s) => ({ ...s, formula }));
+                    setStep('T4');
+                  }}
+                />
+              </motion.div>
+            )}
 
-          {step === 'T5' && state.userId && state.firstName && state.depositAmount && (
-            <motion.div
-              key="T5"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.3 }}
-              className="w-full"
-            >
-              <T5KYC
-                userId={state.userId}
-                firstName={state.firstName}
-                depositAmount={state.depositAmount}
-                onBack={() => setStep('T4')}
-                onSuccess={() => setStep('T6')}
-              />
-            </motion.div>
-          )}
+            {step === 'T4' && state.userId && state.firstName && (
+              <motion.div
+                key="T4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T4Deposit
+                  userId={state.userId}
+                  firstName={state.firstName}
+                  initialAmount={state.depositAmount ?? undefined}
+                  initialWallet={state.wallet}
+                  onBack={() => setStep('T3')}
+                  onSuccess={(amount, wallet) => {
+                    setState((s) => ({ ...s, depositAmount: amount, wallet }));
+                    setStep('T5');
+                  }}
+                />
+              </motion.div>
+            )}
 
-          {step === 'T6' && state.firstName && state.depositAmount && state.formula && (
-            <motion.div
-              key="T6"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, ease: 'easeOut' }}
-              className="w-full"
-            >
-              <T6Dashboard
-                firstName={state.firstName}
-                depositAmount={state.depositAmount}
-                formula={state.formula}
-              />
-            </motion.div>
-          )}
-            </AnimatePresence>
+            {step === 'T5' && state.userId && state.firstName && state.depositAmount && (
+              <motion.div
+                key="T5"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <T5KYC
+                  userId={state.userId}
+                  firstName={state.firstName}
+                  depositAmount={state.depositAmount}
+                  onBack={() => setStep('T4')}
+                  onSuccess={() => setStep('T6')}
+                />
+              </motion.div>
+            )}
+
+            {step === 'T6' && state.firstName && state.depositAmount && state.formula && (
+              <motion.div
+                key="T6"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5, ease: 'easeOut' }}
+                className="w-full"
+              >
+                <T6Dashboard
+                  firstName={state.firstName}
+                  depositAmount={state.depositAmount}
+                  formula={state.formula}
+                />
+              </motion.div>
+            )}
+
+          </AnimatePresence>
         </div>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
       const res = await fetch('/api/onboarding/kyc/start', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, firstName }),
+        body: JSON.stringify({ firstName }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');

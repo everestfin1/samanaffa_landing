@@ -254,7 +254,7 @@ export default function TransferModal({
             kycStatus={kycStatus}
             variant="modal"
             onContactSupport={() => window.open('/contact', '_blank')}
-            onRestartRegistration={() => window.open('/register', '_blank')}
+            onRestartRegistration={() => window.open('/onboarding', '_blank')}
           />
 
           <div className="flex justify-end mt-6">

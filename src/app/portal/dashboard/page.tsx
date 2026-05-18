@@ -25,8 +25,10 @@ import {
   StarIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
+import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -47,6 +49,14 @@ interface UserData {
   phone: string;
   kycStatus: KYCStatus;
   isNewUser: boolean;
+  profileCompletionStatus?: string;
+  dateOfBirth?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  statutEmploi?: string;
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
   accounts: Array<{
     id: string;
     accountType: string;
@@ -71,10 +81,33 @@ interface TransactionIntent {
 export default function DashboardPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
 
   // Use Tanstack Query hooks for data fetching
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const { data: recentTransactions = [], isLoading: isLoadingTransactions, error: transactionsError } = useRecentTransactions(userData?.id || '', 5);
+
+  // Check if profile is incomplete (has .tmp email or missing required fields)
+  useEffect(() => {
+    if (!userData) return;
+
+    const incomplete =
+      userData.email?.includes('@onboarding.samanaffa.tmp') ||
+      !userData.dateOfBirth ||
+      !userData.address ||
+      !userData.city ||
+      !userData.country ||
+      !userData.statutEmploi ||
+      !userData.termsAccepted ||
+      !userData.privacyAccepted ||
+      userData.profileCompletionStatus === 'INCOMPLETE';
+
+    setIsProfileIncomplete(!!incomplete);
+    if (incomplete) {
+      setShowProfileModal(true);
+    }
+  }, [userData]);
 
   // Calculate APE investment total from completed transactions
   const apeInvestmentTotal = recentTransactions
@@ -308,6 +341,27 @@ export default function DashboardPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {renderApprovedDashboard()}
       </main>
+
+      {/* Profile completion modal — non-dismissible when profile is incomplete */}
+      <ProfileCompletionModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        dismissible={!isProfileIncomplete}
+        initialData={userData ? {
+          firstName: userData.firstName,
+          lastName: userData.lastName,
+          email: userData.email,
+          dateOfBirth: userData.dateOfBirth,
+          address: userData.address,
+          city: userData.city,
+          country: userData.country,
+          statutEmploi: userData.statutEmploi,
+          termsAccepted: userData.termsAccepted,
+          privacyAccepted: userData.privacyAccepted,
+          marketingAccepted: userData.marketingAccepted,
+        } : undefined}
+      />
+
     </div>
   );
 }

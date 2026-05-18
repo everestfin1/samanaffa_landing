@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReferenceNumber } from '@/lib/utils';
 
@@ -10,14 +12,22 @@ import { generateReferenceNumber } from '@/lib/utils';
  *   - awaitingKycApproval=true flags it for auto-trigger on KYC approval
  *     (and auto-cancel on KYC rejection — see /api/admin/kyc/[id]/route.ts).
  *   - No Intouch widget is opened here.
+ *
+ * Now requires authenticated session (userId from session, not client body).
  */
 export async function POST(request: NextRequest) {
   try {
-    const { userId, amount, wallet } = await request.json();
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+    }
 
-    if (!userId || !amount || !wallet) {
+    const userId = session.user.id;
+    const { amount, wallet } = await request.json();
+
+    if (!amount || !wallet) {
       return NextResponse.json(
-        { error: 'userId, amount et wallet requis' },
+        { error: 'amount et wallet requis' },
         { status: 400 },
       );
     }

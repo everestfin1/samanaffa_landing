@@ -400,7 +400,7 @@ export default function Home() {
                 transition={{ duration: 0.6, delay: 1.2, ease: "easeOut" }}
               >
                 <motion.button 
-                  onClick={() => router.push('/register')}
+                  onClick={() => router.push('/onboarding')}
                   className="group relative px-12 py-5 sama-gradient-accent text-white font-semibold text-lg rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-sama-accent-gold/40 hover:-translate-y-2 hover:scale-105 hover:cursor-pointer"
                   whileHover={{ 
                     scale: 1.05,

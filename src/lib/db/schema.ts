@@ -14,6 +14,7 @@ export const sessionTypeEnum = pgEnum('SessionType', ['REGISTRATION', 'LOGIN']);
 export const notificationTypeEnum = pgEnum('NotificationType', ['KYC_STATUS', 'SUCCESS', 'ERROR', 'WARNING', 'TRANSACTION', 'SECURITY']);
 export const notificationPriorityEnum = pgEnum('NotificationPriority', ['LOW', 'NORMAL', 'HIGH', 'URGENT']);
 export const apeSubscriptionStatusEnum = pgEnum('ApeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
+export const profileCompletionStatusEnum = pgEnum('ProfileCompletionStatus', ['INCOMPLETE', 'COMPLETE']);
 
 // Sponsor code status enum
 export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
@@ -60,6 +61,12 @@ export const users = pgTable('users', {
   lockedUntil: timestamp('lockedUntil', { mode: 'date' }),
   // New onboarding flow (T0-T6 mock) — stores quiz answers + recommended formula
   investorProfile: json('investorProfile'),
+  // Profile completion tracking for post-login onboarding
+  profileCompletionStatus: profileCompletionStatusEnum('profileCompletionStatus').notNull().default('INCOMPLETE'),
+  profileCompletionStep: text('profileCompletionStep'),
+  profileCompletedAt: timestamp('profileCompletedAt', { mode: 'date' }),
+  termsAcceptedAt: timestamp('termsAcceptedAt', { mode: 'date' }),
+  privacyAcceptedAt: timestamp('privacyAcceptedAt', { mode: 'date' }),
 });
 
 // Sessions table

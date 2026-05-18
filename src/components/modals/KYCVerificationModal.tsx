@@ -26,7 +26,7 @@ export default function KYCVerificationModal({
   };
 
   const handleRestartRegistration = () => {
-    router.push('/register');
+    router.push('/onboarding');
     onClose();
   };
 

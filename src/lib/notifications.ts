@@ -18,6 +18,12 @@ const BULKSMS_PASSWORD = process.env.BULKSMS_PASSWORD
 const BULKSMS_API_URL = 'https://api.bulksms.com/v1/messages'
 
 export async function sendEmailOTP(email: string, otp: string): Promise<void> {
+  // Suppress emails to placeholder addresses from onboarding flow
+  if (email.includes('@onboarding.samanaffa.tmp')) {
+    console.log(`📧 [SKIPPED] Email to placeholder address ${email} - not sending`);
+    return;
+  }
+
   if (process.env.MOCK_OTP === 'true') {
     console.log(`📧 [MOCK OTP] Email to ${email}: ${otp}`)
     return

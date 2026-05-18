@@ -1,15 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, firstName } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId requis' }, { status: 400 });
+    const authSession = await getServerSession(authOptions);
+    if (!authSession?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
+
+    const userId = authSession.user.id;
+    const { firstName } = await request.json();
 
     const apiKey = process.env.DIDIT_API_KEY;
     const workflowId = process.env.DIDIT_WORKFLOW_ID;

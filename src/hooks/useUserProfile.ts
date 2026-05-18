@@ -10,11 +10,17 @@ interface UserProfile {
   nationality?: string;
   address?: string;
   city?: string;
+  country?: string;
   preferredLanguage?: string;
   emailVerified: boolean;
   phoneVerified: boolean;
   kycStatus: string;
   createdAt: string;
+  statutEmploi?: string;
+  termsAccepted?: boolean;
+  privacyAccepted?: boolean;
+  marketingAccepted?: boolean;
+  profileCompletionStatus?: string;
   accounts: Array<{
     id: string;
     accountType: string;
