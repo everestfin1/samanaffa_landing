@@ -18,6 +18,10 @@ const BULKSMS_PASSWORD = process.env.BULKSMS_PASSWORD
 const BULKSMS_API_URL = 'https://api.bulksms.com/v1/messages'
 
 export async function sendEmailOTP(email: string, otp: string): Promise<void> {
+  if (process.env.MOCK_OTP === 'true') {
+    console.log(`📧 [MOCK OTP] Email to ${email}: ${otp}`)
+    return
+  }
   const mailOptions = {
     from: process.env.EMAIL_SENDER,
     to: email,
@@ -42,6 +46,10 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
 }
 
 export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
+  if (process.env.MOCK_OTP === 'true') {
+    console.log(`📱 [MOCK OTP] SMS to ${phone}: ${otp}`)
+    return
+  }
   try {
     console.log('🔍 BulkSMS Debug Info:')
     console.log('- Token:', BULKSMS_TOKEN ? 'Set' : 'Missing')
