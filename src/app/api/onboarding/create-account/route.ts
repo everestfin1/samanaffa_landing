@@ -4,6 +4,8 @@ import { verifyOTP, sendOTP } from '@/lib/otp';
 import { normalizeInternationalPhone, generateAccountNumber, generatePhoneFormats } from '@/lib/utils';
 import { getNaffaProductById } from '@/lib/naffa-products';
 import { checkOTPRateLimit } from '@/lib/rate-limit';
+import { isMockOtpEnabled } from '@/lib/mock-otp';
+import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 
 /**
  * New onboarding flow (T1) — phone-only account creation.
@@ -89,7 +91,7 @@ export async function POST(request: NextRequest) {
         message: 'Code envoyé par SMS',
       };
 
-      if (process.env.MOCK_OTP === 'true') {
+      if (isMockOtpEnabled()) {
         const mockOtp = await prisma.otpCode.findFirst({
           where: {
             registrationSessionId: session.id,
@@ -142,6 +144,14 @@ export async function POST(request: NextRequest) {
         await prisma.user.delete({ where: { id: existing.id } });
       }
 
+      const simulation = sessionData.simulation ?? null;
+      const investorProfile = simulation
+        ? mergeInvestorProfile(null, {
+            simulation,
+            onboarding: { step: 'T2', simulation },
+          })
+        : mergeInvestorProfile(null, { onboarding: { step: 'T2' } });
+
       const newUser = await prisma.user.create({
         data: {
           phone,
@@ -151,6 +161,7 @@ export async function POST(request: NextRequest) {
           phoneVerified: true,
           otpVerifiedAt: new Date(),
           preferredLanguage: 'fr',
+          investorProfile,
         },
       });
 
