@@ -70,7 +70,8 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
               {formatCurrency(depositAmount)} FCFA vers {formula}
             </p>
             <p className="text-xs text-night/40 italic">
-              Identité vérifiée — traitement du dépôt en cours. Tu seras notifié(e) avant tout prélèvement.
+              Après validation de votre identité, vous confirmerez ce dépôt via Intouch depuis votre
+              tableau de bord.
             </p>
           </div>
         </motion.div>

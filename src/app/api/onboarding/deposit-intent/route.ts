@@ -9,8 +9,8 @@ import { generateReferenceNumber } from '@/lib/utils';
  *
  * Per the new flow:
  *   - The deposit is RECORDED as an intent, not charged.
- *   - awaitingKycApproval=true flags it for auto-trigger on KYC approval
- *     (and auto-cancel on KYC rejection — see /api/admin/kyc/[id]/route.ts).
+ *   - awaitingKycApproval=true until KYC approval; user pays via Intouch in the portal.
+ *     (auto-cancel on KYC rejection — see /api/admin/kyc/[id]/route.ts).
  *   - No Intouch widget is opened here.
  *
  * Now requires authenticated session (userId from session, not client body).

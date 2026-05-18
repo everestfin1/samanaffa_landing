@@ -29,6 +29,9 @@ import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
+import OnboardingDepositModal, {
+  type PendingOnboardingDeposit,
+} from '../../../components/portal/OnboardingDepositModal';
 import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -84,6 +87,8 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+  const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
+  const [showDepositModal, setShowDepositModal] = useState(false);
 
   // Use Tanstack Query hooks for data fetching
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
@@ -107,6 +112,31 @@ export default function DashboardPage() {
     setIsProfileIncomplete(true);
     setShowProfileModal(true);
   }, [userData]);
+
+  // Post-KYC: prompt user to confirm programmed onboarding deposit via Intouch
+  useEffect(() => {
+    if (!userData || isProfileIncomplete) return;
+    if (userData.kycStatus !== 'APPROVED') return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch('/api/onboarding/pending-deposit');
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (data.intent && !cancelled) {
+          setPendingDeposit(data.intent);
+          setShowDepositModal(true);
+        }
+      } catch {
+        // non-fatal
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userData, isProfileIncomplete]);
 
   // Calculate APE investment total from completed transactions
   const apeInvestmentTotal = recentTransactions
@@ -191,6 +221,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
+
+      {pendingDeposit && (
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="font-semibold text-amber-900">Premier dépôt à confirmer</p>
+            <p className="text-sm text-amber-800/90 mt-1">
+              Votre identité est validée. Finalisez votre dépôt de{' '}
+              {pendingDeposit.amount.toLocaleString('fr-FR')} FCFA via Intouch.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowDepositModal(true)}
+            className="shrink-0 px-5 py-2.5 bg-gold-metallic text-white rounded-lg font-semibold hover:bg-gold-dark transition-colors"
+          >
+            Confirmer le dépôt
+          </button>
+        </div>
+      )}
 
       {/* Quick Access Cards */}
       <div className="space-y-6">
@@ -360,6 +409,18 @@ export default function DashboardPage() {
           marketingAccepted: userData.marketingAccepted,
         } : undefined}
       />
+
+      {pendingDeposit && (
+        <OnboardingDepositModal
+          isOpen={showDepositModal}
+          onClose={() => setShowDepositModal(false)}
+          intent={pendingDeposit}
+          onPaymentComplete={() => {
+            setPendingDeposit(null);
+            setShowDepositModal(false);
+          }}
+        />
+      )}
 
     </div>
   );

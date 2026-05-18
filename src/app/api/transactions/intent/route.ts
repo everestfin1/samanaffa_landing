@@ -214,6 +214,7 @@ export async function POST(request: NextRequest) {
     }
 
     const createdAt = new Date()
+    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount)
 
     // Generate reference number
     const referenceNumber =
@@ -226,6 +227,41 @@ export async function POST(request: NextRequest) {
             createdAt,
           )
 
+    // Reuse existing pending intent (e.g. onboarding deposit programmed at T4)
+    const existingIntent = await prisma.transactionIntent.findFirst({
+      where: {
+        referenceNumber,
+        userId,
+        status: 'PENDING',
+      },
+    })
+
+    if (existingIntent) {
+      const transactionIntent = await prisma.transactionIntent.update({
+        where: { id: existingIntent.id },
+        data: {
+          paymentMethod: paymentMethod || existingIntent.paymentMethod,
+          providerTransactionId: providerTransactionId || existingIntent.providerTransactionId,
+          userNotes: sanitizedUserNotes ?? existingIntent.userNotes,
+        },
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: 'Transaction intent ready for payment',
+        transactionIntent: {
+          id: transactionIntent.id,
+          referenceNumber: transactionIntent.referenceNumber,
+          amount: transactionIntent.amount,
+          status: transactionIntent.status,
+          createdAt: transactionIntent.createdAt,
+          providerTransactionId: transactionIntent.providerTransactionId,
+        },
+        transactionId: transactionIntent.id,
+        providerTransactionId: transactionIntent.providerTransactionId,
+      })
+    }
+
     // Create transaction intent
     const transactionIntent = await prisma.transactionIntent.create({
       data: {
@@ -233,7 +269,7 @@ export async function POST(request: NextRequest) {
         accountId: account.id,
         accountType: normalizedAccountType.toUpperCase(),
         intentType: normalizedIntentType.toUpperCase(),
-        amount: typeof amount === 'string' ? parseFloat(amount) : Number(amount),
+        amount: numericAmount,
         paymentMethod,
         investmentTranche,
         investmentTerm,

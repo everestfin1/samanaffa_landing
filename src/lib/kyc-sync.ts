@@ -107,7 +107,8 @@ export async function syncDiditDecision(
   const notifMap: Record<string, { title: string; message: string; type: string; priority: string }> = {
     APPROVED: {
       title: 'Identité vérifiée ✅',
-      message: 'Votre dossier KYC a été approuvé. Votre dépôt va être traité.',
+      message:
+        'Votre dossier KYC a été approuvé. Connectez-vous à votre espace pour confirmer votre premier dépôt via Intouch.',
       type: 'SUCCESS',
       priority: 'HIGH',
     },
