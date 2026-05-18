@@ -4,9 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface T3QuizProps {
-  userId: string;
   firstName: string;
-  onSuccess: (formula: string) => void;
+  onSuccess: (formula: string) => void | Promise<void>;
   onBack?: () => void;
 }
 
@@ -21,7 +20,7 @@ interface Question {
 const QUESTIONS: Question[] = [
   {
     id: 'situation',
-    prompt: 'Quelle est ta situation actuelle ?',
+    prompt: 'Quelle est votre situation actuelle ?',
     options: [
       { value: 'salarie',     label: 'Salarié(e)' },
       { value: 'commercant',  label: 'Commerçant(e)' },
@@ -32,7 +31,7 @@ const QUESTIONS: Question[] = [
   },
   {
     id: 'savingsCapacity',
-    prompt: 'Combien peux-tu épargner par mois ?',
+    prompt: 'Combien pouvez-vous épargner par mois ?',
     options: [
       { value: '<10k',  label: 'Moins de 10 000 FCFA' },
       { value: '10-50k',label: '10 000 – 50 000 FCFA' },
@@ -41,7 +40,7 @@ const QUESTIONS: Question[] = [
   },
   {
     id: 'experience',
-    prompt: 'Quelle est ton expérience avec l\'épargne ?',
+    prompt: 'Quelle est votre expérience avec l\'épargne ?',
     options: [
       { value: 'debutant',  label: 'Je débute' },
       { value: 'parfois',   label: 'J\'épargne parfois' },
@@ -76,7 +75,7 @@ const recommendFormula = (answers: Record<string, QuizAnswer>): { name: string; 
   };
 };
 
-export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizProps) {
+export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
   const [loading, setLoading] = useState(false);
@@ -113,6 +112,12 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
         }),
       });
       if (!res.ok) throw new Error('Erreur de sauvegarde');
+
+      await fetch('/api/onboarding/apply-formula', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ formulaName: formula.name }),
+      });
     } catch (e: unknown) {
       setError('Impossible d\'enregistrer votre profil. Veuillez réessayer.');
     } finally {
@@ -154,7 +159,7 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
               // Retry save if it failed
               handleAnswer(answers[QUESTIONS[QUESTIONS.length - 1].id]);
             } else {
-              onSuccess(result.name);
+              void onSuccess(result.name);
             }
           }}
           disabled={loading}
