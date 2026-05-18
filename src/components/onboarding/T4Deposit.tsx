@@ -61,9 +61,9 @@ export default function T4Deposit({ userId, firstName, initialAmount, initialWal
       )}
       <div className="text-center mb-6">
         <span className="text-5xl">💸</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-night mt-3 mb-2">
+        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
           {firstName}, prépare ton premier dépôt
-        </h1>
+        </p>
         <p className="text-night/60 text-sm">
           Pendant qu&apos;on vérifie tes documents — ton argent sera crédité dès validation.
         </p>

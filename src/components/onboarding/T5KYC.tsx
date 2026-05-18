@@ -95,9 +95,9 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
 
       <div className="text-center mb-6">
         <span className="text-5xl">🪪</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-night mt-3 mb-2">
+        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
           Vérification d&apos;identité
-        </h1>
+        </p>
         <p className="text-night/60 text-sm">2 minutes, et c&apos;est fait.</p>
         <div className="mt-3 inline-block bg-gold/10 border border-gold/30 rounded-full px-4 py-2 text-sm text-night">
           💸 Libère ton dépôt de{' '}

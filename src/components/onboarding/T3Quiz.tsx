@@ -129,9 +129,9 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
         className="max-w-md mx-auto px-4 py-16 text-center"
       >
         <span className="text-6xl">🎯</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-night mt-4 mb-3">
+        <p className="text-xl md:text-2xl font-bold text-night mt-4 mb-3 whitespace-nowrap">
           {firstName}, vous êtes fait(e) pour
-        </h1>
+        </p>
         <div className="bg-gradient-to-br from-[#F2F8F4] to-white border border-[#435933]/20 rounded-2xl p-6 my-6 shadow-sm">
           <p className="text-xl font-bold text-[#435933]">{result.name}</p>
           <p className="text-4xl font-bold text-[#435933] my-3">{result.rate}% <span className="text-lg text-[#435933]/70">/ an</span></p>

@@ -42,7 +42,7 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
         className="text-center mb-8"
       >
         <span className="text-6xl inline-block mb-4">🎉</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-night mb-2">
+        <h1 className="text-lg md:text-xl font-bold text-night mb-2 truncate">
           Bienvenue chez Sama Naffa, {firstName} !
         </h1>
         <p className="text-night/60 text-sm">

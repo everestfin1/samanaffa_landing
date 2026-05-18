@@ -168,9 +168,9 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
 
       <div className="text-center mb-8">
         <span className="text-5xl">📱</span>
-        <h1 className="text-2xl md:text-3xl font-bold text-night mt-3 mb-2">
+        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
           {sessionId ? 'Vérifie ton numéro' : 'Ton numéro de téléphone'}
-        </h1>
+        </p>
         <p className="text-night/60 text-sm">
           {sessionId
             ? `Code envoyé au ${displayPhone}`

@@ -70,9 +70,9 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
             transition={{ duration: 0.3 }}
           >
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-night mb-3">
+              <p className="text-xl md:text-2xl font-bold text-night mb-3 whitespace-nowrap">
                 Quel est ton projet de vie ?
-              </h1>
+              </p>
               <p className="text-night/60">
                 Choisis ton projet et découvre combien tu peux épargner.
               </p>
