@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
+import { getProfileCompletionProgress } from '@/lib/portal-profile-completion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -69,30 +70,37 @@ export default function ProfileCompletionModal({
     return null;
   };
 
-  const buildFormData = () => ({
-    firstName: initialData.firstName || '',
-    lastName: sanitizeLastName(initialData.lastName),
-    email: sanitizeEmail(initialData.email),
-    dateOfBirth: initialData.dateOfBirth || '',
-    address: initialData.address || '',
-    city: initialData.city || '',
-    country: initialData.country || 'Sénégal',
-    statutEmploi: initialData.statutEmploi || '',
-    termsAccepted: initialData.termsAccepted || false,
-    privacyAccepted: initialData.privacyAccepted || false,
-    marketingAccepted: initialData.marketingAccepted || false,
-  });
+  const initialFormData = useMemo(
+    () => ({
+      firstName: initialData.firstName || '',
+      lastName: sanitizeLastName(initialData.lastName),
+      email: sanitizeEmail(initialData.email),
+      dateOfBirth: initialData.dateOfBirth || '',
+      address: initialData.address || '',
+      city: initialData.city || '',
+      country: initialData.country || 'Sénégal',
+      statutEmploi: initialData.statutEmploi || '',
+      termsAccepted: initialData.termsAccepted || false,
+      privacyAccepted: initialData.privacyAccepted || false,
+      marketingAccepted: initialData.marketingAccepted || false,
+    }),
+    [initialData],
+  );
 
-  const [formData, setFormData] = useState(buildFormData);
+  const [formData, setFormData] = useState(initialFormData);
 
-  // Re-sync form state when the modal opens or initialData changes
+  const completionProgress = useMemo(
+    () => getProfileCompletionProgress(formData),
+    [formData],
+  );
+
   useEffect(() => {
     if (isOpen) {
-      setFormData(buildFormData());
+      setFormData(initialFormData);
       setError(null);
       setDobError(null);
     }
-  }, [isOpen, initialData]);
+  }, [isOpen, initialFormData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,6 +178,16 @@ export default function ProfileCompletionModal({
             <p className="text-sm text-night/60 mt-1">
               Quelques informations supplémentaires pour finaliser votre inscription
             </p>
+            {!dismissible && (
+              <div className="mt-3">
+                <ProfileProgressBar percent={completionProgress.percent} />
+                <p className="text-xs text-night/50 mt-2">
+                  <a href="/portal/profile" className="text-gold-metallic hover:underline">
+                    Compléter sur la page profil
+                  </a>
+                </p>
+              </div>
+            )}
           </div>
           {dismissible && (
             <button
@@ -432,5 +450,25 @@ export default function ProfileCompletionModal({
         </form>
       </div>
     </div>
+  );
+}
+
+function ProfileProgressBar({ percent }: { percent: number }) {
+  return (
+    <div>
+      <ProgressLabel percent={percent} />
+      <div className="w-full h-2 bg-timberwolf/30 rounded-full overflow-hidden mt-1">
+        <div
+          className="h-full bg-gold-metallic rounded-full transition-all duration-300"
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ProgressLabel({ percent }: { percent: number }) {
+  return (
+    <p className="text-xs font-medium text-night/70">Profil complété à {percent}%</p>
   );
 }
