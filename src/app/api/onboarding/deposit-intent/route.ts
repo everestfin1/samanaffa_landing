@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Montant invalide (minimum 1 000 FCFA)' }, { status: 400 });
     }
 
-    const allowedWallets = ['orange_money', 'wave', 'free_money'];
+    const allowedWallets = ['intouch', 'orange_money', 'wave', 'free_money'];
     if (!allowedWallets.includes(wallet)) {
       return NextResponse.json({ error: 'Méthode de paiement invalide' }, { status: 400 });
     }

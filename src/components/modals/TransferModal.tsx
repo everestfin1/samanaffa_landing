@@ -16,6 +16,14 @@ interface TransferModalProps {
   onConfirm: (data: TransferData) => void;
   accountType?: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment';
   kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  /** Render inside a page (onboarding) instead of a fullscreen overlay. */
+  variant?: 'modal' | 'embedded';
+  /** Record deposit intent only — do not open Intouch (onboarding T4). */
+  scheduleIntentOnly?: boolean;
+  initialAmount?: number;
+  submitLabel?: string;
+  cancelLabel?: string;
+  submitDisabled?: boolean;
 }
 
 interface TransferData {
@@ -32,10 +40,18 @@ export default function TransferModal({
   currentBalance = 0,
   onConfirm,
   accountType = 'sama_naffa',
-  kycStatus = 'APPROVED'
+  kycStatus = 'APPROVED',
+  variant = 'modal',
+  scheduleIntentOnly = false,
+  initialAmount,
+  submitLabel,
+  cancelLabel,
+  submitDisabled = false,
 }: TransferModalProps) {
   const { data: session } = useSession();
-  const [amount, setAmount] = useState<string>('');
+  const [amount, setAmount] = useState<string>(
+    initialAmount != null && initialAmount > 0 ? String(initialAmount) : '',
+  );
   const [method, setMethod] = useState<string>('intouch');
   const [error, setError] = useState<string>('');
   const [showIntouchPayment, setShowIntouchPayment] = useState<boolean>(false);
@@ -190,6 +206,13 @@ export default function TransferModal({
         return;
       }
 
+      if (scheduleIntentOnly && type === 'deposit') {
+        await Promise.resolve(
+          onConfirm({ amount: requestedAmount, method: 'intouch' }),
+        );
+        return;
+      }
+
       const refNumber = generateReferenceNumber();
       setReferenceNumber(refNumber);
       setShowIntouchPayment(true);
@@ -226,6 +249,19 @@ export default function TransferModal({
   };
 
   if (!isOpen) return null;
+
+  const isEmbedded = variant === 'embedded';
+  const overlayClass = isEmbedded
+    ? 'w-full'
+    : 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+  const cardClass = isEmbedded
+    ? 'bg-white border border-timberwolf/30 rounded-2xl p-6 md:p-8 w-full shadow-sm'
+    : 'bg-white rounded-2xl p-8 max-w-md w-full mx-4';
+  const intouchCardClass = isEmbedded
+    ? cardClass
+    : 'bg-white rounded-2xl p-8 max-w-lg w-full mx-4';
+  const resolvedSubmitLabel = submitLabel ?? (type === 'deposit' ? 'Déposer' : 'Retirer');
+  const resolvedCancelLabel = cancelLabel ?? 'Annuler';
 
   // Block withdrawals when KYC is not approved
   if (withdrawBlocked) {
@@ -273,8 +309,8 @@ export default function TransferModal({
   // Show Intouch payment component
   if (showIntouchPayment && (session?.user as any)?.id) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4">
+      <div className={overlayClass}>
+        <div className={intouchCardClass}>
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-xl font-bold text-night">
               Paiement via Intouch
@@ -304,24 +340,27 @@ export default function TransferModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-bold text-night">
-              {type === 'deposit' ? 'Dépôt' : 'Retrait'}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1">
-              {type === 'deposit' ? 'Dépôt vers:' : 'Retrait depuis:'} {accountName}
-            </p>
+    <div className={overlayClass}>
+      <div className={cardClass}>
+        {!isEmbedded && (
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-xl font-bold text-night">
+                {type === 'deposit' ? 'Dépôt' : 'Retrait'}
+              </h3>
+              <p className="text-sm text-gray-600 mt-1">
+                {type === 'deposit' ? 'Dépôt vers:' : 'Retrait depuis:'} {accountName}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="text-night/60 hover:text-night"
+            >
+              ✕
+            </button>
           </div>
-          <button
-            onClick={onClose}
-            className="text-night/60 hover:text-night"
-          >
-            ✕
-          </button>
-        </div>
+        )}
 
         {/* Balance Display for Withdrawals */}
         {type === 'withdraw' && (
@@ -376,31 +415,28 @@ export default function TransferModal({
           )}
 
           <div className="flex space-x-3 mt-6">
-            <button 
+            <button
               type="button"
               onClick={onClose}
               className="flex-1 border border-timberwolf/30 text-night py-3 px-4 rounded-lg font-medium hover:bg-timberwolf/10 transition-colors"
             >
-              Annuler
+              {resolvedCancelLabel}
             </button>
-            <button 
+            <button
               type="submit"
               disabled={
+                submitDisabled ||
                 !!error ||
                 isPreflightChecking ||
                 (type === 'withdraw' && parseFloat(amount) > currentBalance)
               }
               className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors text-white ${
-                type === 'deposit' 
-                  ? 'bg-gold-metallic hover:bg-gold-dark disabled:bg-gray-400' 
+                type === 'deposit'
+                  ? 'bg-gold-metallic hover:bg-gold-dark disabled:bg-gray-400'
                   : 'bg-red-600 hover:bg-red-700 disabled:bg-gray-400'
               }`}
             >
-              {isPreflightChecking
-                ? 'Vérification...'
-                : type === 'deposit'
-                  ? 'Déposer'
-                  : 'Retirer'}
+              {isPreflightChecking ? 'Vérification...' : resolvedSubmitLabel}
             </button>
           </div>
         </form>
