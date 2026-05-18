@@ -30,39 +30,23 @@ The precise model is:
 |-------|---------|------------|
 | `ProfileCompletionModal` | Missing: lastName, real email, DOB, address, city, country, profession, terms, privacy | No (mandatory) |
 
-## Current status
+## Current status (2026-05-18)
 
-`signIn()` is called client-side in `onboarding/page.tsx` after T1 succeeds. The session is established before T2 so that T4 (deposit-intent) and T5 (KYC) API calls are authenticated via session. The flow proceeds T0 → T1 → T2 → T3 → T4 → T5 → T6, with redirect to `/portal/dashboard` only at T6.
+- `signIn()` runs after T1 OTP; session is active from T2 onward.
+- Full in-flow onboarding: T0 → T1 → T2 → T3 → T4 → T5 → T6 (`/onboarding/page.tsx`).
+- T4 creates a deposit `transaction_intent` with `awaitingKycApproval=true` (no charge).
+- After KYC approval, the user confirms payment via **Intouch** on the portal (`OnboardingDepositModal`, same UX as transfer modals).
+- Progress is persisted in `users.investorProfile.onboarding` via `/api/onboarding/progress`.
+- Post-login **ProfileCompletionModal** (mandatory until complete) on `/portal/dashboard`.
+- `/register` redirects to `/onboarding`.
 
 ---
 
 ## Critical backend readiness tasks
 
-### 1. Establish a session immediately after OTP account creation
+### 1. ~~Establish session after OTP~~ ✅ Done (superseded plan)
 
-**Problem**
-
-`/api/onboarding/create-account` creates the user and accounts, then returns `userId`, but the browser does not receive a NextAuth session. The current `/onboarding` flow continues to T2–T6 while unauthenticated.
-
-**Impact**
-
-- `/portal/dashboard` redirects to `/login`.
-- Portal hooks depending on `useSession()` do not work.
-- The user completes onboarding but cannot access the portal.
-
-**Plan**
-
-- Keep account creation in `/api/onboarding/create-account`.
-- Return `userId`, `phone`, and enough user identity data.
-- In `T1Phone.tsx`, after successful OTP verification, call `signIn('credentials', { phone, type: 'register', redirect: false })`.
-- After `signIn()` resolves successfully, redirect to `/portal/dashboard`.
-- Remove T2–T6 from the unauthenticated `/onboarding` flow. Those steps move to the post-login portal.
-
-**Acceptance criteria**
-
-- After OTP verification, `useSession()` returns the new user.
-- User lands on `/portal/dashboard` immediately after T1.
-- `/onboarding` no longer contains T2–T6 steps.
+Session is established after T1; T2–T6 remain in `/onboarding` (not moved to portal-only).
 
 ---
 
