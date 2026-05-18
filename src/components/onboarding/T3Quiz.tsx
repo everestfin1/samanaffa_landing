@@ -104,7 +104,6 @@ export default function T3Quiz({ userId, firstName, onSuccess, onBack }: T3QuizP
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId,
           investorProfile: {
             ...next,
             recommendedFormula: formula.name,

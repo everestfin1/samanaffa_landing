@@ -1,18 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
 /**
- * Onboarding T2/T3 — progressively enrich the user record created at T1.
- * Mock flow: trust userId from the client (no auth session yet).
- * In production this would be protected by a short-lived onboarding JWT.
+ * Onboarding T2/T3 — progressively enrich the authenticated user's record.
  */
 export async function PATCH(request: NextRequest) {
   try {
-    const { userId, firstName, lastName, investorProfile } = await request.json();
-
-    if (!userId) {
-      return NextResponse.json({ error: 'userId requis' }, { status: 400 });
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
+
+    const userId = session.user.id;
+    const { firstName, lastName, investorProfile } = await request.json();
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -22,7 +24,13 @@ export async function PATCH(request: NextRequest) {
     const data: Record<string, unknown> = {};
     if (typeof firstName === 'string' && firstName.trim()) data.firstName = firstName.trim();
     if (typeof lastName === 'string' && lastName.trim()) data.lastName = lastName.trim();
-    if (investorProfile && typeof investorProfile === 'object') data.investorProfile = investorProfile;
+    if (investorProfile && typeof investorProfile === 'object') {
+      const existing =
+        user.investorProfile && typeof user.investorProfile === 'object'
+          ? (user.investorProfile as Record<string, unknown>)
+          : {};
+      data.investorProfile = { ...existing, ...(investorProfile as Record<string, unknown>) };
+    }
 
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 });

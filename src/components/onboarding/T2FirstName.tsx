@@ -22,7 +22,7 @@ export default function T2FirstName({ userId, initialValue, onSuccess, onBack }:
       const res = await fetch('/api/onboarding/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId, firstName: firstName.trim() }),
+        body: JSON.stringify({ firstName: firstName.trim() }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
