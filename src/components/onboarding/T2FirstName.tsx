@@ -3,13 +3,12 @@
 import { useState } from 'react';
 
 interface T2FirstNameProps {
-  userId: string;
   initialValue?: string;
-  onSuccess: (firstName: string) => void;
+  onSuccess: (firstName: string) => void | Promise<void>;
   onBack?: () => void;
 }
 
-export default function T2FirstName({ userId, initialValue, onSuccess, onBack }: T2FirstNameProps) {
+export default function T2FirstName({ initialValue, onSuccess, onBack }: T2FirstNameProps) {
   const [firstName, setFirstName] = useState(initialValue ?? '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +25,7 @@ export default function T2FirstName({ userId, initialValue, onSuccess, onBack }:
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
-      onSuccess(firstName.trim());
+      await onSuccess(firstName.trim());
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {
@@ -84,9 +83,6 @@ export default function T2FirstName({ userId, initialValue, onSuccess, onBack }:
         </button>
       </div>
 
-      <p className="text-center text-xs text-night/40 mt-6">
-        * Données de démonstration
-      </p>
     </div>
   );
 }
