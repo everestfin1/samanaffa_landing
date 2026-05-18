@@ -1,4 +1,5 @@
 import * as nodemailer from 'nodemailer'
+import { isMockOtpEnabled } from '@/lib/mock-otp'
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -24,7 +25,7 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
     return;
   }
 
-  if (process.env.MOCK_OTP === 'true') {
+  if (isMockOtpEnabled()) {
     console.log(`📧 [MOCK OTP] Email to ${email}: ${otp}`)
     return
   }
@@ -52,7 +53,7 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
 }
 
 export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
-  if (process.env.MOCK_OTP === 'true') {
+  if (isMockOtpEnabled()) {
     console.log(`📱 [MOCK OTP] SMS to ${phone}: ${otp}`)
     return
   }
