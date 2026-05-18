@@ -34,7 +34,7 @@ export default function T5KYC({ userId, firstName, depositAmount, onSuccess, onB
     stopPolling();
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}&userId=${userId}`);
+        const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
         if (!res.ok) return;
         const data = await res.json();
         if (data.status === 'approved') {

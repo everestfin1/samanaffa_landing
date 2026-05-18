@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 import { syncDiditDecision, DIDIT_STATUS_MAP } from '@/lib/kyc-sync';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
@@ -6,21 +9,38 @@ const DIDIT_BASE = 'https://verification.didit.me/v3';
 const DIDIT_TO_INTERNAL: Record<string, string> = {
   'Not Started': 'not_started',
   'In Progress': 'in_progress',
-  'Approved':    'approved',
-  'Declined':    'declined',
-  'In Review':   'in_review',
-  'Abandoned':   'abandoned',
-  'Expired':     'expired',
-  'Resubmitted': 'in_progress',
+  Approved: 'approved',
+  Declined: 'declined',
+  'In Review': 'in_review',
+  Abandoned: 'abandoned',
+  Expired: 'expired',
+  Resubmitted: 'in_progress',
 };
 
 export async function GET(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
+  }
+
+  const userId = session.user.id;
   const { searchParams } = new URL(request.url);
   const sessionId = searchParams.get('sessionId');
-  const userId    = searchParams.get('userId');
 
   if (!sessionId) {
     return NextResponse.json({ error: 'sessionId requis' }, { status: 400 });
+  }
+
+  const kycDoc = await prisma.kycDocument.findFirst({
+    where: {
+      userId,
+      documentType: 'didit_kyc_session',
+      fileUrl: sessionId,
+    },
+  });
+
+  if (!kycDoc) {
+    return NextResponse.json({ error: 'Session KYC introuvable' }, { status: 403 });
   }
 
   const apiKey = process.env.DIDIT_API_KEY;
@@ -41,11 +61,7 @@ export async function GET(request: NextRequest) {
     const data = await res.json();
     const diditStatus: string = data.status;
 
-    // When a terminal status is detected and we have userId,
-    // sync our DB (idempotent — safe to call on every poll).
-    // This is the primary sync path in dev (no webhook) and
-    // a fallback safety net in production.
-    if (userId && DIDIT_STATUS_MAP[diditStatus]) {
+    if (DIDIT_STATUS_MAP[diditStatus]) {
       try {
         await syncDiditDecision(userId, diditStatus, sessionId);
       } catch (e) {
