@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReferenceNumber } from '@/lib/utils';
+import { createUserNotification } from '@/lib/user-notifications';
 
 /**
  * Onboarding T4 — program a first deposit BEFORE KYC validation.
@@ -69,6 +70,18 @@ export async function POST(request: NextRequest) {
         referenceNumber,
         awaitingKycApproval: true,
         userNotes: 'Dépôt programmé via nouveau flux onboarding (T4)',
+      },
+    });
+
+    await createUserNotification(userId, {
+      title: 'Premier dépôt programmé',
+      message: `Votre dépôt de ${numericAmount.toLocaleString('fr-FR')} FCFA sera confirmé via Intouch après validation de votre identité.`,
+      type: 'TRANSACTION',
+      priority: 'NORMAL',
+      metadata: {
+        kind: 'onboarding_deposit_scheduled',
+        intentId: intent.id,
+        actionUrl: '/onboarding',
       },
     });
 

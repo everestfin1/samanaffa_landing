@@ -925,6 +925,27 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
     });
 
     if (statusChangedToCompleted) {
+      const isOnboardingDeposit =
+        updatedIntent.userNotes?.toLowerCase().includes('onboarding') ?? false;
+      if (isOnboardingDeposit && finalStatus === 'COMPLETED') {
+        try {
+          const { createUserNotification } = await import('@/lib/user-notifications');
+          await createUserNotification(updatedIntent.userId, {
+            title: 'Premier dépôt confirmé ✅',
+            message: `Votre dépôt de ${Number(updatedIntent.amount).toLocaleString('fr-FR')} FCFA a bien été enregistré sur votre compte Sama Naffa.`,
+            type: 'SUCCESS',
+            priority: 'HIGH',
+            metadata: {
+              kind: 'onboarding_deposit_completed',
+              intentId: updatedIntent.id,
+              actionUrl: '/portal/sama-naffa',
+            },
+          });
+        } catch (e) {
+          console.error('[Intouch Callback] onboarding deposit notification error:', e);
+        }
+      }
+
       console.log('[Intouch Callback] Sending email notification for completed transaction');
       await sendTransactionIntentEmail(
         updatedIntent.user.email,

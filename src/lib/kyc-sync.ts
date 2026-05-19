@@ -5,6 +5,7 @@ import { and, eq } from 'drizzle-orm';
 import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types';
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications';
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings';
+import { createUserNotification } from '@/lib/user-notifications';
 
 /**
  * Maps a Didit terminal status to our internal kycStatus / docStatus.
@@ -104,13 +105,17 @@ export async function syncDiditDecision(
   }
 
   // In-app notification
-  const notifMap: Record<string, { title: string; message: string; type: string; priority: string }> = {
+  const notifMap: Record<
+    string,
+    { title: string; message: string; type: string; priority: string; actionUrl?: string }
+  > = {
     APPROVED: {
       title: 'Identité vérifiée ✅',
       message:
-        'Votre dossier KYC a été approuvé. Connectez-vous à votre espace pour confirmer votre premier dépôt via Intouch.',
+        'Votre identité est validée. Rendez-vous sur Sama Naffa pour confirmer, modifier ou annuler votre premier dépôt via Intouch.',
       type: 'SUCCESS',
       priority: 'HIGH',
+      actionUrl: '/portal/sama-naffa?confirmDeposit=1',
     },
     REJECTED: {
       title: 'Vérification non aboutie',
@@ -128,20 +133,20 @@ export async function syncDiditDecision(
 
   const notif = notifMap[mapped.kycStatus];
   if (notif) {
-    try {
-      await prisma.notification.create({
-        data: {
-          userId,
-          title: notif.title,
-          message: notif.message,
-          type: notif.type as NotificationType,
-          priority: notif.priority as NotificationPriority,
-          metadata: JSON.stringify({ kycStatus: mapped.kycStatus, diditSessionId: sessionId }),
-        },
-      });
-    } catch (e) {
-      console.error('[kyc-sync] Error creating notification:', e);
-    }
+    await createUserNotification(userId, {
+      title: notif.title,
+      message: notif.message,
+      type: notif.type as NotificationType,
+      priority: notif.priority as NotificationPriority,
+      metadata: {
+        kycStatus: mapped.kycStatus,
+        diditSessionId: sessionId,
+        kind: 'kyc_status',
+        ...('actionUrl' in notif && notif.actionUrl
+          ? { actionUrl: notif.actionUrl as string }
+          : {}),
+      },
+    });
   }
 
   // Email + SMS

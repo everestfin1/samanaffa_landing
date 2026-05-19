@@ -29,9 +29,7 @@ import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
-import OnboardingDepositModal, {
-  type PendingOnboardingDeposit,
-} from '../../../components/portal/OnboardingDepositModal';
+import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -88,7 +86,6 @@ export default function DashboardPage() {
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
   const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
-  const [showDepositModal, setShowDepositModal] = useState(false);
 
   // Use Tanstack Query hooks for data fetching
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
@@ -126,7 +123,6 @@ export default function DashboardPage() {
         const data = await res.json();
         if (data.intent && !cancelled) {
           setPendingDeposit(data.intent);
-          setShowDepositModal(true);
         }
       } catch {
         // non-fatal
@@ -269,10 +265,10 @@ export default function DashboardPage() {
           </div>
           <button
             type="button"
-            onClick={() => setShowDepositModal(true)}
+            onClick={() => router.push('/portal/sama-naffa?confirmDeposit=1')}
             className="shrink-0 px-5 py-2.5 bg-gold-metallic text-white rounded-lg font-semibold hover:bg-gold-dark transition-colors"
           >
-            Confirmer le dépôt
+            Gérer sur Sama Naffa
           </button>
         </div>
       )}
@@ -445,18 +441,6 @@ export default function DashboardPage() {
           marketingAccepted: userData.marketingAccepted,
         } : undefined}
       />
-
-      {pendingDeposit && (
-        <OnboardingDepositModal
-          isOpen={showDepositModal}
-          onClose={() => setShowDepositModal(false)}
-          intent={pendingDeposit}
-          onPaymentComplete={() => {
-            setPendingDeposit(null);
-            setShowDepositModal(false);
-          }}
-        />
-      )}
 
     </div>
   );

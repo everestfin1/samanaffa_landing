@@ -1,37 +1,29 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import SamaNaffaPortal from '../../../components/portal/SamaNaffaPortal';
 import PortalHeader from '../../../components/portal/PortalHeader';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
-interface UserData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  userId: string;
-  isNewUser: boolean;
-  kycStatus: KYCStatus;
-}
-
-export default function SamaNaffaPage() {
+function SamaNaffaPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status } = useSession();
-  
-  // Use Tanstack Query hook for data fetching (same as dashboard)
+  const autoConfirmDeposit =
+    searchParams.get('confirmDeposit') === '1' || searchParams.get('kycReturn') === '1';
+
   const { data: userData, isLoading, error } = useUserProfile();
 
-  // Redirect to login if not authenticated
   if (status === 'loading') {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-night/70">Vérification de l'authentification...</p>
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-night/70">Vérification de l&apos;authentification...</p>
         </div>
       </div>
     );
@@ -46,19 +38,17 @@ export default function SamaNaffaPage() {
     await signOut({ callbackUrl: '/login' });
   };
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-night/70">Chargement...</p>
         </div>
       </div>
     );
   }
 
-  // Show error state
   if (error || (!isLoading && !userData)) {
     return (
       <div className="min-h-screen bg-gray-light flex items-center justify-center">
@@ -85,17 +75,34 @@ export default function SamaNaffaPage() {
           phone: userData?.phone || '',
           userId: userData?.id || '',
           isNewUser: false,
-          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING'
+          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING',
         }}
         kycStatus={userData?.kycStatus as KYCStatus}
         activeTab="sama-naffa"
-        setActiveTab={() => {}} // Not used with navigation
+        setActiveTab={() => {}}
         onLogout={handleLogout}
       />
-      
+
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SamaNaffaPortal kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'} />
+        <SamaNaffaPortal
+          kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'}
+          autoConfirmDeposit={autoConfirmDeposit}
+        />
       </main>
     </div>
+  );
+}
+
+export default function SamaNaffaPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-light flex items-center justify-center">
+          <p className="text-night/70">Chargement…</p>
+        </div>
+      }
+    >
+      <SamaNaffaPageContent />
+    </Suspense>
   );
 }

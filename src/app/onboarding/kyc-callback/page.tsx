@@ -1,46 +1,67 @@
 'use client';
 
-import Link from 'next/link';
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { clearKycNavigationState, getKycReturnPath } from '@/lib/kyc-navigation';
 
 function KycCallbackContent() {
+  const router = useRouter();
   const params = useSearchParams();
-  const status = params.get('status') ?? '';
+  const [message, setMessage] = useState('Finalisation de votre vérification…');
 
-  const isSuccess = ['Approved', 'In Review'].includes(status);
+  useEffect(() => {
+    const sessionId =
+      params.get('verificationSessionId') ??
+      params.get('sessionId') ??
+      params.get('verification_session_id');
+    const status = params.get('status') ?? '';
+    const returnPath = getKycReturnPath();
+
+    const finish = () => {
+      clearKycNavigationState();
+      if (returnPath.startsWith('/onboarding')) {
+        const query = new URLSearchParams();
+        if (sessionId) query.set('verificationSessionId', sessionId);
+        if (status) query.set('status', status);
+        const qs = query.toString();
+        router.replace(qs ? `/onboarding?${qs}` : '/onboarding');
+        return;
+      }
+      const separator = returnPath.includes('?') ? '&' : '?';
+      router.replace(`${returnPath}${separator}kycReturn=1`);
+    };
+
+    if (!sessionId) {
+      setMessage('Redirection…');
+      const t = window.setTimeout(finish, 800);
+      return () => window.clearTimeout(t);
+    }
+
+    let cancelled = false;
+    (async () => {
+      try {
+        await fetch(`/api/onboarding/kyc/status?sessionId=${encodeURIComponent(sessionId)}`, {
+          cache: 'no-store',
+        });
+      } catch {
+        // destination page may poll again
+      }
+      if (!cancelled) {
+        setMessage('Retour à votre inscription…');
+        window.setTimeout(finish, 600);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [params, router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white px-4">
       <div className="max-w-sm text-center space-y-4">
-        <span className="text-6xl block">{isSuccess ? '✅' : status === 'Declined' ? '❌' : '⏳'}</span>
-        <h1 className="text-xl font-bold text-night">
-          {isSuccess
-            ? 'Vérification terminée !'
-            : status === 'Declined'
-              ? 'Vérification non aboutie'
-              : 'Vérification en cours…'}
-        </h1>
-        <p className="text-sm text-night/60">
-          {isSuccess
-            ? 'Vous pouvez fermer cet onglet et revenir sur votre page d\'inscription.'
-            : status === 'Declined'
-              ? 'Retournez sur la page d\'inscription pour réessayer.'
-              : 'Revenez sur la page d\'inscription pour suivre l\'avancement.'}
-        </p>
-        <Link
-          href="/onboarding"
-          className="inline-block mt-4 px-6 py-3 bg-gold-metallic text-white rounded-lg font-medium hover:bg-gold-dark transition-colors"
-        >
-          Retourner à l&apos;inscription
-        </Link>
-        <button
-          type="button"
-          onClick={() => window.close()}
-          className="block w-full mt-2 text-sm text-gold hover:text-gold/80 underline underline-offset-2"
-        >
-          Fermer cet onglet
-        </button>
+        <CallbackSpinner />
+        <p className="text-night/70 text-sm">{message}</p>
       </div>
     </div>
   );

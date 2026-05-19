@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { Suspense, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import T0Simulator, { T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone from '@/components/onboarding/T1Phone';
@@ -38,8 +38,25 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
 };
 
 export default function OnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-[calc(100dvh-4rem)] flex items-center justify-center">
+          <p className="text-night/60 text-sm">Chargement de votre inscription…</p>
+        </div>
+      }
+    >
+      <OnboardingPageContent />
+    </Suspense>
+  );
+}
+
+function OnboardingPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
+  const kycResumeFromUrl = searchParams.get('verificationSessionId');
+  const [kycResumeSessionId, setKycResumeSessionId] = useState<string | null>(null);
   const [step, setStep] = useState<OnboardingStep>('T0');
   const [state, setState] = useState<OnboardingState>({
     simulation: null,
@@ -97,6 +114,13 @@ export default function OnboardingPage() {
       cancelled = true;
     };
   }, [sessionStatus]);
+
+  useEffect(() => {
+    if (!kycResumeFromUrl || !resumeChecked) return;
+    setKycResumeSessionId(kycResumeFromUrl);
+    setStep('T5');
+    router.replace('/onboarding', { scroll: false });
+  }, [kycResumeFromUrl, resumeChecked, router]);
 
   const saveProgress = useCallback(
     async (nextStep: OnboardingStep, patch: Partial<OnboardingState> = {}) => {
@@ -314,6 +338,7 @@ export default function OnboardingPage() {
                 <T5KYC
                   firstName={state.firstName}
                   depositAmount={state.depositAmount}
+                  resumeSessionId={kycResumeSessionId}
                   onBack={() => setStep('T4')}
                   onApproved={async () => {
                     setStep('T6');

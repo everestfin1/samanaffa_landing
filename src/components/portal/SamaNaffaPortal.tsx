@@ -16,6 +16,8 @@ import Image from 'next/image';
 
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
+import PendingOnboardingDepositCard from '@/components/portal/PendingOnboardingDepositCard';
+import { usePendingOnboardingDeposit } from '@/hooks/usePendingOnboardingDeposit';
 import { NaffaType } from '../data/naffaTypes';
 import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
 
@@ -61,6 +63,7 @@ interface TransactionIntent {
 
 interface SamaNaffaPortalProps {
   kycStatus?: 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+  autoConfirmDeposit?: boolean;
 }
 
 interface AccountCardProps {
@@ -215,9 +218,18 @@ function AccountCard({
   );
 }
 
-export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPortalProps) {
+export default function SamaNaffaPortal({
+  kycStatus = 'APPROVED',
+  autoConfirmDeposit = false,
+}: SamaNaffaPortalProps) {
   const { data: session } = useSession();
   const userId = useMemo(() => (session?.user as any)?.id ?? null, [session]);
+
+  const {
+    pendingDeposit,
+    refresh: refreshPendingDeposit,
+    clearPending,
+  } = usePendingOnboardingDeposit(kycStatus === 'APPROVED');
 
   const [isLoadingAccounts, setIsLoadingAccounts] = useState(true);
   const [accountsError, setAccountsError] = useState<string | null>(null);
@@ -544,6 +556,22 @@ export default function SamaNaffaPortal({ kycStatus = 'APPROVED' }: SamaNaffaPor
 
   return (
     <div className="space-y-8">
+      {pendingDeposit && (
+        <PendingOnboardingDepositCard
+          intent={pendingDeposit}
+          autoOpenConfirm={autoConfirmDeposit}
+          onUpdated={refreshPendingDeposit}
+          onCancelled={clearPending}
+          onPaymentComplete={async () => {
+            clearPending();
+            if (selectedAccountId) {
+              await fetchTransactions(selectedAccountId, 20, 0);
+            }
+            await fetchAccounts();
+          }}
+        />
+      )}
+
       {creationFeedback && (
         <div
           className={`border rounded-xl px-4 py-3 ${

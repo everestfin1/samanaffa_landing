@@ -1,21 +1,30 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { navigateToDiditVerification } from '@/lib/kyc-navigation';
 
 interface T5KYCProps {
   firstName: string;
   depositAmount: number;
   onApproved: () => void;
   onBack?: () => void;
+  /** Resume after Didit redirect (same-tab flow). */
+  resumeSessionId?: string | null;
 }
 
 type KycStage = 'idle' | 'loading' | 'verifying' | 'success' | 'in_review' | 'declined' | 'error';
 
 const POLL_INTERVAL_MS = 5_000;
 
-export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: T5KYCProps) {
+export default function T5KYC({
+  firstName,
+  depositAmount,
+  onApproved,
+  onBack,
+  resumeSessionId,
+}: T5KYCProps) {
   const router = useRouter();
   const [stage, setStage] = useState<KycStage>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -33,39 +42,41 @@ export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: 
 
   useEffect(() => () => stopPolling(), []);
 
+  const applyStatus = useCallback((status: string) => {
+    if (status === 'approved') {
+      stopPolling();
+      setStage('success');
+    } else if (status === 'in_review') {
+      stopPolling();
+      setStage('in_review');
+    } else if (status === 'declined') {
+      stopPolling();
+      setStage('declined');
+    }
+  }, []);
+
+  const pollOnce = async (sessionId: string) => {
+    const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    applyStatus(data.status);
+  };
+
   const startPolling = (sessionId: string) => {
     stopPolling();
-    pollRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
-        if (!res.ok) return;
-        const data = await res.json();
-        if (data.status === 'approved') {
-          stopPolling();
-          setStage('success');
-        } else if (data.status === 'in_review') {
-          stopPolling();
-          setStage('in_review');
-        } else if (data.status === 'declined') {
-          stopPolling();
-          setStage('declined');
-        }
-      } catch {
-        // network hiccup — keep polling
-      }
+    void pollOnce(sessionId);
+    pollRef.current = setInterval(() => {
+      void pollOnce(sessionId);
     }, POLL_INTERVAL_MS);
   };
 
-  const openVerification = (url: string, sessionId: string) => {
-    const win = window.open(url, '_blank', 'noopener,noreferrer');
-    setVerificationUrl(url);
-    setDiditSessionId(sessionId);
+  useEffect(() => {
+    if (!resumeSessionId) return;
+    setDiditSessionId(resumeSessionId);
     setStage('verifying');
-    startPolling(sessionId);
-    if (!win) {
-      setPopupBlocked(true);
-    }
-  };
+    startPolling(resumeSessionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resumeSessionId]);
 
   const startVerification = async () => {
     setStage('loading');
@@ -80,7 +91,9 @@ export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
 
-      openVerification(data.verificationUrl, data.sessionId);
+      setVerificationUrl(data.verificationUrl);
+      setDiditSessionId(data.sessionId);
+      navigateToDiditVerification(data.verificationUrl, data.sessionId, '/onboarding');
     } catch (e: unknown) {
       setStage('error');
       setError(e instanceof Error ? e.message : 'Erreur');
@@ -149,7 +162,7 @@ export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: 
                 <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
               </button>
               <p className="text-[10px] text-center text-night/40 italic">
-                S&apos;ouvre dans un nouvel onglet sécurisé
+                Vous serez redirigé vers Didit puis de retour ici automatiquement
               </p>
             </div>
           </motion.div>
@@ -180,7 +193,7 @@ export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: 
             <div>
               <p className="font-bold text-night mb-1">En attente de votre vérification</p>
               <p className="text-sm text-night/60">
-                Complétez la vérification dans l&apos;onglet ouvert.
+                Si vous avez quitté Didit, utilisez le bouton ci-dessous pour reprendre.
               </p>
               <p className="text-xs text-night/40 mt-2">
                 Cette page se met à jour automatiquement.
@@ -195,14 +208,15 @@ export default function T5KYC({ firstName, depositAmount, onApproved, onBack }: 
               <button
                 type="button"
                 onClick={() => {
-                  const win = window.open(verificationUrl, '_blank', 'noopener,noreferrer');
-                  if (!win) {
+                  if (diditSessionId) {
+                    navigateToDiditVerification(verificationUrl, diditSessionId, '/onboarding');
+                  } else {
                     window.location.href = verificationUrl;
                   }
                 }}
                 className="w-full px-4 py-3 bg-gold/10 text-gold font-medium rounded-xl border border-gold/30 hover:bg-gold/20 transition-colors"
               >
-                Ouvrir la vérification
+                Reprendre la vérification
               </button>
             )}
           </motion.div>

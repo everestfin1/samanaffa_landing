@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { motion, AnimatePresence } from 'framer-motion';
 import { XMarkIcon } from '@heroicons/react/24/outline';
+import { navigateToDiditVerification } from '@/lib/kyc-navigation';
 
 interface KYCInitiationModalProps {
   isOpen: boolean;
@@ -97,10 +98,11 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
 
-      setDiditSessionId(data.sessionId);
-      window.open(data.verificationUrl, '_blank', 'noopener,noreferrer');
-      setStage('verifying');
-      startPolling(data.sessionId);
+      const returnPath =
+        typeof window !== 'undefined'
+          ? `${window.location.pathname}${window.location.search}`
+          : '/portal/dashboard';
+      navigateToDiditVerification(data.verificationUrl, data.sessionId, returnPath);
     } catch (e: unknown) {
       setStage('error');
       setError(e instanceof Error ? e.message : 'Erreur');
