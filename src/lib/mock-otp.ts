@@ -1,4 +1,13 @@
-/** True only when mock OTP is explicitly enabled outside production. */
+/**
+ * Mock OTP (no real SMS/email) when MOCK_OTP=true and:
+ * - local dev (NODE_ENV !== 'production'), or
+ * - Vercel Preview / `vercel dev` only — never Vercel Production.
+ */
 export function isMockOtpEnabled(): boolean {
-  return process.env.MOCK_OTP === 'true' && process.env.NODE_ENV !== 'production';
+  if (process.env.MOCK_OTP !== 'true') return false;
+
+  if (process.env.NODE_ENV !== 'production') return true;
+
+  const vercelEnv = process.env.VERCEL_ENV;
+  return vercelEnv === 'preview' || vercelEnv === 'development';
 }
