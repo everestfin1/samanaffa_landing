@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import PhoneInput from '@/components/ui/PhoneInput';
+import { safeCallbackUrl } from '@/lib/safe-callback-url';
 import {
   DevicePhoneMobileIcon,
   ShieldCheckIcon,
@@ -19,6 +20,7 @@ import {
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const postLoginPath = safeCallbackUrl(searchParams.get('callbackUrl'), '/portal/dashboard');
   const [formData, setFormData] = useState({
     contact: '', // Unified field for email or phone
     phone: '', // Separate phone field for react-phone-input-2
@@ -203,7 +205,7 @@ function LoginForm() {
         if (result?.error) {
           setError('Identifiants incorrects');
         } else if (result?.ok) {
-          router.push('/portal/dashboard');
+          router.push(postLoginPath);
         }
       } else {
         if (data.error === 'password_not_set') {
@@ -288,7 +290,7 @@ function LoginForm() {
         setError('Code OTP invalide ou expiré');
       } else if (result?.ok) {
         setSuccess('Connexion réussie !');
-        router.push('/portal/dashboard');
+        router.push(postLoginPath);
       }
     } catch (error) {
       setError('Erreur de connexion. Veuillez réessayer.');

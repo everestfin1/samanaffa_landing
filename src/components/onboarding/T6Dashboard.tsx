@@ -2,6 +2,7 @@
 
 import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useState, useEffect } from 'react';
@@ -14,7 +15,16 @@ interface T6DashboardProps {
 
 export default function T6Dashboard({ firstName, depositAmount, formula }: T6DashboardProps) {
   const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const [showConfetti, setShowConfetti] = useState(true);
+
+  const goToPortal = () => {
+    if (sessionStatus === 'authenticated') {
+      router.push('/portal/dashboard');
+      return;
+    }
+    router.push(`/login?callbackUrl=${encodeURIComponent('/portal/dashboard')}`);
+  };
   const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
 
   useEffect(() => {
@@ -100,7 +110,7 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        onClick={() => router.push('/portal/dashboard')}
+        onClick={goToPortal}
         className="group relative w-full mt-8 px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
       >
         <span className="relative z-10">Aller au tableau de bord complet</span>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { navigateToDiditVerification } from '@/lib/kyc-navigation';
 
@@ -26,7 +27,9 @@ export default function T5KYC({
   resumeSessionId,
 }: T5KYCProps) {
   const router = useRouter();
+  const { status: sessionStatus } = useSession();
   const [stage, setStage] = useState<KycStage>('idle');
+  const approvedHandledRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [diditSessionId, setDiditSessionId] = useState<string | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
@@ -42,10 +45,22 @@ export default function T5KYC({
 
   useEffect(() => () => stopPolling(), []);
 
+  const goToPortal = useCallback(() => {
+    if (sessionStatus === 'authenticated') {
+      router.push('/portal/dashboard');
+      return;
+    }
+    router.push(`/login?callbackUrl=${encodeURIComponent('/portal/dashboard')}`);
+  }, [router, sessionStatus]);
+
   const applyStatus = useCallback((status: string) => {
     if (status === 'approved') {
       stopPolling();
       setStage('success');
+      if (!approvedHandledRef.current) {
+        approvedHandledRef.current = true;
+        window.setTimeout(() => onApproved(), 1200);
+      }
     } else if (status === 'in_review') {
       stopPolling();
       setStage('in_review');
@@ -53,10 +68,12 @@ export default function T5KYC({
       stopPolling();
       setStage('declined');
     }
-  }, []);
+  }, [onApproved]);
 
   const pollOnce = async (sessionId: string) => {
-    const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
+    const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`, {
+      credentials: 'same-origin',
+    });
     if (!res.ok) return;
     const data = await res.json();
     if (data.status === 'declined' && Array.isArray(data.declineReasons)) {
@@ -253,7 +270,8 @@ export default function T5KYC({
             <span className="text-6xl block">🔍</span>
             <KycInReviewCopy />
             <button
-              onClick={() => router.push('/portal/dashboard')}
+              type="button"
+              onClick={goToPortal}
               className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >
               <span className="relative z-10">Accéder à votre espace</span>

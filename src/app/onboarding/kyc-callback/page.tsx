@@ -40,9 +40,15 @@ function KycCallbackContent() {
     let cancelled = false;
     (async () => {
       try {
-        await fetch(`/api/onboarding/kyc/status?sessionId=${encodeURIComponent(sessionId)}`, {
-          cache: 'no-store',
-        });
+        const statusRes = await fetch(
+          `/api/onboarding/kyc/status?sessionId=${encodeURIComponent(sessionId)}`,
+          { cache: 'no-store', credentials: 'same-origin' },
+        );
+        if (statusRes.status === 401) {
+          const returnTo = `/onboarding?verificationSessionId=${encodeURIComponent(sessionId)}`;
+          window.location.href = `/login?callbackUrl=${encodeURIComponent(returnTo)}`;
+          return;
+        }
       } catch {
         // destination page may poll again
       }

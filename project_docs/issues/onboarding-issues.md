@@ -195,6 +195,13 @@ _ONB-001–ONB-022 (original batch): done except ONB-008. New items ONB-023+ fro
 
 ## Critical (2026-05-19 review)
 
+### ONB-038 — After KYC, user sent to `/login` instead of onboarding T6 / portal
+- **Status:** done
+- **Area:** auth / ux
+- **Files:** `onboarding/page.tsx`, `T5KYC.tsx`, `T6Dashboard.tsx`, `kyc-callback/page.tsx`, `login/page.tsx`, `SessionProvider.tsx`
+- **Problem:** Session often missing after Didit return; `/portal/*` guarded by `proxy.ts` → `/login`. `callbackUrl` ignored on login.
+- **Acceptance:** KYC return without session → login with `callbackUrl` back to onboarding; auto-advance to T6 when KYC approved; portal buttons gate on session; `NEXTAUTH_URL` matches public host.
+
 ### ONB-024 — Didit KYC callback used localhost on preview
 - **Status:** done
 - **Area:** ops / kyc

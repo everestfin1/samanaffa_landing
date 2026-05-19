@@ -92,6 +92,7 @@ function OnboardingPageContent() {
 
         setState((s) => ({
           ...s,
+          userId: sessionUserId ?? s.userId,
           simulation: (p.simulation as T0Result) ?? s.simulation,
           firstName: p.firstName ?? s.firstName,
           formula: p.formula ?? s.formula,
@@ -100,7 +101,9 @@ function OnboardingPageContent() {
         }));
 
         const resumeStep = p.step as OnboardingStep;
-        if (resumeStep && resumeStep !== 'T0' && resumeStep !== 'T1') {
+        if (p.kycApproved && p.depositAmount != null && p.formula) {
+          setStep('T6');
+        } else if (resumeStep && resumeStep !== 'T0' && resumeStep !== 'T1') {
           setStep(resumeStep);
         } else if (resumeStep === 'T1') {
           setStep('T2');
@@ -117,10 +120,17 @@ function OnboardingPageContent() {
 
   useEffect(() => {
     if (!kycResumeFromUrl || !resumeChecked) return;
+
+    if (sessionStatus === 'unauthenticated') {
+      const returnTo = `/onboarding?verificationSessionId=${encodeURIComponent(kycResumeFromUrl)}`;
+      router.replace(`/login?callbackUrl=${encodeURIComponent(returnTo)}`);
+      return;
+    }
+
     setKycResumeSessionId(kycResumeFromUrl);
     setStep('T5');
     router.replace('/onboarding', { scroll: false });
-  }, [kycResumeFromUrl, resumeChecked, router]);
+  }, [kycResumeFromUrl, resumeChecked, router, sessionStatus]);
 
   const saveProgress = useCallback(
     async (nextStep: OnboardingStep, patch: Partial<OnboardingState> = {}) => {

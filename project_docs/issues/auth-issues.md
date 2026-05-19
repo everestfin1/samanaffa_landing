@@ -97,7 +97,7 @@
 - **Acceptance:** Shorter session for financial app, or token version on user row invalidated on password reset.
 
 ### AUTH-009 — `returnUrl` ignored after login
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/login/page.tsx`, e.g. `src/app/souscrire-ape/`
 - **Problem:** Deep links pass `?returnUrl=…` but login always `router.push('/portal/dashboard')`.
