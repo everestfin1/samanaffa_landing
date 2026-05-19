@@ -38,6 +38,21 @@
 - **Impact:** Anyone who knows a user’s phone (or email if wired) can obtain a 30-day JWT immediately after account creation.
 - **Acceptance:** Post-signup session via one-time server token from `create-account`, or `signIn` with freshly verified OTP only; remove or harden `type: 'register'`.
 
+### AUTH-019 — Login UI OTP-only with mock mode
+- **Status:** done
+- **Area:** ux
+- **Files:** `src/app/login/page.tsx`, `src/app/api/auth/send-otp/route.ts`
+- **Problem:** Login still exposed password, email, forgot-password; mock OTP not returned on login send.
+- **Resolution (2026-05-19):** Phone-only two-step login; `mockOtp` + `mockMode` in send-otp when `MOCK_OTP=true`.
+
+### AUTH-018 — Login OTP send broken after onboarding (passwordless accounts)
+- **Status:** done
+- **Area:** bug / ux
+- **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/login/page.tsx`
+- **Problem:** Onboarding creates users without `passwordHash`. Login OTP path called `sendOTP(user.id, 'login')` (wrong args), so SMS/email never sent. “Connexion par code OTP” only switched UI step without sending a code. Users had to guess a password to surface `password_not_set`, then OTP still failed.
+- **Impact:** After logout, onboarding users could not sign in again.
+- **Resolution (2026-05-19):** Pass `user.email` + `user.phone` to `sendOTP`; OTP button validates contact and sends code; submit without password starts OTP flow.
+
 ### AUTH-003 — Setup password by raw `userId` without auth
 - **Status:** open
 - **Area:** security
@@ -163,8 +178,7 @@
 | Path | Entry | Session |
 |------|--------|---------|
 | Onboarding signup | `/onboarding` T1 → `create-account` → `signIn(register)` | JWT (see AUTH-002) |
-| Portal password | `/login` → `signIn(login, password)` | JWT |
-| Portal OTP | `/login` → `send-otp` → `signIn(login, otp)` | JWT |
+| Portal login | `/login` (phone + SMS OTP only) → `send-otp` → `signIn(login, otp)` | JWT |
 | Forgot password | `/forgot-password` → verify → reset (see AUTH-001) | — |
 | Setup password | `/setup-password?userId=` (see AUTH-003) | — |
 | Admin | `/admin/login` → JWT in `localStorage` | Separate from NextAuth |

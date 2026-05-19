@@ -3,6 +3,7 @@ import { sendOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkOTPRateLimit } from '@/lib/rate-limit'
+import { isMockOtpEnabled } from '@/lib/mock-otp'
 import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
@@ -123,19 +124,41 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const otpResult = await sendOTP(user.id, 'login')
+      const otpResult = await sendOTP(
+        user.email,
+        user.phone ?? undefined,
+        'login',
+        normalizedPhone ? 'sms' : 'email',
+      )
       if (!otpResult.success) {
         return NextResponse.json(
-          { error: 'Erreur lors de l\'envoi du code OTP' },
+          { error: otpResult.message || 'Erreur lors de l\'envoi du code OTP' },
           { status: 500 }
         )
       }
 
-      return NextResponse.json({
+      const loginResponse: Record<string, unknown> = {
         success: true,
-        message: 'Code OTP envoyé avec succès',
-        method: method || 'email'
-      })
+        message: otpResult.message || 'Code OTP envoyé avec succès',
+        method: normalizedPhone ? 'sms' : 'email',
+      }
+
+      if (isMockOtpEnabled()) {
+        loginResponse.mockMode = true
+        const latestOtp = await prisma.otpCode.findFirst({
+          where: {
+            userId: user.id,
+            used: false,
+            expiresAt: { gt: new Date() },
+          },
+          orderBy: { createdAt: 'desc' },
+        })
+        if (latestOtp?.code) {
+          loginResponse.mockOtp = latestOtp.code
+        }
+      }
+
+      return NextResponse.json(loginResponse)
     }
 
     // Handle password reset OTP
