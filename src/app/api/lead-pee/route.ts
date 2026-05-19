@@ -52,8 +52,9 @@ export async function POST(req: Request) {
       ville,
       telephone,
       email: email || null,
-      montantCfa: '0', // Legacy submissions have no amount
+      montantCfa: '0',
       status: 'PENDING',
+      crmStatus: 'NEW',
     }).returning();
 
     // Send Email notification

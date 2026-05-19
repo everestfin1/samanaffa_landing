@@ -2,17 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
+import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
 /**
  * PATCH /api/portal/profile/complete
  *
- * Authenticated endpoint for post-login profile completion.
- * Updates firstName, lastName, email, DOB, address, profession, and legal consents.
- * Marks profile as COMPLETE when all required fields are present.
- *
- * Accepts: { firstName, lastName, email, dateOfBirth, address, city, country, statutEmploi, termsAccepted, privacyAccepted, marketingAccepted }
- * Returns: { success: true, user: {...} }
+ * Post-login communications step: real email + legal consents (+ optional marketing).
+ * Identity fields are filled from Didit KYC (see lib/kyc-sync.ts).
  */
 export async function PATCH(request: NextRequest) {
   try {
@@ -24,21 +20,8 @@ export async function PATCH(request: NextRequest) {
     const userId = session.user.id;
     const body = await request.json();
 
-    const {
-      firstName,
-      lastName,
-      email,
-      dateOfBirth,
-      address,
-      city,
-      country,
-      statutEmploi,
-      termsAccepted,
-      privacyAccepted,
-      marketingAccepted,
-    } = body;
+    const { email, termsAccepted, privacyAccepted, marketingAccepted } = body;
 
-    // Fetch current user
     const currentUser = await prisma.user.findUnique({
       where: { id: userId },
     });
@@ -47,98 +30,56 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    // Build update data
+    if (termsAccepted !== true || privacyAccepted !== true) {
+      return NextResponse.json(
+        {
+          error:
+            "Vous devez accepter les conditions d'utilisation et la politique de confidentialité.",
+        },
+        { status: 400 },
+      );
+    }
+
     const updateData: Record<string, unknown> = {};
     const now = new Date();
 
-    // Basic profile fields
-    if (typeof firstName === 'string' && firstName.trim()) {
-      updateData.firstName = firstName.trim();
-    }
-    if (typeof lastName === 'string' && lastName.trim()) {
-      updateData.lastName = lastName.trim();
-    }
-    if (typeof statutEmploi === 'string' && statutEmploi.trim()) {
-      updateData.statutEmploi = statutEmploi.trim();
-    }
-
-    // Email validation and uniqueness check (case-insensitive vs DB)
     const currentEmailNorm = (currentUser.email || '').trim().toLowerCase();
-    if (typeof email === 'string' && email.trim()) {
-      const trimmedEmail = email.trim().toLowerCase();
-
-      if (trimmedEmail !== currentEmailNorm) {
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
-          return NextResponse.json(
-            { error: 'Format d\'email invalide.' },
-            { status: 400 },
-          );
-        }
-
-        if (trimmedEmail.includes('@onboarding.samanaffa.tmp')) {
-          return NextResponse.json(
-            { error: 'Veuillez fournir une adresse email réelle.' },
-            { status: 400 },
-          );
-        }
-
-        const existingEmailUser = await prisma.user.findFirst({
-          where: {
-            email: trimmedEmail,
-            id: { not: userId },
-          },
-        });
-
-        if (existingEmailUser) {
-          return NextResponse.json(
-            { error: 'Cet email est déjà associé à un compte existant.' },
-            { status: 409 },
-          );
-        }
-
-        updateData.email = trimmedEmail;
-      }
-    }
-    if (typeof address === 'string' && address.trim()) {
-      updateData.address = address.trim();
-    }
-    if (typeof city === 'string' && city.trim()) {
-      updateData.city = city.trim();
-    }
-    if (typeof country === 'string' && country.trim()) {
-      updateData.country = country.trim();
+    if (typeof email !== 'string' || !email.trim()) {
+      return NextResponse.json({ error: 'Email requis.' }, { status: 400 });
     }
 
-    // Date of birth with age validation
-    if (dateOfBirth) {
-      const dob = new Date(dateOfBirth);
-      if (isNaN(dob.getTime())) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedEmail)) {
+      return NextResponse.json({ error: "Format d'email invalide." }, { status: 400 });
+    }
+    if (trimmedEmail.includes('@onboarding.samanaffa.tmp')) {
+      return NextResponse.json(
+        { error: 'Veuillez fournir une adresse email réelle.' },
+        { status: 400 },
+      );
+    }
+
+    if (trimmedEmail !== currentEmailNorm) {
+      const existingEmailUser = await prisma.user.findFirst({
+        where: {
+          email: trimmedEmail,
+          id: { not: userId },
+        },
+      });
+      if (existingEmailUser) {
         return NextResponse.json(
-          { error: 'Date de naissance invalide.' },
-          { status: 400 },
+          { error: 'Cet email est déjà associé à un compte existant.' },
+          { status: 409 },
         );
       }
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      if (age < 18) {
-        return NextResponse.json(
-          { error: 'Vous devez avoir au moins 18 ans.' },
-          { status: 400 },
-        );
-      }
-      updateData.dateOfBirth = dob;
+      updateData.email = trimmedEmail;
     }
 
-    // Legal consents
-    if (typeof termsAccepted === 'boolean' && termsAccepted && !currentUser.termsAccepted) {
+    if (!currentUser.termsAccepted) {
       updateData.termsAccepted = true;
       updateData.termsAcceptedAt = now;
     }
-    if (typeof privacyAccepted === 'boolean' && privacyAccepted && !currentUser.privacyAccepted) {
+    if (!currentUser.privacyAccepted) {
       updateData.privacyAccepted = true;
       updateData.privacyAcceptedAt = now;
     }
@@ -146,32 +87,17 @@ export async function PATCH(request: NextRequest) {
       updateData.marketingAccepted = marketingAccepted;
     }
 
-    // Pre-compute completeness to merge into a single DB write
-    const mergedFirstName = (updateData.firstName as string) || currentUser.firstName;
-    const mergedLastName = (updateData.lastName as string) || currentUser.lastName;
     const mergedEmail = (updateData.email as string) || currentUser.email;
-    const mergedDob = updateData.dateOfBirth || currentUser.dateOfBirth;
-    const mergedAddress = (updateData.address as string) || currentUser.address;
-    const mergedCity = (updateData.city as string) || currentUser.city;
-    const mergedCountry = (updateData.country as string) || currentUser.country;
-    const mergedStatut = (updateData.statutEmploi as string) || currentUser.statutEmploi;
-    const mergedTerms = (updateData.termsAccepted as boolean | undefined) ?? currentUser.termsAccepted;
-    const mergedPrivacy = (updateData.privacyAccepted as boolean | undefined) ?? currentUser.privacyAccepted;
+    const mergedTerms = true;
+    const mergedPrivacy = true;
 
-    const isComplete = meetsPortalProfileRequirements({
-      firstName: mergedFirstName,
-      lastName: mergedLastName,
+    const communicationsComplete = meetsPortalCommunicationsRequirements({
       email: mergedEmail,
-      dateOfBirth: mergedDob,
-      address: mergedAddress,
-      city: mergedCity,
-      country: mergedCountry,
-      statutEmploi: mergedStatut,
       termsAccepted: mergedTerms,
       privacyAccepted: mergedPrivacy,
     });
 
-    if (isComplete && currentUser.profileCompletionStatus !== 'COMPLETE') {
+    if (communicationsComplete && currentUser.profileCompletionStatus !== 'COMPLETE') {
       updateData.profileCompletionStatus = 'COMPLETE';
       updateData.profileCompletedAt = now;
       updateData.profileCompletionStep = null;
@@ -190,15 +116,12 @@ export async function PATCH(request: NextRequest) {
         lastName: updatedUser.lastName,
         email: updatedUser.email,
         phone: updatedUser.phone,
-        dateOfBirth: updatedUser.dateOfBirth,
-        address: updatedUser.address,
-        city: updatedUser.city,
-        country: updatedUser.country,
-        statutEmploi: updatedUser.statutEmploi,
         termsAccepted: updatedUser.termsAccepted,
         privacyAccepted: updatedUser.privacyAccepted,
         marketingAccepted: updatedUser.marketingAccepted,
-        profileCompletionStatus: updatedUser.profileCompletionStatus ?? (isComplete ? 'COMPLETE' : 'INCOMPLETE'),
+        profileCompletionStatus:
+          updatedUser.profileCompletionStatus ??
+          (communicationsComplete ? 'COMPLETE' : 'INCOMPLETE'),
       },
     });
   } catch (error) {

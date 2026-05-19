@@ -1,5 +1,6 @@
 /**
- * Single source of truth for “portal profile completion” (post-onboarding modal + API).
+ * Portal profile / communications completion (post-onboarding).
+ * Identity fields come from Didit KYC — the modal only collects email + legal consents.
  */
 
 const PLACEHOLDER_LAST_NAMES = new Set(['membre', 'member']);
@@ -13,35 +14,55 @@ export function hasRealPortalEmail(email: string | null | undefined): boolean {
   return !!(email && !email.includes('@onboarding.samanaffa.tmp'));
 }
 
-/** Fields required before we stop showing “Complétez votre profil”. */
-export function meetsPortalProfileRequirements(u: {
-  firstName?: string | null;
-  lastName?: string | null;
+/** Email + mandatory legal consents (marketing popup). */
+export function meetsPortalCommunicationsRequirements(u: {
   email?: string | null;
-  dateOfBirth?: Date | string | null | undefined;
-  address?: string | null;
-  city?: string | null;
-  country?: string | null;
-  statutEmploi?: string | null;
   termsAccepted?: boolean | null;
   privacyAccepted?: boolean | null;
 }): boolean {
+  return !!(
+    hasRealPortalEmail(u.email) &&
+    u.termsAccepted === true &&
+    u.privacyAccepted === true
+  );
+}
+
+/** Identity data expected from Didit (used for compliance / display, not the modal). */
+export function meetsVerifiedIdentityRequirements(u: {
+  kycStatus?: string | null;
+  lastName?: string | null;
+  dateOfBirth?: Date | string | null | undefined;
+}): boolean {
+  if (u.kycStatus !== 'APPROVED') return false;
+
   const dobOk =
     u.dateOfBirth != null &&
     u.dateOfBirth !== '' &&
     !(typeof u.dateOfBirth === 'string' && !u.dateOfBirth.trim());
 
-  return !!(
-    u.firstName?.trim() &&
-    !isPlaceholderFamilyName(u.lastName) &&
-    hasRealPortalEmail(u.email) &&
-    dobOk &&
-    String(u.address ?? '').trim() &&
-    String(u.city ?? '').trim() &&
-    String(u.country ?? '').trim() &&
-    String(u.statutEmploi ?? '').trim() &&
-    u.termsAccepted === true &&
-    u.privacyAccepted === true
+  return !isPlaceholderFamilyName(u.lastName) && dobOk;
+}
+
+/**
+ * Full portal readiness: communications done (modal) + KYC-approved identity on file.
+ * @deprecated Prefer checking communications and KYC separately in UI.
+ */
+export function meetsPortalProfileRequirements(u: {
+  email?: string | null;
+  termsAccepted?: boolean | null;
+  privacyAccepted?: boolean | null;
+  kycStatus?: string | null;
+  lastName?: string | null;
+  dateOfBirth?: Date | string | null | undefined;
+  firstName?: string | null;
+  address?: string | null;
+  city?: string | null;
+  country?: string | null;
+  statutEmploi?: string | null;
+}): boolean {
+  return (
+    meetsPortalCommunicationsRequirements(u) &&
+    meetsVerifiedIdentityRequirements(u)
   );
 }
 
@@ -51,44 +72,37 @@ export interface ProfileFieldCheck {
   ok: boolean;
 }
 
-export function getProfileCompletionProgress(u: {
-  firstName?: string | null;
-  lastName?: string | null;
+/** Progress for the communications modal only. */
+export function getCommunicationsCompletionProgress(u: {
   email?: string | null;
-  dateOfBirth?: Date | string | null | undefined;
-  address?: string | null;
-  city?: string | null;
-  country?: string | null;
-  statutEmploi?: string | null;
   termsAccepted?: boolean | null;
   privacyAccepted?: boolean | null;
+  marketingAccepted?: boolean | null;
 }): { percent: number; checks: ProfileFieldCheck[] } {
   const checks: ProfileFieldCheck[] = [
-    { id: 'firstName', label: 'Prénom', ok: !!u.firstName?.trim() },
-    {
-      id: 'lastName',
-      label: 'Nom de famille',
-      ok: !isPlaceholderFamilyName(u.lastName),
-    },
     { id: 'email', label: 'Email', ok: hasRealPortalEmail(u.email) },
-    {
-      id: 'dateOfBirth',
-      label: 'Date de naissance',
-      ok:
-        u.dateOfBirth != null &&
-        u.dateOfBirth !== '' &&
-        !(typeof u.dateOfBirth === 'string' && !u.dateOfBirth.trim()),
-    },
-    { id: 'address', label: 'Adresse', ok: !!String(u.address ?? '').trim() },
-    { id: 'city', label: 'Ville', ok: !!String(u.city ?? '').trim() },
-    { id: 'country', label: 'Pays', ok: !!String(u.country ?? '').trim() },
-    { id: 'statutEmploi', label: 'Statut professionnel', ok: !!String(u.statutEmploi ?? '').trim() },
-    { id: 'termsAccepted', label: 'Conditions d\'utilisation', ok: u.termsAccepted === true },
+    { id: 'termsAccepted', label: "Conditions d'utilisation", ok: u.termsAccepted === true },
     { id: 'privacyAccepted', label: 'Politique de confidentialité', ok: u.privacyAccepted === true },
+    {
+      id: 'marketingAccepted',
+      label: 'Communications marketing (optionnel)',
+      ok: u.marketingAccepted === true,
+    },
   ];
 
-  const done = checks.filter((c) => c.ok).length;
-  const percent = Math.round((done / checks.length) * 100);
+  const required = checks.filter((c) => c.id !== 'marketingAccepted');
+  const done = required.filter((c) => c.ok).length;
+  const percent = Math.round((done / required.length) * 100);
 
   return { percent, checks };
+}
+
+/** @deprecated Use getCommunicationsCompletionProgress */
+export function getProfileCompletionProgress(u: {
+  email?: string | null;
+  termsAccepted?: boolean | null;
+  privacyAccepted?: boolean | null;
+  marketingAccepted?: boolean | null;
+}): { percent: number; checks: ProfileFieldCheck[] } {
+  return getCommunicationsCompletionProgress(u);
 }

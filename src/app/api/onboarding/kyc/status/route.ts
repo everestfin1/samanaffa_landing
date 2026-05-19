@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { syncDiditDecision, DIDIT_STATUS_MAP } from '@/lib/kyc-sync';
+import {
+  fetchDiditDecision,
+  getDiditDeclineMessages,
+} from '@/lib/didit-decision';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
 
@@ -70,9 +74,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const internalStatus = DIDIT_TO_INTERNAL[diditStatus] ?? 'unknown';
+    let declineReasons: string[] | undefined;
+
+    if (internalStatus === 'declined') {
+      const decision = await fetchDiditDecision(sessionId);
+      if (decision) {
+        declineReasons = getDiditDeclineMessages(decision);
+      }
+    }
+
     return NextResponse.json({
-      status: DIDIT_TO_INTERNAL[diditStatus] ?? 'unknown',
+      status: internalStatus,
       diditStatus,
+      declineReasons,
     });
   } catch (error) {
     console.error('[onboarding/kyc/status]', error);

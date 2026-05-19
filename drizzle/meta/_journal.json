@@ -50,6 +50,13 @@
       "when": 1779102429854,
       "tag": "0006_lazy_mister_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779198144389,
+      "tag": "0007_sync_production_schema",
+      "breakpoints": true
     }
   ]
 }

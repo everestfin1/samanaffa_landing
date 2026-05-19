@@ -30,7 +30,7 @@ export default function T5KYC({
   const [error, setError] = useState<string | null>(null);
   const [diditSessionId, setDiditSessionId] = useState<string | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
-  const [popupBlocked, setPopupBlocked] = useState(false);
+  const [declineReasons, setDeclineReasons] = useState<string[]>([]);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const stopPolling = () => {
@@ -59,6 +59,9 @@ export default function T5KYC({
     const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`);
     if (!res.ok) return;
     const data = await res.json();
+    if (data.status === 'declined' && Array.isArray(data.declineReasons)) {
+      setDeclineReasons(data.declineReasons);
+    }
     applyStatus(data.status);
   };
 
@@ -81,7 +84,6 @@ export default function T5KYC({
   const startVerification = async () => {
     setStage('loading');
     setError(null);
-    setPopupBlocked(false);
     try {
       const res = await fetch('/api/onboarding/kyc/start', {
         method: 'POST',
@@ -106,7 +108,7 @@ export default function T5KYC({
     setError(null);
     setDiditSessionId(null);
     setVerificationUrl(null);
-    setPopupBlocked(false);
+    setDeclineReasons([]);
   };
 
   return (
@@ -199,11 +201,6 @@ export default function T5KYC({
                 Cette page se met à jour automatiquement.
               </p>
             </div>
-            {popupBlocked && verificationUrl && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-900">
-                Votre navigateur a bloqué la fenêtre. Utilisez le bouton ci-dessous pour continuer.
-              </div>
-            )}
             {verificationUrl && (
               <button
                 type="button"
@@ -278,8 +275,16 @@ export default function T5KYC({
               <p className="text-sm text-night/60">
                 Cela arrive. Assurez-vous que les photos sont nettes et l&apos;éclairage correct.
               </p>
+              {declineReasons.length > 0 && (
+                <ul className="mt-3 text-left text-sm text-red-700/90 space-y-1 list-disc list-inside">
+                  {declineReasons.map((reason) => (
+                    <li key={reason}>{reason}</li>
+                  ))}
+                </ul>
+              )}
             </div>
             <button
+              type="button"
               onClick={handleRetry}
               className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
             >

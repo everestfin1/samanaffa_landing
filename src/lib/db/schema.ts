@@ -163,6 +163,8 @@ export const kycDocuments = pgTable('kyc_documents', {
   uploadDate: timestamp('uploadDate', { mode: 'date' }).notNull().defaultNow(),
   verificationStatus: verificationStatusEnum('verificationStatus').notNull().default('PENDING'),
   adminNotes: text('adminNotes'),
+  /** Redacted Didit decision snapshot (server-only, set on terminal status). */
+  diditDecisionPayload: json('diditDecisionPayload'),
 });
 
 // Admin Users table
@@ -251,10 +253,19 @@ export const apeSubscriptions = pgTable('ape_subscriptions', {
   updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
-// PEE Subscription Status enum
-export const peeSubscriptionStatusEnum = pgEnum('PeeSubscriptionStatus', ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']);
+// PEE Subscription Status enum (payment lifecycle)
+export const peeSubscriptionStatusEnum = pgEnum('PeeSubscriptionStatus', [
+  'PENDING',
+  'PAYMENT_INITIATED',
+  'PAYMENT_SUCCESS',
+  'PAYMENT_FAILED',
+  'CANCELLED',
+]);
 
-// PEE Leads table - stores PEE (Plan Épargne Éducation) subscription data with payment
+// PEE CRM status (admin follow-up on inquiry leads — separate from payment status)
+export const peeCrmStatusEnum = pgEnum('PeeCrmStatus', ['NEW', 'CONTACTED', 'CONVERTED', 'DISMISSED']);
+
+// PEE Leads table - inquiries + paid subscriptions
 export const peeLeads = pgTable('pee_leads', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   referenceNumber: text('referenceNumber').notNull().unique(),
@@ -269,8 +280,10 @@ export const peeLeads = pgTable('pee_leads', {
   email: text('email'),
   // Investment info
   montantCfa: decimal('montantCfa', { precision: 15, scale: 2 }).notNull(),
-  // Payment info
+  // Payment lifecycle (Intouch / subscribe flow)
   status: peeSubscriptionStatusEnum('status').notNull().default('PENDING'),
+  /** Admin CRM pipeline for contact-form leads (not used for paid subscriptions). */
+  crmStatus: peeCrmStatusEnum('crmStatus'),
   providerTransactionId: text('providerTransactionId'),
   providerStatus: text('providerStatus'),
   paymentCallbackPayload: json('paymentCallbackPayload'),

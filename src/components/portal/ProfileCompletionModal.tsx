@@ -1,32 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { getProfileCompletionProgress } from '@/lib/portal-profile-completion';
+import { getCommunicationsCompletionProgress } from '@/lib/portal-profile-completion';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
-import {
-  UserIcon,
-  EnvelopeIcon,
-  CalendarIcon,
-  MapPinIcon,
-  BriefcaseIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+import { EnvelopeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 interface ProfileCompletionModalProps {
   isOpen: boolean;
   onClose: () => void;
   dismissible?: boolean;
   initialData?: {
-    firstName?: string;
-    lastName?: string;
     email?: string;
-    dateOfBirth?: string;
-    address?: string;
-    city?: string;
-    country?: string;
-    statutEmploi?: string;
     termsAccepted?: boolean;
     privacyAccepted?: boolean;
     marketingAccepted?: boolean;
@@ -36,12 +22,6 @@ interface ProfileCompletionModalProps {
 function sanitizeEmail(email?: string): string {
   if (!email || email.includes('@onboarding.samanaffa.tmp')) return '';
   return email;
-}
-
-function sanitizeLastName(lastName?: string): string {
-  // Clear placeholder values that signal incomplete profiles
-  if (!lastName || lastName === 'Membre' || lastName === 'membre' || lastName === 'Member') return '';
-  return lastName;
 }
 
 export default function ProfileCompletionModal({
@@ -55,31 +35,10 @@ export default function ProfileCompletionModal({
   const { update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [dobError, setDobError] = useState<string | null>(null);
-
-  const validateAge = (dob: string): string | null => {
-    if (!dob) return null;
-    const birth = new Date(dob);
-    if (isNaN(birth.getTime())) return 'Date invalide.';
-    const today = new Date();
-    let age = today.getFullYear() - birth.getFullYear();
-    const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-    if (birth > today) return 'Date de naissance invalide.';
-    if (age < 18) return `Vous devez avoir au moins 18 ans (âge actuel : ${age} ans).`;
-    return null;
-  };
 
   const initialFormData = useMemo(
     () => ({
-      firstName: initialData.firstName || '',
-      lastName: sanitizeLastName(initialData.lastName),
       email: sanitizeEmail(initialData.email),
-      dateOfBirth: initialData.dateOfBirth || '',
-      address: initialData.address || '',
-      city: initialData.city || '',
-      country: initialData.country || 'Sénégal',
-      statutEmploi: initialData.statutEmploi || '',
       termsAccepted: initialData.termsAccepted || false,
       privacyAccepted: initialData.privacyAccepted || false,
       marketingAccepted: initialData.marketingAccepted || false,
@@ -90,7 +49,7 @@ export default function ProfileCompletionModal({
   const [formData, setFormData] = useState(initialFormData);
 
   const completionProgress = useMemo(
-    () => getProfileCompletionProgress(formData),
+    () => getCommunicationsCompletionProgress(formData),
     [formData],
   );
 
@@ -98,7 +57,6 @@ export default function ProfileCompletionModal({
     if (isOpen) {
       setFormData(initialFormData);
       setError(null);
-      setDobError(null);
     }
   }, [isOpen, initialFormData]);
 
@@ -107,31 +65,16 @@ export default function ProfileCompletionModal({
     setLoading(true);
     setError(null);
 
-    // Validation
-    if (
-      !formData.firstName.trim() ||
-      !formData.lastName.trim() ||
-      !formData.email.trim() ||
-      !formData.dateOfBirth ||
-      !formData.address.trim() ||
-      !formData.city.trim() ||
-      !formData.country.trim() ||
-      !formData.statutEmploi.trim()
-    ) {
-      setError('Veuillez remplir tous les champs requis.');
-      setLoading(false);
-      return;
-    }
-
-    const ageErr = validateAge(formData.dateOfBirth);
-    if (ageErr) {
-      setDobError(ageErr);
+    if (!formData.email.trim()) {
+      setError('Veuillez indiquer votre adresse email.');
       setLoading(false);
       return;
     }
 
     if (!formData.termsAccepted || !formData.privacyAccepted) {
-      setError('Vous devez accepter les conditions d\'utilisation et la politique de confidentialité.');
+      setError(
+        "Vous devez accepter les conditions d'utilisation et la politique de confidentialité.",
+      );
       setLoading(false);
       return;
     }
@@ -146,13 +89,11 @@ export default function ProfileCompletionModal({
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erreur lors de la mise à jour du profil');
+        throw new Error(data.error || 'Erreur lors de la mise à jour');
       }
 
-      // Refresh cached profile (dashboard / profile page use TanStack Query, not only RSC)
       await queryClient.invalidateQueries({ queryKey: ['userProfile'] });
       await queryClient.refetchQueries({ queryKey: ['userProfile'] });
-      // JWT carries email/name — reload token from DB (see auth jwt callback trigger === 'update')
       if (typeof updateSession === 'function') {
         await updateSession();
       }
@@ -170,27 +111,23 @@ export default function ProfileCompletionModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        {/* Header */}
+      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-timberwolf/20 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-night">Complétez votre profil</h2>
+            <h2 className="text-2xl font-bold text-night">Restons en contact</h2>
             <p className="text-sm text-night/60 mt-1">
-              Quelques informations supplémentaires pour finaliser votre inscription
+              Votre identité est vérifiée via Didit. Indiquez votre email et vos préférences de
+              communication.
             </p>
             {!dismissible && (
               <div className="mt-3">
                 <ProfileProgressBar percent={completionProgress.percent} />
-                <p className="text-xs text-night/50 mt-2">
-                  <a href="/portal/profile" className="text-gold-metallic hover:underline">
-                    Compléter sur la page profil
-                  </a>
-                </p>
               </div>
             )}
           </div>
           {dismissible && (
             <button
+              type="button"
               onClick={onClose}
               className="text-night/50 hover:text-night transition-colors"
             >
@@ -199,7 +136,6 @@ export default function ProfileCompletionModal({
           )}
         </div>
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
@@ -207,55 +143,20 @@ export default function ProfileCompletionModal({
             </div>
           )}
 
-          {/* Personal Information */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-night flex items-center gap-2">
-              <UserIcon className="w-5 h-5 text-gold-metallic" />
-              Informations personnelles
-            </h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-night mb-2">
-                  Prénom *
-                </label>
-                <input
-                  type="text"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-night mb-2">
-                  Nom *
-                </label>
-                <input
-                  type="text"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  required
-                />
-                {!formData.lastName && (
-                  <p className="text-xs text-amber-600 mt-1">
-                    Veuillez saisir votre nom de famille réel.
-                  </p>
-                )}
-              </div>
-            </div>
+          <div className="p-4 bg-gold-light/15 border border-gold-metallic/20 rounded-xl text-sm text-night/80">
+            <p>
+              Vos informations d&apos;identité (nom, date de naissance, document) proviennent de
+              votre vérification KYC et ne sont pas modifiables ici.
+            </p>
           </div>
 
-          {/* Contact Information */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-night flex items-center gap-2">
               <EnvelopeIcon className="w-5 h-5 text-gold-metallic" />
-              Coordonnées
+              Email
             </h3>
             <div>
-              <label className="block text-sm font-medium text-night mb-2">
-                Email *
-              </label>
+              <label className="block text-sm font-medium text-night mb-2">Adresse email *</label>
               <input
                 type="email"
                 value={formData.email}
@@ -264,136 +165,34 @@ export default function ProfileCompletionModal({
                 placeholder="votre@email.com"
                 required
               />
-              {!formData.email && (
-                <p className="text-xs text-amber-600 mt-1">
-                  Veuillez saisir votre adresse email réelle.
-                </p>
-              )}
+              <p className="text-xs text-night/50 mt-2">
+                Reçus de transaction, alertes de sécurité et informations sur votre épargne.
+              </p>
             </div>
           </div>
 
-          {/* Date of Birth */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-night flex items-center gap-2">
-              <CalendarIcon className="w-5 h-5 text-gold-metallic" />
-              Date de naissance
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-night mb-2">
-                Date de naissance *
-              </label>
-              <input
-                type="date"
-                value={formData.dateOfBirth}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setFormData({ ...formData, dateOfBirth: val });
-                  setDobError(validateAge(val));
-                }}
-                onBlur={(e) => setDobError(validateAge(e.target.value))}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent transition-colors ${
-                  dobError ? 'border-red-400 bg-red-50' : 'border-timberwolf/30'
-                }`}
-                required
-              />
-              {dobError && (
-                <p className="text-sm text-red-600 mt-1 flex items-center gap-1">
-                  <span>⚠</span> {dobError}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Address */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-night flex items-center gap-2">
-              <MapPinIcon className="w-5 h-5 text-gold-metallic" />
-              Adresse
-            </h3>
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-night mb-2">
-                  Adresse *
-                </label>
-                <input
-                  type="text"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  placeholder="Rue, numéro..."
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-night mb-2">
-                  Ville *
-                </label>
-                <input
-                  type="text"
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-night mb-2">
-                  Pays *
-                </label>
-                <input
-                  type="text"
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Profession */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-night flex items-center gap-2">
-              <BriefcaseIcon className="w-5 h-5 text-gold-metallic" />
-              Profession
-            </h3>
-            <div>
-              <label className="block text-sm font-medium text-night mb-2">
-                Statut professionnel *
-              </label>
-              <select
-                value={formData.statutEmploi}
-                onChange={(e) => setFormData({ ...formData, statutEmploi: e.target.value })}
-                className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
-                required
-              >
-                <option value="">Sélectionnez votre statut</option>
-                <option value="Salarié">Salarié</option>
-                <option value="Indépendant">Indépendant / Freelance</option>
-                <option value="Entrepreneur">Entrepreneur</option>
-                <option value="Étudiant">Étudiant</option>
-                <option value="Retraité">Retraité</option>
-                <option value="Sans emploi">Sans emploi</option>
-                <option value="Autre">Autre</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Legal Consents */}
           <div className="space-y-4 pt-4 border-t border-timberwolf/20">
+            <h3 className="text-sm font-semibold text-night">Préférences légales</h3>
             <div className="space-y-3">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.termsAccepted}
-                  onChange={(e) => setFormData({ ...formData, termsAccepted: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, termsAccepted: e.target.checked })
+                  }
                   className="mt-1 w-5 h-5 text-gold border-timberwolf rounded focus:ring-gold"
                   required
                 />
                 <span className="text-sm text-night">
-                  J'accepte les{' '}
-                  <a href="/conditions" target="_blank" className="text-gold-metallic hover:underline">
-                    conditions d'utilisation
+                  J&apos;accepte les{' '}
+                  <a
+                    href="/conditions"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold-metallic hover:underline"
+                  >
+                    conditions d&apos;utilisation
                   </a>{' '}
                   de Sama Naffa *
                 </span>
@@ -402,13 +201,20 @@ export default function ProfileCompletionModal({
                 <input
                   type="checkbox"
                   checked={formData.privacyAccepted}
-                  onChange={(e) => setFormData({ ...formData, privacyAccepted: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, privacyAccepted: e.target.checked })
+                  }
                   className="mt-1 w-5 h-5 text-gold border-timberwolf rounded focus:ring-gold"
                   required
                 />
                 <span className="text-sm text-night">
-                  J'accepte la{' '}
-                  <a href="/politique-confidentialite" target="_blank" className="text-gold-metallic hover:underline">
+                  J&apos;accepte la{' '}
+                  <a
+                    href="/politique-confidentialite"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold-metallic hover:underline"
+                  >
                     politique de confidentialité
                   </a>{' '}
                   *
@@ -418,17 +224,19 @@ export default function ProfileCompletionModal({
                 <input
                   type="checkbox"
                   checked={formData.marketingAccepted}
-                  onChange={(e) => setFormData({ ...formData, marketingAccepted: e.target.checked })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, marketingAccepted: e.target.checked })
+                  }
                   className="mt-1 w-5 h-5 text-gold border-timberwolf rounded focus:ring-gold"
                 />
                 <span className="text-sm text-night">
-                  J'accepte de recevoir des communications marketing et des offres personnalisées (optionnel)
+                  J&apos;accepte de recevoir des communications marketing et des offres
+                  personnalisées (optionnel)
                 </span>
               </label>
             </div>
           </div>
 
-          {/* Submit Button */}
           <div className="flex gap-4 pt-4">
             {dismissible && (
               <button
@@ -441,10 +249,10 @@ export default function ProfileCompletionModal({
             )}
             <button
               type="submit"
-              disabled={loading || !!dobError}
+              disabled={loading}
               className="flex-1 px-6 py-3 bg-gold-metallic text-white rounded-lg font-medium hover:bg-gold-dark disabled:opacity-50 transition-colors"
             >
-              {loading ? 'Enregistrement...' : 'Enregistrer'}
+              {loading ? 'Enregistrement...' : 'Valider'}
             </button>
           </div>
         </form>
@@ -456,7 +264,7 @@ export default function ProfileCompletionModal({
 function ProfileProgressBar({ percent }: { percent: number }) {
   return (
     <div>
-      <ProgressLabel percent={percent} />
+      <p className="text-xs font-medium text-night/70">Étape complétée à {percent}%</p>
       <div className="w-full h-2 bg-timberwolf/30 rounded-full overflow-hidden mt-1">
         <div
           className="h-full bg-gold-metallic rounded-full transition-all duration-300"
@@ -464,11 +272,5 @@ function ProfileProgressBar({ percent }: { percent: number }) {
         />
       </div>
     </div>
-  );
-}
-
-function ProgressLabel({ percent }: { percent: number }) {
-  return (
-    <p className="text-xs font-medium text-night/70">Profil complété à {percent}%</p>
   );
 }

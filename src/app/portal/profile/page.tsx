@@ -20,7 +20,8 @@ import {
   IdentificationIcon,
   BanknotesIcon,
   ArrowRightIcon,
-  CloudArrowUpIcon
+  CloudArrowUpIcon,
+  CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import PortalHeader from '../../../components/portal/PortalHeader';
 
@@ -67,6 +68,17 @@ interface KYCDocument {
   uploadDate: string;
   verificationStatus: 'pending' | 'verified' | 'rejected';
   adminNotes?: string;
+}
+
+function formatDateOfBirth(value?: string | null): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toLocaleDateString('fr-FR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
 }
 
 export default function ProfilePage() {
@@ -153,6 +165,8 @@ export default function ProfilePage() {
 
   const displayEmail =
     userData?.email?.includes('@onboarding.samanaffa.tmp') ? '' : userData?.email;
+  const formattedDateOfBirth = formatDateOfBirth(userData?.dateOfBirth);
+  const dobFromKyc = userData?.kycStatus === 'APPROVED';
 
   const handleCancelEdit = () => {
     if (userData) {
@@ -404,6 +418,24 @@ export default function ProfilePage() {
                       </p>
                     </div>
                     <div>
+                      <label className="block text-sm font-medium text-night mb-2">
+                        Date de naissance
+                      </label>
+                      <input
+                        type="text"
+                        value={formattedDateOfBirth ?? ''}
+                        readOnly
+                        disabled
+                        placeholder="Non renseignée — vérification d'identité requise"
+                        className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg bg-timberwolf/10 text-night/60 cursor-not-allowed"
+                      />
+                      {dobFromKyc && formattedDateOfBirth && (
+                        <p className="text-xs text-night/50 mt-1">
+                          Issue de votre vérification d&apos;identité (Didit).
+                        </p>
+                      )}
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-night mb-2">Adresse</label>
                       <textarea
                         value={editForm.address}
@@ -487,6 +519,17 @@ export default function ProfilePage() {
                       <span className="text-night/70">{userData?.phone}</span>
                       {userData?.phoneVerified && (
                         <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                      )}
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <CalendarDaysIcon className="w-5 h-5 text-night/70" />
+                      <span className="text-night/70">
+                        {formattedDateOfBirth
+                          ? `Né(e) le ${formattedDateOfBirth}`
+                          : 'Date de naissance non renseignée'}
+                      </span>
+                      {dobFromKyc && formattedDateOfBirth && (
+                        <CheckCircleIcon className="w-4 h-4 text-green-500" title="Vérifiée via Didit" />
                       )}
                     </div>
                     <div className="flex items-center space-x-3">

@@ -6,24 +6,26 @@ import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types';
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications';
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings';
 import { createUserNotification } from '@/lib/user-notifications';
+import {
+  buildRedactedDecisionPayload,
+  buildUserPatchFromDiditIdentity,
+  fetchDiditDecision,
+  parseDiditIdentity,
+} from '@/lib/didit-decision';
 
 /**
  * Maps a Didit terminal status to our internal kycStatus / docStatus.
  * Returns `null` for non-terminal statuses we don't act on.
  */
 export const DIDIT_STATUS_MAP: Record<string, { kycStatus: string; docStatus: string }> = {
-  Approved:    { kycStatus: 'APPROVED',      docStatus: 'APPROVED' },
-  Declined:    { kycStatus: 'REJECTED',      docStatus: 'REJECTED' },
-  'In Review': { kycStatus: 'UNDER_REVIEW',  docStatus: 'UNDER_REVIEW' },
+  Approved: { kycStatus: 'APPROVED', docStatus: 'APPROVED' },
+  Declined: { kycStatus: 'REJECTED', docStatus: 'REJECTED' },
+  'In Review': { kycStatus: 'UNDER_REVIEW', docStatus: 'UNDER_REVIEW' },
 };
 
 /**
  * Syncs our DB with a Didit terminal decision.
- * Called by:
- * - POST /api/webhooks/didit   (production — triggered by Didit webhook)
- * - GET  /api/onboarding/kyc/status  (dev fallback — triggered by polling)
- *
- * Idempotent: if the kycDocument is already at the target status, this is a no-op.
+ * Fetches full decision payload, stores redacted snapshot, applies identity to user on approval.
  */
 export async function syncDiditDecision(
   userId: string,
@@ -33,14 +35,29 @@ export async function syncDiditDecision(
   const mapped = DIDIT_STATUS_MAP[diditStatus];
   if (!mapped) return false;
 
-  // Find the most recent Didit kycDocument for this user
   const docs = await prisma.kycDocument.findMany({
     where: { userId, documentType: 'didit_kyc_session' },
     orderBy: { uploadDate: 'desc' },
     take: 1,
     include: {
       user: {
-        select: { id: true, firstName: true, lastName: true, email: true, phone: true, kycStatus: true },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          phone: true,
+          kycStatus: true,
+          dateOfBirth: true,
+          nationality: true,
+          country: true,
+          address: true,
+          city: true,
+          idType: true,
+          idNumber: true,
+          idExpiryDate: true,
+          placeOfBirth: true,
+        },
       },
     },
   });
@@ -51,25 +68,75 @@ export async function syncDiditDecision(
     return false;
   }
 
-  // Already synced — skip
-  if (doc.verificationStatus === mapped.docStatus) return false;
+  const decision = await fetchDiditDecision(sessionId);
+  if (decision) {
+    try {
+      await prisma.kycDocument.update({
+        where: { id: doc.id },
+        data: {
+          diditDecisionPayload: buildRedactedDecisionPayload(decision) as object,
+        },
+      });
+    } catch (e) {
+      console.error('[kyc-sync] Error storing decision payload:', e);
+    }
+  }
 
-  // Update kycDocument status
-  await prisma.kycDocument.update({
-    where: { id: doc.id },
-    data: { verificationStatus: mapped.docStatus },
-  });
+  const alreadySynced = doc.verificationStatus === mapped.docStatus;
 
-  const user = (doc as any).user;
-  if (!user || user.kycStatus === mapped.kycStatus) return true;
+  if (!alreadySynced) {
+    await prisma.kycDocument.update({
+      where: { id: doc.id },
+      data: { verificationStatus: mapped.docStatus },
+    });
+  }
 
-  // Update user kycStatus
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const user = (doc as any).user as {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    kycStatus: string;
+    dateOfBirth: Date | null;
+    nationality: string | null;
+    country: string | null;
+    address: string | null;
+    city: string | null;
+    idType: string | null;
+    idNumber: string | null;
+    idExpiryDate: Date | null;
+    placeOfBirth: string | null;
+  } | undefined;
+  if (!user) return true;
+
+  if (mapped.kycStatus === 'APPROVED' && decision) {
+    const identity = parseDiditIdentity(decision);
+    if (identity) {
+      const identityPatch = buildUserPatchFromDiditIdentity(user, identity);
+      if (Object.keys(identityPatch).length > 0) {
+        try {
+          await prisma.user.update({
+            where: { id: userId },
+            data: identityPatch,
+          });
+        } catch (e) {
+          console.error('[kyc-sync] Error applying Didit identity:', e);
+        }
+      }
+    }
+  }
+
+  if (user.kycStatus === mapped.kycStatus) {
+    return !alreadySynced;
+  }
+
   await prisma.user.update({
     where: { id: userId },
     data: { kycStatus: mapped.kycStatus as KycStatus },
   });
 
-  // Cancel / release deposit intents
   if (mapped.kycStatus === 'REJECTED') {
     try {
       await db
@@ -104,7 +171,6 @@ export async function syncDiditDecision(
     }
   }
 
-  // In-app notification
   const notifMap: Record<
     string,
     { title: string; message: string; type: string; priority: string; actionUrl?: string }
@@ -112,7 +178,7 @@ export async function syncDiditDecision(
     APPROVED: {
       title: 'Identité vérifiée ✅',
       message:
-        'Votre identité est validée. Rendez-vous sur Sama Naffa pour confirmer, modifier ou annuler votre premier dépôt via Intouch.',
+        'Votre identité est validée. Indiquez votre email et vos préférences, puis confirmez votre dépôt sur Sama Naffa.',
       type: 'SUCCESS',
       priority: 'HIGH',
       actionUrl: '/portal/sama-naffa?confirmDeposit=1',
@@ -124,15 +190,15 @@ export async function syncDiditDecision(
       priority: 'HIGH',
     },
     UNDER_REVIEW: {
-      title: 'KYC en cours d\'examen',
-      message: 'Notre équipe examine votre dossier (max 24h).',
+      title: "KYC en cours d'examen",
+      message: 'Notre équipe examine votre dossier (max 24 h).',
       type: 'WARNING',
       priority: 'NORMAL',
     },
   };
 
   const notif = notifMap[mapped.kycStatus];
-  if (notif) {
+  if (notif && !alreadySynced) {
     await createUserNotification(userId, {
       title: notif.title,
       message: notif.message,
@@ -142,25 +208,27 @@ export async function syncDiditDecision(
         kycStatus: mapped.kycStatus,
         diditSessionId: sessionId,
         kind: 'kyc_status',
-        ...('actionUrl' in notif && notif.actionUrl
-          ? { actionUrl: notif.actionUrl as string }
-          : {}),
+        ...(notif.actionUrl ? { actionUrl: notif.actionUrl } : {}),
       },
     });
   }
 
-  // Email + SMS
   const notifSettings = getServerSideNotificationSettings();
-  if (shouldSendKYCEmail(mapped.kycStatus as any, notifSettings)) {
+  const emailKycStatus = mapped.kycStatus as 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW';
+  if (!alreadySynced && shouldSendKYCEmail(emailKycStatus, notifSettings)) {
     try {
-      await sendKYCStatusEmail(user.email, `${user.firstName} ${user.lastName}`, mapped.kycStatus as any);
+      await sendKYCStatusEmail(
+        user.email,
+        `${user.firstName} ${user.lastName}`,
+        emailKycStatus,
+      );
     } catch (e) {
       console.error('[kyc-sync] Error sending KYC email:', e);
     }
   }
-  if (shouldSendKYCSMS(mapped.kycStatus as any, notifSettings)) {
+  if (!alreadySynced && shouldSendKYCSMS(emailKycStatus, notifSettings)) {
     try {
-      await sendKYCStatusSMS(user.phone, mapped.kycStatus as any);
+      await sendKYCStatusSMS(user.phone, emailKycStatus);
     } catch (e) {
       console.error('[kyc-sync] Error sending KYC SMS:', e);
     }

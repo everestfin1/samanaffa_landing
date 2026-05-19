@@ -30,7 +30,7 @@ import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
-import { meetsPortalProfileRequirements } from '@/lib/portal-profile-completion';
+import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
     const done =
       userData.profileCompletionStatus === 'COMPLETE' ||
-      meetsPortalProfileRequirements(userData);
+      meetsPortalCommunicationsRequirements(userData);
 
     if (done) {
       setIsProfileIncomplete(false);
@@ -427,19 +427,16 @@ export default function DashboardPage() {
         isOpen={showProfileModal}
         onClose={() => setShowProfileModal(false)}
         dismissible={!isProfileIncomplete}
-        initialData={userData ? {
-          firstName: userData.firstName,
-          lastName: userData.lastName,
-          email: userData.email,
-          dateOfBirth: userData.dateOfBirth,
-          address: userData.address,
-          city: userData.city,
-          country: userData.country,
-          statutEmploi: userData.statutEmploi,
-          termsAccepted: userData.termsAccepted,
-          privacyAccepted: userData.privacyAccepted,
-          marketingAccepted: userData.marketingAccepted,
-        } : undefined}
+        initialData={
+          userData
+            ? {
+                email: userData.email,
+                termsAccepted: userData.termsAccepted,
+                privacyAccepted: userData.privacyAccepted,
+                marketingAccepted: userData.marketingAccepted,
+              }
+            : undefined
+        }
       />
 
     </div>

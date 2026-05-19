@@ -171,10 +171,17 @@ interface PeeLead {
   ville: string
   telephone: string
   email?: string
+  referenceNumber?: string
+  montantCfa?: string | number
   status: string
+  crmStatus?: string | null
   adminNotes?: string
   createdAt: string
   updatedAt: string
+}
+
+function peeLeadCrmStatus(lead: PeeLead): string {
+  return lead.crmStatus || 'NEW'
 }
 
 interface PeeLeadStats {
@@ -1159,7 +1166,7 @@ export default function AdminDashboard() {
   }
 
   // PEE Lead Update Function
-  const handleUpdatePeeLead = async (status: string) => {
+  const handleUpdatePeeLead = async (crmStatus: string) => {
     if (!selectedPeeLead) return
 
     setUpdatingPeeLead(true)
@@ -1173,28 +1180,28 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify({
           id: selectedPeeLead.id,
-          status,
+          crmStatus,
           adminNotes: peeLeadNotes,
         }),
       })
 
       const data = await response.json()
       if (data.success) {
+        const prevCrm = peeLeadCrmStatus(selectedPeeLead)
         setPeeLeads(prev =>
           prev.map(lead =>
             lead.id === selectedPeeLead.id
-              ? { ...lead, status, adminNotes: peeLeadNotes }
+              ? { ...lead, crmStatus, adminNotes: peeLeadNotes }
               : lead
           )
         )
-        // Update stats
         const newStats = { ...peeLeadStats }
-        if (selectedPeeLead.status === 'NEW') newStats.new--
-        if (selectedPeeLead.status === 'CONTACTED') newStats.contacted--
-        if (selectedPeeLead.status === 'CONVERTED') newStats.converted--
-        if (status === 'NEW') newStats.new++
-        if (status === 'CONTACTED') newStats.contacted++
-        if (status === 'CONVERTED') newStats.converted++
+        if (prevCrm === 'NEW') newStats.new--
+        if (prevCrm === 'CONTACTED') newStats.contacted--
+        if (prevCrm === 'CONVERTED') newStats.converted--
+        if (crmStatus === 'NEW') newStats.new++
+        if (crmStatus === 'CONTACTED') newStats.contacted++
+        if (crmStatus === 'CONVERTED') newStats.converted++
         setPeeLeadStats(newStats)
         
         setShowPeeLeadModal(false)
@@ -2925,16 +2932,36 @@ export default function AdminDashboard() {
                               </div>
                             </td>
                             <td>
-                              <span className={`admin-badge ${
-                                lead.status === 'NEW' ? 'admin-badge-amber' :
-                                lead.status === 'CONTACTED' ? 'admin-badge-blue' :
-                                lead.status === 'CONVERTED' ? 'admin-badge-emerald' :
-                                'admin-badge-neutral'
-                              }`}>
-                                {lead.status === 'NEW' ? 'Nouveau' :
-                                 lead.status === 'CONTACTED' ? 'Contacté' :
-                                 lead.status === 'CONVERTED' ? 'Converti' :
-                                 lead.status}
+                              <span className="flex flex-col gap-1 items-start">
+                                {(() => {
+                                  const crm = peeLeadCrmStatus(lead)
+                                  return (
+                                    <span
+                                      className={`admin-badge ${
+                                        crm === 'NEW'
+                                          ? 'admin-badge-amber'
+                                          : crm === 'CONTACTED'
+                                            ? 'admin-badge-blue'
+                                            : crm === 'CONVERTED'
+                                              ? 'admin-badge-emerald'
+                                              : 'admin-badge-neutral'
+                                      }`}
+                                    >
+                                      {crm === 'NEW'
+                                        ? 'Nouveau'
+                                        : crm === 'CONTACTED'
+                                          ? 'Contacté'
+                                          : crm === 'CONVERTED'
+                                            ? 'Converti'
+                                            : crm}
+                                    </span>
+                                  )
+                                })()}
+                                {Number(lead.montantCfa) > 0 && (
+                                  <span className="admin-badge admin-badge-neutral text-xs">
+                                    Paiement: {lead.status}
+                                  </span>
+                                )}
                               </span>
                             </td>
                             <td>
@@ -3458,7 +3485,7 @@ export default function AdminDashboard() {
                     onClick={() => handleUpdatePeeLead('NEW')}
                     disabled={updatingPeeLead}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedPeeLead.status === 'NEW'
+                      peeLeadCrmStatus(selectedPeeLead) === 'NEW'
                         ? 'border-amber-500 bg-amber-50'
                         : 'border-gray-200 hover:border-amber-300'
                     }`}
@@ -3471,7 +3498,7 @@ export default function AdminDashboard() {
                     onClick={() => handleUpdatePeeLead('CONTACTED')}
                     disabled={updatingPeeLead}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedPeeLead.status === 'CONTACTED'
+                      peeLeadCrmStatus(selectedPeeLead) === 'CONTACTED'
                         ? 'border-blue-500 bg-blue-50'
                         : 'border-gray-200 hover:border-blue-300'
                     }`}
@@ -3484,7 +3511,7 @@ export default function AdminDashboard() {
                     onClick={() => handleUpdatePeeLead('CONVERTED')}
                     disabled={updatingPeeLead}
                     className={`p-3 rounded-lg border-2 transition-all ${
-                      selectedPeeLead.status === 'CONVERTED'
+                      peeLeadCrmStatus(selectedPeeLead) === 'CONVERTED'
                         ? 'border-emerald-500 bg-emerald-50'
                         : 'border-gray-200 hover:border-emerald-300'
                     }`}

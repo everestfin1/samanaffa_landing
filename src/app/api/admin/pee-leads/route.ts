@@ -6,23 +6,20 @@ import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth';
 
 export async function GET(req: NextRequest) {
   const { error, user } = await verifyAdminAuth(req);
-  
+
   if (error || !user) {
     return createErrorResponse('Unauthorized', 401);
   }
 
   try {
-
-    // Fetch all PEE leads
     const leads = await db.select().from(peeLeads).orderBy(desc(peeLeads.createdAt));
 
-    // Get stats
     const statsResult = await db
       .select({
         total: sql<number>`count(*)`,
-        new: sql<number>`count(*) filter (where ${peeLeads.status} = 'NEW')`,
-        contacted: sql<number>`count(*) filter (where ${peeLeads.status} = 'CONTACTED')`,
-        converted: sql<number>`count(*) filter (where ${peeLeads.status} = 'CONVERTED')`,
+        new: sql<number>`count(*) filter (where ${peeLeads.crmStatus} = 'NEW')`,
+        contacted: sql<number>`count(*) filter (where ${peeLeads.crmStatus} = 'CONTACTED')`,
+        converted: sql<number>`count(*) filter (where ${peeLeads.crmStatus} = 'CONVERTED')`,
       })
       .from(peeLeads);
 
@@ -34,46 +31,47 @@ export async function GET(req: NextRequest) {
     };
 
     return NextResponse.json({ success: true, leads, stats });
-  } catch (error) {
-    console.error('Error fetching PEE leads:', error);
+  } catch (err) {
+    console.error('Error fetching PEE leads:', err);
     return NextResponse.json(
       { error: 'Erreur lors de la récupération des leads' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(req: NextRequest) {
   const { error, user } = await verifyAdminAuth(req);
-  
+
   if (error || !user) {
     return createErrorResponse('Unauthorized', 401);
   }
 
   try {
-
     const body = await req.json();
-    const { id, status, adminNotes } = body;
+    const { id, crmStatus, status, adminNotes } = body;
 
     if (!id) {
       return NextResponse.json({ error: 'ID requis' }, { status: 400 });
     }
 
+    const patch: Record<string, unknown> = {};
+    if (crmStatus) patch.crmStatus = crmStatus;
+    if (status) patch.status = status;
+    if (adminNotes !== undefined) patch.adminNotes = adminNotes;
+
     const [updatedLead] = await db
       .update(peeLeads)
-      .set({
-        status: status || undefined,
-        adminNotes: adminNotes !== undefined ? adminNotes : undefined,
-      })
+      .set(patch)
       .where(eq(peeLeads.id, id))
       .returning();
 
     return NextResponse.json({ success: true, lead: updatedLead });
-  } catch (error) {
-    console.error('Error updating PEE lead:', error);
+  } catch (err) {
+    console.error('Error updating PEE lead:', err);
     return NextResponse.json(
       { error: 'Erreur lors de la mise à jour du lead' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
