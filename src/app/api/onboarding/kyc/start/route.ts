@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { getAppBaseUrl } from '@/lib/app-url';
 import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    const appUrl = getAppBaseUrl(request);
     const callbackUrl = `${appUrl}/onboarding/kyc-callback`;
 
     const userEmail =

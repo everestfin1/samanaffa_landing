@@ -195,6 +195,13 @@ _ONB-001–ONB-022 (original batch): done except ONB-008. New items ONB-023+ fro
 
 ## Critical (2026-05-19 review)
 
+### ONB-024 — Didit KYC callback used localhost on preview
+- **Status:** done
+- **Area:** ops / kyc
+- **Files:** `src/app/api/onboarding/kyc/start/route.ts`, `src/lib/app-url.ts`
+- **Problem:** `NEXT_PUBLIC_APP_URL` unset on Vercel → Didit `callback` defaulted to `http://localhost:3000/onboarding/kyc-callback`.
+- **Acceptance:** Resolve base URL from env, request host (`dev.samanaffa.com`), or `VERCEL_URL`; set `NEXT_PUBLIC_APP_URL` on Preview for explicit override.
+
 ### ONB-023 — Client can set `kycApproved` in onboarding progress PATCH
 - **Status:** open
 - **Area:** security
