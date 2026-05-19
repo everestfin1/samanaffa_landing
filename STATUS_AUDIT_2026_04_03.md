@@ -16,7 +16,7 @@
 
 ## HIGH PRIORITY 🟡
 1. 3 TODO Items Unfixed - Email notifications missing (4-6h)
-2. Multiple Auth Systems - OTP + Password + Better-auth (8-12h)
+2. Multiple Auth Systems - OTP + Password + Better-auth (8-12h) — **see `project_docs/issues/` (2026-05-19): OTP-only login UI; AUTH-002/013/021 track consolidation + security sprint**
 3. Code Quality Disabled - no-unused-vars off (10-15h)
 4. Docs Outdated - Last update Sept 2025 (8-12h)
 

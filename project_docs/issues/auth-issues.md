@@ -1,90 +1,122 @@
 # Authentication & login — tracked issues
 
 **Branch:** `feat/onboarding-flow-mock`  
-**Recorded:** 2026-05-19  
-**Source:** Login flow audit (NextAuth, OTP, onboarding auto-login, admin)  
-**Scope:** `src/lib/auth.ts`, `src/app/login/`, `src/app/api/auth/*`, `src/app/api/onboarding/create-account/`, `src/proxy.ts`, `src/lib/otp.ts`, `src/lib/admin-auth.ts`
+**Recorded:** 2026-05-19 (initial), **2026-05-19** (post-OTP-login consolidation review)  
+**Source:** Login flow audit; full auth/onboarding orchestration review  
+**Scope:** `src/lib/auth.ts`, `src/app/login/`, `src/app/api/auth/*`, `src/app/api/onboarding/create-account/`, `src/proxy.ts`, `src/lib/otp.ts`, `src/lib/admin-auth.ts`, `src/lib/csrf.ts`
+
+**Related:** [onboarding-issues.md](./onboarding-issues.md) (KYC, progress, ONB-023, ONB-041)
 
 **Status legend:** `open` | `in_progress` | `done` | `wontfix`
 
 ---
 
-## Summary
+## Summary (open items)
 
-| Severity | Open |
-|----------|------|
-| critical | 3 |
-| high     | 4 |
-| medium   | 5 |
-| low      | 4 |
+| Severity | Open | Next sprint focus |
+|----------|------|-------------------|
+| critical | 3 | AUTH-002, AUTH-001, AUTH-003 |
+| high     | 6 | AUTH-004, AUTH-005, AUTH-006, AUTH-014, AUTH-015, AUTH-020 |
+| medium   | 6 | AUTH-007, AUTH-008, AUTH-013, AUTH-021, AUTH-022, AUTH-016 |
+| low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
+
+_Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
 
 ---
 
-## Critical
+## Architecture — how auth is orchestrated
+
+```mermaid
+flowchart TB
+  subgraph public [Public APIs]
+    CA["onboarding/create-account"]
+    SO["auth/send-otp type=login"]
+  end
+
+  subgraph nextauth [NextAuth JWT]
+    SI_LOGIN["signIn type=login + otp"]
+    SI_REG["signIn type=register ⚠️ AUTH-002"]
+    CA --> SI_REG
+    SO --> SI_LOGIN
+  end
+
+  subgraph guarded [Session required]
+    ONB["onboarding/* APIs"]
+    PORTAL["portal + accounts APIs"]
+    SI_REG --> ONB
+    SI_LOGIN --> PORTAL
+  end
+
+  proxy["proxy.ts: /portal only"] --> PORTAL
+  API["/api/*: per-route getServerSession"] --> ONB
+```
+
+| Layer | Responsibility | Gap |
+|-------|----------------|-----|
+| **Browser** | `/onboarding` wizard; `/login` phone → OTP | T1 uses `signIn(register)` without re-proving OTP |
+| **NextAuth** | JWT 30d; `authorize` supports login OTP, password, register | Password/register paths still callable (AUTH-002, AUTH-021) |
+| **Proxy** | Redirect unauthenticated `/portal`; CSP headers; CSRF on **pages** only | `/api` excluded from matcher (AUTH-006) |
+| **Public APIs** | `create-account`, `send-otp` | Enumeration + no verify rate limit (AUTH-004, AUTH-007) |
+| **Legacy** | `verify-and-create-account`, `/api/auth/login`, forgot-password | Duplicate pipelines (AUTH-013) |
+
+---
+
+## Critical (open)
 
 ### AUTH-001 — Password reset API does not require OTP proof
 - **Status:** open
 - **Area:** security
 - **Files:** `src/app/api/auth/reset-password/route.ts`, `src/app/forgot-password/`
-- **Problem:** `POST /api/auth/reset-password` accepts `email` or `phone` + `newPassword` only. The forgot-password UI calls `verify-otp` first, but the API does not check a reset token or recent OTP verification.
+- **Problem:** `POST /api/auth/reset-password` accepts `email` or `phone` + `newPassword` only. UI may call `verify-otp` first, but the API does not check a reset token or recent OTP verification.
 - **Impact:** Account takeover via direct API call without OTP.
-- **Acceptance:** Reset only after verified OTP (single-use token issued by `verify-otp`, or reset performed in the same authenticated verify request).
+- **Acceptance:** Reset only after verified OTP (single-use token from `verify-otp`), or remove endpoint if product stays OTP-only (AUTH-021).
+- **Sprint:** P0 — block or remove with OTP-only decision.
 
 ### AUTH-002 — `signIn({ type: 'register' })` bypasses OTP re-verification
 - **Status:** open
 - **Area:** security
 - **Files:** `src/lib/auth.ts`, `src/app/onboarding/page.tsx`
 - **Problem:** After onboarding T1, client calls `signIn('credentials', { phone, type: 'register' })`. `authorize` only checks user exists and `userAccount.count >= 2` — no OTP or password.
-- **Impact:** Anyone who knows a user’s phone (or email if wired) can obtain a 30-day JWT immediately after account creation.
-- **Acceptance:** Post-signup session via one-time server token from `create-account`, or `signIn` with freshly verified OTP only; remove or harden `type: 'register'`.
-
-### AUTH-019 — Login UI OTP-only with mock mode
-- **Status:** done
-- **Area:** ux
-- **Files:** `src/app/login/page.tsx`, `src/app/api/auth/send-otp/route.ts`
-- **Problem:** Login still exposed password, email, forgot-password; mock OTP not returned on login send.
-- **Resolution (2026-05-19):** Phone-only two-step login; `mockOtp` + `mockMode` in send-otp when `MOCK_OTP=true`.
-
-### AUTH-018 — Login OTP send broken after onboarding (passwordless accounts)
-- **Status:** done
-- **Area:** bug / ux
-- **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/login/page.tsx`
-- **Problem:** Onboarding creates users without `passwordHash`. Login OTP path called `sendOTP(user.id, 'login')` (wrong args), so SMS/email never sent. “Connexion par code OTP” only switched UI step without sending a code. Users had to guess a password to surface `password_not_set`, then OTP still failed.
-- **Impact:** After logout, onboarding users could not sign in again.
-- **Resolution (2026-05-19):** Pass `user.email` + `user.phone` to `sendOTP`; OTP button validates contact and sends code; submit without password starts OTP flow.
+- **Impact:** Anyone who knows a user’s phone can obtain a 30-day JWT after account creation.
+- **Acceptance:** Issue one-time server token from `create-account` (httpOnly cookie or signed JWT ≤5 min); exchange once for session; remove or harden `type: 'register'`.
+- **Sprint:** P0 — first implementation task.
 
 ### AUTH-003 — Setup password by raw `userId` without auth
 - **Status:** open
 - **Area:** security
 - **Files:** `src/app/api/auth/setup-password/route.ts`, `src/app/setup-password/`
 - **Problem:** `POST` accepts `{ userId, password }` with no session, OTP, or signed token.
-- **Impact:** Attacker who guesses/obtains UUID can set password if user has none.
-- **Acceptance:** Require authenticated session or time-limited signed token tied to registration/OTP flow.
+- **Impact:** Attacker who guesses/obtains UUID can set password; enables password login in `auth.ts` on otherwise OTP-only accounts.
+- **Acceptance:** Require session or signed token; or return `410` / remove if OTP-only is permanent (AUTH-021).
+- **Sprint:** P0 — block or remove with OTP-only decision.
 
 ---
 
-## High
+## High (open)
 
 ### AUTH-004 — OTP verification not rate-limited
 - **Status:** open
 - **Area:** security
-- **Files:** `src/lib/otp.ts`, `src/lib/rate-limit.ts`, `src/app/api/auth/verify-otp/route.ts`, `src/app/api/onboarding/create-account/route.ts`
-- **Problem:** Rate limits apply to `send-otp` only. Verify endpoints allow brute force of 6-digit codes within 5-minute window.
-- **Acceptance:** Per-phone/session/IP limits on verify; lockout after N failures.
+- **Files:** `src/lib/otp.ts`, `src/lib/rate-limit.ts`, `src/app/api/auth/verify-otp/route.ts`, `src/app/onboarding/create-account/route.ts`, NextAuth `authorize` (OTP branch)
+- **Problem:** Rate limits apply to `send-otp` / `create-account` send only. Verify paths allow brute force of 6-digit codes within 5-minute OTP window (~10⁶ attempts).
+- **Acceptance:** Per-phone/session/IP limits on verify; lockout after N failures; apply to `verifyOTP` and failed `signIn` OTP attempts.
+- **Sprint:** P1 — immediately after critical auth fixes.
 
 ### AUTH-005 — OTP generated with `Math.random()`
 - **Status:** open
 - **Area:** security
 - **Files:** `src/lib/otp.ts`
 - **Problem:** 6-digit codes use non-cryptographic RNG.
-- **Acceptance:** Use `crypto.randomInt` (or equivalent CSPRNG).
+- **Acceptance:** Use `crypto.randomInt` (or equivalent CSPRNG) in `generateOTP` and registration-session OTP creation.
+- **Sprint:** P1.
 
 ### AUTH-006 — CSRF protection does not apply to `/api` routes
 - **Status:** open
 - **Area:** security
 - **Files:** `src/proxy.ts`, `src/lib/csrf.ts`
-- **Problem:** Proxy matcher excludes `/api`; state-changing auth APIs are not CSRF-checked. Client does not send `x-csrf-token`.
-- **Acceptance:** Enforce CSRF or SameSite + custom header pattern on mutating APIs; remove dead CSRF code or wire end-to-end.
+- **Problem:** Proxy `matcher` excludes `/api`. State-changing auth APIs are not CSRF-checked. Client never receives or sends `x-csrf-token`; `checkCSRFToken` uses NextAuth cookie as session id without a paired `generateCSRFToken` flow.
+- **Acceptance:** Enforce CSRF or SameSite + custom header on mutating APIs; or remove dead CSRF code.
+- **Sprint:** P2.
 
 ### AUTH-014 — Admin JWT fallback secret
 - **Status:** open
@@ -92,10 +124,28 @@
 - **Files:** `src/lib/admin-auth.ts`
 - **Problem:** `ADMIN_JWT_SECRET || 'fallback-secret-change-in-production'`.
 - **Acceptance:** Fail fast in production if secret unset; rotate docs for ops.
+- **Sprint:** P2.
+
+### AUTH-015 — Admin routes not server-gated in proxy
+- **Status:** open
+- **Area:** security
+- **Files:** `src/proxy.ts`, `src/app/admin/`
+- **Problem:** Admin UI relies on `localStorage` JWT; proxy IP allowlist commented out; no JWT check on `/admin/*` pages.
+- **Acceptance:** Validate admin JWT in proxy for `/admin` except login; prefer httpOnly cookie over `localStorage`.
+- **Sprint:** P2.
+
+### AUTH-020 — `mockOtp` returned in login API JSON on preview/dev
+- **Status:** open
+- **Area:** security / ops
+- **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/login/page.tsx`, `src/lib/mock-otp.ts`
+- **Problem:** When `MOCK_OTP=true`, login `send-otp` returns `mockOtp` in response body. On shared Vercel Preview, anyone who can trigger send for a known phone receives the code without SMS.
+- **Impact:** Lower risk than production (mock disabled there); still account compromise on preview if phone is known.
+- **Acceptance:** Prefer server logs only on preview, or require authenticated session / same-origin session cookie before returning `mockOtp`; keep UI dev button only when caller already proved phone ownership in same request flow.
+- **Sprint:** P1 — with AUTH-004 hardening.
 
 ---
 
-## Medium
+## Medium (open)
 
 ### AUTH-007 — User enumeration on OTP send
 - **Status:** open
@@ -103,73 +153,95 @@
 - **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/api/onboarding/create-account/route.ts`
 - **Problem:** Login send returns `404 Utilisateur non trouvé`; onboarding returns `409` for existing phone — different signals.
 - **Acceptance:** Generic responses (“If an account exists, we sent a code”) on all public OTP sends.
+- **Sprint:** P2.
 
 ### AUTH-008 — Long-lived JWT without server revocation
 - **Status:** open
 - **Area:** security
 - **Files:** `src/lib/auth.ts`
-- **Problem:** JWT `maxAge` 30 days; no denylist on logout/password change.
-- **Acceptance:** Shorter session for financial app, or token version on user row invalidated on password reset.
-
-### AUTH-009 — `returnUrl` ignored after login
-- **Status:** done
-- **Area:** ux
-- **Files:** `src/app/login/page.tsx`, e.g. `src/app/souscrire-ape/`
-- **Problem:** Deep links pass `?returnUrl=…` but login always `router.push('/portal/dashboard')`.
-- **Acceptance:** Honor allowlisted `returnUrl` / `callbackUrl` after successful sign-in.
+- **Problem:** JWT `maxAge` 30 days; no denylist on logout.
+- **Acceptance:** Shorter session for financial app, or `sessionVersion` on user row invalidated on logout / sensitive change.
+- **Sprint:** P3.
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
 - **Status:** open
 - **Area:** architecture
 - **Files:** `src/app/api/auth/*`, `src/app/api/onboarding/create-account/route.ts`, `src/components/registration/*`
-- **Problem:** Legacy `/api/auth/send-otp` + `verify-and-create-account` vs onboarding `create-account`; orphan registration wizard still in repo.
-- **Acceptance:** Single signup path (`onboarding/create-account`); deprecate legacy APIs and remove unused UI.
+- **Problem:** Legacy `verify-and-create-account`, `verify-otp`, `/api/auth/login` (password), registration wizard vs `onboarding/create-account` + OTP login.
+- **Acceptance:** Single signup path; deprecate legacy APIs and remove unused UI; document in README.
+- **Sprint:** P2 — after AUTH-002.
 
-### AUTH-015 — Admin routes not server-gated in proxy
+### AUTH-021 — Password auth surface remains after OTP-only product decision
 - **Status:** open
-- **Area:** security
-- **Files:** `src/proxy.ts`, `src/app/admin/`
-- **Problem:** Admin UI relies on `localStorage` JWT; proxy IP allowlist commented out; no JWT check on `/admin/*` pages.
-- **Acceptance:** Validate admin JWT (or session) in proxy for `/admin` except login; prefer httpOnly cookie over `localStorage`.
+- **Area:** architecture / security
+- **Files:** `src/lib/auth.ts`, `src/app/api/auth/login/route.ts`, `src/app/forgot-password/`, `src/app/setup-password/`, `src/proxy.ts` (maintenance allowlist)
+- **Problem:** Login UI is OTP-only, but `authorize` still accepts password; forgot-password, setup-password, and password reset APIs remain reachable.
+- **Acceptance:** Remove or `410` password routes; strip password branch from `authorize`; update proxy maintenance allowlist; align docs and AUTH-001/003 outcomes.
+- **Sprint:** P2 — coordinate with AUTH-001/003 (remove vs secure).
 
-### AUTH-016 — OTP / PII logged in verify-otp
+### AUTH-022 — Rate limits stored in-memory only
+- **Status:** open
+- **Area:** ops / security
+- **Files:** `src/lib/rate-limit.ts`
+- **Problem:** Limits are per serverless instance, not global; attacker can spread attempts across instances.
+- **Acceptance:** Redis/Upstash (or edge KV) for OTP/login limits before high traffic.
+- **Sprint:** P3.
+
+### AUTH-016 — OTP / PII logged in verify-otp and otp.ts
 - **Status:** open
 - **Area:** security / ops
-- **Files:** `src/app/api/auth/verify-otp/route.ts`, `src/lib/otp.ts`
-- **Problem:** Debug `console.log` may include email, phone, OTP.
+- **Files:** `src/app/api/auth/verify-otp/route.ts`, `src/lib/otp.ts`, `src/lib/notifications.ts`
+- **Problem:** Debug `console.log` may include email, phone, OTP (including mock OTP logs).
 - **Acceptance:** Remove or redact in production; structured logging without secrets.
+- **Sprint:** P2.
 
 ---
 
-## Low
+## Low (open)
 
 ### AUTH-010 — `useSessionTimeout` never mounted
 - **Status:** open
 - **Area:** ux / security
-- **Files:** `src/hooks/useSessionTimeout.ts` (or equivalent), portal layout
+- **Files:** `src/hooks/useSessionTimeout.ts`, portal layout
 - **Problem:** Idle timeout hook exists but is not used in portal shell.
 - **Acceptance:** Mount on portal layout or document intentional omission.
-
-### AUTH-011 — `rememberMe` checkbox not wired
-- **Status:** open
-- **Area:** ux
-- **Files:** `src/app/login/page.tsx`, `src/lib/auth.ts`
-- **Problem:** UI collects `rememberMe` but NextAuth `maxAge` is fixed.
-- **Acceptance:** Wire to session length or remove checkbox.
+- **Sprint:** P3.
 
 ### AUTH-012 — Legacy registration components unused
 - **Status:** open
 - **Area:** maintenance
-- **Files:** `src/components/registration/*`, `src/app/register/page.tsx` (redirect only)
+- **Files:** `src/components/registration/*`, `src/app/register/page.tsx`
 - **Problem:** Full wizard orphaned; confuses developers and docs.
-- **Acceptance:** Archive or delete; homepage links to `/onboarding`.
+- **Acceptance:** Archive or delete; links point to `/onboarding`.
+- **Sprint:** P3 — with AUTH-013.
 
-### AUTH-017 — `auto_login_failed` dead end after onboarding
+### AUTH-017 — `auto_login_failed` weak recovery after onboarding
 - **Status:** open
 - **Area:** ux
 - **Files:** `src/app/onboarding/page.tsx`, `src/app/login/page.tsx`
-- **Problem:** T1 `signIn` failure sends user to login with message; no link back to onboarding step.
-- **Acceptance:** Deep link to `/onboarding` with resume hint or retry auto-login.
+- **Problem:** T1 `signIn` failure redirects to login with message; no deep link back to onboarding step / retry.
+- **Acceptance:** `callbackUrl` to `/onboarding` with resume hint; or inline retry on T1 after AUTH-002 changes session issuance.
+- **Sprint:** P3 — partially mitigated by login copy (OTP-only).
+
+---
+
+## Resolved
+
+### AUTH-009 — `returnUrl` ignored after login
+- **Status:** done
+- **Resolution (2026-05-19):** `safeCallbackUrl` + `callbackUrl` on login.
+
+### AUTH-011 — `rememberMe` checkbox not wired
+- **Status:** done
+- **Resolution (2026-05-19):** Checkbox removed with OTP-only login UI.
+
+### AUTH-018 — Login OTP send broken after onboarding
+- **Status:** done
+- **Resolution (2026-05-19):** Fixed `sendOTP` args; phone-only login flow.
+
+### AUTH-019 — Login UI OTP-only with mock mode
+- **Status:** done
+- **Resolution (2026-05-19):** Phone two-step login; `mockOtp` + `mockMode` in send-otp when `MOCK_OTP=true`.
 
 ---
 
@@ -177,32 +249,52 @@
 
 | Path | Entry | Session |
 |------|--------|---------|
-| Onboarding signup | `/onboarding` T1 → `create-account` → `signIn(register)` | JWT (see AUTH-002) |
-| Portal login | `/login` (phone + SMS OTP only) → `send-otp` → `signIn(login, otp)` | JWT |
-| Forgot password | `/forgot-password` → verify → reset (see AUTH-001) | — |
-| Setup password | `/setup-password?userId=` (see AUTH-003) | — |
+| Onboarding signup | `/onboarding` T1 → `create-account` → `signIn(register)` ⚠️ | JWT (AUTH-002) |
+| Portal login | `/login` → `send-otp` → `signIn(login, otp)` | JWT |
+| Forgot password | `/forgot-password` → reset (AUTH-001) — **deprecated surface** | — |
+| Setup password | `/setup-password?userId=` (AUTH-003) — **deprecated surface** | — |
 | Admin | `/admin/login` → JWT in `localStorage` | Separate from NextAuth |
 
-**Route protection:** `src/proxy.ts` guards `/portal/*` only; `/api/*` relies on per-handler `getServerSession`.
+**Route protection:** `src/proxy.ts` guards `/portal/*` only; `/api/*` relies on per-handler `getServerSession` / `getToken`.
+
+**Cross-cutting:** [ONB-041](./onboarding-issues.md#onb-041--kyc-upload-idor-no-session) (KYC upload IDOR), [ONB-023](./onboarding-issues.md#onb-023--client-can-set-kycapproved-in-onboarding-progress-patch) (client `kycApproved`).
 
 ---
 
-## Suggested fix order
+## Suggested fix order (implementation sprint)
 
-1. AUTH-001, AUTH-002, AUTH-003 (critical APIs)  
-2. AUTH-004, AUTH-005 (OTP hardening)  
-3. AUTH-014, AUTH-015 (admin)  
-4. AUTH-006, AUTH-007, AUTH-008  
-5. AUTH-009, AUTH-013, AUTH-017 (UX + consolidation)  
-6. AUTH-010, AUTH-011, AUTH-012, AUTH-016  
+### Phase 1 — Session integrity & account takeover (P0)
+1. **AUTH-002** — Server-issued post-signup token; remove `signIn(register)` bypass  
+2. **ONB-023** — Ignore client `kycApproved`; gate T6 on `user.kycStatus`  
+3. **ONB-041** — KYC upload/list require session (see onboarding tracker)  
+4. **AUTH-001** — Reset requires OTP token **or** remove password reset (AUTH-021)  
+5. **AUTH-003** — Setup password requires session **or** remove (AUTH-021)
+
+### Phase 2 — OTP hardening (P1)
+6. **AUTH-004**, **AUTH-005** — Verify rate limits + CSPRNG OTP  
+7. **AUTH-020** — Tighten `mockOtp` exposure on preview  
+
+### Phase 3 — Trust boundaries (P2)
+8. **ONB-024**, **ONB-025** — Didit webhook binding + mandatory secret  
+9. **AUTH-014**, **AUTH-015** — Admin secret + proxy gate  
+10. **AUTH-013**, **AUTH-021** — Consolidate signup/login; remove password dead code  
+11. **AUTH-006**, **AUTH-007**, **AUTH-016** — CSRF, enumeration, logging  
+
+### Phase 4 — Reliability & UX (P3)
+12. **AUTH-008**, **AUTH-022**, **AUTH-010**  
+13. **ONB-027**, **ONB-028** — Deposit metadata + idempotency  
+14. **AUTH-012**, **AUTH-017**, onboarding polish items  
 
 ---
 
 ## Manual test checklist
 
-- [ ] Onboarding T1: OTP verify → session; cannot `signIn(register)` without prior OTP (**should fail after AUTH-002**)
-- [ ] Forgot password: cannot reset without OTP token (**should fail after AUTH-001**)
-- [ ] Setup password: cannot set with arbitrary `userId` (**should fail after AUTH-003**)
-- [ ] Login OTP: verify rate limit after N wrong codes (**after AUTH-004**)
-- [ ] `returnUrl=/souscrire-ape` returns to subscription after login (**after AUTH-009**)
-- [ ] Logout; optional idle timeout (**after AUTH-010**)
+- [ ] T1: after `create-account`, cannot get JWT via `signIn(register)` without server token (**AUTH-002**)
+- [ ] `POST /api/auth/reset-password` without OTP token fails (**AUTH-001** or removed)
+- [ ] `POST /api/auth/setup-password` with arbitrary `userId` fails (**AUTH-003** or removed)
+- [ ] `POST/GET /api/kyc/upload` with another user’s id fails (**ONB-041**)
+- [ ] `PATCH /api/onboarding/progress` with `kycApproved: true` while `kycStatus !== APPROVED` does not advance to T6 (**ONB-023**)
+- [ ] Login: phone OTP works; mock mode shows dev banner only when `MOCK_OTP=true` (**AUTH-019**, **AUTH-020**)
+- [ ] OTP verify rate limit after N wrong codes (**AUTH-004**)
+- [ ] `callbackUrl` returns to onboarding after KYC login interrupt (**AUTH-009**)
+- [ ] Logout → login OTP → portal (**AUTH-018**)
