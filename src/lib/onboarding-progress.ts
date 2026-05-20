@@ -32,7 +32,11 @@ export function readOnboardingProgress(raw: unknown): Partial<OnboardingProgress
 
 export function mergeInvestorProfile(
   existing: unknown,
-  patch: { onboarding?: Partial<OnboardingProgressPayload>; [key: string]: unknown },
+  patch: {
+    onboarding?: Partial<OnboardingProgressPayload>;
+    sessionVersion?: number;
+    [key: string]: unknown;
+  },
 ): Record<string, unknown> {
   const base = parseInvestorProfile(existing);
   const prevOnboarding = readOnboardingProgress(existing);

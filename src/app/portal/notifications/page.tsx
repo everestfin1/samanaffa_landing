@@ -15,6 +15,7 @@ import {
   XMarkIcon,
   TrashIcon
 } from '@heroicons/react/24/outline'
+import { getNotificationActionUrl } from '@/lib/notification-action-url'
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED'
 
@@ -111,20 +112,6 @@ export default function NotificationsPage() {
 
   const handleDeleteNotification = (notificationId: string) => {
     deleteNotification(notificationId)
-  }
-
-  const getActionUrl = (notification: any) => {
-    const metadata = notification.metadata ? JSON.parse(notification.metadata) : null
-    
-    if (notification.type === 'KYC_STATUS') {
-      return '/portal/profile'
-    }
-    
-    if (notification.type === 'TRANSACTION') {
-      return '/portal/dashboard'
-    }
-    
-    return null
   }
 
   const filteredNotifications = notifications.filter(notification => {
@@ -245,7 +232,7 @@ export default function NotificationsPage() {
               <div className="divide-y divide-gray-100">
                 {filteredNotifications.map((notification) => {
                   const isUnread = notification.status === 'UNREAD'
-                  const actionUrl = getActionUrl(notification)
+                  const actionUrl = getNotificationActionUrl(notification)
                   
                   return (
                     <div

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { usePrefetchTransactions } from '../../hooks/useTransactions';
 import NotificationBell from '../notifications/NotificationBell';
+import PortalSessionShell from '@/components/portal/PortalSessionShell';
 import {
   UserIcon,
   HomeIcon,
@@ -154,6 +155,7 @@ export default function PortalHeader({
   };
 
   return (
+    <>
     <header className="bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg sticky top-0 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
@@ -426,5 +428,7 @@ export default function PortalHeader({
 
 
     </header>
+    <PortalSessionShell />
+    </>
   );
 }

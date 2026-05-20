@@ -35,7 +35,9 @@ function LoginForm() {
   useEffect(() => {
     const message = searchParams.get('message');
     if (message === 'registration_success' || message === 'auto_login_failed') {
-      setSuccess('Compte créé ! Entrez votre numéro pour recevoir un code de connexion par SMS.');
+      setSuccess(
+        'Compte créé ! Entrez votre numéro pour recevoir un code de connexion par SMS. Vous serez redirigé vers votre inscription après connexion.',
+      );
     }
   }, [searchParams]);
 

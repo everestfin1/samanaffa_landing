@@ -17,7 +17,10 @@ import Image from 'next/image';
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
 import PendingOnboardingDepositCard from '@/components/portal/PendingOnboardingDepositCard';
+import ProfileCompletionModal from '@/components/portal/ProfileCompletionModal';
 import { usePendingOnboardingDeposit } from '@/hooks/usePendingOnboardingDeposit';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 import { NaffaType } from '../data/naffaTypes';
 import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
 
@@ -224,6 +227,25 @@ export default function SamaNaffaPortal({
 }: SamaNaffaPortalProps) {
   const { data: session } = useSession();
   const userId = useMemo(() => (session?.user as any)?.id ?? null, [session]);
+  const { data: profileData } = useUserProfile();
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+
+  useEffect(() => {
+    if (!profileData) return;
+    const done =
+      profileData.profileCompletionStatus === 'COMPLETE' ||
+      meetsPortalCommunicationsRequirements(profileData);
+    if (done) {
+      setIsProfileIncomplete(false);
+      setShowProfileModal(false);
+      return;
+    }
+    setIsProfileIncomplete(true);
+    if (autoConfirmDeposit) {
+      setShowProfileModal(true);
+    }
+  }, [profileData, autoConfirmDeposit]);
 
   const {
     pendingDeposit,
@@ -915,6 +937,22 @@ export default function SamaNaffaPortal({
         onSelectNaffa={handleCreateAccount}
         isSubmitting={isCreatingAccount}
         errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
+      />
+
+      <ProfileCompletionModal
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        dismissible={!isProfileIncomplete}
+        initialData={
+          profileData
+            ? {
+                email: profileData.email,
+                termsAccepted: profileData.termsAccepted,
+                privacyAccepted: profileData.privacyAccepted,
+                marketingAccepted: profileData.marketingAccepted,
+              }
+            : undefined
+        }
       />
     </div>
   );

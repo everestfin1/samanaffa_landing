@@ -113,13 +113,21 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
       });
       if (!res.ok) throw new Error('Erreur de sauvegarde');
 
-      await fetch('/api/onboarding/apply-formula', {
+      const formulaRes = await fetch('/api/onboarding/apply-formula', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ formulaName: formula.name }),
       });
+      if (!formulaRes.ok) {
+        const data = await formulaRes.json().catch(() => ({}));
+        throw new Error(
+          (data as { error?: string }).error || 'Impossible d\'appliquer la formule',
+        );
+      }
+
+      setResult(formula);
     } catch (e: unknown) {
-      setError('Impossible d\'enregistrer votre profil. Veuillez réessayer.');
+      setError(e instanceof Error ? e.message : 'Impossible d\'enregistrer votre profil. Veuillez réessayer.');
     } finally {
       setLoading(false);
     }

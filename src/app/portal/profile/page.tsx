@@ -24,6 +24,7 @@ import {
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import { meetsVerifiedIdentityRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -102,8 +103,14 @@ export default function ProfilePage() {
   });
   const [uploadingFile, setUploadingFile] = useState(false);
 
-  // Combined error state
   const error = profileError?.message || updateProfileMutation.error?.message || '';
+  const identityVerified = userData
+    ? meetsVerifiedIdentityRequirements({
+        kycStatus: userData.kycStatus,
+        lastName: userData.lastName,
+        dateOfBirth: userData.dateOfBirth,
+      })
+    : false;
 
   // Initialize edit form when user data is loaded
   React.useEffect(() => {
@@ -143,14 +150,18 @@ export default function ProfilePage() {
   const handleSaveProfile = async () => {
     setSuccess('');
 
-    if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
+    if (!identityVerified && (!editForm.firstName.trim() || !editForm.lastName.trim())) {
       return;
     }
 
     try {
       await updateProfileMutation.mutateAsync({
-        firstName: editForm.firstName.trim(),
-        lastName: editForm.lastName.trim(),
+        ...(identityVerified
+          ? {}
+          : {
+              firstName: editForm.firstName.trim(),
+              lastName: editForm.lastName.trim(),
+            }),
         address: editForm.address.trim(),
         city: editForm.city.trim(),
         country: editForm.country.trim(),
@@ -343,7 +354,7 @@ export default function ProfilePage() {
                   className="flex items-center space-x-2 bg-gold-metallic text-white px-4 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors"
                 >
                   <PencilIcon className="w-4 h-4" />
-                  <span>Modifier</span>
+                  <span>{identityVerified ? 'Modifier le contact' : 'Modifier'}</span>
                 </button>
               )}
             </div>
@@ -363,8 +374,14 @@ export default function ProfilePage() {
 
               {/* Profile Info */}
               <div className="flex-1 space-y-4">
+                {identityVerified && (
+                  <p className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+                    Identité vérifiée par Didit — le prénom, nom et la date de naissance ne sont pas modifiables ici.
+                  </p>
+                )}
                 {isEditing ? (
                   <div className="space-y-4">
+                    {!identityVerified && (
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-night mb-2">Prénom</label>
@@ -385,6 +402,7 @@ export default function ProfilePage() {
                         />
                       </div>
                     </div>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-night mb-2">Email</label>
                       <input

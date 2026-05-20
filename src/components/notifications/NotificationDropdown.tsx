@@ -5,6 +5,7 @@ import { Notification } from '@/hooks/useNotifications'
 import { formatDistanceToNow } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import Link from 'next/link'
+import { getNotificationActionUrl } from '@/lib/notification-action-url'
 
 interface NotificationDropdownProps {
   notifications: Notification[]
@@ -39,33 +40,6 @@ export default function NotificationDropdown({
       onNotificationClick(notification.id)
     }
     onClose()
-  }
-
-  const getActionUrl = (notification: Notification) => {
-    try {
-      if (notification.metadata) {
-        const metadata = JSON.parse(notification.metadata) as { actionUrl?: string; kind?: string };
-        if (metadata.actionUrl) return metadata.actionUrl;
-        if (metadata.kind?.startsWith('onboarding_deposit')) {
-          return '/portal/sama-naffa?confirmDeposit=1';
-        }
-        if (metadata.kind === 'kyc_status') {
-          return '/portal/sama-naffa?confirmDeposit=1';
-        }
-      }
-    } catch {
-      // ignore invalid metadata
-    }
-
-    if (notification.type === 'KYC_STATUS' || notification.title.includes('Identité')) {
-      return '/portal/sama-naffa';
-    }
-
-    if (notification.type === 'TRANSACTION' || notification.title.includes('dépôt')) {
-      return '/portal/sama-naffa?confirmDeposit=1';
-    }
-
-    return '/portal/dashboard';
   }
 
   return (
@@ -131,7 +105,7 @@ export default function NotificationDropdown({
         ) : (
           <div className="divide-y divide-gray-100">
             {filteredNotifications.slice(0, 10).map((notification) => {
-              const actionUrl = getActionUrl(notification)
+              const actionUrl = getNotificationActionUrl(notification)
               const isUnread = notification.status === 'UNREAD'
               
               const NotificationContent = () => (

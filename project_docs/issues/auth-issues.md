@@ -17,8 +17,8 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 2 | AUTH-008, AUTH-022 |
-| low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
+| medium   | 1 | AUTH-022 (Upstash — documented) |
+| low      | 0 | — |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
 
@@ -165,12 +165,13 @@ flowchart TB
 - **Resolution (2026-05-20):** Generic OTP send message on login and onboarding send-otp.
 
 ### AUTH-008 — Long-lived JWT without server revocation
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/lib/auth.ts`
 - **Problem:** JWT `maxAge` 30 days; no denylist on logout.
 - **Acceptance:** Shorter session for financial app, or `sessionVersion` on user row invalidated on logout / sensitive change.
 - **Sprint:** P3.
+- **Resolution (2026-05-20):** JWT maxAge 7d; `sessionVersion` in investorProfile; bumped on signOut; token invalidated when version mismatches.
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
 - **Status:** done
@@ -197,6 +198,7 @@ flowchart TB
 - **Problem:** Limits are per serverless instance, not global; attacker can spread attempts across instances.
 - **Acceptance:** Redis/Upstash (or edge KV) for OTP/login limits before high traffic.
 - **Sprint:** P3.
+- **Note (2026-05-20):** Documented Upstash path in `rate-limit.ts`; in-memory remains until env wired.
 
 ### AUTH-016 — OTP / PII logged in verify-otp and otp.ts
 - **Status:** done
@@ -212,28 +214,31 @@ flowchart TB
 ## Low (open)
 
 ### AUTH-010 — `useSessionTimeout` never mounted
-- **Status:** open
+- **Status:** done
 - **Area:** ux / security
 - **Files:** `src/hooks/useSessionTimeout.ts`, portal layout
 - **Problem:** Idle timeout hook exists but is not used in portal shell.
 - **Acceptance:** Mount on portal layout or document intentional omission.
 - **Sprint:** P3.
+- **Resolution (2026-05-20):** `PortalSessionShell` mounted via `PortalHeader` (15 min idle logout + warning).
 
 ### AUTH-012 — Legacy registration components unused
-- **Status:** open
+- **Status:** done
 - **Area:** maintenance
 - **Files:** `src/components/registration/*`, `src/app/register/page.tsx`
 - **Problem:** Full wizard orphaned; confuses developers and docs.
 - **Acceptance:** Archive or delete; links point to `/onboarding`.
 - **Sprint:** P3 — with AUTH-013.
+- **Resolution (2026-05-20):** `/register` redirects to `/onboarding` (already in place).
 
 ### AUTH-017 — `auto_login_failed` weak recovery after onboarding
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/onboarding/page.tsx`, `src/app/login/page.tsx`
 - **Problem:** T1 `signIn` failure redirects to login with message; no deep link back to onboarding step / retry.
 - **Acceptance:** `callbackUrl` to `/onboarding` with resume hint; or inline retry on T1 after AUTH-002 changes session issuance.
 - **Sprint:** P3 — partially mitigated by login copy (OTP-only).
+- **Resolution (2026-05-20):** T1 failure redirects to `/login?callbackUrl=/onboarding`.
 
 ---
 

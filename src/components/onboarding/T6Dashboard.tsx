@@ -73,14 +73,13 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
           <div className="flex-1">
             <div className="flex justify-between items-start mb-1">
               <h3 className="font-bold text-night">Dépôt programmé</h3>
-              <span className="text-[10px] font-bold uppercase px-2 py-1 bg-blue-100 text-blue-800 rounded-full">En attente</span>
+              <span className="text-[10px] font-bold uppercase px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full">Prêt</span>
             </div>
             <p className="text-sm text-night/60 mb-2">
               {formatCurrency(depositAmount)} FCFA vers {formula}
             </p>
             <p className="text-xs text-night/40 italic">
-              Après validation de votre identité, vous confirmerez ce dépôt via Intouch depuis votre
-              tableau de bord.
+              Identité validée. Confirmez ce dépôt via Intouch depuis votre tableau de bord Sama Naffa.
             </p>
           </div>
         </motion.div>

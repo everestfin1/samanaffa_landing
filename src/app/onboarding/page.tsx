@@ -25,7 +25,7 @@ interface OnboardingState {
   wallet: string | null;
 }
 
-const VISIBLE_STEPS = 5;
+const VISIBLE_STEPS = 6;
 
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
@@ -34,7 +34,7 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T3: 3,
   T4: 4,
   T5: 5,
-  T6: 5,
+  T6: 6,
 };
 
 export default function OnboardingPage() {
@@ -187,7 +187,7 @@ function OnboardingPageContent() {
         redirect: false,
       });
       if (result?.error) {
-        router.push('/login?message=auto_login_failed');
+        router.push(`/login?callbackUrl=${encodeURIComponent('/onboarding')}&message=auto_login_failed`);
         return;
       }
       const saved = await saveProgress('T2', next);

@@ -7,6 +7,7 @@ import { verifyOTPWithRateLimitByKey } from './otp'
 import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import type { User as PrismaUser } from './db/schema'
+import { bumpSessionVersion, readSessionVersion } from './auth-session'
 
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db) as any,
@@ -105,40 +106,81 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+    maxAge: 7 * 24 * 60 * 60, // 7 days (AUTH-008)
+  },
+  events: {
+    async signOut(message) {
+      const token = 'token' in message ? message.token : null
+      if (token?.id) {
+        await bumpSessionVersion(token.id as string)
+      }
+    },
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
       if (user) {
         token.id = user.id
-        // Fetch full user data to include in token
         const fullUser = await prisma.user.findUnique({
-          where: { id: user.id }
+          where: { id: user.id },
+          select: {
+            phone: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            investorProfile: true,
+          },
         });
         if (fullUser) {
           token.phone = fullUser.phone
           token.firstName = fullUser.firstName
           token.lastName = fullUser.lastName
           token.email = fullUser.email
+          token.sessionVersion = readSessionVersion(fullUser.investorProfile)
         }
       }
-      
-      // Refresh user data on session update
+
+      if (token.id) {
+        const fullUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { phone: true, firstName: true, lastName: true, email: true, investorProfile: true },
+        });
+        if (!fullUser) {
+          return {}
+        }
+        const currentVersion = readSessionVersion(fullUser.investorProfile)
+        if (
+          token.sessionVersion !== undefined &&
+          token.sessionVersion !== currentVersion
+        ) {
+          return {}
+        }
+        token.sessionVersion = currentVersion
+        token.phone = fullUser.phone
+        token.firstName = fullUser.firstName
+        token.lastName = fullUser.lastName
+        token.email = fullUser.email
+      }
+
       if (trigger === 'update' && token.id) {
         const fullUser = await prisma.user.findUnique({
-          where: { id: token.id as string }
+          where: { id: token.id as string },
+          select: { phone: true, firstName: true, lastName: true, email: true, investorProfile: true },
         });
         if (fullUser) {
           token.phone = fullUser.phone
           token.firstName = fullUser.firstName
           token.lastName = fullUser.lastName
           token.email = fullUser.email
+          token.sessionVersion = readSessionVersion(fullUser.investorProfile)
         }
       }
-      
+
       return token
     },
     async session({ session, token }) {
+      if (!token?.id) {
+        return session
+      }
       if (token && session.user) {
         (session.user as User & { 
           id: string;

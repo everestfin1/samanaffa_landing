@@ -18,10 +18,10 @@
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 1 | ONB-008 (tests) |
-| medium   | 8 | ONB-026, ONB-031–034, ONB-036–037 |
-| low      | 6 | ONB-029, ONB-030, ONB-035, ONB-038 (bar), ONB-039, ONB-040 |
+| medium   | 1 | ONB-026 |
+| low      | 3 | ONB-029, ONB-039, ONB-040 |
 
-_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-038 (KYC login redirect), ONB-024 (localhost callback).
+_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (T5 poll errors surfaced).
 
 ---
 
@@ -119,40 +119,46 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Resolution (2026-05-20):** `saveProgress` returns success flag; step advance blocked on failure; error banner shown.
 
 ### ONB-031 — Notifications full page ignores `metadata.actionUrl`
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/portal/notifications/page.tsx`, `NotificationDropdown.tsx`
 - **Acceptance:** Shared `getActionUrl(notification)` used by both surfaces.
+- **Resolution (2026-05-20):** `src/lib/notification-action-url.ts` shared by dropdown and full page.
 
 ### ONB-032 — User notifications fail silently
-- **Status:** open
+- **Status:** done
 - **Area:** reliability
 - **Files:** `src/lib/user-notifications.ts`
 - **Acceptance:** Return boolean or throw; optional retry; monitor failures in prod.
+- **Resolution (2026-05-20):** `createUserNotification` returns `boolean`.
 
 ### ONB-033 — Profile communications modal only on dashboard
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `portal/dashboard/page.tsx`, `ProfileCompletionModal.tsx`, `portal-profile-completion.ts`
 - **Acceptance:** Consistent gate before first deposit confirm.
+- **Resolution (2026-05-20):** `SamaNaffaPortal` shows modal when `confirmDeposit=1` and profile incomplete.
 
 ### ONB-034 — Profile page allows editing fields filled by Didit
-- **Status:** open
+- **Status:** done
 - **Area:** ux / compliance
 - **Files:** `portal/profile/page.tsx`, `portal-profile-completion.ts`
 - **Acceptance:** Lock identity fields or separate verified vs contact sections.
+- **Resolution (2026-05-20):** Verified identity banner; hide name fields; save omits locked fields.
 
 ### ONB-036 — T3 `apply-formula` response not checked
-- **Status:** open
+- **Status:** done
 - **Area:** bug
 - **Files:** `T3Quiz.tsx`
 - **Acceptance:** Block advance on non-OK response; show error.
+- **Resolution (2026-05-20):** Non-OK blocks result display; error surfaced.
 
 ### ONB-037 — Didit `verificationUrl` lost after redirect (T5 resume)
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `T5KYC.tsx`, `kyc-navigation.ts`, `onboarding/page.tsx`
 - **Acceptance:** Persist URL in `sessionStorage` with session id.
+- **Resolution (2026-05-20):** `kyc-navigation.ts` sessionStorage helpers; T5 restores URL on resume.
 
 ---
 
@@ -164,20 +170,23 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Files:** `T5KYC.tsx`, `KYCInitiationModal.tsx`
 
 ### ONB-030 — T6 copy still references pending identity validation
-- **Status:** open
+- **Status:** done
 - **Area:** ux / copy
 - **Files:** `T6Dashboard.tsx`
+- **Resolution (2026-05-20):** Post-KYC deposit copy; Intouch from dashboard.
 
 ### ONB-035 — T5 KYC poll errors hidden
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `T5KYC.tsx`
+- **Resolution (2026-05-20):** Poll failures shown in T5 UI.
 
 ### ONB-038 — Progress bar: T5 and T6 share same visible index
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `onboarding/page.tsx`
 - **Note:** Different from resolved ONB-038 (KYC → login redirect).
+- **Resolution (2026-05-20):** `VISIBLE_STEPS = 6`; T6 at index 6.
 
 ### ONB-039 — Manual test checklist / docs out of date
 - **Status:** in_progress
@@ -255,4 +264,4 @@ Align with [auth-issues.md](./auth-issues.md) **Phase 1–4**.
 - [ ] KYC return without session → `/login?callbackUrl=…` → resume T5/T6
 - [ ] Logout → `/login` phone OTP → portal (**AUTH-018/019**)
 - [ ] Refresh mid-onboarding: resume matches server (**ONB-005**; **ONB-042** no silent fail)
-- [ ] Notifications page: same deep links as dropdown (**ONB-031**)
+- [x] Notifications page: same deep links as dropdown (**ONB-031**)

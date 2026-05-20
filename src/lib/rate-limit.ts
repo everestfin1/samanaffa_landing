@@ -1,5 +1,10 @@
 import { NextRequest } from 'next/server'
 
+/**
+ * In-memory rate limits (AUTH-022). For multi-instance production, wire Upstash Redis
+ * when UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are configured.
+ */
+
 interface RateLimitAttempt {
   count: number
   lastAttempt: number

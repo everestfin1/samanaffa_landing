@@ -4,7 +4,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { navigateToDiditVerification } from '@/lib/kyc-navigation';
+import {
+  getKycVerificationUrl,
+  navigateToDiditVerification,
+  setKycVerificationUrl,
+} from '@/lib/kyc-navigation';
 
 interface T5KYCProps {
   firstName: string;
@@ -74,7 +78,10 @@ export default function T5KYC({
     const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`, {
       credentials: 'same-origin',
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError('Impossible de vérifier le statut KYC. Réessayez dans un instant.');
+      return;
+    }
     const data = await res.json();
     if (data.status === 'declined' && Array.isArray(data.declineReasons)) {
       setDeclineReasons(data.declineReasons);
@@ -93,6 +100,7 @@ export default function T5KYC({
   useEffect(() => {
     if (!resumeSessionId) return;
     setDiditSessionId(resumeSessionId);
+    setVerificationUrl(getKycVerificationUrl());
     setStage('verifying');
     startPolling(resumeSessionId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -112,6 +120,7 @@ export default function T5KYC({
 
       setVerificationUrl(data.verificationUrl);
       setDiditSessionId(data.sessionId);
+      setKycVerificationUrl(data.verificationUrl);
       navigateToDiditVerification(data.verificationUrl, data.sessionId, '/onboarding');
     } catch (e: unknown) {
       setStage('error');

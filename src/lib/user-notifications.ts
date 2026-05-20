@@ -10,7 +10,7 @@ export async function createUserNotification(
     priority: NotificationPriority;
     metadata?: Record<string, unknown>;
   },
-): Promise<void> {
+): Promise<boolean> {
   try {
     await prisma.notification.create({
       data: {
@@ -22,7 +22,9 @@ export async function createUserNotification(
         metadata: payload.metadata ? JSON.stringify(payload.metadata) : null,
       },
     });
+    return true;
   } catch (e) {
     console.error('[user-notifications] create failed:', e);
+    return false;
   }
 }
