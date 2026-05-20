@@ -401,9 +401,10 @@ export default function TransferModal({
             </div>
             
             <PaymentMethodSelect
-              value={method}
-              onChange={setMethod}
+              value={scheduleIntentOnly ? 'intouch' : method}
+              onChange={scheduleIntentOnly ? () => {} : setMethod}
               type={type}
+              showOptions={!scheduleIntentOnly}
             />
 
           </div>

@@ -20,13 +20,6 @@ interface OnboardingDepositModalProps {
   onPaymentComplete?: () => void;
 }
 
-const WALLET_LABELS: Record<string, string> = {
-  orange_money: 'Orange Money',
-  wave: 'Wave',
-  free_money: 'Free Money',
-  intouch: 'Intouch',
-};
-
 export default function OnboardingDepositModal({
   isOpen,
   onClose,
@@ -40,9 +33,6 @@ export default function OnboardingDepositModal({
   if (!isOpen) return null;
 
   const userId = (session?.user as { id?: string })?.id;
-  const walletLabel =
-    WALLET_LABELS[intent.paymentMethod?.toLowerCase()] ?? intent.paymentMethod;
-
   const handleIntouchSuccess = () => {
     onPaymentComplete?.();
     onClose();
@@ -76,7 +66,6 @@ export default function OnboardingDepositModal({
         ) : (
           <DepositModalIntro
             amount={intent.amount}
-            walletLabel={walletLabel}
             error={error}
             userId={userId}
             onLater={onClose}
@@ -120,14 +109,12 @@ function DepositModalHeader({ title, onClose }: { title: string; onClose: () => 
 
 function DepositModalIntro({
   amount,
-  walletLabel,
   error,
   userId,
   onLater,
   onPay,
 }: {
   amount: number;
-  walletLabel: string;
   error: string;
   userId?: string;
   onLater: () => void;
@@ -145,8 +132,8 @@ function DepositModalIntro({
           <span className="font-bold text-night">{formatCurrency(amount)} FCFA</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-night/60">Moyen de paiement</span>
-          <span className="font-medium text-night">{walletLabel}</span>
+          <span className="text-night/60">Paiement</span>
+          <span className="font-medium text-night">Intouch</span>
         </div>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}

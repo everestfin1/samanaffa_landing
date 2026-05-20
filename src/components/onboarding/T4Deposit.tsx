@@ -27,7 +27,7 @@ export default function T4Deposit({
       const res = await fetch('/api/onboarding/deposit-intent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount, wallet: method }),
+        body: JSON.stringify({ amount, wallet: 'intouch' }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');

@@ -1,7 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { db } from '@/lib/db';
-import { transactionIntents } from '@/lib/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-intents';
 import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types';
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications';
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings';
@@ -137,38 +135,11 @@ export async function syncDiditDecision(
     data: { kycStatus: mapped.kycStatus as KycStatus },
   });
 
-  if (mapped.kycStatus === 'REJECTED') {
-    try {
-      await db
-        .update(transactionIntents)
-        .set({
-          status: 'CANCELLED',
-          awaitingKycApproval: false,
-          adminNotes: 'Auto-cancelled: KYC rejected via Didit',
-        })
-        .where(
-          and(
-            eq(transactionIntents.userId, userId),
-            eq(transactionIntents.awaitingKycApproval, true),
-          )!,
-        );
-    } catch (e) {
-      console.error('[kyc-sync] Error cancelling deposit intents:', e);
-    }
-  } else if (mapped.kycStatus === 'APPROVED') {
-    try {
-      await db
-        .update(transactionIntents)
-        .set({ awaitingKycApproval: false })
-        .where(
-          and(
-            eq(transactionIntents.userId, userId),
-            eq(transactionIntents.awaitingKycApproval, true),
-          )!,
-        );
-    } catch (e) {
-      console.error('[kyc-sync] Error releasing deposit intents:', e);
-    }
+  if (mapped.kycStatus === 'REJECTED' || mapped.kycStatus === 'APPROVED') {
+    await updateOnboardingDepositIntentsForKycStatus(
+      userId,
+      mapped.kycStatus as 'APPROVED' | 'REJECTED',
+    );
   }
 
   const notifMap: Record<

@@ -20,7 +20,7 @@ The precise model is:
 | **T1** | Phone + OTP | No → becomes Yes | Verifies OTP, creates user + Sama Naffa + APE accounts. `signIn()` called client-side to establish session. |
 | **T2** | First name | Yes | PATCHes `users.firstName`. |
 | **T3** | Investor quiz | Yes | 3 questions → recommends Formule. Stores `investorProfile` JSON. |
-| **T4** | Deposit intent | Yes | User picks amount + wallet. Creates `transaction_intent` with `awaitingKycApproval=true`. No money moves. |
+| **T4** | Deposit intent | Yes | User picks amount; payment is **Intouch only** (programmed, not charged). Creates `transaction_intent` with `awaitingKycApproval=true`. Confirmed via Intouch on Sama Naffa after KYC. |
 | **T5** | KYC (Didit) | Yes | Opens Didit in a new tab. Polls for status. |
 | **T6** | Congratulations | Yes | Summary screen. CTA → `/portal/dashboard`. |
 
@@ -30,15 +30,18 @@ The precise model is:
 |-------|---------|------------|
 | `ProfileCompletionModal` | Missing: lastName, real email, DOB, address, city, country, profession, terms, privacy | No (mandatory) |
 
-## Current status (2026-05-18)
+## Current status (2026-05-20)
 
-- `signIn()` runs after T1 OTP; session is active from T2 onward.
+- `signIn()` runs after T1 via server-issued **post-signup token** (no `signIn(register)` bypass).
 - Full in-flow onboarding: T0 → T1 → T2 → T3 → T4 → T5 → T6 (`/onboarding/page.tsx`).
-- T4 creates a deposit `transaction_intent` with `awaitingKycApproval=true` (no charge).
-- After KYC approval, the user confirms payment via **Intouch** on the portal (`OnboardingDepositModal`, same UX as transfer modals).
-- Progress is persisted in `users.investorProfile.onboarding` via `/api/onboarding/progress`.
-- Post-login **ProfileCompletionModal** (mandatory until complete) on `/portal/dashboard`.
+- T4 creates a deposit `transaction_intent` with `awaitingKycApproval=true` and `paymentMethod=intouch` only (no charge).
+- After KYC approval, the user confirms payment via **Intouch** on Sama Naffa (`OnboardingDepositModal` / `confirmDeposit=1`).
+- Didit KYC: shared `useDiditKycVerification` + `DiditKycStagePanels` (onboarding T5 + portal modal).
+- Progress is persisted in `users.investorProfile.onboarding` via `/api/onboarding/progress` (client cannot set `kycApproved`).
+- Post-login **ProfileCompletionModal** on dashboard and Sama Naffa when profile incomplete.
+- Login is **phone OTP only** (password routes deprecated).
 - `/register` redirects to `/onboarding`.
+- Security trackers: [auth-issues.md](./issues/auth-issues.md), [onboarding-issues.md](./issues/onboarding-issues.md).
 
 ---
 

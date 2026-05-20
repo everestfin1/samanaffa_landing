@@ -18,8 +18,8 @@
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 1 | ONB-008 (tests) |
-| medium   | 1 | ONB-026 |
-| low      | 3 | ONB-029, ONB-039, ONB-040 |
+| medium   | 0 | — |
+| low      | 1 | ONB-008 (tests) |
 
 _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (T5 poll errors surfaced).
 
@@ -85,11 +85,12 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 ## Medium (open)
 
 ### ONB-026 — T4 wallet choice vs Intouch-only confirmation
-- **Status:** open
+- **Status:** done
 - **Area:** ux / payments
-- **Files:** `T4Deposit.tsx`, `deposit-intent/route.ts`, `OnboardingDepositModal.tsx`
+- **Files:** `T4Deposit.tsx`, `deposit-intent/route.ts`, `OnboardingDepositModal.tsx`, `TransferModal.tsx`
 - **Problem:** T4 stores Orange/Wave/Free Money; post-KYC confirm always uses Intouch.
 - **Acceptance:** Align copy (“paiement via Intouch”) or implement selected rail at confirm.
+- **Resolution (2026-05-20):** T4/API lock `paymentMethod` to `intouch`; schedule-intent UI shows Intouch only; confirm modal always labels Intouch.
 
 ### ONB-027 — Onboarding deposit intent discovered via `userNotes` substring
 - **Status:** done
@@ -165,9 +166,10 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 ## Low (open)
 
 ### ONB-029 — Duplicate KYC UI (T5 vs portal modal)
-- **Status:** open
+- **Status:** done
 - **Area:** maintenance
-- **Files:** `T5KYC.tsx`, `KYCInitiationModal.tsx`
+- **Files:** `T5KYC.tsx`, `KYCInitiationModal.tsx`, `useDiditKycVerification.ts`, `DiditKycStagePanels.tsx`
+- **Resolution (2026-05-20):** Shared hook + stage panels; T5 and portal modal are thin wrappers.
 
 ### ONB-030 — T6 copy still references pending identity validation
 - **Status:** done
@@ -189,16 +191,17 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Resolution (2026-05-20):** `VISIBLE_STEPS = 6`; T6 at index 6.
 
 ### ONB-039 — Manual test checklist / docs out of date
-- **Status:** in_progress
+- **Status:** done
 - **Area:** docs
 - **Files:** This file, `onboarding-replace-register-plan.md`, [auth-issues.md](./auth-issues.md)
 - **Acceptance:** Checklists reflect OTP-only login, manual Intouch deposit, security sprint items.
-- **Resolution (2026-05-19):** Checklist updated in this file; plan doc still needs pass.
+- **Resolution (2026-05-20):** Checklists and plan doc updated for Phases 1–4 outcomes.
 
 ### ONB-040 — `kyc-sync` intent updates duplicated in admin route
-- **Status:** open
+- **Status:** done
 - **Area:** maintenance
-- **Files:** `kyc-sync.ts`, `src/app/api/admin/kyc/[id]/route.ts`
+- **Files:** `kyc-sync.ts`, `kyc-deposit-intents.ts`, `src/app/api/admin/kyc/[id]/route.ts`
+- **Resolution (2026-05-20):** `updateOnboardingDepositIntentsForKycStatus()` shared by Didit sync and admin KYC PUT.
 
 ---
 
@@ -254,14 +257,17 @@ Align with [auth-issues.md](./auth-issues.md) **Phase 1–4**.
 
 ## Manual test checklist
 
-- [ ] T0 → T1: simulation persisted; OTP; session after T1 (**AUTH-002** must be fixed before trusting session)
+- [ ] T0 → T1: simulation persisted; OTP; session after T1 via post-signup token (**AUTH-002**)
 - [ ] Cannot `signIn(register)` without valid post-`create-account` token (**AUTH-002**)
-- [ ] T4: intent created, `awaitingKycApproval: true`, no auto-charge
-- [ ] T5: Didit flow; DB `kycStatus` → APPROVED
+- [ ] T4: amount only; `paymentMethod=intouch`; intent `awaitingKycApproval: true`; no auto-charge (**ONB-026**)
+- [ ] T5: Didit flow (shared hook); DB `kycStatus` → APPROVED; resume URL in sessionStorage (**ONB-037**)
 - [ ] Cannot PATCH `kycApproved: true` without real KYC (**ONB-023**)
 - [ ] Cannot upload/list KYC for another `userId` (**ONB-041**)
-- [ ] After KYC approve: intent released; manual Intouch on Sama Naffa
-- [ ] KYC return without session → `/login?callbackUrl=…` → resume T5/T6
-- [ ] Logout → `/login` phone OTP → portal (**AUTH-018/019**)
-- [ ] Refresh mid-onboarding: resume matches server (**ONB-005**; **ONB-042** no silent fail)
+- [ ] After KYC approve: intent released (`awaitingKycApproval=false`); pay via Intouch on Sama Naffa (`confirmDeposit=1`)
+- [ ] Profile communications modal on dashboard + Sama Naffa when incomplete (**ONB-033**)
+- [ ] KYC return without session → `/login?callbackUrl=…` → resume onboarding (**AUTH-009**, **ONB-038**)
+- [ ] T1 auto-login failure → `/login?callbackUrl=/onboarding` (**AUTH-017**)
+- [ ] Logout → `/login` phone OTP → portal; idle timeout in portal (**AUTH-010**, **AUTH-018**)
+- [ ] Refresh mid-onboarding: resume matches server; progress PATCH errors block advance (**ONB-042**)
+- [ ] Portal profile: verified identity locks name fields (**ONB-034**)
 - [x] Notifications page: same deep links as dropdown (**ONB-031**)

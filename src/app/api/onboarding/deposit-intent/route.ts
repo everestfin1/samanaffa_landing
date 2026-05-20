@@ -28,23 +28,28 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { amount, wallet } = await request.json();
+    const { amount, wallet: walletRaw } = await request.json();
 
-    if (!amount || !wallet) {
-      return NextResponse.json(
-        { error: 'amount et wallet requis' },
-        { status: 400 },
-      );
+    if (!amount) {
+      return NextResponse.json({ error: 'amount requis' }, { status: 400 });
     }
+
+    // Onboarding deposits are confirmed via Intouch only (ONB-026).
+    const wallet = walletRaw === 'intouch' || walletRaw == null ? 'intouch' : walletRaw;
 
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount < 1000) {
       return NextResponse.json({ error: 'Montant invalide (minimum 1 000 FCFA)' }, { status: 400 });
     }
 
-    const allowedWallets = ['intouch', 'orange_money', 'wave', 'free_money'];
-    if (!allowedWallets.includes(wallet)) {
-      return NextResponse.json({ error: 'Méthode de paiement invalide' }, { status: 400 });
+    if (wallet !== 'intouch') {
+      return NextResponse.json(
+        {
+          error:
+            'Seul le paiement via Intouch est disponible pour le premier dépôt. Choisissez Intouch à l’étape précédente.',
+        },
+        { status: 400 },
+      );
     }
 
     const user = await prisma.user.findUnique({
