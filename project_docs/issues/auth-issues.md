@@ -17,8 +17,8 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 1 | AUTH-022 (Upstash — documented) |
-| low      | 0 | — |
+| medium   | 2 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column) |
+| low      | 2 | AUTH-024, AUTH-025 (see backlog) |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
 
@@ -172,6 +172,15 @@ flowchart TB
 - **Acceptance:** Shorter session for financial app, or `sessionVersion` on user row invalidated on logout / sensitive change.
 - **Sprint:** P3.
 - **Resolution (2026-05-20):** JWT maxAge 7d; `sessionVersion` in investorProfile; bumped on signOut; token invalidated when version mismatches.
+- **Follow-up (2026-05-20):** JWT callback throttles DB sessionVersion check to 60s; fail-open on DB errors. Column migration → **AUTH-023**.
+
+### AUTH-023 — `sessionVersion` stored inside `investorProfile` JSON
+- **Status:** open
+- **Area:** reliability / security
+- **Files:** `src/lib/auth-session.ts`, Prisma schema
+- **Problem:** Read-modify-write on JSON can race with onboarding progress / profile PATCH and lose version bumps or quiz data.
+- **Acceptance:** Dedicated `users.sessionVersion` (or equivalent); bump without touching `investorProfile`.
+- **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
 - **Status:** done

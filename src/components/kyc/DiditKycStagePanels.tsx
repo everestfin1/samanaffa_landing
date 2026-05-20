@@ -163,6 +163,11 @@ export default function DiditKycStagePanels({
             <p className="text-sm text-night/60">{t.verifyingBody}</p>
             <p className="text-xs text-night/40 mt-2">Cette page se met à jour automatiquement.</p>
           </div>
+          {error && (
+            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
           {verificationUrl && (
             <button
               type="button"

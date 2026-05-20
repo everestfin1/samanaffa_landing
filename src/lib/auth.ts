@@ -9,6 +9,64 @@ import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import type { User as PrismaUser } from './db/schema'
 import { bumpSessionVersion, readSessionVersion } from './auth-session'
 
+/** Re-check sessionVersion in DB at most once per interval (AUTH-008 perf). */
+const SESSION_VERSION_CHECK_MS = 60_000
+
+type JwtUserSnapshot = {
+  phone: string
+  firstName: string
+  lastName: string
+  email: string
+  sessionVersion: number
+  sessionCheckedAt: number
+}
+
+async function loadUserJwtSnapshot(
+  userId: string,
+  tokenSessionVersion: number | undefined,
+): Promise<JwtUserSnapshot | null | 'invalidated'> {
+  const fullUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      phone: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      investorProfile: true,
+    },
+  })
+  if (!fullUser) {
+    return null
+  }
+  const currentVersion = readSessionVersion(fullUser.investorProfile)
+  if (
+    tokenSessionVersion !== undefined &&
+    tokenSessionVersion !== currentVersion
+  ) {
+    return 'invalidated'
+  }
+  return {
+    phone: fullUser.phone,
+    firstName: fullUser.firstName,
+    lastName: fullUser.lastName,
+    email: fullUser.email,
+    sessionVersion: currentVersion,
+    sessionCheckedAt: Date.now(),
+  }
+}
+
+function applyJwtSnapshot(
+  token: Record<string, unknown>,
+  snapshot: JwtUserSnapshot,
+): void {
+  token.phone = snapshot.phone
+  token.firstName = snapshot.firstName
+  token.lastName = snapshot.lastName
+  token.email = snapshot.email
+  token.sessionVersion = snapshot.sessionVersion
+  token.sessionCheckedAt = snapshot.sessionCheckedAt
+}
+
 export const authOptions: NextAuthOptions = {
   adapter: DrizzleAdapter(db) as any,
   providers: [
@@ -118,64 +176,56 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, trigger }) {
-      if (user) {
-        token.id = user.id
-        const fullUser = await prisma.user.findUnique({
-          where: { id: user.id },
-          select: {
-            phone: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            investorProfile: true,
-          },
-        });
-        if (fullUser) {
-          token.phone = fullUser.phone
-          token.firstName = fullUser.firstName
-          token.lastName = fullUser.lastName
-          token.email = fullUser.email
-          token.sessionVersion = readSessionVersion(fullUser.investorProfile)
-        }
-      }
+      const t = token as Record<string, unknown>
 
-      if (token.id) {
-        const fullUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { phone: true, firstName: true, lastName: true, email: true, investorProfile: true },
-        });
-        if (!fullUser) {
-          return {}
+      try {
+        if (user?.id) {
+          t.id = user.id
+          const snapshot = await loadUserJwtSnapshot(
+            user.id,
+            t.sessionVersion as number | undefined,
+          )
+          if (snapshot === 'invalidated' || snapshot === null) {
+            return {}
+          }
+          applyJwtSnapshot(t, snapshot)
+          return t
         }
-        const currentVersion = readSessionVersion(fullUser.investorProfile)
-        if (
-          token.sessionVersion !== undefined &&
-          token.sessionVersion !== currentVersion
-        ) {
-          return {}
-        }
-        token.sessionVersion = currentVersion
-        token.phone = fullUser.phone
-        token.firstName = fullUser.firstName
-        token.lastName = fullUser.lastName
-        token.email = fullUser.email
-      }
 
-      if (trigger === 'update' && token.id) {
-        const fullUser = await prisma.user.findUnique({
-          where: { id: token.id as string },
-          select: { phone: true, firstName: true, lastName: true, email: true, investorProfile: true },
-        });
-        if (fullUser) {
-          token.phone = fullUser.phone
-          token.firstName = fullUser.firstName
-          token.lastName = fullUser.lastName
-          token.email = fullUser.email
-          token.sessionVersion = readSessionVersion(fullUser.investorProfile)
+        if (trigger === 'update' && t.id) {
+          const snapshot = await loadUserJwtSnapshot(
+            t.id as string,
+            t.sessionVersion as number | undefined,
+          )
+          if (snapshot === 'invalidated' || snapshot === null) {
+            return {}
+          }
+          applyJwtSnapshot(t, snapshot)
+          return t
         }
-      }
 
-      return token
+        if (t.id) {
+          const checkedAt = t.sessionCheckedAt as number | undefined
+          const stale =
+            checkedAt == null || Date.now() - checkedAt > SESSION_VERSION_CHECK_MS
+
+          if (stale) {
+            const snapshot = await loadUserJwtSnapshot(
+              t.id as string,
+              t.sessionVersion as number | undefined,
+            )
+            if (snapshot === 'invalidated' || snapshot === null) {
+              return {}
+            }
+            applyJwtSnapshot(t, snapshot)
+          }
+        }
+
+        return t
+      } catch (e) {
+        console.error('[auth] jwt callback DB error:', e)
+        return t
+      }
     },
     async session({ session, token }) {
       if (!token?.id) {

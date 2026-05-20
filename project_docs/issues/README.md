@@ -35,7 +35,10 @@ Refer by **title** in standups when ambiguous.
 | Priority | IDs | Theme |
 |----------|-----|--------|
 | high | ONB-008 | Onboarding/KYC automated tests |
-| ops | AUTH-022 | Distributed rate limits (Upstash) |
+| medium | AUTH-022, AUTH-023 | Upstash rate limits; `sessionVersion` column |
+| backlog | ONB-043–047, AUTH-024–025 | [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md) |
+
+**Next product (not tracked yet):** Didit web browser verification; deprecate Emprunt obligataire.
 
 Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested-fix-order-implementation-sprint), [onboarding-issues.md § Suggested fix order](./onboarding-issues.md#suggested-fix-order).
 
@@ -46,4 +49,4 @@ Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested
 | 2026-05-18 | Initial onboarding + profile completion implementation |
 | 2026-05-19 | Full flow + login/auth audit (`feat/onboarding-flow-mock`) |
 | 2026-05-19 | Post-OTP-login orchestration review; sprint plan + ONB-041, AUTH-020/021/022 |
-| 2026-05-20 | Phases 1–4; ONB-026/029/039/040; maintenance + docs pass |
+| 2026-05-20 | Phases 1–4; ONB-026/029/039/040; review fixes H4/H5/H1/M4; [backlog](./post-review-backlog-2026-05-20.md) |

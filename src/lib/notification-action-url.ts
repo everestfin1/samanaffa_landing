@@ -6,27 +6,56 @@ export type NotificationLinkInput = {
   metadata?: string | null;
 };
 
-export function getNotificationActionUrl(notification: NotificationLinkInput): string | null {
+type ParsedMetadata = {
+  actionUrl?: string;
+  kind?: string;
+  kycStatus?: string;
+};
+
+function parseMetadata(raw: string | null | undefined): ParsedMetadata | null {
+  if (!raw) return null;
   try {
-    if (notification.metadata) {
-      const metadata = JSON.parse(notification.metadata) as {
-        actionUrl?: string;
-        kind?: string;
-      };
-      if (metadata.actionUrl) return metadata.actionUrl;
-      if (metadata.kind?.startsWith('onboarding_deposit')) {
-        return '/portal/sama-naffa?confirmDeposit=1';
-      }
-      if (metadata.kind === 'kyc_status') {
-        return '/portal/sama-naffa?confirmDeposit=1';
-      }
-    }
+    return JSON.parse(raw) as ParsedMetadata;
   } catch {
-    // ignore invalid metadata
+    return null;
+  }
+}
+
+/** Safe internal paths only (no open redirect). */
+function isSafeInternalPath(path: string): boolean {
+  return path.startsWith('/') && !path.startsWith('//');
+}
+
+function kycStatusActionUrl(kycStatus: string | undefined): string | null {
+  switch (kycStatus) {
+    case 'APPROVED':
+      return '/portal/sama-naffa?confirmDeposit=1';
+    case 'REJECTED':
+      return '/portal/profile';
+    case 'UNDER_REVIEW':
+      return '/portal/dashboard';
+    default:
+      return '/portal/profile';
+  }
+}
+
+export function getNotificationActionUrl(notification: NotificationLinkInput): string | null {
+  const metadata = parseMetadata(notification.metadata);
+
+  if (metadata?.actionUrl && isSafeInternalPath(metadata.actionUrl)) {
+    return metadata.actionUrl;
+  }
+
+  if (metadata?.kind?.startsWith('onboarding_deposit')) {
+    return '/portal/sama-naffa?confirmDeposit=1';
+  }
+
+  if (metadata?.kind === 'kyc_status') {
+    return kycStatusActionUrl(metadata.kycStatus);
   }
 
   if (notification.type === 'KYC_STATUS' || notification.title.includes('Identité')) {
-    return '/portal/sama-naffa';
+    return '/portal/profile';
   }
 
   if (notification.type === 'TRANSACTION' || notification.title.toLowerCase().includes('dépôt')) {

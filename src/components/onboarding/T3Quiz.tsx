@@ -93,9 +93,8 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
       return;
     }
 
-    // Last question — compute + persist
+    // Last question — compute + persist (result UI only after server OK — ONB-036)
     const formula = recommendFormula(next);
-    setResult(formula);
     setLoading(true);
     setError(null);
     try {

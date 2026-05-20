@@ -19,9 +19,9 @@
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 1 | ONB-008 (tests) |
 | medium   | 0 | — |
-| low      | 1 | ONB-008 (tests) |
+| low      | 5 | ONB-008 (tests), ONB-043–047 (backlog) |
 
-_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (T5 poll errors surfaced).
+_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status).
 
 ---
 
@@ -152,7 +152,7 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Area:** bug
 - **Files:** `T3Quiz.tsx`
 - **Acceptance:** Block advance on non-OK response; show error.
-- **Resolution (2026-05-20):** Non-OK blocks result display; error surfaced.
+- **Resolution (2026-05-20):** Non-OK blocks advance; result screen only after both PATCH + apply-formula succeed (no optimistic formula UI).
 
 ### ONB-037 — Didit `verificationUrl` lost after redirect (T5 resume)
 - **Status:** done
@@ -180,8 +180,22 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 ### ONB-035 — T5 KYC poll errors hidden
 - **Status:** done
 - **Area:** ux
-- **Files:** `T5KYC.tsx`
-- **Resolution (2026-05-20):** Poll failures shown in T5 UI.
+- **Files:** `T5KYC.tsx`, `DiditKycStagePanels.tsx`
+- **Resolution (2026-05-20):** Poll failures shown inline on verifying stage (shared panels).
+
+### ONB-044 — KYC notification deep links ignore status (REJECTED → deposit)
+- **Status:** done
+- **Area:** ux
+- **Files:** `src/lib/notification-action-url.ts`
+- **Resolution (2026-05-20):** `kyc_status` routes by `metadata.kycStatus`; safe internal `actionUrl` only.
+
+### ONB-043 — Profile comms modal: gate all Sama Naffa deposit confirms
+- **Status:** open
+- **Area:** ux
+- **Files:** `SamaNaffaPortal.tsx`, `PendingOnboardingDepositCard.tsx`
+- **Problem:** Modal auto-opens only with `?confirmDeposit=1`; card “Confirmer” skips communications gate.
+- **Acceptance:** Same as dashboard — block or modal before first Intouch confirm.
+- **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
 
 ### ONB-038 — Progress bar: T5 and T6 share same visible index
 - **Status:** done
