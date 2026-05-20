@@ -8,6 +8,7 @@ import { checkOTPRateLimit } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
 import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 import { issuePostSignupToken } from '@/lib/post-signup-token';
+import { genericOtpSendResponse } from '@/lib/otp-send-response';
 
 /**
  * New onboarding flow (T1) — phone-only account creation.
@@ -48,10 +49,7 @@ export async function POST(request: NextRequest) {
       for (const fmt of phoneFormats) {
         const existing = await prisma.user.findFirst({ where: { phone: fmt } });
         if (existing && !(existing.firstName === 'Temporary' && existing.lastName === 'User')) {
-          return NextResponse.json(
-            { error: 'Ce numéro est déjà associé à un compte. Veuillez vous connecter.' },
-            { status: 409 },
-          );
+          return NextResponse.json(genericOtpSendResponse());
         }
       }
 

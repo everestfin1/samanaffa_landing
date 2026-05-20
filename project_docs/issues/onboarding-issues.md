@@ -92,19 +92,21 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Acceptance:** Align copy (“paiement via Intouch”) or implement selected rail at confirm.
 
 ### ONB-027 — Onboarding deposit intent discovered via `userNotes` substring
-- **Status:** open
+- **Status:** done
 - **Area:** data
 - **Files:** `src/app/api/onboarding/pending-deposit/route.ts`, `deposit-intent/route.ts`
 - **Problem:** `userNotes: { contains: 'onboarding' }` is fragile if copy changes.
 - **Acceptance:** Structured metadata (e.g. `source: 'ONBOARDING_V2'`) on intent; filter/index on that.
 - **Sprint:** P3 — recommended before scaling onboarding volume.
+- **Resolution (2026-05-20):** `ONBOARDING_V2|` prefix + `findOnboardingDepositIntent()` helper.
 
 ### ONB-028 — No idempotency for deposit intent / Didit session creation
-- **Status:** open
+- **Status:** done
 - **Area:** reliability
 - **Files:** `deposit-intent/route.ts`, `kyc/start/route.ts`
 - **Problem:** Repeat T4/T5 creates multiple pending intents or Didit sessions.
 - **Acceptance:** One active onboarding intent per user; reuse open Didit session when possible.
+- **Resolution (2026-05-20):** Reuse pending onboarding deposit intent; reuse open Didit session when still active.
 
 ### ONB-042 — Onboarding progress save fails silently
 - **Status:** done

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ArrowRightIcon,
@@ -16,6 +16,10 @@ import PhoneInput from '@/components/ui/PhoneInput';
 function ForgotPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  useEffect(() => {
+    router.replace('/login?message=password_disabled');
+  }, [router]);
   const [formData, setFormData] = useState({
     contact: '',
     phone: '',

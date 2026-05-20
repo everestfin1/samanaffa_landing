@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReferenceNumber } from '@/lib/utils';
 import { createUserNotification } from '@/lib/user-notifications';
+import {
+  findOnboardingDepositIntent,
+  formatOnboardingDepositUserNotes,
+} from '@/lib/onboarding-deposit';
 
 /**
  * Onboarding T4 — program a first deposit BEFORE KYC validation.
@@ -51,9 +55,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const samaNaffaAccount = user.accounts?.find((a: any) => a.accountType === 'SAMA_NAFFA');
+    const samaNaffaAccount = user.accounts?.find((a: { accountType: string }) => a.accountType === 'SAMA_NAFFA');
     if (!samaNaffaAccount) {
       return NextResponse.json({ error: 'Compte Sama Naffa introuvable' }, { status: 404 });
+    }
+
+    const existing = await findOnboardingDepositIntent(userId, { awaitingKycApproval: true });
+    if (existing) {
+      return NextResponse.json({
+        success: true,
+        intentId: existing.id,
+        referenceNumber: existing.referenceNumber,
+        amount: Number(existing.amount),
+        wallet: existing.paymentMethod,
+        awaitingKycApproval: true,
+        reused: true,
+      });
     }
 
     const referenceNumber = generateReferenceNumber('sama_naffa', 'deposit', userId, new Date());
@@ -69,7 +86,7 @@ export async function POST(request: NextRequest) {
         status: 'PENDING',
         referenceNumber,
         awaitingKycApproval: true,
-        userNotes: 'Dépôt programmé via nouveau flux onboarding (T4)',
+        userNotes: formatOnboardingDepositUserNotes(),
       },
     });
 

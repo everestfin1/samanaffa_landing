@@ -2,7 +2,46 @@ import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
 import { prisma } from './prisma'
 
-const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET || 'fallback-secret-change-in-production'
+const ADMIN_TOKEN_COOKIE = 'admin_token'
+
+function isProductionEnv(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+  )
+}
+
+/** AUTH-014: fail fast in production when admin JWT secret is missing. */
+export function getAdminJwtSecret(): string {
+  const secret = process.env.ADMIN_JWT_SECRET
+  if (secret) return secret
+  if (isProductionEnv()) {
+    throw new Error('ADMIN_JWT_SECRET must be set in production')
+  }
+  return 'dev-admin-secret-not-for-production'
+}
+
+export function verifyAdminToken(token: string): { adminId: string } | null {
+  try {
+    const decoded = jwt.verify(token, getAdminJwtSecret()) as {
+      adminId?: string
+      type?: string
+    }
+    if (!decoded.adminId || decoded.type === 'refresh') {
+      return null
+    }
+    return { adminId: decoded.adminId }
+  } catch {
+    return null
+  }
+}
+
+export function getAdminTokenFromRequest(request: NextRequest): string | null {
+  return (
+    request.cookies.get(ADMIN_TOKEN_COOKIE)?.value ??
+    request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ??
+    null
+  )
+}
 
 export interface AdminUser {
   id: string
@@ -19,13 +58,16 @@ export interface AuthResult {
 
 export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult> {
   try {
-    const token = request.headers.get('authorization')?.replace('Bearer ', '')
-    
+    const token = getAdminTokenFromRequest(request)
+
     if (!token) {
       return { error: 'No token provided', user: null }
     }
 
-    const decoded = jwt.verify(token, ADMIN_JWT_SECRET) as { adminId: string }
+    const decoded = verifyAdminToken(token)
+    if (!decoded) {
+      return { error: 'Invalid or expired token', user: null }
+    }
     
     const admin = await prisma.adminUser.findUnique({
       where: { id: decoded.adminId }
@@ -56,16 +98,16 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult>
 }
 
 export function createAdminToken(adminId: string): string {
-  return jwt.sign({ adminId }, ADMIN_JWT_SECRET, { expiresIn: '24h' })
+  return jwt.sign({ adminId }, getAdminJwtSecret(), { expiresIn: '24h' })
 }
 
 export function createAdminRefreshToken(adminId: string): string {
-  return jwt.sign({ adminId, type: 'refresh' }, ADMIN_JWT_SECRET, { expiresIn: '7d' })
+  return jwt.sign({ adminId, type: 'refresh' }, getAdminJwtSecret(), { expiresIn: '7d' })
 }
 
 export async function verifyAdminRefreshToken(token: string): Promise<AuthResult> {
   try {
-    const decoded = jwt.verify(token, ADMIN_JWT_SECRET) as { adminId: string; type: string }
+    const decoded = jwt.verify(token, getAdminJwtSecret()) as { adminId: string; type: string }
     
     if (decoded.type !== 'refresh') {
       return { error: 'Invalid token type', user: null }
@@ -97,8 +139,8 @@ export async function verifyAdminRefreshToken(token: string): Promise<AuthResult
 export function createAuthResponse(user: AdminUser, message: string = 'Authentication successful') {
   const token = createAdminToken(user.id)
   const refreshToken = createAdminRefreshToken(user.id)
-  
-  return NextResponse.json({
+
+  const response = NextResponse.json({
     success: true,
     message,
     token,
@@ -107,9 +149,20 @@ export function createAuthResponse(user: AdminUser, message: string = 'Authentic
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role
-    }
+      role: user.role,
+    },
   })
+
+  const secure = isProductionEnv()
+  response.cookies.set(ADMIN_TOKEN_COOKIE, token, {
+    httpOnly: true,
+    secure,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 24 * 60 * 60,
+  })
+
+  return response
 }
 
 export function createErrorResponse(error: string, status: number = 401) {

@@ -16,7 +16,7 @@
 | Severity | Open | Next sprint focus |
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
-| high     | 3 | AUTH-006, AUTH-014, AUTH-015 |
+| high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
 | medium   | 6 | AUTH-007, AUTH-008, AUTH-013, AUTH-021, AUTH-022, AUTH-016 |
 | low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
 
@@ -116,23 +116,25 @@ flowchart TB
 - **Resolution (2026-05-20):** `generateSecureOtpCode()` via `crypto.randomInt`.
 
 ### AUTH-006 — CSRF protection does not apply to `/api` routes
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/proxy.ts`, `src/lib/csrf.ts`
 - **Problem:** Proxy `matcher` excludes `/api`. State-changing auth APIs are not CSRF-checked. Client never receives or sends `x-csrf-token`; `checkCSRFToken` uses NextAuth cookie as session id without a paired `generateCSRFToken` flow.
 - **Acceptance:** Enforce CSRF or SameSite + custom header on mutating APIs; or remove dead CSRF code.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** Same-origin guard on `/api` mutations via `api-mutation-guard`; proxy matcher includes API routes.
 
 ### AUTH-014 — Admin JWT fallback secret
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/lib/admin-auth.ts`
 - **Problem:** `ADMIN_JWT_SECRET || 'fallback-secret-change-in-production'`.
 - **Acceptance:** Fail fast in production if secret unset; rotate docs for ops.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** `getAdminJwtSecret()` fails fast in production; dev-only fallback locally.
 
 ### AUTH-015 — Admin routes not server-gated in proxy
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/proxy.ts`, `src/app/admin/`
 - **Problem:** Admin UI relies on `localStorage` JWT; proxy IP allowlist commented out; no JWT check on `/admin/*` pages.
@@ -160,6 +162,7 @@ flowchart TB
 - **Problem:** Login send returns `404 Utilisateur non trouvé`; onboarding returns `409` for existing phone — different signals.
 - **Acceptance:** Generic responses (“If an account exists, we sent a code”) on all public OTP sends.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** Generic OTP send message on login and onboarding send-otp.
 
 ### AUTH-008 — Long-lived JWT without server revocation
 - **Status:** open
@@ -170,20 +173,22 @@ flowchart TB
 - **Sprint:** P3.
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
-- **Status:** open
+- **Status:** done
 - **Area:** architecture
 - **Files:** `src/app/api/auth/*`, `src/app/api/onboarding/create-account/route.ts`, `src/components/registration/*`
 - **Problem:** Legacy `verify-and-create-account`, `verify-otp`, `/api/auth/login` (password), registration wizard vs `onboarding/create-account` + OTP login.
 - **Acceptance:** Single signup path; deprecate legacy APIs and remove unused UI; document in README.
 - **Sprint:** P2 — after AUTH-002.
+- **Resolution (2026-05-20):** Legacy verify/login/register APIs return `410`; onboarding is canonical path.
 
 ### AUTH-021 — Password auth surface remains after OTP-only product decision
-- **Status:** open
+- **Status:** done
 - **Area:** architecture / security
 - **Files:** `src/lib/auth.ts`, `src/app/api/auth/login/route.ts`, `src/app/forgot-password/`, `src/app/setup-password/`, `src/proxy.ts` (maintenance allowlist)
 - **Problem:** Login UI is OTP-only, but `authorize` still accepts password; forgot-password, setup-password, and password reset APIs remain reachable.
 - **Acceptance:** Remove or `410` password routes; strip password branch from `authorize`; update proxy maintenance allowlist; align docs and AUTH-001/003 outcomes.
 - **Sprint:** P2 — coordinate with AUTH-001/003 (remove vs secure).
+- **Resolution (2026-05-20):** Password branch removed from NextAuth; login/verify legacy APIs `410`; forgot/setup-password redirect to login.
 
 ### AUTH-022 — Rate limits stored in-memory only
 - **Status:** open
@@ -194,12 +199,13 @@ flowchart TB
 - **Sprint:** P3.
 
 ### AUTH-016 — OTP / PII logged in verify-otp and otp.ts
-- **Status:** open
+- **Status:** done
 - **Area:** security / ops
 - **Files:** `src/app/api/auth/verify-otp/route.ts`, `src/lib/otp.ts`, `src/lib/notifications.ts`
 - **Problem:** Debug `console.log` may include email, phone, OTP (including mock OTP logs).
 - **Acceptance:** Remove or redact in production; structured logging without secrets.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** OTP codes redacted from notification logs; verify-otp route removed logging.
 
 ---
 

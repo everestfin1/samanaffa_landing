@@ -26,7 +26,7 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
   }
 
   if (isMockOtpEnabled()) {
-    console.log(`📧 [MOCK OTP] Email to ${email}: ${otp}`)
+    console.info(`[mock-otp] email sent to ${email.replace(/(.{2}).+(@.+)/, '$1***$2')}`)
     return
   }
   const mailOptions = {
@@ -54,16 +54,17 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
 
 export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
   if (isMockOtpEnabled()) {
-    console.log(`📱 [MOCK OTP] SMS to ${phone}: ${otp}`)
+    console.info(`[mock-otp] sms sent to ${phone.replace(/\d(?=\d{4})/g, '*')}`)
     return
   }
   try {
-    console.log('🔍 BulkSMS Debug Info:')
-    console.log('- Token:', BULKSMS_TOKEN ? 'Set' : 'Missing')
-    console.log('- Username:', BULKSMS_USERNAME ? 'Set' : 'Missing')
-    console.log('- Password:', BULKSMS_PASSWORD ? 'Set' : 'Missing')
-    console.log('- Phone:', phone)
-    console.log('- API URL:', BULKSMS_API_URL)
+    const debugSms = process.env.NODE_ENV !== 'production'
+    if (debugSms) {
+      console.info('[bulksms] sending sms', {
+        token: BULKSMS_TOKEN ? 'set' : 'missing',
+        username: BULKSMS_USERNAME ? 'set' : 'missing',
+      })
+    }
     
     // Determine authentication method
     let authHeader = ''
@@ -71,7 +72,7 @@ export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       // Username/Password authentication
       const credentials = Buffer.from(`${BULKSMS_USERNAME}:${BULKSMS_PASSWORD}`).toString('base64')
       authHeader = `${credentials}`
-      console.log('- Using Username/Password authentication')
+      if (debugSms) console.info('[bulksms] username/password auth')
     } else {
       throw new Error('No BulkSMS authentication credentials provided. Set either BULKSMS_TOKEN or BULKSMS_USERNAME/BULKSMS_PASSWORD')
     }
@@ -80,9 +81,7 @@ export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       to: phone,
       body: `Votre code Sama Naffa: ${otp}. Expire dans 5min.`,
     }
-    
-    console.log('- Request body:', JSON.stringify(requestBody, null, 2))
-    
+
     const response = await fetch(BULKSMS_API_URL, {
       method: 'POST',
       headers: {
@@ -92,25 +91,19 @@ export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
       body: JSON.stringify(requestBody),
     })
 
-    console.log('- Response status:', response.status)
-    console.log('- Response headers:', Object.fromEntries(response.headers.entries()))
-
     if (!response.ok) {
       let errorData
       try {
         errorData = await response.json()
-        console.log('- Error response body:', JSON.stringify(errorData, null, 2))
-      } catch (parseError) {
+      } catch {
         const textResponse = await response.text()
-        console.log('- Error response text:', textResponse)
         errorData = { message: textResponse || 'Unknown error' }
       }
-      
+
       throw new Error(`BulkSMS API error (${response.status}): ${JSON.stringify(errorData)}`)
     }
 
-    const result = await response.json()
-    console.log('✅ SMS sent successfully via BulkSMS:', result)
+    await response.json()
   } catch (error) {
     console.error('❌ Error sending SMS via BulkSMS:', error)
     throw error

@@ -29,6 +29,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
+    const existingDocs = await prisma.kycDocument.findMany({
+      where: {
+        userId,
+        documentType: 'didit_kyc_session',
+        verificationStatus: 'PENDING',
+      },
+      orderBy: { uploadDate: 'desc' },
+      take: 1,
+    });
+    const existingDoc = existingDocs[0];
+    if (existingDoc?.fileUrl) {
+      const reuseRes = await fetch(`${DIDIT_BASE}/session/${existingDoc.fileUrl}/`, {
+        headers: { 'x-api-key': apiKey },
+      });
+      if (reuseRes.ok) {
+        const reused = await reuseRes.json();
+        const terminal = ['Approved', 'Declined', 'Expired', 'Abandoned'];
+        if (reused.url && reused.status && !terminal.includes(reused.status)) {
+          return NextResponse.json({
+            success: true,
+            sessionId: existingDoc.fileUrl,
+            verificationUrl: reused.url,
+            reused: true,
+          });
+        }
+      }
+    }
+
     const appUrl = getAppBaseUrl(request);
     const callbackUrl = `${appUrl}/onboarding/kyc-callback`;
 

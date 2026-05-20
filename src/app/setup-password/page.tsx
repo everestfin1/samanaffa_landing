@@ -10,14 +10,8 @@ function PasswordSetupPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const userIdParam = searchParams.get('userId');
-    if (userIdParam) {
-      setUserId(userIdParam);
-    } else {
-      // Redirect to login if no userId provided
-      router.push('/login?error=invalid_setup_link');
-    }
-  }, [searchParams, router]);
+    router.replace('/login?message=password_disabled');
+  }, [router]);
 
   const handleSuccess = () => {
     // Redirect to dashboard after successful password setup

@@ -6,7 +6,6 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { verifyOTPWithRateLimitByKey } from './otp'
 import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
-import bcrypt from 'bcryptjs'
 import type { User as PrismaUser } from './db/schema'
 
 export const authOptions: NextAuthOptions = {
@@ -75,26 +74,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error('User not found')
         }
 
-        // Handle password-based login
         if (credentials.type === 'login' && credentials.password) {
-          if (!user.passwordHash) {
-            throw new Error('Password not set for this account')
-          }
-
-          // Verify password
-          const isPasswordValid = await bcrypt.compare(credentials.password, user.passwordHash)
-          if (!isPasswordValid) {
-            throw new Error('Invalid password')
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: `${user.firstName} ${user.lastName}`,
-          }
+          throw new Error('Password login is disabled; use SMS OTP')
         }
 
-        // Handle OTP-based login (existing logic)
+        // Handle OTP-based login
         if (credentials.type === 'login' && credentials.otp) {
           const verifyResult = await verifyOTPWithRateLimitByKey(user.id, credentials.otp)
           if (verifyResult.success === false) {

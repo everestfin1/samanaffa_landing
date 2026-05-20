@@ -1,4 +1,5 @@
 import { NextRequest } from 'next/server'
+import { isApiMutationAllowed } from './api-mutation-guard'
 
 // Store CSRF tokens in memory (in production, use Redis or database)
 const csrfTokens = new Map<string, { token: string; expires: number }>()
@@ -72,34 +73,15 @@ export function getSessionIdFromRequest(request: NextRequest): string | null {
   return sessionId
 }
 
-// Middleware helper to check CSRF token
+/** Same-origin / API mutation guard (replaces unused token map flow — AUTH-006). */
 export function checkCSRFToken(request: NextRequest): { valid: boolean; error?: string } {
-  // Skip CSRF check for GET, HEAD, OPTIONS requests
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    return isApiMutationAllowed(request)
+  }
+
   if (['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
     return { valid: true }
   }
-  
-  // Skip CSRF check for API routes that don't need it (like webhooks)
-  const pathname = request.nextUrl.pathname
-  if (pathname.startsWith('/api/payments/intouch/callback') ||
-      pathname.startsWith('/api/webhooks/')) {
-    return { valid: true }
-  }
-  
-  const sessionId = getSessionIdFromRequest(request)
-  const token = getCSRFTokenFromRequest(request)
-  
-  if (!sessionId) {
-    return { valid: false, error: 'Session ID required for CSRF protection' }
-  }
-  
-  if (!token) {
-    return { valid: false, error: 'CSRF token required' }
-  }
-  
-  if (!verifyCSRFToken(sessionId, token)) {
-    return { valid: false, error: 'Invalid CSRF token' }
-  }
-  
-  return { valid: true }
+
+  return isApiMutationAllowed(request)
 }

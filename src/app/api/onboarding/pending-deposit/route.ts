@@ -4,22 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReferenceNumber } from '@/lib/utils';
 import { createUserNotification } from '@/lib/user-notifications';
-
-async function findPendingOnboardingIntent(userId: string) {
-  const intents = await prisma.transactionIntent.findMany({
-    where: {
-      userId,
-      intentType: 'DEPOSIT',
-      accountType: 'SAMA_NAFFA',
-      status: 'PENDING',
-      awaitingKycApproval: false,
-      userNotes: { contains: 'onboarding' },
-    },
-    orderBy: { createdAt: 'desc' },
-    take: 1,
-  });
-  return intents[0] ?? null;
-}
+import { findOnboardingDepositIntent } from '@/lib/onboarding-deposit';
 
 function serializeIntent(intent: {
   id: string;
@@ -51,7 +36,9 @@ export async function GET() {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const intent = await findPendingOnboardingIntent(session.user.id);
+    const intent = await findOnboardingDepositIntent(session.user.id, {
+      awaitingKycApproval: false,
+    });
     if (!intent) {
       return NextResponse.json({ success: true, intent: null });
     }
@@ -80,7 +67,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Montant invalide (minimum 1 000 FCFA)' }, { status: 400 });
     }
 
-    const intent = await findPendingOnboardingIntent(session.user.id);
+    const intent = await findOnboardingDepositIntent(session.user.id, {
+      awaitingKycApproval: false,
+    });
     if (!intent) {
       return NextResponse.json({ error: 'Aucun dépôt programmé à modifier' }, { status: 404 });
     }
@@ -131,7 +120,9 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const intent = await findPendingOnboardingIntent(session.user.id);
+    const intent = await findOnboardingDepositIntent(session.user.id, {
+      awaitingKycApproval: false,
+    });
     if (!intent) {
       return NextResponse.json({ error: 'Aucun dépôt programmé à annuler' }, { status: 404 });
     }

@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
+import { isOnboardingDepositUserNotes } from '@/lib/onboarding-deposit';
 
 // Payment request validation middleware
 function validatePaymentRequest(request: NextRequest, body: Record<string, unknown>): { isValid: boolean; error?: string } {
@@ -926,7 +927,7 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
     if (statusChangedToCompleted) {
       const isOnboardingDeposit =
-        updatedIntent.userNotes?.toLowerCase().includes('onboarding') ?? false;
+        isOnboardingDepositUserNotes(updatedIntent.userNotes);
       if (isOnboardingDeposit && finalStatus === 'COMPLETED') {
         try {
           const { createUserNotification } = await import('@/lib/user-notifications');
