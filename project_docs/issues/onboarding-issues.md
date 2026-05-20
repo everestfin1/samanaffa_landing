@@ -18,7 +18,7 @@
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 1 | ONB-008 (tests) |
-| medium   | 10 | ONB-026–028, ONB-042, ONB-031–034, ONB-036–037 |
+| medium   | 8 | ONB-026, ONB-031–034, ONB-036–037 |
 | low      | 6 | ONB-029, ONB-030, ONB-035, ONB-038 (bar), ONB-039, ONB-040 |
 
 _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-038 (KYC login redirect), ONB-024 (localhost callback).

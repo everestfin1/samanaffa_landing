@@ -17,7 +17,7 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 6 | AUTH-007, AUTH-008, AUTH-013, AUTH-021, AUTH-022, AUTH-016 |
+| medium   | 2 | AUTH-008, AUTH-022 |
 | low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
