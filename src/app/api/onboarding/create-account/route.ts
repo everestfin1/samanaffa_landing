@@ -6,6 +6,7 @@ import { getNaffaProductById } from '@/lib/naffa-products';
 import { checkOTPRateLimit } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
 import { mergeInvestorProfile } from '@/lib/onboarding-progress';
+import { issuePostSignupToken } from '@/lib/post-signup-token';
 
 /**
  * New onboarding flow (T1) — phone-only account creation.
@@ -189,10 +190,13 @@ export async function POST(request: NextRequest) {
 
       await prisma.registrationSession.delete({ where: { id: sessionId } });
 
+      const sessionToken = await issuePostSignupToken(newUser.id);
+
       return NextResponse.json({
         success: true,
         userId: newUser.id,
         phone: newUser.phone,
+        sessionToken,
       });
     }
 

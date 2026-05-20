@@ -8,7 +8,13 @@ interface T1PhoneProps {
   simulation: unknown;
   initialPhone?: string;
   initialCountry?: string;
-  onSuccess: (userId: string, phone: string, displayPhone: string, countryCode: string) => void;
+  onSuccess: (
+    userId: string,
+    phone: string,
+    displayPhone: string,
+    countryCode: string,
+    sessionToken: string,
+  ) => void;
   onBack?: () => void;
 }
 
@@ -147,7 +153,10 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
-      onSuccess(data.userId, data.phone, displayPhone, country.code);
+      if (!data.sessionToken) {
+        throw new Error('Session de connexion manquante');
+      }
+      onSuccess(data.userId, data.phone, displayPhone, country.code, data.sessionToken);
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {

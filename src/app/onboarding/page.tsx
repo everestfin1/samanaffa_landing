@@ -146,7 +146,6 @@ function OnboardingPageContent() {
             formula: merged.formula,
             depositAmount: merged.depositAmount,
             wallet: merged.wallet,
-            ...(nextStep === 'T6' ? { kycApproved: true } : {}),
           }),
         });
       } catch {
@@ -164,14 +163,15 @@ function OnboardingPageContent() {
     phone: string,
     displayPhone: string,
     countryCode: string,
+    sessionToken: string,
   ) => {
     const next: Partial<OnboardingState> = { userId, phone, displayPhone, countryCode };
     setState((s) => ({ ...s, ...next }));
     setAuthPending(true);
     try {
       const result = await signIn('credentials', {
-        phone,
-        type: 'register',
+        postSignupToken: sessionToken,
+        type: 'post_signup',
         redirect: false,
       });
       if (result?.error) {
@@ -351,8 +351,7 @@ function OnboardingPageContent() {
                   resumeSessionId={kycResumeSessionId}
                   onBack={() => setStep('T4')}
                   onApproved={async () => {
-                    setStep('T6');
-                    await fetch('/api/onboarding/progress', {
+                    const res = await fetch('/api/onboarding/progress', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
                       body: JSON.stringify({
@@ -361,9 +360,16 @@ function OnboardingPageContent() {
                         formula: state.formula,
                         depositAmount: state.depositAmount,
                         wallet: state.wallet,
-                        kycApproved: true,
                       }),
                     });
+                    if (!res.ok) {
+                      const data = await res.json().catch(() => ({}));
+                      throw new Error(
+                        (data as { error?: string }).error ||
+                          'Impossible de passer à l\'étape finale',
+                      );
+                    }
+                    setStep('T6');
                   }}
                 />
               </motion.div>

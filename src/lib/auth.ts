@@ -3,7 +3,8 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from './db'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { generateOTP, verifyOTP } from './otp'
+import { verifyOTP } from './otp'
+import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import bcrypt from 'bcryptjs'
 import type { User as PrismaUser } from './db/schema'
@@ -18,9 +19,26 @@ export const authOptions: NextAuthOptions = {
         phone: { label: 'Phone', type: 'text' },
         password: { label: 'Password', type: 'password' },
         otp: { label: 'OTP Code', type: 'text' },
-        type: { label: 'Type', type: 'text' } // 'login', 'register', or 'password_login'
+        postSignupToken: { label: 'Post-signup token', type: 'text' },
+        type: { label: 'Type', type: 'text' } // 'login' | 'post_signup'
       },
       async authorize(credentials) {
+        if (credentials?.type === 'post_signup' && credentials.postSignupToken) {
+          const userId = await consumePostSignupToken(credentials.postSignupToken)
+          if (!userId) {
+            throw new Error('Invalid or expired signup session')
+          }
+          const signupUser = await prisma.user.findUnique({ where: { id: userId } })
+          if (!signupUser) {
+            throw new Error('User not found')
+          }
+          return {
+            id: signupUser.id,
+            email: signupUser.email,
+            name: `${signupUser.firstName} ${signupUser.lastName}`,
+          }
+        }
+
         if (!credentials?.email && !credentials?.phone) {
           throw new Error('Email or phone is required')
         }
@@ -91,22 +109,8 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
-        // For registration type, skip OTP verification since it was already verified
         if (credentials.type === 'register') {
-          // Just verify the user exists and is properly registered
-          const accounts = await prisma.userAccount.findMany({
-            where: { userId: user.id }
-          })
-
-          if (accounts.length < 2) {
-            throw new Error('Registration incomplete')
-          }
-
-          return {
-            id: user.id,
-            email: user.email,
-            name: `${user.firstName} ${user.lastName}`,
-          }
+          throw new Error('Registration sign-in is no longer supported; use post_signup token')
         }
 
         throw new Error('Invalid authentication method')

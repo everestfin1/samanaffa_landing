@@ -7,7 +7,11 @@ export interface OnboardingProgressPayload {
   formula?: string | null;
   depositAmount?: number | null;
   wallet?: string | null;
+  /** @deprecated Server derives from user.kycStatus — never trust client */
   kycApproved?: boolean;
+  /** One-time post-signup session exchange (AUTH-002) */
+  postSignupJti?: string;
+  postSignupExpires?: string;
 }
 
 export function parseInvestorProfile(raw: unknown): Record<string, unknown> {

@@ -1,43 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { put } from '@vercel/blob'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkKYCRateLimit } from '@/lib/rate-limit'
 
+async function requireSessionUserId(request: NextRequest): Promise<
+  { userId: string } | NextResponse
+> {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: 'Non authentifié' }, { status: 401 })
+  }
+
+  const rateLimit = checkKYCRateLimit(request, session.user.id)
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      {
+        error: rateLimit.blocked
+          ? `Trop de téléchargements de documents. Réessayez dans ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
+          : 'Trop de téléchargements de documents. Veuillez réessayer plus tard.',
+        rateLimit: {
+          remaining: rateLimit.remaining,
+          resetTime: rateLimit.resetTime,
+          blocked: rateLimit.blocked,
+        },
+      },
+      { status: 429 },
+    )
+  }
+
+  return { userId: session.user.id }
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireSessionUserId(request)
+    if (auth instanceof NextResponse) {
+      return auth
+    }
+    const { userId } = auth
+
     const formData = await request.formData()
     const file = formData.get('file') as File
-    const userId = formData.get('userId') as string
     const documentType = formData.get('documentType') as string
-
-    // Check rate limiting for KYC uploads
-    if (userId) {
-      const rateLimit = checkKYCRateLimit(request, userId)
-      
-      if (!rateLimit.allowed) {
-        return NextResponse.json({
-          error: rateLimit.blocked 
-            ? `Trop de téléchargements de documents. Réessayez dans ${Math.ceil((rateLimit.resetTime - Date.now()) / 60000)} minutes.`
-            : 'Trop de téléchargements de documents. Veuillez réessayer plus tard.',
-          rateLimit: {
-            remaining: rateLimit.remaining,
-            resetTime: rateLimit.resetTime,
-            blocked: rateLimit.blocked
-          }
-        }, { status: 429 })
-      }
-    }
 
     if (!file) {
       return NextResponse.json(
         { error: 'No file uploaded' },
-        { status: 400 }
-      )
-    }
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
         { status: 400 }
       )
     }
@@ -49,7 +59,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file type (KYC documents only)
     const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png']
     if (!allowedTypes.includes(file.type)) {
       return NextResponse.json(
@@ -58,7 +67,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate file size (max 10MB for KYC docs)
     if (file.size > 10 * 1024 * 1024) {
       return NextResponse.json(
         { error: 'File too large. Maximum size is 10MB.' },
@@ -66,7 +74,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Validate document type
     const allowedDocumentTypes = [
       'national_id',
       'national_id_back',
@@ -87,7 +94,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if user exists
     const user = await prisma.user.findUnique({
       where: { id: userId }
     })
@@ -99,12 +105,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Upload file to Vercel Blob
     const blob = await put(`kyc/${userId}/${Date.now()}-${file.name}`, file, {
       access: 'public',
     })
 
-    // Save document record to database
     const kycDocument = await prisma.kycDocument.create({
       data: {
         userId,
@@ -137,15 +141,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'User ID is required' },
-        { status: 400 }
-      )
+    const auth = await requireSessionUserId(request)
+    if (auth instanceof NextResponse) {
+      return auth
     }
+    const { userId } = auth
 
     const kycDocuments = await prisma.kycDocument.findMany({
       where: { userId },

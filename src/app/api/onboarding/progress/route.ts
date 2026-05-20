@@ -42,7 +42,7 @@ export async function GET() {
         formula: saved.formula ?? null,
         depositAmount: saved.depositAmount ?? null,
         wallet: saved.wallet ?? null,
-        kycApproved: user.kycStatus === 'APPROVED' || saved.kycApproved === true,
+        kycApproved: user.kycStatus === 'APPROVED',
       },
     });
   } catch (error) {
@@ -65,11 +65,18 @@ export async function PATCH(request: NextRequest) {
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
-      select: { investorProfile: true, firstName: true },
+      select: { investorProfile: true, firstName: true, kycStatus: true },
     });
 
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
+    }
+
+    if (body.step === 'T6' && user.kycStatus !== 'APPROVED') {
+      return NextResponse.json(
+        { error: 'La vérification d\'identité doit être approuvée avant de continuer' },
+        { status: 403 },
+      );
     }
 
     const onboardingPatch: Partial<OnboardingProgressPayload> = { step: body.step };
@@ -78,7 +85,6 @@ export async function PATCH(request: NextRequest) {
     if (body.formula !== undefined) onboardingPatch.formula = body.formula;
     if (body.depositAmount !== undefined) onboardingPatch.depositAmount = body.depositAmount;
     if (body.wallet !== undefined) onboardingPatch.wallet = body.wallet;
-    if (body.kycApproved !== undefined) onboardingPatch.kycApproved = body.kycApproved;
 
     const investorProfile = mergeInvestorProfile(user.investorProfile, {
       onboarding: onboardingPatch,
@@ -92,23 +98,32 @@ export async function PATCH(request: NextRequest) {
       updateData.firstName = body.firstName.trim();
     }
 
-    const updated = await prisma.user.update({
+    await prisma.user.update({
       where: { id: session.user.id },
       data: updateData,
     });
 
-    const progress = readOnboardingProgress(updated.investorProfile);
+    const refreshed = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { firstName: true, investorProfile: true, kycStatus: true },
+    });
+
+    if (!refreshed) {
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
+    }
+
+    const progress = readOnboardingProgress(refreshed.investorProfile);
 
     return NextResponse.json({
       success: true,
       progress: {
         step: progress.step ?? body.step,
         simulation: progress.simulation ?? null,
-        firstName: progress.firstName ?? updated.firstName,
+        firstName: progress.firstName ?? refreshed.firstName,
         formula: progress.formula ?? null,
         depositAmount: progress.depositAmount ?? null,
         wallet: progress.wallet ?? null,
-        kycApproved: progress.kycApproved ?? false,
+        kycApproved: refreshed.kycStatus === 'APPROVED',
       },
     });
   } catch (error) {

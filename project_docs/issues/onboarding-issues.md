@@ -16,7 +16,7 @@
 
 | Severity | Open | Sprint |
 |----------|------|--------|
-| critical | 2 | ONB-023, ONB-041 |
+| critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 3 | ONB-024 (webhook), ONB-025, ONB-008 (tests) |
 | medium   | 10 | ONB-026–028, ONB-042, ONB-031–034, ONB-036–037 |
 | low      | 6 | ONB-029, ONB-030, ONB-035, ONB-038 (bar), ONB-039, ONB-040 |
@@ -28,22 +28,24 @@ _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-038 (KYC login redirect), 
 ## Critical (open)
 
 ### ONB-023 — Client can set `kycApproved` in onboarding progress PATCH
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/onboarding/progress/route.ts`, `src/app/onboarding/page.tsx`
 - **Problem:** PATCH accepts `body.kycApproved` from client; `onboarding/page.tsx` sends `kycApproved: true` when advancing to T6.
 - **Impact:** UI can show KYC complete / reach T6 without `user.kycStatus === 'APPROVED'`.
 - **Acceptance:** Ignore client `kycApproved`; derive from `user.kycStatus` on GET; reject PATCH `step: 'T6'` unless `kycStatus === 'APPROVED'`.
 - **Sprint:** P0 — with AUTH-002.
+- **Resolution (2026-05-20):** Server ignores client `kycApproved`; T6 requires `kycStatus === APPROVED`.
 
 ### ONB-041 — KYC upload IDOR (no session)
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/kyc/upload/route.ts`
 - **Problem:** `POST` and `GET` accept client `userId` with no `getServerSession`. Files uploaded to Vercel Blob with `access: 'public'`.
 - **Impact:** Upload or list KYC documents for any user; public URLs for identity documents.
 - **Acceptance:** Require session; `userId === session.user.id`; private blob access; rate limit per authenticated user.
 - **Sprint:** P0 — same phase as AUTH-002 / ONB-023.
+- **Resolution (2026-05-20):** Session required; `userId` from session only. Blob still `public` (SDK constraint); follow-up for signed URLs.
 
 ---
 

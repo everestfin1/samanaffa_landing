@@ -15,7 +15,7 @@
 
 | Severity | Open | Next sprint focus |
 |----------|------|-------------------|
-| critical | 3 | AUTH-002, AUTH-001, AUTH-003 |
+| critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 6 | AUTH-004, AUTH-005, AUTH-006, AUTH-014, AUTH-015, AUTH-020 |
 | medium   | 6 | AUTH-007, AUTH-008, AUTH-013, AUTH-021, AUTH-022, AUTH-016 |
 | low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
@@ -64,31 +64,34 @@ flowchart TB
 ## Critical (open)
 
 ### AUTH-001 — Password reset API does not require OTP proof
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/auth/reset-password/route.ts`, `src/app/forgot-password/`
 - **Problem:** `POST /api/auth/reset-password` accepts `email` or `phone` + `newPassword` only. UI may call `verify-otp` first, but the API does not check a reset token or recent OTP verification.
 - **Impact:** Account takeover via direct API call without OTP.
 - **Acceptance:** Reset only after verified OTP (single-use token from `verify-otp`), or remove endpoint if product stays OTP-only (AUTH-021).
 - **Sprint:** P0 — block or remove with OTP-only decision.
+- **Resolution (2026-05-20):** `POST` returns `410`; OTP-only login.
 
 ### AUTH-002 — `signIn({ type: 'register' })` bypasses OTP re-verification
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/lib/auth.ts`, `src/app/onboarding/page.tsx`
 - **Problem:** After onboarding T1, client calls `signIn('credentials', { phone, type: 'register' })`. `authorize` only checks user exists and `userAccount.count >= 2` — no OTP or password.
 - **Impact:** Anyone who knows a user’s phone can obtain a 30-day JWT after account creation.
 - **Acceptance:** Issue one-time server token from `create-account` (httpOnly cookie or signed JWT ≤5 min); exchange once for session; remove or harden `type: 'register'`.
 - **Sprint:** P0 — first implementation task.
+- **Resolution (2026-05-20):** `issuePostSignupToken` from `create-account`; `signIn(type: post_signup)`; `register` rejected.
 
 ### AUTH-003 — Setup password by raw `userId` without auth
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/auth/setup-password/route.ts`, `src/app/setup-password/`
 - **Problem:** `POST` accepts `{ userId, password }` with no session, OTP, or signed token.
 - **Impact:** Attacker who guesses/obtains UUID can set password; enables password login in `auth.ts` on otherwise OTP-only accounts.
 - **Acceptance:** Require session or signed token; or return `410` / remove if OTP-only is permanent (AUTH-021).
 - **Sprint:** P0 — block or remove with OTP-only decision.
+- **Resolution (2026-05-20):** `POST` returns `410`; OTP-only login.
 
 ---
 
@@ -242,6 +245,18 @@ flowchart TB
 ### AUTH-019 — Login UI OTP-only with mock mode
 - **Status:** done
 - **Resolution (2026-05-19):** Phone two-step login; `mockOtp` + `mockMode` in send-otp when `MOCK_OTP=true`.
+
+### AUTH-001 — Password reset API does not require OTP proof
+- **Status:** done
+- **Resolution (2026-05-20):** Endpoint returns `410` (OTP-only product).
+
+### AUTH-002 — `signIn({ type: 'register' })` bypasses OTP re-verification
+- **Status:** done
+- **Resolution (2026-05-20):** One-time `sessionToken` from `create-account`; `post_signup` in `authorize`.
+
+### AUTH-003 — Setup password by raw `userId` without auth
+- **Status:** done
+- **Resolution (2026-05-20):** Endpoint returns `410` (OTP-only product).
 
 ---
 
