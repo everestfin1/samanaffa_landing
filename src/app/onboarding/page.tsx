@@ -71,6 +71,7 @@ function OnboardingPageContent() {
   });
   const [authPending, setAuthPending] = useState(false);
   const [resumeChecked, setResumeChecked] = useState(false);
+  const [progressError, setProgressError] = useState<string | null>(null);
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const activeUserId = state.userId ?? sessionUserId;
 
@@ -133,10 +134,11 @@ function OnboardingPageContent() {
   }, [kycResumeFromUrl, resumeChecked, router, sessionStatus]);
 
   const saveProgress = useCallback(
-    async (nextStep: OnboardingStep, patch: Partial<OnboardingState> = {}) => {
+    async (nextStep: OnboardingStep, patch: Partial<OnboardingState> = {}): Promise<boolean> => {
       const merged = { ...state, ...patch };
+      setProgressError(null);
       try {
-        await fetch('/api/onboarding/progress', {
+        const res = await fetch('/api/onboarding/progress', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -148,8 +150,18 @@ function OnboardingPageContent() {
             wallet: merged.wallet,
           }),
         });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setProgressError(
+            (data as { error?: string }).error ||
+              'Impossible d\'enregistrer votre progression. Réessayez.',
+          );
+          return false;
+        }
+        return true;
       } catch {
-        // non-fatal
+        setProgressError('Erreur de connexion. Vérifiez votre réseau et réessayez.');
+        return false;
       }
     },
     [state],
@@ -178,8 +190,8 @@ function OnboardingPageContent() {
         router.push('/login?message=auto_login_failed');
         return;
       }
-      setStep('T2');
-      await saveProgress('T2', next);
+      const saved = await saveProgress('T2', next);
+      if (saved) setStep('T2');
     } catch {
       router.push('/login?message=auto_login_failed');
     } finally {
@@ -225,6 +237,14 @@ function OnboardingPageContent() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {progressError && (
+        <div className="shrink-0 max-w-md mx-auto w-full px-4 pt-3">
+          <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+            {progressError}
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-1 flex-col">
         <OnboardingStepContainer step={step}>
@@ -284,9 +304,10 @@ function OnboardingPageContent() {
                 <T2FirstName
                   initialValue={state.firstName ?? undefined}
                   onSuccess={async (firstName) => {
+                    const saved = await saveProgress('T3', { firstName });
+                    if (!saved) return;
                     setState((s) => ({ ...s, firstName }));
                     setStep('T3');
-                    await saveProgress('T3', { firstName });
                   }}
                 />
               </motion.div>
@@ -305,9 +326,10 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   onBack={() => setStep('T2')}
                   onSuccess={async (formula) => {
+                    const saved = await saveProgress('T4', { formula });
+                    if (!saved) return;
                     setState((s) => ({ ...s, formula }));
                     setStep('T4');
-                    await saveProgress('T4', { formula });
                   }}
                 />
               </motion.div>
@@ -328,9 +350,10 @@ function OnboardingPageContent() {
                   initialWallet={state.wallet}
                   onBack={() => setStep('T3')}
                   onSuccess={async (amount, wallet) => {
+                    const saved = await saveProgress('T5', { depositAmount: amount, wallet });
+                    if (!saved) return;
                     setState((s) => ({ ...s, depositAmount: amount, wallet }));
                     setStep('T5');
-                    await saveProgress('T5', { depositAmount: amount, wallet });
                   }}
                 />
               </motion.div>

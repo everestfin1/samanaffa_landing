@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { prisma } from '@/lib/prisma';
 import { syncDiditDecision, DIDIT_STATUS_MAP } from '@/lib/kyc-sync';
+
+function isProductionEnv(): boolean {
+  return (
+    process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production'
+  );
+}
 
 // ── Signature verification (Didit V2) ──────────────────────────────────────
 // HMAC-SHA256 of "{timestamp}:{canonical_json}"
@@ -38,17 +45,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  // Verify HMAC signature if secret is configured
   const secret = process.env.DIDIT_WEBHOOK_SECRET;
-  if (secret) {
-    const sigV2     = request.headers.get('X-Signature-V2') ?? '';
-    const tsHeader  = request.headers.get('X-Timestamp') ?? '';
+  if (!secret) {
+    if (isProductionEnv()) {
+      console.error('[webhooks/didit] DIDIT_WEBHOOK_SECRET missing in production');
+      return NextResponse.json({ error: 'Webhook not configured' }, { status: 503 });
+    }
+    console.warn('[webhooks/didit] DIDIT_WEBHOOK_SECRET not set — skipping signature check (non-production)');
+  } else {
+    const sigV2 = request.headers.get('X-Signature-V2') ?? '';
+    const tsHeader = request.headers.get('X-Timestamp') ?? '';
     if (!sigV2 || !verifySignatureV2(body, sigV2, tsHeader, secret)) {
       console.warn('[webhooks/didit] Invalid signature — rejected');
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 });
     }
-  } else {
-    console.warn('[webhooks/didit] DIDIT_WEBHOOK_SECRET not set — skipping signature check');
   }
 
   const { session_id, status, vendor_data: userId } = body as {
@@ -63,6 +73,22 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const kycDocs = await prisma.kycDocument.findMany({
+      where: {
+        documentType: 'didit_kyc_session',
+        fileUrl: session_id,
+      },
+      take: 1,
+    });
+    const kycDoc = kycDocs[0];
+
+    if (!kycDoc || kycDoc.userId !== userId) {
+      console.warn(
+        `[webhooks/didit] Session ${session_id} does not belong to user ${userId}`,
+      );
+      return NextResponse.json({ error: 'Session mismatch' }, { status: 403 });
+    }
+
     await syncDiditDecision(userId, status, session_id);
     return NextResponse.json({ received: true });
   } catch (error) {

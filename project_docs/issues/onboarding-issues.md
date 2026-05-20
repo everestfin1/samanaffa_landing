@@ -17,7 +17,7 @@
 | Severity | Open | Sprint |
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
-| high     | 3 | ONB-024 (webhook), ONB-025, ONB-008 (tests) |
+| high     | 1 | ONB-008 (tests) |
 | medium   | 10 | ONB-026–028, ONB-042, ONB-031–034, ONB-036–037 |
 | low      | 6 | ONB-029, ONB-030, ONB-035, ONB-038 (bar), ONB-039, ONB-040 |
 
@@ -52,23 +52,25 @@ _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-038 (KYC login redirect), 
 ## High (open)
 
 ### ONB-024 — Didit webhook does not bind session to user
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/app/api/webhooks/didit/route.ts`, `src/lib/kyc-sync.ts`
 - **Problem:** Webhook trusts `vendor_data` user id without verifying `session_id` belongs to that user’s `kycDocument`.
 - **Impact:** Wrong-user KYC sync if session id is known/guessed.
 - **Acceptance:** Load `kycDocument` by `session_id`; require `userId === vendor_data` before `syncDiditDecision`.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** Webhook loads `kycDocument` by `session_id` (`fileUrl`); rejects if `userId !== vendor_data`.
 
 _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** — same ID, different issue.)_
 
 ### ONB-025 — Didit webhook secret optional
-- **Status:** open
+- **Status:** done
 - **Area:** security / ops
 - **Files:** `src/app/api/webhooks/didit/route.ts`
 - **Problem:** Signature verification skipped when `DIDIT_WEBHOOK_SECRET` unset.
 - **Acceptance:** Reject webhooks in production without secret; fail deploy check if missing.
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** Production returns 503 if `DIDIT_WEBHOOK_SECRET` unset; signature required when set.
 
 ### ONB-008 — No automated tests for onboarding
 - **Status:** open
@@ -105,13 +107,14 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Acceptance:** One active onboarding intent per user; reuse open Didit session when possible.
 
 ### ONB-042 — Onboarding progress save fails silently
-- **Status:** open
+- **Status:** done
 - **Area:** reliability
 - **Files:** `src/app/onboarding/page.tsx` (`saveProgress`)
 - **Problem:** `fetch('/api/onboarding/progress')` errors are caught and ignored (`// non-fatal`). User can advance steps while server state is stale.
 - **Impact:** Resume after refresh shows wrong step; KYC/deposit state desync.
 - **Acceptance:** Surface error to user; block step advance on non-OK PATCH (or retry with backoff).
 - **Sprint:** P2.
+- **Resolution (2026-05-20):** `saveProgress` returns success flag; step advance blocked on failure; error banner shown.
 
 ### ONB-031 — Notifications full page ignores `metadata.actionUrl`
 - **Status:** open
