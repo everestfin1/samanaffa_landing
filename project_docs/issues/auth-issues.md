@@ -156,7 +156,7 @@ flowchart TB
 ## Medium (open)
 
 ### AUTH-007 — User enumeration on OTP send
-- **Status:** open
+- **Status:** done
 - **Area:** security / ux
 - **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/api/onboarding/create-account/route.ts`
 - **Problem:** Login send returns `404 Utilisateur non trouvé`; onboarding returns `409` for existing phone — different signals.
