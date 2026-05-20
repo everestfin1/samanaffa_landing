@@ -1,11 +1,73 @@
+import { NextRequest } from 'next/server'
 import { prisma } from './prisma'
 import { sendEmailOTP, sendSMSOTP } from './notifications'
 import { generatePhoneFormats } from './utils'
+import { generateSecureOtpCode } from './otp-crypto'
+import {
+  checkOTPVerifyRateLimit,
+  checkOTPVerifyRateLimitByKey,
+  resetRateLimit,
+  resetRateLimitByKey,
+} from './rate-limit'
 import type { User } from './db/schema'
 
+export type VerifyOTPResult =
+  | { success: true }
+  | { success: false; error: 'invalid' }
+  | {
+      success: false
+      error: 'rate_limited'
+      resetTime: number
+      blocked: boolean
+    }
+
+export async function verifyOTPWithRateLimit(
+  request: NextRequest,
+  identifier: string,
+  code: string,
+): Promise<VerifyOTPResult> {
+  const normalized = String(code).replace(/\D/g, '').slice(0, 6)
+  const rateLimit = checkOTPVerifyRateLimit(request, identifier)
+  if (!rateLimit.allowed) {
+    return {
+      success: false,
+      error: 'rate_limited',
+      resetTime: rateLimit.resetTime,
+      blocked: rateLimit.blocked,
+    }
+  }
+  const ok = await verifyOTP(identifier, normalized)
+  if (ok) {
+    resetRateLimit(request, 'otpVerify', identifier)
+    return { success: true }
+  }
+  return { success: false, error: 'invalid' }
+}
+
+export async function verifyOTPWithRateLimitByKey(
+  identifier: string,
+  code: string,
+): Promise<VerifyOTPResult> {
+  const normalized = String(code).replace(/\D/g, '').slice(0, 6)
+  const rateLimit = checkOTPVerifyRateLimitByKey(identifier)
+  if (!rateLimit.allowed) {
+    return {
+      success: false,
+      error: 'rate_limited',
+      resetTime: rateLimit.resetTime,
+      blocked: rateLimit.blocked,
+    }
+  }
+  const ok = await verifyOTP(identifier, normalized)
+  if (ok) {
+    resetRateLimitByKey('otpVerify', identifier)
+    return { success: true }
+  }
+  return { success: false, error: 'invalid' }
+}
+
 export async function generateOTP(userId: string, type: 'email' | 'sms'): Promise<string> {
-  // Generate 6-digit OTP
-  const otp = Math.floor(100000 + Math.random() * 900000).toString()
+  const otp = generateSecureOtpCode()
   
   // Store OTP in database with 5-minute expiry
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
@@ -112,25 +174,15 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
         user = await prisma.user.findFirst({
           where: { email }
         })
-        console.log('🔍 Email lookup result:', { email, found: !!user })
       }
 
       if (!user && phone) {
-        // Try multiple phone number formats for lookup
         const phoneFormats = generatePhoneFormats(phone)
-
-        console.log('🔍 Phone lookup formats to try:', phoneFormats)
-
         for (const phoneFormat of phoneFormats) {
           user = await prisma.user.findFirst({
             where: { phone: phoneFormat }
           })
-          console.log('🔍 Phone lookup attempt:', { format: phoneFormat, found: !!user })
-
-          if (user) {
-            console.log('✅ User found with phone format:', phoneFormat)
-            break
-          }
+          if (user) break
         }
       }
 
@@ -235,7 +287,7 @@ export async function sendOTP(email?: string, phone?: string, type: 'login' | 'r
     try {
       if (registrationSessionId) {
         // For registration sessions
-        const otp = Math.floor(100000 + Math.random() * 900000).toString()
+        const otp = generateSecureOtpCode()
         await prisma.otpCode.create({
           data: {
             userId: null,

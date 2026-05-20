@@ -3,7 +3,7 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from './db'
 import { prisma } from './prisma'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import { verifyOTP } from './otp'
+import { verifyOTPWithRateLimitByKey } from './otp'
 import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import bcrypt from 'bcryptjs'
@@ -96,9 +96,11 @@ export const authOptions: NextAuthOptions = {
 
         // Handle OTP-based login (existing logic)
         if (credentials.type === 'login' && credentials.otp) {
-          // Verify OTP
-          const isValidOTP = await verifyOTP(user.id, credentials.otp)
-          if (!isValidOTP) {
+          const verifyResult = await verifyOTPWithRateLimitByKey(user.id, credentials.otp)
+          if (verifyResult.success === false) {
+            if (verifyResult.error === 'rate_limited') {
+              throw new Error('Trop de tentatives. Réessayez plus tard.')
+            }
             throw new Error('Invalid OTP code')
           }
 

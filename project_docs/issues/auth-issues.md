@@ -16,7 +16,7 @@
 | Severity | Open | Next sprint focus |
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
-| high     | 6 | AUTH-004, AUTH-005, AUTH-006, AUTH-014, AUTH-015, AUTH-020 |
+| high     | 3 | AUTH-006, AUTH-014, AUTH-015 |
 | medium   | 6 | AUTH-007, AUTH-008, AUTH-013, AUTH-021, AUTH-022, AUTH-016 |
 | low      | 3 | AUTH-010, AUTH-012, AUTH-017 |
 
@@ -98,20 +98,22 @@ flowchart TB
 ## High (open)
 
 ### AUTH-004 — OTP verification not rate-limited
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/lib/otp.ts`, `src/lib/rate-limit.ts`, `src/app/api/auth/verify-otp/route.ts`, `src/app/onboarding/create-account/route.ts`, NextAuth `authorize` (OTP branch)
 - **Problem:** Rate limits apply to `send-otp` / `create-account` send only. Verify paths allow brute force of 6-digit codes within 5-minute OTP window (~10⁶ attempts).
 - **Acceptance:** Per-phone/session/IP limits on verify; lockout after N failures; apply to `verifyOTP` and failed `signIn` OTP attempts.
 - **Sprint:** P1 — immediately after critical auth fixes.
+- **Resolution (2026-05-20):** `otpVerify` rate limit + `verifyOTPWithRateLimit` on all verify paths and NextAuth login.
 
 ### AUTH-005 — OTP generated with `Math.random()`
-- **Status:** open
+- **Status:** done
 - **Area:** security
 - **Files:** `src/lib/otp.ts`
 - **Problem:** 6-digit codes use non-cryptographic RNG.
 - **Acceptance:** Use `crypto.randomInt` (or equivalent CSPRNG) in `generateOTP` and registration-session OTP creation.
 - **Sprint:** P1.
+- **Resolution (2026-05-20):** `generateSecureOtpCode()` via `crypto.randomInt`.
 
 ### AUTH-006 — CSRF protection does not apply to `/api` routes
 - **Status:** open
@@ -138,13 +140,14 @@ flowchart TB
 - **Sprint:** P2.
 
 ### AUTH-020 — `mockOtp` returned in login API JSON on preview/dev
-- **Status:** open
+- **Status:** done
 - **Area:** security / ops
 - **Files:** `src/app/api/auth/send-otp/route.ts`, `src/app/login/page.tsx`, `src/lib/mock-otp.ts`
 - **Problem:** When `MOCK_OTP=true`, login `send-otp` returns `mockOtp` in response body. On shared Vercel Preview, anyone who can trigger send for a known phone receives the code without SMS.
 - **Impact:** Lower risk than production (mock disabled there); still account compromise on preview if phone is known.
 - **Acceptance:** Prefer server logs only on preview, or require authenticated session / same-origin session cookie before returning `mockOtp`; keep UI dev button only when caller already proved phone ownership in same request flow.
 - **Sprint:** P1 — with AUTH-004 hardening.
+- **Resolution (2026-05-20):** `mockOtp` removed from send-otp/create-account JSON; server logs + `/api/auth/dev-mock-otp-hint` (same IP, post-send).
 
 ---
 
@@ -257,6 +260,18 @@ flowchart TB
 ### AUTH-003 — Setup password by raw `userId` without auth
 - **Status:** done
 - **Resolution (2026-05-20):** Endpoint returns `410` (OTP-only product).
+
+### AUTH-004 — OTP verification not rate-limited
+- **Status:** done
+- **Resolution (2026-05-20):** `verifyOTPWithRateLimit` / `verifyOTPWithRateLimitByKey`.
+
+### AUTH-005 — OTP generated with `Math.random()`
+- **Status:** done
+- **Resolution (2026-05-20):** `crypto.randomInt` in `otp-crypto.ts`.
+
+### AUTH-020 — `mockOtp` returned in login API JSON on preview/dev
+- **Status:** done
+- **Resolution (2026-05-20):** Dev hint API; codes logged server-side.
 
 ---
 

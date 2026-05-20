@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyOTP } from '@/lib/otp'
+import { verifyOTPWithRateLimit } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { db, users } from '@/lib/db'
 import { or, eq, and, not, inArray } from 'drizzle-orm'
@@ -46,12 +46,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify OTP for the session
-    const isValidOTP = await verifyOTP(sessionId, otp)
-    if (!isValidOTP) {
+    const verifyResult = await verifyOTPWithRateLimit(request, sessionId, otp)
+    if (verifyResult.success === false) {
+      if (verifyResult.error === 'rate_limited') {
+        return NextResponse.json(
+          {
+            error: verifyResult.blocked
+              ? `Trop de tentatives. Réessayez dans ${Math.ceil((verifyResult.resetTime - Date.now()) / 60000)} minutes.`
+              : 'Trop de tentatives. Veuillez réessayer plus tard.',
+          },
+          { status: 429 },
+        )
+      }
       return NextResponse.json(
         { error: 'Code OTP invalide ou expiré' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 

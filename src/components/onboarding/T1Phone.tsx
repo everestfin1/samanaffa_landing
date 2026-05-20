@@ -130,7 +130,22 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
       setSessionId(data.sessionId);
-      setMockOtp(data.mockOtp ?? null);
+      setMockOtp(null);
+      if (data.mockMode && data.sessionId) {
+        try {
+          const hintRes = await fetch('/api/auth/dev-mock-otp-hint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ sessionId: data.sessionId }),
+          });
+          const hint = await hintRes.json();
+          if (hintRes.ok && hint.mockOtp) {
+            setMockOtp(hint.mockOtp);
+          }
+        } catch {
+          // dev-only
+        }
+      }
       setCountdown(60);
       setOtp(['', '', '', '', '', '']);
       setTimeout(() => otpRefs.current[0]?.focus(), 100);

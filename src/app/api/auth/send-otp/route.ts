@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { checkOTPRateLimit } from '@/lib/rate-limit'
 import { isMockOtpEnabled } from '@/lib/mock-otp'
+import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint'
 import type { User } from '@/lib/db/schema'
 
 export async function POST(request: NextRequest) {
@@ -143,18 +144,18 @@ export async function POST(request: NextRequest) {
         method: normalizedPhone ? 'sms' : 'email',
       }
 
-      if (isMockOtpEnabled()) {
+      if (isMockOtpEnabled() && normalizedPhone) {
         loginResponse.mockMode = true
+        recordMockOtpSend(request, normalizedPhone)
         const latestOtp = await prisma.otpCode.findFirst({
           where: {
             userId: user.id,
             used: false,
             expiresAt: { gt: new Date() },
           },
-          orderBy: { createdAt: 'desc' },
         })
         if (latestOtp?.code) {
-          loginResponse.mockOtp = latestOtp.code
+          logMockOtp('auth/send-otp login', normalizedPhone, latestOtp.code)
         }
       }
 

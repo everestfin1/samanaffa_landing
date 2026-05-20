@@ -96,12 +96,28 @@ function LoginForm() {
         ? 'Mode test : aucun SMS réel envoyé. Utilisez le code affiché ci-dessous.'
         : data.message || 'Code envoyé par SMS',
     );
-    setMockOtp(data.mockOtp ?? null);
     setMockMode(Boolean(data.mockMode));
+    setMockOtp(null);
     setOtp('');
     setStep('otp');
     startOtpTimer();
     return true;
+  };
+
+  const fetchMockOtpHint = async (phoneNumber: string) => {
+    try {
+      const res = await fetch('/api/auth/dev-mock-otp-hint', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: phoneNumber }),
+      });
+      const hint = await res.json();
+      if (res.ok && hint.mockOtp) {
+        setMockOtp(hint.mockOtp);
+      }
+    } catch {
+      // dev-only; ignore
+    }
   };
 
   const handleSendCode = async (e?: React.FormEvent) => {
@@ -118,7 +134,9 @@ function LoginForm() {
         body: JSON.stringify({ phone, type: 'login' }),
       });
       const data = await response.json();
-      applyOtpSendResponse(data);
+      if (applyOtpSendResponse(data) && data.mockMode && phone) {
+        await fetchMockOtpHint(phone);
+      }
     } catch {
       setError('Erreur de connexion. Veuillez réessayer.');
     } finally {
@@ -146,6 +164,9 @@ function LoginForm() {
             ? 'Nouveau code test généré.'
             : 'Code renvoyé par SMS',
         );
+        if (data.mockMode && phone) {
+          await fetchMockOtpHint(phone);
+        }
       }
     } catch {
       setError('Erreur de connexion. Veuillez réessayer.');

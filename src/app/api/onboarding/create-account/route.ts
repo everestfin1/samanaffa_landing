@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { verifyOTP, sendOTP } from '@/lib/otp';
+import { verifyOTPWithRateLimit, sendOTP } from '@/lib/otp';
+import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint';
 import { normalizeInternationalPhone, generateAccountNumber, generatePhoneFormats } from '@/lib/utils';
 import { getNaffaProductById } from '@/lib/naffa-products';
 import { checkOTPRateLimit } from '@/lib/rate-limit';
@@ -93,14 +94,18 @@ export async function POST(request: NextRequest) {
       };
 
       if (isMockOtpEnabled()) {
-        const mockOtp = await prisma.otpCode.findFirst({
+        response.mockMode = true;
+        recordMockOtpSend(request, `session:${session.id}`);
+        const mockRow = await prisma.otpCode.findFirst({
           where: {
             registrationSessionId: session.id,
             used: false,
             expiresAt: { gt: new Date() },
           },
         });
-        response.mockOtp = mockOtp?.code;
+        if (mockRow?.code) {
+          logMockOtp('onboarding/create-account', session.id, mockRow.code);
+        }
       }
 
       return NextResponse.json(response);
@@ -124,8 +129,18 @@ export async function POST(request: NextRequest) {
       }
 
       const normalizedOtp = String(otp).replace(/\D/g, '').slice(0, 6);
-      const ok = await verifyOTP(sessionId, normalizedOtp);
-      if (!ok) {
+      const verifyResult = await verifyOTPWithRateLimit(request, sessionId, normalizedOtp);
+      if (verifyResult.success === false) {
+        if (verifyResult.error === 'rate_limited') {
+          return NextResponse.json(
+            {
+              error: verifyResult.blocked
+                ? `Trop de tentatives. Réessayez dans ${Math.ceil((verifyResult.resetTime - Date.now()) / 60000)} minutes.`
+                : 'Trop de tentatives. Veuillez réessayer plus tard.',
+            },
+            { status: 429 },
+          );
+        }
         return NextResponse.json({ error: 'Code OTP invalide ou expiré' }, { status: 400 });
       }
 

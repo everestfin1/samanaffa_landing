@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyOTP } from '@/lib/otp'
+import { verifyOTPWithRateLimit } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber, normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
@@ -25,8 +25,6 @@ export async function POST(request: NextRequest) {
 
     // Normalize phone number for user lookup if provided
     const normalizedPhone = phone ? normalizeInternationalPhone(phone) : null
-    console.log('🔍 Verify OTP Request:', { email, phone, otp, type })
-    console.log('🔄 Phone normalization:', { original: phone, normalized: normalizedPhone })
 
     // Find user - try multiple phone formats for better compatibility
     let user: User | null = null
@@ -36,25 +34,15 @@ export async function POST(request: NextRequest) {
       user = await prisma.user.findFirst({
         where: { email }
       })
-      console.log('🔍 Email lookup result:', { email, found: !!user })
     }
 
     if (!user && normalizedPhone) {
-      // Try multiple phone number formats for lookup
       const phoneFormats = generatePhoneFormats(normalizedPhone)
-
-      console.log('🔍 Phone lookup formats to try:', phoneFormats)
-
       for (const phoneFormat of phoneFormats) {
         user = await prisma.user.findFirst({
           where: { phone: phoneFormat }
         })
-        console.log('🔍 Phone lookup attempt:', { format: phoneFormat, found: !!user })
-
-        if (user) {
-          console.log('✅ User found with phone format:', phoneFormat)
-          break
-        }
+        if (user) break
       }
     }
 
@@ -65,12 +53,22 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Verify OTP
-    const isValidOTP = await verifyOTP(user.id, otp)
-    if (!isValidOTP) {
+    const verifyKey = normalizedPhone || email || user.id
+    const verifyResult = await verifyOTPWithRateLimit(request, verifyKey, otp)
+    if (verifyResult.success === false) {
+      if (verifyResult.error === 'rate_limited') {
+        return NextResponse.json(
+          {
+            error: verifyResult.blocked
+              ? `Trop de tentatives. Réessayez dans ${Math.ceil((verifyResult.resetTime - Date.now()) / 60000)} minutes.`
+              : 'Trop de tentatives. Veuillez réessayer plus tard.',
+          },
+          { status: 429 },
+        )
+      }
       return NextResponse.json(
         { error: 'Code OTP invalide ou expiré' },
-        { status: 400 }
+        { status: 400 },
       )
     }
 

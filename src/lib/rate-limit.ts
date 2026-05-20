@@ -32,7 +32,12 @@ const RATE_LIMITS = {
     maxAttempts: parseInt(process.env.KYC_RATE_LIMIT_MAX_ATTEMPTS || '5'),
     windowMs: parseInt(process.env.KYC_RATE_LIMIT_WINDOW_MS || '3600000'), // 1 hour
     blockMs: parseInt(process.env.KYC_RATE_LIMIT_BLOCK_MS || '3600000'), // 1 hour
-  }
+  },
+  otpVerify: {
+    maxAttempts: parseInt(process.env.OTP_VERIFY_RATE_LIMIT_MAX_ATTEMPTS || '5'),
+    windowMs: parseInt(process.env.OTP_VERIFY_RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+    blockMs: parseInt(process.env.OTP_VERIFY_RATE_LIMIT_BLOCK_MS || '1800000'), // 30 minutes
+  },
 }
 
 // Store attempts by type and identifier
@@ -48,6 +53,78 @@ export interface RateLimitResult {
   remaining: number
   resetTime: number
   blocked: boolean
+}
+
+export function checkRateLimitByKey(
+  type: keyof typeof RATE_LIMITS,
+  key: string,
+): RateLimitResult {
+  const config = RATE_LIMITS[type]
+  const attemptsMap = rateLimitAttempts.get(type)!
+  const now = Date.now()
+  const attempts = attemptsMap.get(key)
+
+  if (attempts && now - attempts.lastAttempt > config.windowMs) {
+    attemptsMap.delete(key)
+  }
+
+  if (attempts?.blockedUntil && now < attempts.blockedUntil) {
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: attempts.blockedUntil,
+      blocked: true,
+    }
+  }
+
+  if (attempts?.blockedUntil && now >= attempts.blockedUntil) {
+    attemptsMap.delete(key)
+  }
+
+  if (!attempts) {
+    attemptsMap.set(key, { count: 1, lastAttempt: now })
+    return {
+      allowed: true,
+      remaining: config.maxAttempts - 1,
+      resetTime: now + config.windowMs,
+      blocked: false,
+    }
+  }
+
+  if (now - attempts.lastAttempt > config.windowMs) {
+    attemptsMap.set(key, { count: 1, lastAttempt: now })
+    return {
+      allowed: true,
+      remaining: config.maxAttempts - 1,
+      resetTime: now + config.windowMs,
+      blocked: false,
+    }
+  }
+
+  if (attempts.count >= config.maxAttempts) {
+    attempts.blockedUntil = now + config.blockMs
+    attempts.count++
+    attempts.lastAttempt = now
+    return {
+      allowed: false,
+      remaining: 0,
+      resetTime: attempts.blockedUntil,
+      blocked: true,
+    }
+  }
+
+  attempts.count++
+  attempts.lastAttempt = now
+  return {
+    allowed: true,
+    remaining: config.maxAttempts - attempts.count,
+    resetTime: now + config.windowMs,
+    blocked: false,
+  }
+}
+
+export function resetRateLimitByKey(type: keyof typeof RATE_LIMITS, key: string): void {
+  rateLimitAttempts.get(type)!.delete(key)
 }
 
 export function checkRateLimit(request: NextRequest, type: keyof typeof RATE_LIMITS = 'admin', identifier?: string): RateLimitResult {
@@ -133,6 +210,17 @@ export function checkLoginRateLimit(request: NextRequest, emailOrPhone?: string)
 
 export function checkOTPRateLimit(request: NextRequest, emailOrPhone?: string): RateLimitResult {
   return checkRateLimit(request, 'otp', emailOrPhone)
+}
+
+export function checkOTPVerifyRateLimit(
+  request: NextRequest,
+  identifier: string,
+): RateLimitResult {
+  return checkRateLimit(request, 'otpVerify', identifier)
+}
+
+export function checkOTPVerifyRateLimitByKey(identifier: string): RateLimitResult {
+  return checkRateLimitByKey('otpVerify', identifier)
 }
 
 export function checkTransactionRateLimit(request: NextRequest, userId?: string): RateLimitResult {
