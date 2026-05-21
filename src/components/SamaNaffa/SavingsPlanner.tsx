@@ -1,80 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
+import {
+  calculerCapitalFinal,
+  tauxParDuree,
+  validateDuree,
+  validateMensualite,
+} from '@/lib/savings-simulation';
 import { personas, objectives } from "../data";
+import SavingsSimulatorControls from '@/components/SamaNaffa/SavingsSimulatorControls';
 import { RefreshCw } from 'lucide-react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from "next/image";
 import { useRouter } from 'next/navigation';
 import { useSelection } from '@/lib/selection-context';
-import Decimal from 'decimal.js';
-
-// --- HELPER FUNCTIONS ---
-const tauxParDuree = (mois: number): number => {
-  if (mois <= 6) return 3.5;
-  if (mois <= 12) return 4.5;
-  if (mois <= 36) return 6.0;
-  if (mois <= 60) return 7.0;
-  if (mois <= 120) return 8.5;
-  return 10.0;
-};
-
-// Helper function to calculate days remaining for each payment
-const getDaysRemaining = (monthIndex: number, totalMonths: number): number => {
-  // For 12-month period, use exact calendar days
-  const exactDays12Months = [365, 334, 306, 275, 245, 214, 184, 153, 122, 92, 61, 1];
-  
-  if (totalMonths === 12 && monthIndex < 12) {
-    return exactDays12Months[monthIndex];
-  }
-  
-  // For other durations, calculate based on standard month lengths
-  const monthLengths = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-  
-  // Calculate days remaining from this month
-  let daysRemaining = 0;
-  for (let i = monthIndex; i < totalMonths; i++) {
-    daysRemaining += monthLengths[i % 12];
-  }
-  
-  // Last payment compounds for only 1 day (end of period)
-  if (monthIndex === totalMonths - 1) {
-    return 1;
-  }
-  
-  return daysRemaining;
-};
-
-const calculerCapitalFinal = (
-  mensuel: number,
-  dureeMois: number,
-  tauxAnnuel: number,
-): { capitalFinal: number; interets: number } => {
-  // Use Decimal.js for high-precision financial calculations
-  // Formula: amount * (1 + annual_rate)^(days_remaining/365)
-  // Achieves <0.02% deviation from Excel (within acceptable tolerance)
-  Decimal.set({ precision: 20, rounding: Decimal.ROUND_HALF_UP });
-  
-  const tauxAnnuelDecimal = new Decimal(tauxAnnuel).div(100);
-  const montantMensuel = new Decimal(mensuel);
-  let capitalFinal = new Decimal(0);
-  
-  // Each monthly contribution compounds for the remaining days
-  for (let i = 0; i < dureeMois; i++) {
-    const joursRestants = getDaysRemaining(i, dureeMois);
-    const exponent = new Decimal(joursRestants).div(365);
-    const facteur = new Decimal(1).plus(tauxAnnuelDecimal).pow(exponent);
-    capitalFinal = capitalFinal.plus(montantMensuel.times(facteur));
-  }
-  
-  const capitalVerse = mensuel * dureeMois;
-  const interets = capitalFinal.toNumber() - capitalVerse;
-  
-  return {
-    capitalFinal: capitalFinal.toNumber(),
-    interets,
-  };
-};
+import { getProjectIconScaleClasses, isAutresProject } from '@/lib/project-icon-display';
 
 // --- PROPS ---
 interface SavingsPlannerProps {
@@ -150,49 +90,22 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
 
   const handleMensualiteChange = (value: number) => {
     setMensualite(value);
-    setMensualiteError(null); // Clear error when user types
-    
-    if (isNaN(value) || value < 1000) {
-      setMensualiteError('Le montant minimum est de 1 000 FCFA');
-      return;
-    }
-    
-    if (value > 500000) {
-      setMensualiteError('Le montant maximum est de 500 000 FCFA');
-      return;
-    }
-    
-    if (value % 1000 !== 0) {
-      setMensualiteError('Le montant doit être un multiple de 1 000 FCFA');
-      return;
-    }
+    setMensualiteError(validateMensualite(value));
   };
 
   const handleDureeChange = (value: number) => {
     setDuree(value);
-    setDureeError(null); // Clear error when user types
-    
-    if (isNaN(value) || value < 6) {
-      setDureeError('La durée minimum est de 6 mois');
-      return;
-    }
-    
-    if (value > 180) {
-      setDureeError('La durée maximum est de 180 mois (15 ans)');
-      return;
-    }
+    setDureeError(validateDuree(value));
   };
 
   const handleMensualiteBlur = () => {
     setMensualiteTouched(true);
-    // Re-validate on blur
-    handleMensualiteChange(mensualite);
+    setMensualiteError(validateMensualite(mensualite));
   };
 
   const handleDureeBlur = () => {
     setDureeTouched(true);
-    // Re-validate on blur
-    handleDureeChange(duree);
+    setDureeError(validateDuree(duree));
   };
 
   const handleStartSaving = () => {
@@ -323,7 +236,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                                                     <Image
                                                         width={86}
                                                         height={86}
-                                                        className="absolute w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 group-hover:scale-110"
+                                                        className={`absolute w-[40px] h-[40px] sm:w-[50px] sm:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 ${getProjectIconScaleClasses(isAutresProject(objective.slug))}`}
                                                         alt={objective.name}
                                                         src={objective.icon}
                                                     />
@@ -457,163 +370,16 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({ redirectTo = 're
                             </div>
                         )}
 
-                        {/* Contrôles de montant et durée - Responsive */}
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5 lg:gap-8">
-                            {/* Montant mensuel - Responsive */}
-                            <div className="space-y-2 lg:space-y-3">
-                                <label className="block text-sm sm:text-base lg:text-lg font-medium text-[#060606]">
-                                    <span className="block sm:inline">Montant mensuel</span>
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            min="1000"
-                                            max="500000"
-                                            step="1000"
-                                            value={mensualite}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                handleMensualiteChange(val);
-                                            }}
-                                            onBlur={handleMensualiteBlur}
-                                            className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#C38D1C] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
-                                                mensualiteError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                            }`}
-                                        />
-                                    </div>
-                                    <span className="text-sm text-gray-600 whitespace-nowrap">FCFA</span>
-                                </div>
-                                {mensualiteError && (
-                                    <p className="text-sm text-red-600">{mensualiteError}</p>
-                                )}
-                                <input
-                                    type="range"
-                                    min="1000"
-                                    max="500000"
-                                    step="1000"
-                                    value={mensualite}
-                                    onChange={(e) => handleMensualiteChange(Number(e.target.value))}
-                                    className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
-                                    style={{
-                                        background: `linear-gradient(to right, #435933 0%, #435933 ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb ${((mensualite - 1000) / (500000 - 1000)) * 100}%, #e5e7eb 100%)`,
-                                    }}
-                                />
-                                <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm text-gray-500">
-                                    <span>1K</span>
-                                    <span className="hidden sm:inline">1 000 FCFA</span>
-                                    <span className="hidden sm:inline">500 000 FCFA</span>
-                                    <span>500K</span>
-                                </div>
-                            </div>
-
-                            {/* Durée - Responsive */}
-                            <div className="space-y-2 lg:space-y-3">
-                                <label className="block text-sm sm:text-base lg:text-lg font-medium text-[#060606]">
-                                    <span className="block sm:inline">Durée d'épargne</span>
-                                </label>
-                                <div className="flex items-center gap-2">
-                                    <div className="relative flex-1">
-                                        <input
-                                            type="number"
-                                            min="6"
-                                            max="180"
-                                            step="1"
-                                            value={duree}
-                                            onChange={(e) => {
-                                                const val = Number(e.target.value);
-                                                handleDureeChange(val);
-                                            }}
-                                            onBlur={handleDureeBlur}
-                                            className={`w-full px-3 py-2 border rounded-lg text-sm sm:text-base font-bold text-[#435933] focus:ring-2 focus:ring-[#435933] focus:border-transparent transition-colors ${
-                                                dureeError ? 'border-red-300 bg-red-50' : 'border-gray-300'
-                                            }`}
-                                        />
-                                    </div>
-                                    <span className="text-sm text-gray-600 whitespace-nowrap">mois</span>
-                                </div>
-                                {dureeError && (
-                                    <p className="text-sm text-red-600">{dureeError}</p>
-                                )}
-                                <input
-                                    type="range"
-                                    min="6"
-                                    max="180"
-                                    step="1"
-                                    value={duree}
-                                    onChange={(e) => handleDureeChange(Number(e.target.value))}
-                                    className="w-full h-2 sm:h-2 lg:h-3 bg-gradient-to-r from-gray-200 to-gray-300 rounded-full appearance-none cursor-pointer slider"
-                                    style={{
-                                        background: `linear-gradient(to right, #435933 0%, #435933 ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb ${((duree - 6) / (180 - 6)) * 100}%, #e5e7eb 100%)`,
-                                    }}
-                                />
-                                <div className="flex justify-between text-[10px] sm:text-xs lg:text-sm text-gray-500">
-                                    <span>6 mois</span>
-                                    <span className="hidden sm:inline">180 mois</span>
-                                    <span>15 ans</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Indicateur de taux - Responsive */}
-                        <div className="p-3 sm:p-3 lg:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-lg sm:rounded-xl border border-[#435933]/20">
-                            <div className="flex flex-col sm:flex-row items-center justify-between gap-2 sm:gap-3 lg:gap-0">
-                                <span className="text-[#435933] font-medium text-sm sm:text-base lg:text-lg text-center sm:text-left">
-                                    Taux d'intérêt :{" "}
-                                    <span className="font-bold text-base sm:text-lg lg:text-xl">
-                                        {taux.toFixed(1)}%
-                                    </span>{" "}
-                                    <span className="hidden sm:inline">par an</span>
-                                </span>
-                                <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600">
-                                    {duree <= 6 && "💡 Très court terme"}
-                                    {duree > 6 && duree <= 12 && "📈 Court terme"}
-                                    {duree > 12 && duree <= 36 && "🚀 Moyen terme"}
-                                    {duree > 36 && duree <= 60 && "💎 Long terme"}
-                                    {duree > 60 && "🏆 Très long terme"}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Résultats - Responsive */}
-                        <div className="text-center space-y-2 sm:space-y-3 lg:space-y-4 p-3 sm:p-4 lg:p-6 bg-gradient-to-br from-[#F2F8F4] to-white rounded-lg sm:rounded-xl">
-                            <h4 className="font-normal text-[#060606] text-base sm:text-lg lg:text-[24px] mb-1 sm:mb-2">
-                                Capital final estimé
-                            </h4>
-                            <div className="font-bold text-[#435933] text-xl sm:text-2xl lg:text-[36px] mb-1 sm:mb-2">
-                                {formatCurrency(Math.round(capitalFinal))}
-                            </div>
-                            <div className="font-normal text-[#969696] text-xs sm:text-sm lg:text-base mb-2 sm:mb-3 lg:mb-4 px-2">
-                                Plan {Math.round((duree / 12) * 10) / 10} ans - Rendement{" "}
-                                {taux.toFixed(1)}% - {formatCurrency(mensualite)}/mois
-                            </div>
-                            <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4 p-2 sm:p-3 lg:p-4 bg-white rounded-lg shadow-sm">
-                                <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600 mb-1">
-                                        Total versé
-                                    </div>
-                                    <div className="font-medium text-[#C38D1C] text-xs sm:text-sm lg:text-lg break-words">
-                                        {formatCurrency(mensualite * duree)}
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-600 mb-1">
-                                        Intérêts gagnés
-                                    </div>
-                                    <div className="font-bold text-[#435933] text-xs sm:text-sm lg:text-lg break-words">
-                                        +{formatCurrency(Math.round(interets))}
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="text-[10px] sm:text-xs lg:text-sm text-gray-800 font-medium mb-1">
-                                        Total final
-                                    </div>
-                                    <div className="font-bold text-[#435933] text-sm sm:text-base lg:text-xl break-words">
-                                        {formatCurrency(Math.round(capitalFinal))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        <SavingsSimulatorControls
+                            mensualite={mensualite}
+                            duree={duree}
+                            onMensualiteChange={handleMensualiteChange}
+                            onDureeChange={handleDureeChange}
+                            mensualiteError={mensualiteTouched ? mensualiteError : null}
+                            dureeError={dureeTouched ? dureeError : null}
+                            onMensualiteBlur={handleMensualiteBlur}
+                            onDureeBlur={handleDureeBlur}
+                        />
                     </div>
                 </CardContent>
             </Card>

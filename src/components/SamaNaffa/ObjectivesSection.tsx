@@ -4,6 +4,7 @@ import { Card, CardContent } from "../ui/card";
 import { formatCurrency } from "@/lib/utils";
 import Image from "next/image";
 import Decimal from 'decimal.js';
+import { getProjectIconScaleClasses, isAutresProject } from '@/lib/project-icon-display';
 
 // --- HELPER FUNCTIONS & HOOKS ---
 
@@ -323,7 +324,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                                 >
                                                     <div className={`w-[80px] h-[80px] lg:w-[100px] lg:h-[100px] rounded-full relative mb-2 transition-all duration-300 group-hover:shadow-lg ${selectedObjective?.id === objective.id ? "bg-gradient-to-br from-[#e8f5e8] to-[#d4f4d4] shadow-lg scale-110" : "bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4]"}`}>
                                                         <Image
-                                                            className="absolute w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 group-hover:scale-110"
+                                                            className={`absolute w-[40px] h-[40px] lg:w-[50px] lg:h-[50px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 object-cover transition-transform duration-300 ${getProjectIconScaleClasses(isAutresProject(objective.id))}`}
                                                             alt={objective.name}
                                                             src={objective.icon}
                                                             width={50}

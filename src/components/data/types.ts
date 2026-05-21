@@ -12,6 +12,7 @@ export interface Persona {
 
 export interface Objective {
   id: number;
+  slug: string;
   name:string;
   icon: string;
   titre: string;

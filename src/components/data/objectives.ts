@@ -1,6 +1,7 @@
 export const objectives = [
   {
     id: 1,
+    slug: "maison",
     name: "Maison",
     icon: "/projects/Maison.png",
     titre: "Acheter votre première maison",
@@ -10,6 +11,7 @@ export const objectives = [
   },
   {
     id: 2,
+    slug: "etudes",
     name: "Etudes",
     icon: "/projects/Etudes.png",
     titre: "Financer les études universitaires de votre enfant",
@@ -19,6 +21,7 @@ export const objectives = [
   },
   {
     id: 3,
+    slug: "voyage",
     name: "Voyage",
     icon: "/projects/Voyage.png",
     titre: "Financer un voyage de rêve",
@@ -28,6 +31,7 @@ export const objectives = [
   },
   {
     id: 4,
+    slug: "business",
     name: "Projet pro",
     icon: "/projects/Business.png",
     titre: "Fais grandir ton business",
@@ -37,6 +41,7 @@ export const objectives = [
   },
   {
     id: 5,
+    slug: "retraite",
     name: "Retraite",
     icon: "/projects/Retraite.png",
     titre: "Préparer votre retraite",
@@ -46,11 +51,22 @@ export const objectives = [
   },
   {
     id: 6,
+    slug: "tabaski",
     name: "Tabaski",
     icon: "/projects/Tabaski.png",
     titre: "Épargner pour la Tabaski",
     duree: 12, // En mois (1 an)
     mensualite: 35000,
     description: "Préparez la fête sereinement, sans stress financier",
+  },
+  {
+    id: 7,
+    slug: "autres",
+    name: "Autres",
+    icon: "/projects/Autres.png",
+    titre: "Réaliser votre projet personnel",
+    duree: 36,
+    mensualite: 30000,
+    description: "Définissez votre propre objectif d'épargne et ajustez le plan à votre rythme",
   },
 ]; 
