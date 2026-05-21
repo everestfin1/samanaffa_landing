@@ -2,12 +2,23 @@ import { redirect } from 'next/navigation';
 
 /**
  * Legacy registration entry point. The new onboarding flow lives at /onboarding.
- * This redirect preserves any existing bookmarks/links and ensures all new
- * users go through the phone-OTP based account creation.
- *
- * Marked as `dynamic = 'force-static'` would short-circuit the redirect;
- * we keep it dynamic so future query params (e.g. ?ref=...) can be forwarded.
+ * Forwards optional referral query params (`ref`, `parrain`, `code_parrainage`).
  */
-export default function RegisterRedirectPage() {
+export default async function RegisterRedirectPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const params = await searchParams;
+  const ref =
+    (typeof params.ref === 'string' && params.ref) ||
+    (typeof params.parrain === 'string' && params.parrain) ||
+    (typeof params.code_parrainage === 'string' && params.code_parrainage) ||
+    '';
+
+  if (ref) {
+    redirect(`/onboarding?ref=${encodeURIComponent(ref)}`);
+  }
+
   redirect('/onboarding');
 }

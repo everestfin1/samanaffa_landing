@@ -39,6 +39,7 @@ export async function GET() {
         step: saved.step ?? 'T2',
         simulation: saved.simulation ?? null,
         firstName: saved.firstName ?? user.firstName,
+        referralCode: saved.referralCode ?? null,
         formula: saved.formula ?? null,
         depositAmount: saved.depositAmount ?? null,
         wallet: saved.wallet ?? null,
@@ -82,6 +83,7 @@ export async function PATCH(request: NextRequest) {
     const onboardingPatch: Partial<OnboardingProgressPayload> = { step: body.step };
     if (body.simulation !== undefined) onboardingPatch.simulation = body.simulation;
     if (body.firstName !== undefined) onboardingPatch.firstName = body.firstName;
+    if (body.referralCode !== undefined) onboardingPatch.referralCode = body.referralCode;
     if (body.formula !== undefined) onboardingPatch.formula = body.formula;
     if (body.depositAmount !== undefined) onboardingPatch.depositAmount = body.depositAmount;
     if (body.wallet !== undefined) onboardingPatch.wallet = body.wallet;
@@ -120,6 +122,7 @@ export async function PATCH(request: NextRequest) {
         step: progress.step ?? body.step,
         simulation: progress.simulation ?? null,
         firstName: progress.firstName ?? refreshed.firstName,
+        referralCode: progress.referralCode ?? null,
         formula: progress.formula ?? null,
         depositAmount: progress.depositAmount ?? null,
         wallet: progress.wallet ?? null,

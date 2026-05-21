@@ -26,6 +26,8 @@ export interface OnboardingProgressPayload {
   step: OnboardingStep;
   simulation?: unknown;
   firstName?: string | null;
+  /** Validated sponsor/referral code from `ape_sponsor_codes`. */
+  referralCode?: string | null;
   formula?: string | null;
   depositAmount?: number | null;
   wallet?: string | null;

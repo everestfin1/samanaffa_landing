@@ -17,6 +17,7 @@ import {
   ONBOARDING_VISIBLE_STEPS,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
+import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 
 interface OnboardingState {
   simulation: T0Result | null;
@@ -25,6 +26,7 @@ interface OnboardingState {
   displayPhone: string | null;
   countryCode: string | null;
   firstName: string | null;
+  referralCode: string | null;
   formula: string | null;
   depositAmount: number | null;
   wallet: string | null;
@@ -59,6 +61,12 @@ function OnboardingPageContent() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const kycResumeFromUrl = searchParams.get('verificationSessionId');
+  const referralFromUrl = normalizeSponsorCode(
+    searchParams.get('ref') ||
+      searchParams.get('parrain') ||
+      searchParams.get('code_parrainage') ||
+      '',
+  );
   const [kycResumeSessionId, setKycResumeSessionId] = useState<string | null>(null);
   const [step, setStep] = useState<OnboardingStep>('T0');
   const [state, setState] = useState<OnboardingState>({
@@ -68,6 +76,7 @@ function OnboardingPageContent() {
     displayPhone: null,
     countryCode: null,
     firstName: null,
+    referralCode: referralFromUrl || null,
     formula: null,
     depositAmount: null,
     wallet: null,
@@ -104,6 +113,7 @@ function OnboardingPageContent() {
           userId: sessionUserId ?? s.userId,
           simulation: (p.simulation as T0Result) ?? s.simulation,
           firstName: p.firstName ?? s.firstName,
+          referralCode: p.referralCode ?? s.referralCode,
           formula: p.formula ?? s.formula,
           depositAmount: p.depositAmount ?? s.depositAmount,
           wallet: p.wallet ?? s.wallet,
@@ -153,6 +163,7 @@ function OnboardingPageContent() {
             step: nextStep,
             simulation: merged.simulation,
             firstName: merged.firstName,
+            referralCode: merged.referralCode,
             formula: merged.formula,
             depositAmount: merged.depositAmount,
             wallet: merged.wallet,
@@ -322,6 +333,7 @@ function OnboardingPageContent() {
               >
                 <T1Phone
                   simulation={state.simulation}
+                  referralCode={state.referralCode}
                   initialPhone={state.phone ?? undefined}
                   initialCountry={state.countryCode ?? undefined}
                   onBack={() => setStep('T0')}
@@ -346,10 +358,11 @@ function OnboardingPageContent() {
               >
                 <T2FirstName
                   initialValue={state.firstName ?? undefined}
-                  onSuccess={async (firstName) => {
-                    const saved = await saveProgress('T3', { firstName });
+                  initialReferralCode={state.referralCode}
+                  onSuccess={async (firstName, referralCode) => {
+                    const saved = await saveProgress('T3', { firstName, referralCode });
                     if (!saved) return;
-                    setState((s) => ({ ...s, firstName }));
+                    setState((s) => ({ ...s, firstName, referralCode }));
                     setStep('T3');
                   }}
                 />

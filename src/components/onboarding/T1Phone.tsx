@@ -7,6 +7,7 @@ import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T1PhoneProps {
   simulation: unknown;
+  referralCode?: string | null;
   initialPhone?: string;
   initialCountry?: string;
   onSuccess: (
@@ -43,7 +44,14 @@ function expectedLength(country: Country): number {
   return map[country.code] ?? 9;
 }
 
-export default function T1Phone({ simulation, initialPhone, initialCountry, onSuccess, onBack }: T1PhoneProps) {
+export default function T1Phone({
+  simulation,
+  referralCode,
+  initialPhone,
+  initialCountry,
+  onSuccess,
+  onBack,
+}: T1PhoneProps) {
   const sortedCountries = useMemo(() => {
     const priority = PRIORITY_CODES
       .map((c) => ALL_COUNTRIES.find((x) => x.code === c))
@@ -126,7 +134,12 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
       const res = await fetch('/api/onboarding/create-account', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'send-otp', phone: fullPhone, simulation }),
+        body: JSON.stringify({
+          action: 'send-otp',
+          phone: fullPhone,
+          simulation,
+          referralCode: referralCode || undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');

@@ -21,7 +21,7 @@ import { genericOtpSendResponse } from '@/lib/otp-send-response';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, phone, sessionId, otp, simulation } = body;
+    const { action, phone, sessionId, otp, simulation, referralCode } = body;
 
     if (!action) {
       return NextResponse.json({ error: 'Action requise' }, { status: 400 });
@@ -66,6 +66,10 @@ export async function POST(request: NextRequest) {
             phone: normalizedPhone,
             email: placeholderEmail,
             simulation: simulation || null,
+            referralCode:
+              typeof referralCode === 'string' && referralCode.trim()
+                ? referralCode.trim().toUpperCase()
+                : null,
             flow: 'onboarding-v2',
           }),
           expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 min
