@@ -1,27 +1,49 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
+import { objectives } from '@/components/data/objectives';
 import { formatCurrency } from '@/lib/utils';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
-type ProjectId = 'maison' | 'etudes' | 'business' | 'voyage' | 'tabaski' | 'retraite';
+export type ProjectId = 'maison' | 'etudes' | 'business' | 'voyage' | 'tabaski' | 'retraite';
+
+const OBJECTIVE_ID_BY_PROJECT: Record<ProjectId, number> = {
+  maison: 1,
+  etudes: 2,
+  voyage: 3,
+  business: 4,
+  retraite: 5,
+  tabaski: 6,
+};
 
 interface Project {
   id: ProjectId;
-  emoji: string;
+  objectiveId: number;
   name: string;
-  defaultDuration: number; // months
+  icon: string;
+  titre: string;
+  description: string;
+  defaultDuration: number;
   defaultMonthly: number;
 }
 
-const PROJECTS: Project[] = [
-  { id: 'maison',   emoji: '🏠', name: 'Maison',   defaultDuration: 120, defaultMonthly: 50000 },
-  { id: 'etudes',   emoji: '🎓', name: 'Études',   defaultDuration: 180, defaultMonthly: 25000 },
-  { id: 'business', emoji: '💼', name: 'Business', defaultDuration: 60,  defaultMonthly: 30000 },
-  { id: 'voyage',   emoji: '✈️', name: 'Voyage',   defaultDuration: 24,  defaultMonthly: 40000 },
-  { id: 'tabaski',  emoji: '🕌', name: 'Tabaski',  defaultDuration: 12,  defaultMonthly: 35000 },
-  { id: 'retraite', emoji: '👴', name: 'Retraite', defaultDuration: 240, defaultMonthly: 20000 },
-];
+const PROJECTS: Project[] = (
+  Object.entries(OBJECTIVE_ID_BY_PROJECT) as [ProjectId, number][]
+).map(([id, objectiveId]) => {
+  const objective = objectives.find((o) => o.id === objectiveId)!;
+  return {
+    id,
+    objectiveId,
+    name: objective.name,
+    icon: objective.icon,
+    titre: objective.titre,
+    description: objective.description,
+    defaultDuration: objective.duree,
+    defaultMonthly: objective.mensualite,
+  };
+});
 
 const rateForMonths = (m: number) =>
   m <= 6 ? 3.5 : m <= 12 ? 4.5 : m <= 36 ? 6.0 : m <= 60 ? 7.0 : m <= 120 ? 8.5 : 10.0;
@@ -52,7 +74,6 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
   const projection = useMemo(() => {
     if (!selected) return { final: 0, interest: 0 };
     const rate = rateForMonths(duration) / 100;
-    // simplified compound model for mock UX (good enough at T0)
     const total = monthly * duration;
     const interest = total * rate * (duration / 12) * 0.5;
     return { final: total + interest, interest };
@@ -69,16 +90,11 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.3 }}
           >
-            <div className="text-center mb-8">
-              <p className="text-xl md:text-2xl font-bold text-night mb-3 whitespace-nowrap">
-                Quel est votre projet de vie ?
-              </p>
-              <p className="text-night/60">
-                Choisissez votre projet et découvrez combien vous pouvez épargner.
-              </p>
-            </div>
+            <OnboardingStepHeader
+              title="Quel est votre projet de vie ?"
+              description="Choisissez votre projet et découvrez combien vous pouvez épargner."
+            />
 
-            {/* 2 cols on mobile → 3 cols on md+ */}
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
               {PROJECTS.map((p, i) => (
                 <motion.button
@@ -89,11 +105,18 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
                   onClick={() => handleSelect(p)}
                   className="group flex flex-col items-center gap-2 py-4 opacity-80 hover:opacity-100 transition-all duration-300 hover:scale-105"
                 >
-                  {/* circular icon — mirrors SamaNaffa ObjectivesSection style */}
                   <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-[#F2F8F4] group-hover:bg-gradient-to-br group-hover:from-[#e8f5e8] group-hover:to-[#d4f4d4] group-hover:shadow-lg transition-all duration-300 flex items-center justify-center relative">
-                    <span className="text-4xl group-hover:scale-110 transition-transform duration-300">{p.emoji}</span>
+                    <Image
+                      src={p.icon}
+                      alt={p.name}
+                      width={48}
+                      height={48}
+                      className="w-10 h-10 md:w-12 md:h-12 object-contain group-hover:scale-110 transition-transform duration-300"
+                    />
                   </div>
-                  <span className="font-semibold text-sm md:text-base text-night group-hover:text-[#435933] transition-colors text-center">{p.name}</span>
+                  <span className="font-semibold text-sm md:text-base text-night group-hover:text-[#435933] transition-colors text-center">
+                    {p.name}
+                  </span>
                 </motion.button>
               ))}
             </div>
@@ -113,10 +136,11 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
               ← Choisir un autre projet
             </button>
 
-            <div className="text-center mb-8">
-              <span className="text-6xl">{selected.emoji}</span>
-              <h2 className="text-2xl md:text-3xl font-bold text-night mt-2">{selected.name}</h2>
-            </div>
+            <OnboardingStepHeader
+              title={selected.titre}
+              description={selected.description}
+              className="mb-8"
+            />
 
             <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 space-y-6 shadow-xs">
               <div>

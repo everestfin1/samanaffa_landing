@@ -6,6 +6,7 @@ import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useState, useEffect } from 'react';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T6DashboardProps {
   firstName: string;
@@ -44,19 +45,15 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
     <div className="max-w-md mx-auto px-4 py-12">
       {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} colors={['#FFD700', '#1CB5E0', '#FF7900']} />}
       
-      <motion.div 
-        initial={{ scale: 0 }} 
-        animate={{ scale: 1 }} 
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
-        className="text-center mb-8"
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
       >
-        <span className="text-6xl inline-block mb-4">🎉</span>
-        <h1 className="text-lg md:text-xl font-bold text-night mb-2 truncate">
-          Bienvenue chez Sama Naffa, {firstName} !
-        </h1>
-        <p className="text-night/60 text-sm">
-          Votre compte est créé. Voici où vous en êtes.
-        </p>
+        <OnboardingStepHeader
+          title={`Bienvenue chez Sama Naffa, ${firstName} !`}
+          description="Votre compte est créé. Voici où vous en êtes."
+        />
       </motion.div>
 
       <div className="space-y-4">

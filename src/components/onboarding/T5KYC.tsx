@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import DiditKycStagePanels from '@/components/kyc/DiditKycStagePanels';
 import { useDiditKycVerification } from '@/hooks/useDiditKycVerification';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T5KYCProps {
   firstName: string;
@@ -52,16 +53,17 @@ export default function T5KYC({
         </button>
       )}
 
-      <div className="text-center mb-6">
-        <span className="text-5xl">🪪</span>
-        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
-          Vérification d&apos;identité
-        </p>
-        <p className="text-night/60 text-sm">2 minutes, et c&apos;est fait.</p>
+      <div className="mb-6">
+        <OnboardingStepHeader
+          title="Vérification d'identité"
+          description="2 minutes, et c'est fait."
+        />
         {depositAmount > 0 && kyc.stage !== 'success' && (
-          <div className="mt-3 inline-block bg-gold/10 border border-gold/30 rounded-full px-4 py-2 text-sm text-night">
-            💸 Débloquez votre dépôt de{' '}
-            <strong>{depositAmount.toLocaleString('fr-FR')} FCFA</strong>
+          <div className="mt-3 text-center">
+            <div className="inline-block bg-gold/10 border border-gold/30 rounded-full px-4 py-2 text-sm text-night">
+              Débloquez votre dépôt de{' '}
+              <strong>{depositAmount.toLocaleString('fr-FR')} FCFA</strong>
+            </div>
           </div>
         )}
       </div>

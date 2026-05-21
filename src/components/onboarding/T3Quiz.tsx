@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T3QuizProps {
   firstName: string;
@@ -139,10 +140,10 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
         animate={{ opacity: 1, scale: 1 }}
         className="max-w-md mx-auto px-4 py-16 text-center"
       >
-        <span className="text-6xl">🎯</span>
-        <p className="text-xl md:text-2xl font-bold text-night mt-4 mb-3 whitespace-nowrap">
-          {firstName}, vous êtes fait(e) pour
-        </p>
+        <OnboardingStepHeader
+          title={`${firstName}, vous êtes fait(e) pour`}
+          className="mb-6"
+        />
         <div className="bg-gradient-to-br from-[#F2F8F4] to-white border border-[#435933]/20 rounded-2xl p-6 my-6 shadow-sm">
           <p className="text-xl font-bold text-[#435933]">{result.name}</p>
           <p className="text-4xl font-bold text-[#435933] my-3">{result.rate}% <span className="text-lg text-[#435933]/70">/ an</span></p>
@@ -220,9 +221,7 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
           exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.2 }}
         >
-          <h2 className="text-xl md:text-2xl font-bold text-night text-center mb-8">
-            {current.prompt}
-          </h2>
+          <OnboardingStepHeader title={current.prompt} className="mb-8" />
 
           <div className="space-y-3">
             {current.options.map((opt) => {

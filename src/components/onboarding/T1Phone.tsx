@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { countries as ALL_COUNTRIES, type Country } from '@/components/data/countries';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T1PhoneProps {
   simulation: unknown;
@@ -190,17 +191,14 @@ export default function T1Phone({ simulation, initialPhone, initialCountry, onSu
         </button>
       )}
 
-      <div className="text-center mb-8">
-        <span className="text-5xl">📱</span>
-        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
-          {sessionId ? 'Vérifiez votre numéro' : 'Votre numéro de téléphone'}
-        </p>
-        <p className="text-night/60 text-sm">
-          {sessionId
+      <OnboardingStepHeader
+        title={sessionId ? 'Vérifiez votre numéro' : 'Votre numéro de téléphone'}
+        description={
+          sessionId
             ? `Code envoyé au ${displayPhone}`
-            : 'On t\'enverra un code par SMS — pas de mot de passe pour démarrer.'}
-        </p>
-      </div>
+            : 'On t\'enverra un code par SMS — pas de mot de passe pour démarrer.'
+        }
+      />
 
       <div className="bg-white border border-timberwolf/30 rounded-2xl p-6 space-y-4">
         {!sessionId ? (

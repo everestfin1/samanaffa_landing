@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import TransferModal from '@/components/modals/TransferModal';
+import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T4DepositProps {
   firstName: string;
@@ -50,16 +51,11 @@ export default function T4Deposit({
           ← Retour
         </button>
       )}
-      <div className="text-center mb-6">
-        <span className="text-5xl">💸</span>
-        <p className="text-xl md:text-2xl font-bold text-night mt-3 mb-2 whitespace-nowrap">
-          {firstName}, préparez votre premier dépôt
-        </p>
-        <p className="text-night/60 text-sm">
-          Aucun prélèvement maintenant. Après validation de votre identité, vous confirmerez le
-          paiement via Intouch depuis votre espace client.
-        </p>
-      </div>
+      <OnboardingStepHeader
+        title={`${firstName}, préparez votre premier dépôt`}
+        description="Aucun prélèvement maintenant. Après validation de votre identité, vous confirmerez le paiement via Intouch depuis votre espace client."
+        className="mb-6"
+      />
 
       <TransferModal
         isOpen
