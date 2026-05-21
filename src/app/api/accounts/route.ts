@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { addMonths, generateAccountNumber } from '@/lib/utils'
 import { getNaffaProductById } from '@/lib/naffa-products'
+import { validateDuree, validateMensualite } from '@/lib/savings-simulation'
 
 function serializeAccount(account: any) {
   const now = new Date()
@@ -142,6 +143,29 @@ export async function POST(request: NextRequest) {
         { error: 'Only Sama Naffa accounts can be created via this endpoint.' },
         { status: 400 }
       )
+    }
+
+    const planMonthly =
+      metadata && typeof metadata === 'object' && 'monthlyAmount' in metadata
+        ? Number((metadata as { monthlyAmount?: unknown }).monthlyAmount)
+        : null
+    const planDuration =
+      metadata && typeof metadata === 'object' && 'durationMonths' in metadata
+        ? Number((metadata as { durationMonths?: unknown }).durationMonths)
+        : null
+
+    if (planMonthly != null && !Number.isNaN(planMonthly)) {
+      const mensualiteError = validateMensualite(planMonthly)
+      if (mensualiteError) {
+        return NextResponse.json({ error: mensualiteError }, { status: 400 })
+      }
+    }
+
+    if (planDuration != null && !Number.isNaN(planDuration)) {
+      const dureeError = validateDuree(planDuration)
+      if (dureeError) {
+        return NextResponse.json({ error: dureeError }, { status: 400 })
+      }
     }
 
     const product = getNaffaProductById(productId)

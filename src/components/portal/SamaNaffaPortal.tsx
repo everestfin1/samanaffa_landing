@@ -6,7 +6,6 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   BanknotesIcon,
-  ChevronRightIcon,
   ClockIcon,
   EyeIcon,
   EyeSlashIcon,
@@ -16,12 +15,13 @@ import Image from 'next/image';
 
 import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
+import NaffaCardStack from '@/components/portal/NaffaCardStack';
 import PendingOnboardingDepositCard from '@/components/portal/PendingOnboardingDepositCard';
 import ProfileCompletionModal from '@/components/portal/ProfileCompletionModal';
 import { usePendingOnboardingDeposit } from '@/hooks/usePendingOnboardingDeposit';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
-import { NaffaType } from '../data/naffaTypes';
+import { buildNaffaAccountPayload, NaffaPlanInput } from '@/lib/naffa-plan';
 import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
 
 type IntentKind = 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
@@ -74,9 +74,6 @@ interface AccountCardProps {
   showBalance: boolean;
   onToggleBalance: () => void;
   cardTheme: string;
-  isClickable?: boolean;
-  onClick?: () => void;
-  showChevron?: boolean;
   isLarge?: boolean;
 }
 
@@ -85,25 +82,9 @@ function AccountCard({
   showBalance,
   onToggleBalance,
   cardTheme,
-  isClickable = false,
-  onClick,
-  showChevron = false,
   isLarge = false,
 }: AccountCardProps) {
-  const Wrapper = isClickable ? 'button' : 'div';
-  const wrapperProps = isClickable
-    ? {
-        type: 'button' as const,
-        onClick,
-        className:
-          'group w-full relative rounded-2xl overflow-hidden shadow-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] active:scale-[0.99] focus:outline-none focus:ring-2 focus:ring-gold-metallic focus:ring-offset-2 cursor-pointer',
-      }
-    : {
-        className:
-          'relative bg-gradient-to-br from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark rounded-2xl p-8 text-white overflow-hidden shadow-2xl border border-white/10',
-      };
-
-  const padding = isClickable ? 'p-6' : 'p-8';
+  const padding = 'p-8';
   const logoSize = isLarge ? 'h-12' : 'h-10';
   const logoPosition = isLarge ? 'top-6 right-6' : 'top-4 right-4';
   const balanceSize = isLarge ? 'text-4xl' : 'text-3xl';
@@ -114,10 +95,8 @@ function AccountCard({
   const noiseOpacity = isLarge ? 'opacity-80' : 'opacity-30';
 
   return (
-    <Wrapper {...wrapperProps}>
+    <div className={`relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl`}>
       <div className={`relative bg-gradient-to-br ${cardTheme} ${padding} text-white transition-all duration-300`}>
-        {/* Hover overlay for clickable cards */}
-        {isClickable && <div className="absolute inset-0 bg-white/0 group-hover:bg-white/5 transition-all duration-300 z-10" />}
 
         {/* Noise texture */}
         <div
@@ -146,20 +125,12 @@ function AccountCard({
 
         <div className="relative z-20">
           <div className="space-y-6">
-            {/* Top Section: Title and Chevron */}
+            {/* Top Section */}
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-sm text-white/70 mb-1">Compte d'épargne</p>
                 <h4 className="text-2xl font-bold">{account.productName || 'Naffa personnalisé'}</h4>
               </div>
-              {showChevron && (
-                <div className="flex flex-col items-center gap-1">
-                  <div className="bg-white/10 backdrop-blur-sm rounded-full p-2 group-hover:bg-white/20 transition-all">
-                    <ChevronRightIcon className="w-5 h-5 text-white transition-transform duration-300 group-hover:translate-x-0.5" />
-                  </div>
-                  <span className="text-[10px] text-white/70 uppercase tracking-wide font-medium">Changer</span>
-                </div>
-              )}
             </div>
 
             {/* Balance Section */}
@@ -170,10 +141,7 @@ function AccountCard({
                   {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••••••'}
                 </p>
                 <div
-                  onClick={e => {
-                    if (isClickable) e.stopPropagation();
-                    onToggleBalance();
-                  }}
+                  onClick={onToggleBalance}
                   className="bg-white/10 backdrop-blur-sm rounded-full p-2 hover:bg-white/20 transition-all cursor-pointer"
                   role="button"
                   tabIndex={0}
@@ -211,13 +179,8 @@ function AccountCard({
             </div>
           </div>
         </div>
-
-        {/* Bottom indicator for clickable cards */}
-        {isClickable && (
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:via-white/50 transition-all duration-300" />
-        )}
       </div>
-    </Wrapper>
+    </div>
   );
 }
 
@@ -263,7 +226,6 @@ export default function SamaNaffaPortal({
 
   const [showTransferModal, setShowTransferModal] = useState(false);
   const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
-  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
 
   const orderedThemes = [
     'from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark',
@@ -407,17 +369,18 @@ export default function SamaNaffaPortal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedAccountId]);
 
-  const handleCreateAccount = async (naffaType: NaffaType) => {
-    if (!naffaType || isCreatingAccount) return;
+  const handleCreateAccount = async (plan: NaffaPlanInput) => {
+    if (!plan || isCreatingAccount) return;
 
     setCreationFeedback(null);
     setIsCreatingAccount(true);
 
     try {
+      const accountPayload = buildNaffaAccountPayload(plan);
       const response = await fetch('/api/accounts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ productId: naffaType.id }),
+        body: JSON.stringify(accountPayload),
       });
 
       if (!response.ok) {
@@ -432,7 +395,7 @@ export default function SamaNaffaPortal({
 
       setCreationFeedback({
         type: 'success',
-        message: `Le Naffa "${payload.account.productName || naffaType.name}" a été créé avec succès.`,
+        message: `Le Naffa "${payload.account.productName || plan.objectiveName}" a été créé avec succès.`,
       });
       setShowCreateModal(false);
       await fetchAccounts();
@@ -552,9 +515,9 @@ export default function SamaNaffaPortal({
               setCreationFeedback(null);
             }
           }}
-          onSelectNaffa={handleCreateAccount}
-        isSubmitting={isCreatingAccount}
-        errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
+          onCreateNaffa={handleCreateAccount}
+          isSubmitting={isCreatingAccount}
+          errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
         />
       </div>
     );
@@ -644,109 +607,15 @@ export default function SamaNaffaPortal({
           </div>
         </div>
 
-        {accounts.length > 1 && (
-          <div className="mb-8">
-            <div className="relative">
-              {/* Helper Text */}
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-xs text-night/60 flex items-center gap-1.5">
-                  <span className="inline-block w-1.5 h-1.5 bg-gold-metallic rounded-full animate-pulse"></span>
-                  Cliquez sur la carte pour changer de compte
-                </p>
-                {accounts.length > 1 && (
-                  <span className="text-xs font-medium text-gold-metallic bg-gold-metallic/10 px-2 py-1 rounded-full">
-                    {accounts.length} comptes
-                  </span>
-                )}
-              </div>
-
-              {/* Selected Account Card */}
-              <div className="relative">
-                {(() => {
-                  const selectedIndex = accounts.findIndex(acc => acc.id === selectedAccountId);
-                  const cardTheme = getThemeByIndex(selectedIndex);
-                  return (
-                    <AccountCard
-                      account={selectedAccount!}
-                      showBalance={showBalance}
-                      onToggleBalance={() => setShowBalance(prev => !prev)}
-                      cardTheme={cardTheme}
-                      isClickable={true}
-                      onClick={() => setShowAccountDropdown(!showAccountDropdown)}
-                      showChevron={true}
-                      isLarge={false}
-                    />
-                  );
-                })()}
-              </div>
-
-              {/* Dropdown List */}
-              {showAccountDropdown && (
-                <div className="absolute z-50 mt-2 w-full bg-white border border-timberwolf/30 rounded-xl shadow-2xl overflow-hidden">
-                  {accounts.map((account, index) => {
-                    const isSelected = account.id === selectedAccountId;
-                    const cardTheme = getThemeByIndex(index);
-                    return (
-                      <button
-                        key={account.id}
-                        type="button"
-                        onClick={() => {
-                          handleSelectAccount(account.id);
-                          setShowAccountDropdown(false);
-                        }}
-                        className={`w-full relative overflow-hidden transition-all duration-200 ${
-                          isSelected ? 'ring-2 ring-gold-metallic ring-inset' : ''
-                        }`}
-                      >
-                        <div className={`relative bg-gradient-to-br ${cardTheme} p-5 text-white hover:opacity-95 transition-opacity`}>
-                          <div
-                            className="absolute inset-0 opacity-20 z-10"
-                            style={{
-                              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                              mixBlendMode: 'overlay',
-                            }}
-                          />
-                          
-                          {/* Selected indicator */}
-                          {isSelected && (
-                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-gold-metallic z-30" />
-                          )}
-
-                          <div className="relative z-20">
-                            {/* Professional Dropdown Card Layout */}
-                            <div className="space-y-3">
-                              <div className="flex items-center space-x-2 mb-3">
-                                <div className={`w-2 h-2 rounded-full ${isSelected ? 'bg-gold-metallic' : 'bg-white/50'}`}></div>
-                                <h5 className="font-bold text-lg">{account.productName || 'Naffa personnalisé'}</h5>
-                              </div>
-
-                              <div className="py-3 border-y border-white/10">
-                                <p className="text-white/70 text-xs uppercase mb-1.5">Solde</p>
-                                <p className="font-bold text-xl">
-                                  {showBalance ? `${Number(account.balance).toLocaleString('fr-FR')} FCFA` : '••••••••'}
-                                </p>
-                              </div>
-
-                              <div className="grid grid-cols-2 gap-4 pt-2">
-                                <div>
-                                  <p className="text-white/70 text-xs uppercase tracking-wide mb-1">N° Compte</p>
-                                  <p className="font-mono text-xs font-medium">{account.accountNumber}</p>
-                                </div>
-                                <div className="text-right">
-                                  <p className="text-white/70 text-xs uppercase tracking-wide mb-1">Statut</p>
-                                  <p className="text-sm font-semibold capitalize">{account.status.toLowerCase()}</p>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
+        {accounts.length > 1 && selectedAccountId && (
+          <NaffaCardStack
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={handleSelectAccount}
+            showBalance={showBalance}
+            onToggleBalance={() => setShowBalance((prev) => !prev)}
+            getThemeByIndex={getThemeByIndex}
+          />
         )}
 
         {accounts.length === 1 && (
@@ -755,8 +624,6 @@ export default function SamaNaffaPortal({
             showBalance={showBalance}
             onToggleBalance={() => setShowBalance(prev => !prev)}
             cardTheme="from-sama-secondary-green-dark via-sama-secondary-green to-sama-primary-green-dark"
-            isClickable={false}
-            showChevron={false}
             isLarge={true}
           />
         )}
@@ -934,7 +801,7 @@ export default function SamaNaffaPortal({
             setCreationFeedback(null);
           }
         }}
-        onSelectNaffa={handleCreateAccount}
+        onCreateNaffa={handleCreateAccount}
         isSubmitting={isCreatingAccount}
         errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
       />
