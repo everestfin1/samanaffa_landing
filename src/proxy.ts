@@ -96,7 +96,7 @@ export async function proxy(request: NextRequest) {
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob:",
     "connect-src 'self' https://api.twilio.com https://api.bulksms.com https://api.sendgrid.com https://api.intouch.com https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com",
-    "frame-src 'self' https://vercel.live https://www.googletagmanager.com",
+    "frame-src 'self' https://vercel.live https://www.googletagmanager.com https://verify.didit.me",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self' https://touchpay.gutouch.net",
@@ -107,7 +107,7 @@ export async function proxy(request: NextRequest) {
   response.headers.set('Content-Security-Policy', csp);
   response.headers.set(
     'Permissions-Policy',
-    'camera=(self), microphone=(), geolocation=(), payment=()',
+    'camera=(self "https://verify.didit.me"), microphone=(self "https://verify.didit.me"), fullscreen=(self "https://verify.didit.me"), geolocation=(), payment=()',
   );
 
   return response;

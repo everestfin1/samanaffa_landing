@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAppBaseUrl } from '@/lib/app-url';
+import { ensureDiditCaptureMethodAllowsDesktop } from '@/lib/didit-capture-method';
 import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = authSession.user.id;
-    const { firstName } = await request.json();
+    const { firstName, forceFresh } = await request.json();
 
     const apiKey = process.env.DIDIT_API_KEY;
     const workflowId = process.env.DIDIT_WORKFLOW_ID;
@@ -23,6 +24,8 @@ export async function POST(request: NextRequest) {
       console.error('[kyc/start] DIDIT_API_KEY or DIDIT_WORKFLOW_ID not configured');
       return NextResponse.json({ error: 'Service de vérification non configuré' }, { status: 503 });
     }
+
+    await ensureDiditCaptureMethodAllowsDesktop(apiKey);
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -39,7 +42,7 @@ export async function POST(request: NextRequest) {
       take: 1,
     });
     const existingDoc = existingDocs[0];
-    if (existingDoc?.fileUrl) {
+    if (existingDoc?.fileUrl && !forceFresh) {
       const reuseRes = await fetch(`${DIDIT_BASE}/session/${existingDoc.fileUrl}/`, {
         headers: { 'x-api-key': apiKey },
       });
@@ -54,6 +57,23 @@ export async function POST(request: NextRequest) {
             reused: true,
           });
         }
+      }
+    }
+
+    if (existingDoc?.id && forceFresh) {
+      await prisma.kycDocument
+        .update({
+          where: { id: existingDoc.id },
+          data: { verificationStatus: 'REJECTED' },
+        })
+        .catch((err) => console.warn('[kyc/start] could not abandon old doc:', err));
+
+      if (existingDoc.fileUrl) {
+        await fetch(`${DIDIT_BASE}/session/${existingDoc.fileUrl}/update-status/`, {
+          method: 'PATCH',
+          headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ new_status: 'Abandoned', comment: 'User retried KYC' }),
+        }).catch(() => {});
       }
     }
 
@@ -73,6 +93,7 @@ export async function POST(request: NextRequest) {
         workflow_id: workflowId,
         vendor_data: userId,
         callback: callbackUrl,
+        callback_method: 'both',
         language: 'fr',
         ...(userEmail && {
           contact_details: { email: userEmail },

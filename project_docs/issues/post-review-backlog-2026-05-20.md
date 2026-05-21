@@ -32,7 +32,7 @@ Use this file when picking up polish before or alongside new product work (Didit
 
 ## Product / features (not in trackers yet)
 
-- **Didit web browser verification** — new flow; track in separate spec when scoped.
+- **Didit web browser verification** — **done (2026-05-21):** `@didit-protocol/sdk-web` modal on desktop (≥1024px, fine pointer); mobile keeps redirect. `callback_method: both`, `GET /api/onboarding/kyc/session-url`, CSP `frame-src` + camera/mic for `verify.didit.me`. If QR still shows, set Didit `capture_method` to `both` via `scripts/ensure-didit-capture-method.ts` or Didit Console → API & Webhooks (`DIDIT_CAPTURE_METHOD=both`).
 - **Deprecate Emprunt obligataire** — remove routes, copy, and DB references per product decision.
 
 ---

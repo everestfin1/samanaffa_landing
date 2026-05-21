@@ -71,6 +71,7 @@ export default function T5KYC({
         error={kyc.error}
         declineReasons={kyc.declineReasons}
         verificationUrl={kyc.verificationUrl}
+        useWebSdk={kyc.useWebSdk}
         tone="formal"
         buttonStyle="onboarding"
         depositAmount={kyc.stage === 'success' ? depositAmount : undefined}

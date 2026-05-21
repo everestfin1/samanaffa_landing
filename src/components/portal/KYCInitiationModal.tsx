@@ -94,6 +94,7 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
             error={kyc.error}
             declineReasons={kyc.declineReasons}
             verificationUrl={kyc.verificationUrl}
+            useWebSdk={kyc.useWebSdk}
             tone="informal"
             buttonStyle="portal"
             onStart={kyc.startVerification}

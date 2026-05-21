@@ -3,12 +3,33 @@
 import type { ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { DiditKycStage } from '@/hooks/useDiditKycVerification';
+import { shouldUseDiditWebSdk } from '@/lib/kyc-device';
 
 export type DiditKycTone = 'formal' | 'informal';
 export type DiditKycButtonStyle = 'onboarding' | 'portal';
 
-const COPY = {
+type CopySet = {
+  provider: ReactNode;
+  checklist: { emoji: string; text: string }[];
+  start: string;
+  redirectHint: string;
+  verifyingTitle: string;
+  verifyingBody: string;
+  resume: string;
+  successTitle: string;
+  successBody: string;
+  inReviewTitle: string;
+  inReviewBody: string;
+  declinedTitle: string;
+  declinedBody: string;
+  retry: string;
+  finish: string;
+  portalCta: string;
+};
+
+const COPY: Record<DiditKycTone, { redirect: CopySet; webSdk: CopySet }> = {
   formal: {
+    redirect: {
     provider: (
       <>
         Nous utilisons <strong>Didit</strong> — vérification certifiée, aucun document stocké sur
@@ -36,8 +57,41 @@ const COPY = {
     retry: 'Réessayer',
     finish: 'Terminer',
     portalCta: 'Accéder à votre espace',
+    },
+    webSdk: {
+      provider: (
+        <>
+          Nous utilisons <strong>Didit</strong> — vérification certifiée, aucun document stocké sur
+          nos serveurs.
+        </>
+      ),
+      checklist: [
+        { emoji: '🪪', text: 'Votre CNI ou passeport' },
+        { emoji: '🤳', text: 'Un selfie rapide (détection de vivacité)' },
+        { emoji: '⚡', text: 'Résultat en moins de 2 minutes' },
+      ],
+      start: 'Commencer la vérification',
+      redirectHint:
+        'Une fenêtre sécurisée s’ouvre sur cet écran pour scanner votre pièce d’identité',
+      verifyingTitle: 'Vérification en cours',
+      verifyingBody:
+        'Complétez les étapes dans la fenêtre Didit. Cette page se met à jour automatiquement.',
+      resume: 'Rouvrir la fenêtre de vérification',
+      successTitle: 'Identité vérifiée !',
+      successBody: 'Votre dossier est approuvé. Bienvenue chez Sama Naffa !',
+      inReviewTitle: "En cours d'examen",
+      inReviewBody:
+        'Notre équipe finalise la vérification (généralement moins de 24 h). Vous pouvez accéder à votre espace en attendant.',
+      declinedTitle: 'Vérification non aboutie',
+      declinedBody:
+        "Cela arrive. Assurez-vous que les photos sont nettes et l'éclairage correct.",
+      retry: 'Réessayer',
+      finish: 'Terminer',
+      portalCta: 'Accéder à votre espace',
+    },
   },
   informal: {
+    redirect: {
     provider: (
       <>
         On utilise <strong>Didit</strong> — vérification certifiée, aucun document stocké sur nos
@@ -63,14 +117,45 @@ const COPY = {
     retry: 'Réessayer →',
     finish: 'Terminer →',
     portalCta: 'Terminer →',
+    },
+    webSdk: {
+      provider: (
+        <>
+          On utilise <strong>Didit</strong> — vérification certifiée, aucun document stocké sur nos
+          serveurs.
+        </>
+      ),
+      checklist: [
+        { emoji: '🪪', text: 'Ton CNI ou passeport' },
+        { emoji: '🤳', text: 'Un selfie rapide (détection de vivacité)' },
+        { emoji: '⚡', text: 'Résultat en moins de 2 minutes' },
+      ],
+      start: 'Commencer la vérification →',
+      redirectHint: 'Une fenêtre sécurisée s’ouvre sur cet écran pour ta pièce d’identité',
+      verifyingTitle: 'Vérification en cours',
+      verifyingBody:
+        'Complète les étapes dans la fenêtre Didit. Cette page se met à jour automatiquement.',
+      resume: 'Rouvrir la fenêtre de vérification',
+      successTitle: 'Identité vérifiée !',
+      successBody: 'Ton dossier est approuvé. Bienvenue chez Sama Naffa !',
+      inReviewTitle: "En cours d'examen",
+      inReviewBody: 'Notre équipe finalise la vérification (généralement moins de 24h).',
+      declinedTitle: 'Vérification non aboutie',
+      declinedBody: "Ça arrive ! Assure-toi que les photos sont nettes et l'éclairage correct.",
+      retry: 'Réessayer →',
+      finish: 'Terminer →',
+      portalCta: 'Terminer →',
+    },
   },
-} as const;
+};
 
 interface DiditKycStagePanelsProps {
   stage: DiditKycStage;
   error: string | null;
   declineReasons: string[];
   verificationUrl: string | null;
+  /** When set, overrides client-side desktop SDK detection for copy. */
+  useWebSdk?: boolean;
   tone?: DiditKycTone;
   buttonStyle?: DiditKycButtonStyle;
   onStart: () => void;
@@ -86,6 +171,7 @@ export default function DiditKycStagePanels({
   error,
   declineReasons,
   verificationUrl,
+  useWebSdk: useWebSdkProp,
   tone = 'formal',
   buttonStyle = 'onboarding',
   onStart,
@@ -95,7 +181,8 @@ export default function DiditKycStagePanels({
   onGoToPortal,
   depositAmount,
 }: DiditKycStagePanelsProps) {
-  const t = COPY[tone];
+  const useWebSdk = useWebSdkProp ?? shouldUseDiditWebSdk();
+  const t = COPY[tone][useWebSdk ? 'webSdk' : 'redirect'];
 
   return (
     <AnimatePresence mode="wait">
@@ -168,7 +255,7 @@ export default function DiditKycStagePanels({
               {error}
             </p>
           )}
-          {verificationUrl && (
+          {(verificationUrl || useWebSdk) && (
             <button
               type="button"
               onClick={onResumeVerification}
