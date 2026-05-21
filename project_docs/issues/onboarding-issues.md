@@ -1,7 +1,7 @@
 # Onboarding & profile completion — tracked issues
 
 **Branch:** `feat/onboarding-flow-mock`  
-**Recorded:** 2026-05-18 (initial), **2026-05-19** (reviews), **2026-05-19** (post-OTP-login orchestration review)  
+**Recorded:** 2026-05-18 (initial), **2026-05-19** (reviews), **2026-05-19** (post-OTP-login orchestration review), **2026-05-21** (Didit desktop SDK + signup/comms review)  
 **Source:** T0–T6 implementation; full flow + auth orchestration audit  
 **Scope:** `src/app/onboarding/`, `src/components/onboarding/`, `src/app/api/onboarding/`, `src/app/api/kyc/`, `src/lib/kyc-sync.ts`, portal deposit/profile/notifications  
 **Related:** [auth-issues.md](./auth-issues.md) — AUTH-002, AUTH-013, AUTH-020, login OTP
@@ -17,11 +17,11 @@
 | Severity | Open | Sprint |
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
-| high     | 1 | ONB-008 (tests) |
-| medium   | 0 | — |
-| low      | 5 | ONB-008 (tests), ONB-043–047 (backlog) |
+| high     | 3 | ONB-008 (tests), ONB-048, ONB-049 |
+| medium   | 2 | ONB-050, ONB-051 |
+| low      | 6 | ONB-043–047 (backlog), ONB-052 |
 
-_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status).
+_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status). **Didit desktop web SDK** (commits `35cab5c`, `1d8d5d3`, 2026-05-21).
 
 ---
 
@@ -77,12 +77,62 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Area:** quality
 - **Files:** (none yet)
 - **Problem:** No unit/integration tests for onboarding APIs, KYC sync, profile completion rules.
-- **Acceptance:** Tests for `meetsPortalProfileRequirements`, OTP create-account, `syncDiditDecision`, deposit intent lifecycle, progress PATCH auth rules.
+- **Acceptance:** Tests for `meetsPortalProfileRequirements`, OTP create-account, `syncDiditDecision`, deposit intent lifecycle, progress PATCH auth rules; extend to `useDiditKycVerification`, `forceFresh`, `getDiditDeclineMessages`.
 - **Sprint:** P3.
+
+### ONB-048 — T1 duplicate phone: generic OTP response without session or login CTA
+- **Status:** open
+- **Area:** ux / auth
+- **Files:** `src/app/api/onboarding/create-account/route.ts`, `src/components/onboarding/T1Phone.tsx`, `src/lib/otp-send-response.ts`
+- **Problem:** `send-otp` returns `genericOtpSendResponse()` (success, no `sessionId`) when phone already registered (anti-enumeration). T1 only advances when `sessionId` is set and does not show the generic message on success.
+- **Impact:** User with existing number sees no OTP step and no clear “already registered” guidance — looks broken.
+- **Acceptance:** On duplicate phone, return same generic copy **and** show it in UI with link to `/login`; do not advance to OTP UI without `sessionId`; optional: still avoid revealing whether account exists in API body beyond generic text.
+- **Sprint:** P1 — signup polish.
+- **Source:** Code review 2026-05-21 (AUTH-007 tradeoff).
+
+### ONB-049 — `verify-otp` duplicate phone check uses single format
+- **Status:** open
+- **Area:** reliability / data
+- **Files:** `src/app/api/onboarding/create-account/route.ts`, `src/lib/utils.ts` (`generatePhoneFormats`)
+- **Problem:** `send-otp` checks `generatePhoneFormats()`; `verify-otp` only `findFirst({ where: { phone } })` with session’s normalized value.
+- **Impact:** Legacy rows (`772…` vs `+221772…`) may bypass duplicate detection or hit DB unique constraint as 500.
+- **Acceptance:** Reuse `generatePhoneFormats(phone)` on verify; align with `sendOTP` registration-session checks.
+- **Sprint:** P1 — with ONB-048.
 
 ---
 
 ## Medium (open)
+
+### ONB-050 — `/api/auth/check-availability` unused; no live email/phone validation in UI
+- **Status:** open
+- **Area:** ux
+- **Files:** `src/app/api/auth/check-availability/route.ts`, `T1Phone.tsx`, `ProfileCompletionModal.tsx`
+- **Problem:** Availability API exists but no client calls it. T1 has no pre-submit duplicate hint; comms modal only surfaces email conflict after `PATCH /api/portal/profile/complete` (409).
+- **Impact:** QA perceives “no proper check” for phone at signup and email on dashboard.
+- **Acceptance:** Debounced availability check on T1 phone blur (generic messaging) and comms modal email blur; or remove dead API if product stays submit-only.
+- **Sprint:** P2.
+- **Note:** Server-side email uniqueness on comms modal **works** (`profile/complete`); this is proactive UX.
+
+### ONB-051 — KYC rejection SMS during active onboarding
+- **Status:** open
+- **Area:** ux / notifications
+- **Files:** `src/lib/kyc-sync.ts`, `src/lib/notification-settings.ts`, `src/lib/notifications.ts`
+- **Problem:** Poll on T5 → `syncDiditDecision` → `sendKYCStatusSMS` for `REJECTED` when `enableKYCRejectionSMS` is true (default).
+- **Impact:** User still on onboarding T5 receives “consultez votre portail” SMS after a failed Didit attempt.
+- **Acceptance:** Skip or defer rejection SMS while `investorProfile.onboarding` incomplete / user not yet on portal; still create in-app notification.
+- **Sprint:** P2.
+
+### ONB-052 — `user.create` unique violation should return 409
+- **Status:** open
+- **Area:** reliability
+- **Files:** `src/app/api/onboarding/create-account/route.ts`
+- **Problem:** Concurrent `verify-otp` requests can race past `findFirst`; Prisma `P2002` on `users_phone_key` may surface as 500.
+- **Acceptance:** Catch `P2002` on phone/email; return `409` with “Compte déjà existant”.
+- **Sprint:** P3.
+
+---
+
+## Medium (resolved)
 
 ### ONB-026 — T4 wallet choice vs Intouch-only confirmation
 - **Status:** done
@@ -267,10 +317,19 @@ Align with [auth-issues.md](./auth-issues.md) **Phase 1–4**.
 7. ONB-026, ONB-029, ONB-030, ONB-035, ONB-036, ONB-037, ONB-038 (progress bar)  
 8. ONB-008, ONB-040, ONB-039 (docs)
 
+### Phase 5 (P1–P2) — signup & comms (2026-05-21 review)
+1. **ONB-048**, **ONB-049** — T1 duplicate phone UX + verify format parity  
+2. **ONB-050** — availability API wired or removed; email/phone blur validation  
+3. **ONB-051** — defer KYC rejection SMS during onboarding  
+4. **ONB-052** — Prisma unique → 409 on `create-account`  
+5. **AUTH-026** — Didit `capture_method` bootstrap (auth tracker)
+
 ---
 
 ## Manual test checklist
 
+- [ ] T1 existing phone: generic message + login CTA; no OTP step without `sessionId` (**ONB-048**)
+- [ ] T1 verify: duplicate detected across phone format variants (**ONB-049**)
 - [ ] T0 → T1: simulation persisted; OTP; session after T1 via post-signup token (**AUTH-002**)
 - [ ] Cannot `signIn(register)` without valid post-`create-account` token (**AUTH-002**)
 - [ ] T4: amount only; `paymentMethod=intouch`; intent `awaitingKycApproval: true`; no auto-charge (**ONB-026**)
@@ -279,6 +338,9 @@ Align with [auth-issues.md](./auth-issues.md) **Phase 1–4**.
 - [ ] Cannot upload/list KYC for another `userId` (**ONB-041**)
 - [ ] After KYC approve: intent released (`awaitingKycApproval=false`); pay via Intouch on Sama Naffa (`confirmDeposit=1`)
 - [ ] Profile communications modal on dashboard + Sama Naffa when incomplete (**ONB-033**)
+- [ ] Comms modal: duplicate email shows clear error (409); optional blur check (**ONB-050**)
+- [ ] T5 Didit decline: no rejection SMS while still in onboarding (**ONB-051**)
+- [ ] Desktop T5: Didit SDK modal; mobile redirect; Réessayer creates fresh session (2026-05-21)
 - [ ] KYC return without session → `/login?callbackUrl=…` → resume onboarding (**AUTH-009**, **ONB-038**)
 - [ ] T1 auto-login failure → `/login?callbackUrl=/onboarding` (**AUTH-017**)
 - [ ] Logout → `/login` phone OTP → portal; idle timeout in portal (**AUTH-010**, **AUTH-018**)

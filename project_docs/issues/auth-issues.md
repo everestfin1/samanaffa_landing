@@ -1,7 +1,7 @@
 # Authentication & login — tracked issues
 
 **Branch:** `feat/onboarding-flow-mock`  
-**Recorded:** 2026-05-19 (initial), **2026-05-19** (post-OTP-login consolidation review)  
+**Recorded:** 2026-05-19 (initial), **2026-05-19** (post-OTP-login consolidation review), **2026-05-21** (Didit KYC / signup review)  
 **Source:** Login flow audit; full auth/onboarding orchestration review  
 **Scope:** `src/lib/auth.ts`, `src/app/login/`, `src/app/api/auth/*`, `src/app/api/onboarding/create-account/`, `src/proxy.ts`, `src/lib/otp.ts`, `src/lib/admin-auth.ts`, `src/lib/csrf.ts`
 
@@ -17,7 +17,7 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 2 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column) |
+| medium   | 3 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column), AUTH-026 |
 | low      | 2 | AUTH-024, AUTH-025 (see backlog) |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
@@ -182,6 +182,16 @@ flowchart TB
 - **Acceptance:** Dedicated `users.sessionVersion` (or equivalent); bump without touching `investorProfile`.
 - **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
 
+### AUTH-026 — Didit `capture_method` patched from public KYC start
+- **Status:** open
+- **Area:** ops / security
+- **Files:** `src/lib/didit-capture-method.ts`, `src/app/api/onboarding/kyc/start/route.ts`, `scripts/ensure-didit-capture-method.ts`
+- **Problem:** First authenticated `POST /kyc/start` per process can `PATCH /v3/webhook/` to set account-wide `capture_method` (`both`/`desktop`).
+- **Impact:** Side effect on global Didit config triggered by end users; surprising in multi-env; duplicates ops script.
+- **Acceptance:** Remove runtime PATCH from user-facing route; run `scripts/ensure-didit-capture-method.ts` (or console) at deploy/bootstrap only; document `DIDIT_CAPTURE_METHOD` + `DIDIT_ENSURE_CAPTURE_METHOD=false` to disable.
+- **Sprint:** P2 — ops hygiene (2026-05-21 review).
+- **Related:** Didit desktop SDK shipped 2026-05-21; workflow “Allow desktop access” is primary control.
+
 ### AUTH-013 — Duplicate OTP / signup pipelines
 - **Status:** done
 - **Area:** architecture
@@ -334,6 +344,11 @@ flowchart TB
 12. **AUTH-008**, **AUTH-022**, **AUTH-010**  
 13. **ONB-027**, **ONB-028** — Deposit metadata + idempotency  
 14. **AUTH-012**, **AUTH-017**, onboarding polish items  
+
+### Phase 5 — Signup & KYC ops (P1–P2, 2026-05-21)
+15. **ONB-048**, **ONB-049** — T1 phone duplicate UX + verify format parity ([onboarding tracker](./onboarding-issues.md))  
+16. **ONB-050** — wire `check-availability` or remove  
+17. **AUTH-026** — Didit webhook `capture_method` bootstrap only via script/console  
 
 ---
 

@@ -1,9 +1,11 @@
-# Post-review backlog (2026-05-20)
+# Post-review backlog (2026-05-20+)
 
 Deferred after code review of Phases 1–4 + ONB-026/029/039/040.  
 **Fixed same day:** H4 (T3 quiz), H5 (KYC poll UI), H1 (JWT sessionVersion throttle), M4 (notification deep links).
 
-Use this file when picking up polish before or alongside new product work (Didit web verification, deprecate Emprunt obligataire).
+**2026-05-21 review** (Didit desktop SDK + signup/comms): tracked as **ONB-048–052** and **AUTH-026** in main issue files — see [onboarding-issues.md](./onboarding-issues.md) and [auth-issues.md](./auth-issues.md).
+
+Use this file when picking up polish before or alongside new product work (deprecate Emprunt obligataire, KYC capture-only).
 
 ---
 
@@ -27,6 +29,17 @@ Use this file when picking up polish before or alongside new product work (Didit
 | ONB-046 | low | Legacy intents: `paymentMethod` ≠ intouch label in confirm modal | Data backfill or one-time notice |
 | ONB-047 | low | T6 “Prêt” vs webhook race | Edge case; optional poll before T6 |
 | ONB-008 | high | Automated tests (unchanged) | Vitest for `notification-action-url`, `kyc-deposit-intents`, KYC hook |
+
+### 2026-05-21 review → main trackers
+
+| ID | Severity | Title | Tracker |
+|----|----------|-------|---------|
+| ONB-048 | high | T1 duplicate phone: generic OTP, no sessionId / login CTA | [onboarding-issues.md](./onboarding-issues.md#onb-048--t1-duplicate-phone-generic-otp-response-without-session-or-login-cta) |
+| ONB-049 | high | `verify-otp` phone duplicate: single format only | [onboarding-issues.md](./onboarding-issues.md#onb-049--verify-otp-duplicate-phone-check-uses-single-format) |
+| ONB-050 | medium | `check-availability` unused; no blur validation | [onboarding-issues.md](./onboarding-issues.md#onb-050--apiauthcheck-availability-unused-no-live-emailphone-validation-in-ui) |
+| ONB-051 | medium | KYC rejection SMS during onboarding | [onboarding-issues.md](./onboarding-issues.md#onb-051--kyc-rejection-sms-during-active-onboarding) |
+| ONB-052 | low | Prisma unique → 409 on create-account | [onboarding-issues.md](./onboarding-issues.md#onb-052--usercreate-unique-violation-should-return-409) |
+| AUTH-026 | medium | Didit `capture_method` PATCH from KYC start | [auth-issues.md](./auth-issues.md#auth-026--didit-capture_method-patched-from-public-kyc-start) |
 
 ---
 
