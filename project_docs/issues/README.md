@@ -38,7 +38,7 @@ Refer by **title** in standups when ambiguous.
 | medium | AUTH-022, AUTH-023 | Upstash rate limits; `sessionVersion` column |
 | backlog | ONB-043–047, AUTH-024–025 | [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md) |
 
-**Next product:** deprecate Emprunt obligataire. Didit desktop web SDK (**done** 2026-05-21).
+**Next product:** KYC capture-only (no upload); deprecate Emprunt obligataire. Didit desktop web SDK (**done** 2026-05-21).
 
 Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested-fix-order-implementation-sprint), [onboarding-issues.md § Suggested fix order](./onboarding-issues.md#suggested-fix-order).
 
