@@ -1,5 +1,27 @@
 export type OnboardingStep = 'T0' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6';
 
+export const ONBOARDING_VISIBLE_STEPS = 6;
+export const ONBOARDING_QUIZ_QUESTIONS = 3;
+
+/** Fill width (0–100) for the top onboarding progress bar. */
+export function getOnboardingProgressPercent(
+  visibleStep: number,
+  quiz?: { questionIndex: number; totalQuestions: number; complete?: boolean },
+): number {
+  if (visibleStep <= 0) return 0;
+
+  if (visibleStep === 3 && quiz) {
+    const completedSteps = visibleStep - 1;
+    const inStep =
+      quiz.complete === true
+        ? 1
+        : (quiz.questionIndex + 1) / Math.max(quiz.totalQuestions, 1);
+    return ((completedSteps + inStep) / ONBOARDING_VISIBLE_STEPS) * 100;
+  }
+
+  return (visibleStep / ONBOARDING_VISIBLE_STEPS) * 100;
+}
+
 export interface OnboardingProgressPayload {
   step: OnboardingStep;
   simulation?: unknown;

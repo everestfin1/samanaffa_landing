@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
@@ -8,6 +8,7 @@ interface T3QuizProps {
   firstName: string;
   onSuccess: (formula: string) => void | Promise<void>;
   onBack?: () => void;
+  onProgressChange?: (questionIndex: number, totalQuestions: number, complete: boolean) => void;
 }
 
 type QuizAnswer = string;
@@ -76,7 +77,7 @@ const recommendFormula = (answers: Record<string, QuizAnswer>): { name: string; 
   };
 };
 
-export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
+export default function T3Quiz({ firstName, onSuccess, onBack, onProgressChange }: T3QuizProps) {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, QuizAnswer>>({});
   const [loading, setLoading] = useState(false);
@@ -84,6 +85,10 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
   const [result, setResult] = useState<ReturnType<typeof recommendFormula> | null>(null);
 
   const current = QUESTIONS[step];
+
+  useEffect(() => {
+    onProgressChange?.(step, QUESTIONS.length, result !== null);
+  }, [step, result]);
 
   const handleAnswer = async (value: QuizAnswer) => {
     const next = { ...answers, [current.id]: value };
@@ -198,21 +203,6 @@ export default function T3Quiz({ firstName, onSuccess, onBack }: T3QuizProps) {
           ← {step === 0 ? 'Retour' : 'Question précédente'}
         </button>
       )}
-      <div className="text-center mb-2">
-        <p className="text-xs uppercase tracking-widest text-night/40 font-semibold">
-          Question {step + 1} sur {QUESTIONS.length}
-        </p>
-      </div>
-
-      <div className="w-full h-1.5 bg-timberwolf/30 rounded-full mb-10 overflow-hidden">
-        <motion.div
-          className="h-full bg-gold rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${((step + 1) / QUESTIONS.length) * 100}%` }}
-          transition={{ ease: 'easeInOut', duration: 0.3 }}
-        />
-      </div>
-
       <AnimatePresence mode="wait">
         <motion.div
           key={step}

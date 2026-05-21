@@ -11,7 +11,12 @@ import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
 import T6Dashboard from '@/components/onboarding/T6Dashboard';
-import type { OnboardingStep } from '@/lib/onboarding-progress';
+import {
+  getOnboardingProgressPercent,
+  ONBOARDING_QUIZ_QUESTIONS,
+  ONBOARDING_VISIBLE_STEPS,
+  type OnboardingStep,
+} from '@/lib/onboarding-progress';
 
 interface OnboardingState {
   simulation: T0Result | null;
@@ -24,8 +29,6 @@ interface OnboardingState {
   depositAmount: number | null;
   wallet: string | null;
 }
-
-const VISIBLE_STEPS = 6;
 
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
@@ -72,6 +75,11 @@ function OnboardingPageContent() {
   const [authPending, setAuthPending] = useState(false);
   const [resumeChecked, setResumeChecked] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [quizProgress, setQuizProgress] = useState<{
+    questionIndex: number;
+    totalQuestions: number;
+    complete: boolean;
+  } | null>(null);
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const activeUserId = state.userId ?? sessionUserId;
 
@@ -169,6 +177,36 @@ function OnboardingPageContent() {
 
   const currentVisible = visibleStepIndex[step];
   const showProgress = step !== 'T0' && step !== 'T6';
+  const progressPercent = getOnboardingProgressPercent(
+    currentVisible,
+    step === 'T3'
+      ? {
+          questionIndex: quizProgress?.questionIndex ?? 0,
+          totalQuestions: quizProgress?.totalQuestions ?? ONBOARDING_QUIZ_QUESTIONS,
+          complete: quizProgress?.complete ?? false,
+        }
+      : undefined,
+  );
+
+  const handleQuizProgressChange = useCallback(
+    (questionIndex: number, totalQuestions: number, complete: boolean) => {
+      setQuizProgress((prev) => {
+        if (
+          prev?.questionIndex === questionIndex &&
+          prev?.totalQuestions === totalQuestions &&
+          prev?.complete === complete
+        ) {
+          return prev;
+        }
+        return { questionIndex, totalQuestions, complete };
+      });
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (step !== 'T3') setQuizProgress(null);
+  }, [step]);
 
   const handleT1Success = async (
     userId: string,
@@ -223,14 +261,19 @@ function OnboardingPageContent() {
               <div className="flex items-center justify-between text-xs text-night/60 mb-2">
                 <span className="font-medium">Sama Naffa</span>
                 <span>
-                  Étape {currentVisible} sur {VISIBLE_STEPS}
+                  Étape {currentVisible} sur {ONBOARDING_VISIBLE_STEPS}
                 </span>
               </div>
-              <div className="w-full h-1.5 bg-timberwolf/30 rounded-full overflow-hidden">
-                <motion.div
-                  className="h-full bg-gold rounded-full"
-                  animate={{ width: `${(currentVisible / VISIBLE_STEPS) * 100}%` }}
-                  transition={{ ease: 'easeInOut', duration: 0.5 }}
+              <div
+                className="w-full h-1.5 bg-timberwolf/30 rounded-full overflow-hidden"
+                role="progressbar"
+                aria-valuenow={Math.round(progressPercent)}
+                aria-valuemin={0}
+                aria-valuemax={100}
+              >
+                <div
+                  className="h-full min-w-0 rounded-full bg-gold-metallic transition-[width] duration-500 ease-in-out"
+                  style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
@@ -324,6 +367,7 @@ function OnboardingPageContent() {
               >
                 <T3Quiz
                   firstName={state.firstName}
+                  onProgressChange={handleQuizProgressChange}
                   onBack={() => setStep('T2')}
                   onSuccess={async (formula) => {
                     const saved = await saveProgress('T4', { formula });
