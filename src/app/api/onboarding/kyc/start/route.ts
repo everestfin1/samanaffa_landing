@@ -3,6 +3,10 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAppBaseUrl } from '@/lib/app-url';
 import { ensureDiditCaptureMethodAllowsDesktop } from '@/lib/didit-capture-method';
+import {
+  applyDiditKycBypassApproval,
+  isDiditKycBypassEnabled,
+} from '@/lib/didit-kyc-bypass';
 import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
@@ -16,6 +20,16 @@ export async function POST(request: NextRequest) {
 
     const userId = authSession.user.id;
     const { firstName, forceFresh } = await request.json();
+
+    if (isDiditKycBypassEnabled()) {
+      const sessionId = await applyDiditKycBypassApproval(userId);
+      return NextResponse.json({
+        success: true,
+        bypass: true,
+        sessionId,
+        verificationUrl: null,
+      });
+    }
 
     const apiKey = process.env.DIDIT_API_KEY;
     const workflowId = process.env.DIDIT_WORKFLOW_ID;

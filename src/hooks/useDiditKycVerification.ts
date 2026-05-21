@@ -220,6 +220,13 @@ export function useDiditKycVerification({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
 
+      if (data.bypass && data.sessionId) {
+        setDiditSessionId(data.sessionId);
+        sessionIdRef.current = data.sessionId;
+        applyStatus('approved');
+        return;
+      }
+
       if (webSdk) {
         await launchWebSdk(data.verificationUrl, data.sessionId);
         return;

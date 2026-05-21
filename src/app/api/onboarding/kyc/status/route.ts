@@ -7,6 +7,11 @@ import {
   fetchDiditDecision,
   getDiditDeclineMessages,
 } from '@/lib/didit-decision';
+import {
+  applyDiditKycBypassApproval,
+  isBypassKycSessionId,
+  isDiditKycBypassEnabled,
+} from '@/lib/didit-kyc-bypass';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
 
@@ -46,6 +51,15 @@ export async function GET(request: NextRequest) {
 
   if (!kycDocs[0]) {
     return NextResponse.json({ error: 'Session KYC introuvable' }, { status: 403 });
+  }
+
+  if (isDiditKycBypassEnabled() && isBypassKycSessionId(sessionId)) {
+    await applyDiditKycBypassApproval(userId);
+    return NextResponse.json({
+      status: 'approved',
+      diditStatus: 'Approved',
+      bypass: true,
+    });
   }
 
   const apiKey = process.env.DIDIT_API_KEY;

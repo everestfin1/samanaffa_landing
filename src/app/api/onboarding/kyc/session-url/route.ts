@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { isBypassKycSessionId, isDiditKycBypassEnabled } from '@/lib/didit-kyc-bypass';
 import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
@@ -29,6 +30,15 @@ export async function GET(request: NextRequest) {
 
   if (!kycDocs[0]) {
     return NextResponse.json({ error: 'Session KYC introuvable' }, { status: 403 });
+  }
+
+  if (isDiditKycBypassEnabled() && isBypassKycSessionId(sessionId)) {
+    return NextResponse.json({
+      sessionId,
+      verificationUrl: null,
+      bypass: true,
+      diditStatus: 'Approved',
+    });
   }
 
   const apiKey = process.env.DIDIT_API_KEY;
