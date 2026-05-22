@@ -19,6 +19,24 @@ const SQL = readFileSync(
   'utf8',
 );
 
+const BACKFILL_SQL = `
+UPDATE "users"
+SET "sessionVersion" = GREATEST(
+  COALESCE(
+    CASE
+      WHEN "investorProfile" IS NOT NULL
+        AND ("investorProfile"::jsonb ? 'sessionVersion')
+      THEN (("investorProfile"::jsonb->>'sessionVersion')::integer)
+      ELSE 0
+    END,
+    0
+  ),
+  COALESCE("sessionVersion", 0)
+)
+WHERE "investorProfile" IS NOT NULL
+  AND ("investorProfile"::jsonb ? 'sessionVersion');
+`;
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -39,18 +57,21 @@ async function main() {
       WHERE table_name = 'users' AND column_name = 'sessionVersion'
     `);
 
-    if (before.rows.length > 0) {
-      console.log('Column "sessionVersion" already exists — nothing to do.');
-      return;
+    if (before.rows.length === 0) {
+      const statements = SQL.split('--> statement-breakpoint').map((s) => s.trim()).filter(Boolean);
+
+      for (const statement of statements) {
+        console.log('Running:', statement.slice(0, 80).replace(/\s+/g, ' ') + '…');
+        await client.query(statement);
+      }
+      console.log('Column "sessionVersion" created.');
+    } else {
+      console.log('Column "sessionVersion" already exists — skipping DDL.');
     }
 
-    const statements = SQL.split('--> statement-breakpoint').map((s) => s.trim()).filter(Boolean);
-
-    for (const statement of statements) {
-      console.log('Running:', statement.slice(0, 80).replace(/\s+/g, ' ') + '…');
-      await client.query(statement);
-    }
-
+    console.log('Running idempotent sessionVersion backfill…');
+    const backfill = await client.query(BACKFILL_SQL);
+    console.log(`Backfill complete (${backfill.rowCount ?? 0} row(s) updated).`);
     console.log('Done. users.sessionVersion is ready.');
   } finally {
     client.release();

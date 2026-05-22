@@ -304,22 +304,6 @@ export default function T1Phone({
                   setLocal(digitsOnly(e.target.value).slice(0, expected));
                   setExistingAccountHint(null);
                 }}
-                onBlur={async () => {
-                  if (!isValidLength || existingAccountHint) return;
-                  try {
-                    const res = await fetch('/api/auth/check-availability', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({ phone: fullPhone }),
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.phoneAvailable === false) {
-                      setExistingAccountHint(GENERIC_OTP_SEND_MESSAGE);
-                    }
-                  } catch {
-                    // non-fatal
-                  }
-                }}
                 placeholder={country.code === 'SN' ? '77 123 45 67' : 'Numéro'}
                 className="flex-1 px-4 h-14 text-lg border border-timberwolf/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold"
                 autoFocus

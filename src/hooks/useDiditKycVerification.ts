@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import type { VerificationResult } from '@didit-protocol/sdk-web';
 import { closeDiditSdkModal, openDiditSdkVerification } from '@/lib/didit-sdk-client';
 import { shouldUseDiditWebSdk } from '@/lib/kyc-device';
@@ -22,6 +22,7 @@ export type DiditKycStage =
 export type DbKycStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 const POLL_INTERVAL_MS = 5_000;
+const MAX_POLL_DURATION_MS = 10 * 60 * 1000;
 
 export interface UseDiditKycVerificationOptions {
   firstName: string;
@@ -49,6 +50,20 @@ async function fetchVerificationUrlForSession(sessionId: string): Promise<string
   return typeof data.verificationUrl === 'string' ? data.verificationUrl : null;
 }
 
+function notifyApproved(
+  onApproved: (() => void) | undefined,
+  autoAdvanceOnApproved: boolean,
+  approvedHandledRef: MutableRefObject<boolean>,
+) {
+  if (!onApproved || approvedHandledRef.current) return;
+  approvedHandledRef.current = true;
+  if (autoAdvanceOnApproved) {
+    window.setTimeout(() => onApproved(), 1200);
+  } else {
+    onApproved();
+  }
+}
+
 export function useDiditKycVerification({
   firstName,
   returnPath,
@@ -69,13 +84,19 @@ export function useDiditKycVerification({
   const approvedHandledRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const forceFreshRef = useRef(false);
-  const dbHydratedRef = useRef(false);
+  const pollStartedAtRef = useRef<number | null>(null);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current !== null) {
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
+    pollStartedAtRef.current = null;
+  }, []);
+
+  const isPollExpired = useCallback(() => {
+    const started = pollStartedAtRef.current;
+    return started != null && Date.now() - started > MAX_POLL_DURATION_MS;
   }, []);
 
   useEffect(() => {
@@ -94,18 +115,28 @@ export function useDiditKycVerification({
       if (status === 'approved') {
         stopPolling();
         setStage('success');
-        if (onApproved && !approvedHandledRef.current) {
-          approvedHandledRef.current = true;
-          if (autoAdvanceOnApproved) {
-            window.setTimeout(() => onApproved(), 1200);
-          }
-        }
-      } else if (status === 'in_review') {
-        // Keep polling until approved/declined (ONB-053)
+        notifyApproved(onApproved, autoAdvanceOnApproved, approvedHandledRef);
+        return;
+      }
+      if (status === 'in_review') {
         setStage('in_review');
-      } else if (status === 'declined') {
+        return;
+      }
+      if (status === 'declined') {
         stopPolling();
         setStage('declined');
+        return;
+      }
+      if (status === 'expired') {
+        stopPolling();
+        setStage('error');
+        setError('Cette session de vérification a expiré. Relancez la vérification.');
+        return;
+      }
+      if (status === 'abandoned') {
+        stopPolling();
+        setStage('error');
+        setError('La vérification a été abandonnée. Relancez la vérification.');
       }
     },
     [autoAdvanceOnApproved, onApproved, stopPolling],
@@ -113,6 +144,13 @@ export function useDiditKycVerification({
 
   const pollOnce = useCallback(
     async (sessionId: string) => {
+      if (isPollExpired()) {
+        stopPolling();
+        setStage('error');
+        setError('Délai de vérification dépassé. Réessayez ou contactez le support.');
+        return;
+      }
+
       const res = await fetch(`/api/onboarding/kyc/status?sessionId=${sessionId}`, {
         credentials: 'same-origin',
       });
@@ -126,13 +164,15 @@ export function useDiditKycVerification({
       }
       applyStatus(data.status);
     },
-    [applyStatus],
+    [applyStatus, isPollExpired, stopPolling],
   );
 
   const startPolling = useCallback(
     (sessionId: string) => {
       sessionIdRef.current = sessionId;
+      pollStartedAtRef.current = Date.now();
       stopPolling();
+      pollStartedAtRef.current = Date.now();
       void pollOnce(sessionId);
       pollRef.current = setInterval(() => {
         void pollOnce(sessionId);
@@ -197,34 +237,44 @@ export function useDiditKycVerification({
     [],
   );
 
-  /** Hydrate UI from DB kycStatus after login / refresh (ONB-053). */
+  /** Sync UI when DB kycStatus changes (login refresh, webhook, profile refetch). */
   useEffect(() => {
-    if (!active || dbHydratedRef.current || resumeSessionId) return;
+    if (!active || resumeSessionId) return;
     if (!dbKycStatus || dbKycStatus === 'PENDING') return;
 
-    dbHydratedRef.current = true;
-
     if (dbKycStatus === 'APPROVED') {
+      stopPolling();
       setStage('success');
+      notifyApproved(onApproved, autoAdvanceOnApproved, approvedHandledRef);
       return;
     }
     if (dbKycStatus === 'REJECTED') {
+      stopPolling();
       setStage('declined');
       return;
     }
     if (dbKycStatus === 'UNDER_REVIEW') {
       setStage('in_review');
-      if (existingDiditSessionId) {
-        setDiditSessionId(existingDiditSessionId);
-        sessionIdRef.current = existingDiditSessionId;
-        startPolling(existingDiditSessionId);
+      const sid = existingDiditSessionId ?? sessionIdRef.current;
+      if (sid && pollRef.current === null) {
+        setDiditSessionId(sid);
+        sessionIdRef.current = sid;
+        startPolling(sid);
       }
     }
-  }, [active, dbKycStatus, existingDiditSessionId, resumeSessionId, startPolling]);
+  }, [
+    active,
+    autoAdvanceOnApproved,
+    dbKycStatus,
+    existingDiditSessionId,
+    onApproved,
+    resumeSessionId,
+    startPolling,
+    stopPolling,
+  ]);
 
   useEffect(() => {
     if (!active || !resumeSessionId) return;
-    dbHydratedRef.current = true;
     setDiditSessionId(resumeSessionId);
     setVerificationUrl(getKycVerificationUrl());
     setStage('verifying');
@@ -313,7 +363,6 @@ export function useDiditKycVerification({
     approvedHandledRef.current = false;
     sessionIdRef.current = null;
     forceFreshRef.current = true;
-    dbHydratedRef.current = false;
   };
 
   /** Resume an in-flight Didit session (portal modal). */
@@ -321,7 +370,6 @@ export function useDiditKycVerification({
     (sessionId: string, verificationStatus?: string) => {
       setDiditSessionId(sessionId);
       sessionIdRef.current = sessionId;
-      dbHydratedRef.current = true;
 
       if (verificationStatus === 'UNDER_REVIEW') {
         setStage('in_review');
@@ -352,7 +400,6 @@ export function useDiditKycVerification({
     setDeclineReasons([]);
     approvedHandledRef.current = false;
     sessionIdRef.current = null;
-    dbHydratedRef.current = false;
   };
 
   return {

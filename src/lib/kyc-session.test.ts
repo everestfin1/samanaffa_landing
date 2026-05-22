@@ -11,7 +11,7 @@ describe('getLatestDiditSession', () => {
     ).toBeNull();
   });
 
-  it('returns the most recent didit_kyc_session by uploadDate', () => {
+  it('returns the most recent resumable didit_kyc_session by uploadDate', () => {
     const result = getLatestDiditSession([
       {
         documentType: 'didit_kyc_session',
@@ -30,5 +30,45 @@ describe('getLatestDiditSession', () => {
       sessionId: 'new-session',
       verificationStatus: 'PENDING',
     });
+  });
+
+  it('ignores terminal didit sessions (approved/rejected)', () => {
+    expect(
+      getLatestDiditSession([
+        {
+          documentType: 'didit_kyc_session',
+          fileUrl: 'done',
+          verificationStatus: 'APPROVED',
+          uploadDate: '2026-05-01T00:00:00.000Z',
+        },
+        {
+          documentType: 'didit_kyc_session',
+          fileUrl: 'active',
+          verificationStatus: 'UNDER_REVIEW',
+          uploadDate: '2026-01-01T00:00:00.000Z',
+        },
+      ]),
+    ).toEqual({
+      sessionId: 'active',
+      verificationStatus: 'UNDER_REVIEW',
+    });
+  });
+
+  it('treats invalid uploadDate as oldest', () => {
+    const result = getLatestDiditSession([
+      {
+        documentType: 'didit_kyc_session',
+        fileUrl: 'bad-date',
+        verificationStatus: 'PENDING',
+        uploadDate: 'not-a-date',
+      },
+      {
+        documentType: 'didit_kyc_session',
+        fileUrl: 'good-date',
+        verificationStatus: 'PENDING',
+        uploadDate: '2026-05-01T00:00:00.000Z',
+      },
+    ]);
+    expect(result?.sessionId).toBe('good-date');
   });
 });

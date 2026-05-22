@@ -1,16 +1,13 @@
 import { prisma } from '@/lib/prisma';
 import type { NotificationPriority, NotificationType } from '@/lib/types';
-
-const ALLOWED_ACTION_URL_PREFIXES = ['/portal/', '/onboarding', '/login', '/contact'];
+import { isAllowedNotificationActionUrl } from '@/lib/notification-url-allowlist';
 
 /** Strip unsafe actionUrl values at write time (AUTH-025). */
 export function sanitizeNotificationActionUrl(url: unknown): string | undefined {
   if (typeof url !== 'string') return undefined;
   const trimmed = url.trim();
   if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return undefined;
-  if (!ALLOWED_ACTION_URL_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
-    return undefined;
-  }
+  if (!isAllowedNotificationActionUrl(trimmed)) return undefined;
   return trimmed;
 }
 

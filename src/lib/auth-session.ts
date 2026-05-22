@@ -21,6 +21,18 @@ export function resolveSessionVersion(
   return readSessionVersionFromProfile(investorProfile);
 }
 
+/** Max of column + legacy JSON — used only when bumping to avoid downgrading after migration. */
+export function resolveSessionVersionForBump(
+  sessionVersion: number | null | undefined,
+  investorProfile: unknown,
+): number {
+  const fromColumn =
+    typeof sessionVersion === 'number' && Number.isFinite(sessionVersion)
+      ? sessionVersion
+      : 0;
+  return Math.max(fromColumn, readSessionVersionFromProfile(investorProfile));
+}
+
 /** @deprecated Use resolveSessionVersion — kept for callers passing profile only. */
 export function readSessionVersion(investorProfile: unknown): number {
   return readSessionVersionFromProfile(investorProfile);
@@ -34,7 +46,7 @@ export async function bumpSessionVersion(userId: string): Promise<number> {
   });
   if (!user) return 0;
 
-  const current = resolveSessionVersion(
+  const current = resolveSessionVersionForBump(
     user.sessionVersion as number | null | undefined,
     user.investorProfile,
   );

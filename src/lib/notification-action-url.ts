@@ -1,5 +1,7 @@
 /** Shared deep-link resolution for portal notifications (ONB-031). */
 
+import { isAllowedNotificationActionUrl } from '@/lib/notification-url-allowlist';
+
 export type NotificationLinkInput = {
   type: string;
   title: string;
@@ -42,7 +44,11 @@ function kycStatusActionUrl(kycStatus: string | undefined): string | null {
 export function getNotificationActionUrl(notification: NotificationLinkInput): string | null {
   const metadata = parseMetadata(notification.metadata);
 
-  if (metadata?.actionUrl && isSafeInternalPath(metadata.actionUrl)) {
+  if (
+    metadata?.actionUrl &&
+    isSafeInternalPath(metadata.actionUrl) &&
+    isAllowedNotificationActionUrl(metadata.actionUrl)
+  ) {
     return metadata.actionUrl;
   }
 

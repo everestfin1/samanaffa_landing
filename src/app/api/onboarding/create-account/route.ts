@@ -12,8 +12,8 @@ import { genericOtpSendResponse } from '@/lib/otp-send-response';
 
 function isUniqueConstraintError(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
-  const e = err as { code?: string; message?: string };
-  return e.code === 'P2002' || e.code === '23505' || Boolean(e.message?.toLowerCase().includes('unique'));
+  const e = err as { code?: string };
+  return e.code === 'P2002' || e.code === '23505';
 }
 
 /**

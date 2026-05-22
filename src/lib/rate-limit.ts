@@ -308,19 +308,39 @@ export { getClientIP }
 // Upstash-backed async limits (AUTH-022) — used on OTP send/verify paths
 // ---------------------------------------------------------------------------
 
+const OTP_UPSTASH_TYPES = new Set<keyof typeof RATE_LIMITS>(['otp', 'otpVerify']);
+
+function failClosedResult(windowMs: number): RateLimitResult {
+  const resetTime = Date.now() + windowMs;
+  return {
+    allowed: false,
+    remaining: 0,
+    resetTime,
+    blocked: true,
+  };
+}
+
+/**
+ * When Upstash is configured, OTP limits fail closed on outage (AUTH-022).
+ * Other limit types fall back to in-memory per-instance limits.
+ */
 async function withUpstashFallback(
   type: keyof typeof RATE_LIMITS,
   key: string,
   fallback: () => RateLimitResult,
 ): Promise<RateLimitResult> {
   if (!isUpstashRateLimitEnabled()) {
-    return fallback()
+    return fallback();
   }
   try {
-    return await consumeUpstashRateLimit(type, key)
+    return await consumeUpstashRateLimit(type, key);
   } catch (e) {
-    console.error(`[rate-limit] Upstash ${type} failed, falling back:`, e)
-    return fallback()
+    console.error(`[rate-limit] Upstash ${type} failed:`, e);
+    if (OTP_UPSTASH_TYPES.has(type)) {
+      const cfg = RATE_LIMITS[type];
+      return failClosedResult(cfg.windowMs);
+    }
+    return fallback();
   }
 }
 

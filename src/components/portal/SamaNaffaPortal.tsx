@@ -210,6 +210,10 @@ export default function SamaNaffaPortal({
     }
   }, [profileData, autoConfirmDeposit]);
 
+  const profileReady = profileData != null;
+  const canAutoConfirmDeposit =
+    autoConfirmDeposit && profileReady && !isProfileIncomplete;
+
   const {
     pendingDeposit,
     refresh: refreshPendingDeposit,
@@ -544,7 +548,7 @@ export default function SamaNaffaPortal({
       {pendingDeposit && (
         <PendingOnboardingDepositCard
           intent={pendingDeposit}
-          autoOpenConfirm={autoConfirmDeposit}
+          autoOpenConfirm={canAutoConfirmDeposit}
           onBeforeConfirm={() => {
             if (isProfileIncomplete) {
               setShowProfileModal(true);
