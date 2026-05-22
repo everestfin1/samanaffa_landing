@@ -7,7 +7,7 @@ import { verifyOTPWithRateLimitByKey } from './otp'
 import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
 import type { User as PrismaUser } from './db/schema'
-import { bumpSessionVersion, readSessionVersion } from './auth-session'
+import { bumpSessionVersion, resolveSessionVersion } from './auth-session'
 
 /** Re-check sessionVersion in DB at most once per interval (AUTH-008 perf). */
 const SESSION_VERSION_CHECK_MS = 60_000
@@ -32,13 +32,17 @@ async function loadUserJwtSnapshot(
       firstName: true,
       lastName: true,
       email: true,
+      sessionVersion: true,
       investorProfile: true,
     },
   })
   if (!fullUser) {
     return null
   }
-  const currentVersion = readSessionVersion(fullUser.investorProfile)
+  const currentVersion = resolveSessionVersion(
+    fullUser.sessionVersion as number | null | undefined,
+    fullUser.investorProfile,
+  )
   if (
     tokenSessionVersion !== undefined &&
     tokenSessionVersion !== currentVersion

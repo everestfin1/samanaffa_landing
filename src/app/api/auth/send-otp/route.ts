@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { sendOTP } from '@/lib/otp'
 import { prisma } from '@/lib/prisma'
 import { normalizeInternationalPhone, generatePhoneFormats } from '@/lib/utils'
-import { checkOTPRateLimit } from '@/lib/rate-limit'
+import { checkOTPRateLimitAsync } from '@/lib/rate-limit'
 import { isMockOtpEnabled } from '@/lib/mock-otp'
 import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint'
 import { genericOtpSendResponse } from '@/lib/otp-send-response'
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     // Check rate limiting for OTP requests
     const identifier = email || phone
     if (identifier) {
-      const rateLimit = checkOTPRateLimit(request, identifier)
+      const rateLimit = await checkOTPRateLimitAsync(request, identifier)
       
       if (!rateLimit.allowed) {
         return NextResponse.json({

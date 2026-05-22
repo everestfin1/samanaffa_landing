@@ -1,6 +1,33 @@
 import { prisma } from '@/lib/prisma';
 import type { NotificationPriority, NotificationType } from '@/lib/types';
 
+const ALLOWED_ACTION_URL_PREFIXES = ['/portal/', '/onboarding', '/login', '/contact'];
+
+/** Strip unsafe actionUrl values at write time (AUTH-025). */
+export function sanitizeNotificationActionUrl(url: unknown): string | undefined {
+  if (typeof url !== 'string') return undefined;
+  const trimmed = url.trim();
+  if (!trimmed.startsWith('/') || trimmed.startsWith('//')) return undefined;
+  if (!ALLOWED_ACTION_URL_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
+    return undefined;
+  }
+  return trimmed;
+}
+
+function sanitizeMetadata(metadata?: Record<string, unknown>): Record<string, unknown> | undefined {
+  if (!metadata) return undefined;
+  const next = { ...metadata };
+  if ('actionUrl' in next) {
+    const safe = sanitizeNotificationActionUrl(next.actionUrl);
+    if (safe) {
+      next.actionUrl = safe;
+    } else {
+      delete next.actionUrl;
+    }
+  }
+  return next;
+}
+
 export async function createUserNotification(
   userId: string,
   payload: {
@@ -12,6 +39,7 @@ export async function createUserNotification(
   },
 ): Promise<boolean> {
   try {
+    const metadata = sanitizeMetadata(payload.metadata);
     await prisma.notification.create({
       data: {
         userId,
@@ -19,7 +47,7 @@ export async function createUserNotification(
         message: payload.message,
         type: payload.type,
         priority: payload.priority,
-        metadata: payload.metadata ? JSON.stringify(payload.metadata) : null,
+        metadata: metadata ? JSON.stringify(metadata) : null,
       },
     });
     return true;

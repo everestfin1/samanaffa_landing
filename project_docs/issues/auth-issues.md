@@ -17,8 +17,8 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 2 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column) |
-| low      | 2 | AUTH-024, AUTH-025 (see backlog) |
+| medium   | 0 | — |
+| low      | 0 | — |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
 
@@ -175,12 +175,20 @@ flowchart TB
 - **Follow-up (2026-05-20):** JWT callback throttles DB sessionVersion check to 60s; fail-open on DB errors. Column migration → **AUTH-023**.
 
 ### AUTH-023 — `sessionVersion` stored inside `investorProfile` JSON
-- **Status:** open
+- **Status:** done
 - **Area:** reliability / security
 - **Files:** `src/lib/auth-session.ts`, Prisma schema
 - **Problem:** Read-modify-write on JSON can race with onboarding progress / profile PATCH and lose version bumps or quiz data.
 - **Acceptance:** Dedicated `users.sessionVersion` (or equivalent); bump without touching `investorProfile`.
-- **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
+- **Resolution (2026-05-21):** `users.sessionVersion` column + migration `0008`; `bumpSessionVersion` updates column only; JSON fallback for unmigrated rows.
+
+### AUTH-022 — Rate limits stored in-memory only
+- **Status:** done
+- **Area:** ops / security
+- **Files:** `src/lib/rate-limit.ts`, `src/lib/rate-limit-upstash.ts`
+- **Problem:** Limits are per serverless instance, not global; attacker can spread attempts across instances.
+- **Acceptance:** Redis/Upstash (or edge KV) for OTP/login limits before high traffic.
+- **Resolution (2026-05-21):** `@upstash/ratelimit` on OTP send/verify when `UPSTASH_REDIS_REST_*` set; in-memory fallback.
 
 ### AUTH-026 — Didit `capture_method` patched from public KYC start
 - **Status:** done
@@ -189,8 +197,6 @@ flowchart TB
 - **Problem:** First authenticated `POST /kyc/start` per process can `PATCH /v3/webhook/` to set account-wide `capture_method` (`both`/`desktop`).
 - **Impact:** Side effect on global Didit config triggered by end users; surprising in multi-env; duplicates ops script.
 - **Acceptance:** Remove runtime PATCH from user-facing route; run `scripts/ensure-didit-capture-method.ts` (or console) at deploy/bootstrap only; document `DIDIT_CAPTURE_METHOD` + `DIDIT_ENSURE_CAPTURE_METHOD=false` to disable.
-- **Sprint:** P2 — ops hygiene (2026-05-21 review).
-- **Related:** Didit desktop SDK shipped 2026-05-21; workflow “Allow desktop access” is primary control.
 - **Resolution (2026-05-21):** Removed runtime PATCH from `kyc/start`; use `scripts/ensure-didit-capture-method.ts` at deploy.
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
@@ -211,15 +217,6 @@ flowchart TB
 - **Sprint:** P2 — coordinate with AUTH-001/003 (remove vs secure).
 - **Resolution (2026-05-20):** Password branch removed from NextAuth; login/verify legacy APIs `410`; forgot/setup-password redirect to login.
 
-### AUTH-022 — Rate limits stored in-memory only
-- **Status:** open
-- **Area:** ops / security
-- **Files:** `src/lib/rate-limit.ts`
-- **Problem:** Limits are per serverless instance, not global; attacker can spread attempts across instances.
-- **Acceptance:** Redis/Upstash (or edge KV) for OTP/login limits before high traffic.
-- **Sprint:** P3.
-- **Note (2026-05-20):** Documented Upstash path in `rate-limit.ts`; in-memory remains until env wired.
-
 ### AUTH-016 — OTP / PII logged in verify-otp and otp.ts
 - **Status:** done
 - **Area:** security / ops
@@ -228,6 +225,18 @@ flowchart TB
 - **Acceptance:** Remove or redact in production; structured logging without secrets.
 - **Sprint:** P2.
 - **Resolution (2026-05-20):** OTP codes redacted from notification logs; verify-otp route removed logging.
+
+### AUTH-024 — Portal idle banner: French + English time mix
+- **Status:** done
+- **Area:** ux
+- **Files:** `src/hooks/useSessionTimeout.ts`
+- **Resolution (2026-05-21):** `formatTimeRemaining` uses French labels (minute/minutes, seconde/secondes).
+
+### AUTH-025 — `metadata.actionUrl` allowlist at write time
+- **Status:** done
+- **Area:** security
+- **Files:** `src/lib/user-notifications.ts`
+- **Resolution (2026-05-21):** `sanitizeNotificationActionUrl` on create; portal/onboarding paths only.
 
 ---
 

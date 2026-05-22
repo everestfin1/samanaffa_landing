@@ -1,6 +1,7 @@
 import { db } from '@/lib/db';
 import { transactionIntents } from '@/lib/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { ONBOARDING_DEPOSIT_SOURCE } from '@/lib/onboarding-deposit';
+import { and, eq, like } from 'drizzle-orm';
 
 /**
  * Onboarding T4 deposits: release or cancel intents when user KYC status changes.
@@ -23,6 +24,7 @@ export async function updateOnboardingDepositIntentsForKycStatus(
           and(
             eq(transactionIntents.userId, userId),
             eq(transactionIntents.awaitingKycApproval, true),
+            like(transactionIntents.userNotes, `${ONBOARDING_DEPOSIT_SOURCE}|%`),
           )!,
         );
     } catch (e) {
@@ -40,6 +42,7 @@ export async function updateOnboardingDepositIntentsForKycStatus(
           and(
             eq(transactionIntents.userId, userId),
             eq(transactionIntents.awaitingKycApproval, true),
+            like(transactionIntents.userNotes, `${ONBOARDING_DEPOSIT_SOURCE}|%`),
           )!,
         );
     } catch (e) {

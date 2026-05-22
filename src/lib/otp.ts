@@ -4,8 +4,8 @@ import { sendEmailOTP, sendSMSOTP } from './notifications'
 import { generatePhoneFormats } from './utils'
 import { generateSecureOtpCode } from './otp-crypto'
 import {
-  checkOTPVerifyRateLimit,
-  checkOTPVerifyRateLimitByKey,
+  checkOTPVerifyRateLimitAsync,
+  checkOTPVerifyRateLimitByKeyAsync,
   resetRateLimit,
   resetRateLimitByKey,
 } from './rate-limit'
@@ -27,7 +27,7 @@ export async function verifyOTPWithRateLimit(
   code: string,
 ): Promise<VerifyOTPResult> {
   const normalized = String(code).replace(/\D/g, '').slice(0, 6)
-  const rateLimit = checkOTPVerifyRateLimit(request, identifier)
+  const rateLimit = await checkOTPVerifyRateLimitAsync(request, identifier)
   if (!rateLimit.allowed) {
     return {
       success: false,
@@ -49,7 +49,7 @@ export async function verifyOTPWithRateLimitByKey(
   code: string,
 ): Promise<VerifyOTPResult> {
   const normalized = String(code).replace(/\D/g, '').slice(0, 6)
-  const rateLimit = checkOTPVerifyRateLimitByKey(identifier)
+  const rateLimit = await checkOTPVerifyRateLimitByKeyAsync(identifier)
   if (!rateLimit.allowed) {
     return {
       success: false,

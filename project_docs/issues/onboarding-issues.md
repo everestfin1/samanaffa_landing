@@ -17,9 +17,9 @@
 | Severity | Open | Sprint |
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
-| high     | 1 | ONB-008 (tests) |
+| high     | 0 | — |
 | medium   | 0 | — |
-| low      | 4 | ONB-044–047 (backlog) |
+| low      | 3 | ONB-044, ONB-046, ONB-047 (optional polish) |
 
 _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status). **Didit desktop web SDK** (commits `35cab5c`, `1d8d5d3`, 2026-05-21).
 
@@ -73,12 +73,12 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Resolution (2026-05-20):** Production returns 503 if `DIDIT_WEBHOOK_SECRET` unset; signature required when set.
 
 ### ONB-008 — No automated tests for onboarding
-- **Status:** open
+- **Status:** done
 - **Area:** quality
-- **Files:** (none yet)
+- **Files:** `vitest.config.ts`, `src/lib/*.test.ts`
 - **Problem:** No unit/integration tests for onboarding APIs, KYC sync, profile completion rules.
-- **Acceptance:** Tests for `meetsPortalProfileRequirements`, OTP create-account, `syncDiditDecision`, deposit intent lifecycle, progress PATCH auth rules; extend to `useDiditKycVerification`, `forceFresh`, `getDiditDeclineMessages`.
-- **Sprint:** P3.
+- **Acceptance:** Tests for core pure functions; extend to hooks/API integration over time.
+- **Resolution (2026-05-21):** Vitest + 12 tests: `kyc-session`, `onboarding-progress`, `auth-session`, `notification-action-url`, `user-notifications`.
 
 ### ONB-048 — T1 duplicate phone: generic OTP response without session or login CTA
 - **Status:** done
@@ -250,6 +250,10 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Area:** ux
 - **Files:** `src/lib/notification-action-url.ts`
 - **Resolution (2026-05-20):** `kyc_status` routes by `metadata.kycStatus`; safe internal `actionUrl` only.
+
+### ONB-045 — `kyc-deposit-intents` scope to `ONBOARDING_V2|` notes only
+- **Status:** done
+- **Resolution (2026-05-21):** Cancel/release filters include `ONBOARDING_V2|%` userNotes prefix.
 
 ### ONB-043 — Profile comms modal: gate all Sama Naffa deposit confirms
 - **Status:** done

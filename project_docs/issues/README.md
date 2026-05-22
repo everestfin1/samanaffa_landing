@@ -34,11 +34,9 @@ Refer by **title** in standups when ambiguous.
 
 | Priority | IDs | Theme |
 |----------|-----|--------|
-| high | ONB-008 | Automated tests |
-| medium | AUTH-022, AUTH-023 | Upstash rate limits; sessionVersion column |
-| low | ONB-044–047, AUTH-024–025 | [backlog](./post-review-backlog-2026-05-20.md) |
+| low | ONB-044, ONB-046, ONB-047 | Optional portal KYC tab; legacy intent labels; T6 webhook race |
 
-**Closed 2026-05-21 (step-by-step fix sprint):** ONB-048–052, ONB-053, ONB-043, AUTH-026.
+**Closed 2026-05-21 (continued):** AUTH-022, AUTH-023, AUTH-024, AUTH-025, ONB-008 (core tests), ONB-045.
 
 **Next product:** KYC capture-only (no upload); deprecate Emprunt obligataire. Didit desktop web SDK (**done** 2026-05-21).
 

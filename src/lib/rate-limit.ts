@@ -1,4 +1,8 @@
 import { NextRequest } from 'next/server'
+import {
+  consumeUpstashRateLimit,
+  isUpstashRateLimitEnabled,
+} from './rate-limit-upstash'
 
 /**
  * In-memory rate limits (AUTH-022). For multi-instance production, wire Upstash Redis
@@ -296,6 +300,53 @@ function getClientIP(request: NextRequest): string {
   if (forwarded) return forwarded.split(',')[0].trim()
   
   return 'unknown'
+}
+
+export { getClientIP }
+
+// ---------------------------------------------------------------------------
+// Upstash-backed async limits (AUTH-022) — used on OTP send/verify paths
+// ---------------------------------------------------------------------------
+
+async function withUpstashFallback(
+  type: keyof typeof RATE_LIMITS,
+  key: string,
+  fallback: () => RateLimitResult,
+): Promise<RateLimitResult> {
+  if (!isUpstashRateLimitEnabled()) {
+    return fallback()
+  }
+  try {
+    return await consumeUpstashRateLimit(type, key)
+  } catch (e) {
+    console.error(`[rate-limit] Upstash ${type} failed, falling back:`, e)
+    return fallback()
+  }
+}
+
+export async function checkOTPRateLimitAsync(
+  request: NextRequest,
+  emailOrPhone?: string,
+): Promise<RateLimitResult> {
+  const key = emailOrPhone || getClientIP(request)
+  return withUpstashFallback('otp', key, () => checkOTPRateLimit(request, emailOrPhone))
+}
+
+export async function checkOTPVerifyRateLimitAsync(
+  request: NextRequest,
+  identifier: string,
+): Promise<RateLimitResult> {
+  return withUpstashFallback('otpVerify', identifier, () =>
+    checkOTPVerifyRateLimit(request, identifier),
+  )
+}
+
+export async function checkOTPVerifyRateLimitByKeyAsync(
+  identifier: string,
+): Promise<RateLimitResult> {
+  return withUpstashFallback('otpVerify', identifier, () =>
+    checkOTPVerifyRateLimitByKey(identifier),
+  )
 }
 
 // Cleanup function to run periodically

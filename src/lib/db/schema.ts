@@ -67,6 +67,8 @@ export const users = pgTable('users', {
   profileCompletedAt: timestamp('profileCompletedAt', { mode: 'date' }),
   termsAcceptedAt: timestamp('termsAcceptedAt', { mode: 'date' }),
   privacyAcceptedAt: timestamp('privacyAcceptedAt', { mode: 'date' }),
+  /** JWT invalidation counter (AUTH-023) — bumped on logout / sensitive change. */
+  sessionVersion: integer('sessionVersion').notNull().default(0),
 });
 
 // Sessions table

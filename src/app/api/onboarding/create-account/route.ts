@@ -4,7 +4,7 @@ import { verifyOTPWithRateLimit, sendOTP } from '@/lib/otp';
 import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint';
 import { normalizeInternationalPhone, generateAccountNumber, generatePhoneFormats } from '@/lib/utils';
 import { getNaffaProductById } from '@/lib/naffa-products';
-import { checkOTPRateLimit } from '@/lib/rate-limit';
+import { checkOTPRateLimitAsync } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
 import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 import { issuePostSignupToken } from '@/lib/post-signup-token';
@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Numéro de téléphone invalide' }, { status: 400 });
       }
 
-      const rateLimit = checkOTPRateLimit(request, normalizedPhone);
+      const rateLimit = await checkOTPRateLimitAsync(request, normalizedPhone);
       if (!rateLimit.allowed) {
         return NextResponse.json(
           { error: 'Trop de demandes de code OTP. Veuillez réessayer plus tard.' },

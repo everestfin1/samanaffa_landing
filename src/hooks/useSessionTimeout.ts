@@ -193,14 +193,19 @@ export function useSessionTimeoutWarning() {
   }
 }
 
-// Utility function to format time remaining
+// Utility function to format time remaining (French — AUTH-024)
 export function formatTimeRemaining(milliseconds: number): string {
   const minutes = Math.floor(milliseconds / (1000 * 60))
   const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000)
-  
+
   if (minutes > 0) {
-    return `${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`
+    const minLabel = minutes === 1 ? 'minute' : 'minutes'
+    const secPart =
+      seconds > 0
+        ? ` ${seconds} ${seconds === 1 ? 'seconde' : 'secondes'}`
+        : ''
+    return `${minutes} ${minLabel}${secPart}`
   }
-  
-  return `${seconds} second${seconds !== 1 ? 's' : ''}`
+
+  return `${seconds} ${seconds === 1 ? 'seconde' : 'secondes'}`
 }
