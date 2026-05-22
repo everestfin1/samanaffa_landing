@@ -17,7 +17,7 @@
 |----------|------|-------------------|
 | critical | 0 | — (AUTH-001/002/003 done 2026-05-20) |
 | high     | 0 | — (AUTH-006/014/015 done 2026-05-20) |
-| medium   | 3 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column), AUTH-026 |
+| medium   | 2 | AUTH-022 (Upstash), AUTH-023 (sessionVersion column) |
 | low      | 2 | AUTH-024, AUTH-025 (see backlog) |
 
 _Product decision (2026-05-19):_ **portal login is phone + SMS OTP only.** Password UI removed; password APIs and `authorize` branches remain until AUTH-013 / AUTH-021.
@@ -183,7 +183,7 @@ flowchart TB
 - **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
 
 ### AUTH-026 — Didit `capture_method` patched from public KYC start
-- **Status:** open
+- **Status:** done
 - **Area:** ops / security
 - **Files:** `src/lib/didit-capture-method.ts`, `src/app/api/onboarding/kyc/start/route.ts`, `scripts/ensure-didit-capture-method.ts`
 - **Problem:** First authenticated `POST /kyc/start` per process can `PATCH /v3/webhook/` to set account-wide `capture_method` (`both`/`desktop`).
@@ -191,6 +191,7 @@ flowchart TB
 - **Acceptance:** Remove runtime PATCH from user-facing route; run `scripts/ensure-didit-capture-method.ts` (or console) at deploy/bootstrap only; document `DIDIT_CAPTURE_METHOD` + `DIDIT_ENSURE_CAPTURE_METHOD=false` to disable.
 - **Sprint:** P2 — ops hygiene (2026-05-21 review).
 - **Related:** Didit desktop SDK shipped 2026-05-21; workflow “Allow desktop access” is primary control.
+- **Resolution (2026-05-21):** Removed runtime PATCH from `kyc/start`; use `scripts/ensure-didit-capture-method.ts` at deploy.
 
 ### AUTH-013 — Duplicate OTP / signup pipelines
 - **Status:** done

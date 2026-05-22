@@ -17,9 +17,9 @@
 | Severity | Open | Sprint |
 |----------|------|--------|
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
-| high     | 3 | ONB-008 (tests), ONB-048, ONB-049 |
-| medium   | 2 | ONB-050, ONB-051 |
-| low      | 6 | ONB-043–047 (backlog), ONB-052 |
+| high     | 1 | ONB-008 (tests) |
+| medium   | 0 | — |
+| low      | 4 | ONB-044–047 (backlog) |
 
 _Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status). **Didit desktop web SDK** (commits `35cab5c`, `1d8d5d3`, 2026-05-21).
 
@@ -81,7 +81,7 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Sprint:** P3.
 
 ### ONB-048 — T1 duplicate phone: generic OTP response without session or login CTA
-- **Status:** open
+- **Status:** done
 - **Area:** ux / auth
 - **Files:** `src/app/api/onboarding/create-account/route.ts`, `src/components/onboarding/T1Phone.tsx`, `src/lib/otp-send-response.ts`
 - **Problem:** `send-otp` returns `genericOtpSendResponse()` (success, no `sessionId`) when phone already registered (anti-enumeration). T1 only advances when `sessionId` is set and does not show the generic message on success.
@@ -89,22 +89,31 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Acceptance:** On duplicate phone, return same generic copy **and** show it in UI with link to `/login`; do not advance to OTP UI without `sessionId`; optional: still avoid revealing whether account exists in API body beyond generic text.
 - **Sprint:** P1 — signup polish.
 - **Source:** Code review 2026-05-21 (AUTH-007 tradeoff).
+- **Resolution (2026-05-21):** T1 shows generic message + login link when `send-otp` returns success without `sessionId`; blur check via `check-availability`.
 
 ### ONB-049 — `verify-otp` duplicate phone check uses single format
-- **Status:** open
+- **Status:** done
 - **Area:** reliability / data
 - **Files:** `src/app/api/onboarding/create-account/route.ts`, `src/lib/utils.ts` (`generatePhoneFormats`)
 - **Problem:** `send-otp` checks `generatePhoneFormats()`; `verify-otp` only `findFirst({ where: { phone } })` with session’s normalized value.
 - **Impact:** Legacy rows (`772…` vs `+221772…`) may bypass duplicate detection or hit DB unique constraint as 500.
 - **Acceptance:** Reuse `generatePhoneFormats(phone)` on verify; align with `sendOTP` registration-session checks.
 - **Sprint:** P1 — with ONB-048.
+- **Resolution (2026-05-21):** `verify-otp` uses `generatePhoneFormats()`; `P2002`/unique → 409 (ONB-052).
 
 ---
 
 ## Medium (open)
 
+### ONB-053 — Portal / onboarding do not reflect `UNDER_REVIEW` after login
+- **Status:** done
+- **Area:** ux / KYC
+- **Files:** `useDiditKycVerification.ts`, `T5KYC.tsx`, `KYCInitiationModal.tsx`, `kyc-session.ts`
+- **Problem:** Didit `in_review` UI was session-local; logged-in users at T5 or portal saw "Commencer" again; polling stopped at `in_review`.
+- **Resolution (2026-05-21):** Hydrate from `user.kycStatus`; poll through `in_review` until terminal; portal KYC modal wired on dashboard.
+
 ### ONB-050 — `/api/auth/check-availability` unused; no live email/phone validation in UI
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `src/app/api/auth/check-availability/route.ts`, `T1Phone.tsx`, `ProfileCompletionModal.tsx`
 - **Problem:** Availability API exists but no client calls it. T1 has no pre-submit duplicate hint; comms modal only surfaces email conflict after `PATCH /api/portal/profile/complete` (409).
@@ -112,27 +121,30 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Acceptance:** Debounced availability check on T1 phone blur (generic messaging) and comms modal email blur; or remove dead API if product stays submit-only.
 - **Sprint:** P2.
 - **Note:** Server-side email uniqueness on comms modal **works** (`profile/complete`); this is proactive UX.
+- **Resolution (2026-05-21):** Debounced blur on T1 phone (generic hint) and profile comms email.
 
 ### ONB-051 — KYC rejection SMS during active onboarding
-- **Status:** open
+- **Status:** done
 - **Area:** ux / notifications
 - **Files:** `src/lib/kyc-sync.ts`, `src/lib/notification-settings.ts`, `src/lib/notifications.ts`
 - **Problem:** Poll on T5 → `syncDiditDecision` → `sendKYCStatusSMS` for `REJECTED` when `enableKYCRejectionSMS` is true (default).
 - **Impact:** User still on onboarding T5 receives “consultez votre portail” SMS after a failed Didit attempt.
 - **Acceptance:** Skip or defer rejection SMS while `investorProfile.onboarding` incomplete / user not yet on portal; still create in-app notification.
 - **Sprint:** P2.
+- **Resolution (2026-05-21):** Skip rejection SMS when `isOnboardingInProgress(investorProfile)`.
 
 ### ONB-052 — `user.create` unique violation should return 409
-- **Status:** open
+- **Status:** done
 - **Area:** reliability
 - **Files:** `src/app/api/onboarding/create-account/route.ts`
 - **Problem:** Concurrent `verify-otp` requests can race past `findFirst`; Prisma `P2002` on `users_phone_key` may surface as 500.
 - **Acceptance:** Catch `P2002` on phone/email; return `409` with “Compte déjà existant”.
 - **Sprint:** P3.
+- **Resolution (2026-05-21):** `isUniqueConstraintError()` catch on `user.create`.
 
 ---
 
-## Medium (resolved)
+## Medium (resolved — continued)
 
 ### ONB-026 — T4 wallet choice vs Intouch-only confirmation
 - **Status:** done
@@ -240,12 +252,12 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Resolution (2026-05-20):** `kyc_status` routes by `metadata.kycStatus`; safe internal `actionUrl` only.
 
 ### ONB-043 — Profile comms modal: gate all Sama Naffa deposit confirms
-- **Status:** open
+- **Status:** done
 - **Area:** ux
 - **Files:** `SamaNaffaPortal.tsx`, `PendingOnboardingDepositCard.tsx`
 - **Problem:** Modal auto-opens only with `?confirmDeposit=1`; card “Confirmer” skips communications gate.
 - **Acceptance:** Same as dashboard — block or modal before first Intouch confirm.
-- **Sprint:** Backlog — [post-review-backlog-2026-05-20.md](./post-review-backlog-2026-05-20.md)
+- **Resolution (2026-05-21):** `onBeforeConfirm` opens profile modal when comms incomplete.
 
 ### ONB-038 — Progress bar: T5 and T6 share same visible index
 - **Status:** done

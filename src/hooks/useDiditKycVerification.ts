@@ -19,6 +19,8 @@ export type DiditKycStage =
   | 'declined'
   | 'error';
 
+export type DbKycStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
+
 const POLL_INTERVAL_MS = 5_000;
 
 export interface UseDiditKycVerificationOptions {
@@ -31,6 +33,10 @@ export interface UseDiditKycVerificationOptions {
   onApproved?: () => void;
   /** Auto-call onApproved after success animation (onboarding T5). */
   autoAdvanceOnApproved?: boolean;
+  /** DB kycStatus — hydrates in_review / success without offering a fresh start (ONB-053). */
+  dbKycStatus?: DbKycStatus;
+  /** Latest Didit session id from profile — poll until terminal status. */
+  existingDiditSessionId?: string | null;
 }
 
 async function fetchVerificationUrlForSession(sessionId: string): Promise<string | null> {
@@ -50,6 +56,8 @@ export function useDiditKycVerification({
   active = true,
   onApproved,
   autoAdvanceOnApproved = false,
+  dbKycStatus,
+  existingDiditSessionId,
 }: UseDiditKycVerificationOptions) {
   const [stage, setStage] = useState<DiditKycStage>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +69,7 @@ export function useDiditKycVerification({
   const approvedHandledRef = useRef(false);
   const sessionIdRef = useRef<string | null>(null);
   const forceFreshRef = useRef(false);
+  const dbHydratedRef = useRef(false);
 
   const stopPolling = useCallback(() => {
     if (pollRef.current !== null) {
@@ -92,7 +101,7 @@ export function useDiditKycVerification({
           }
         }
       } else if (status === 'in_review') {
-        stopPolling();
+        // Keep polling until approved/declined (ONB-053)
         setStage('in_review');
       } else if (status === 'declined') {
         stopPolling();
@@ -188,8 +197,34 @@ export function useDiditKycVerification({
     [],
   );
 
+  /** Hydrate UI from DB kycStatus after login / refresh (ONB-053). */
+  useEffect(() => {
+    if (!active || dbHydratedRef.current || resumeSessionId) return;
+    if (!dbKycStatus || dbKycStatus === 'PENDING') return;
+
+    dbHydratedRef.current = true;
+
+    if (dbKycStatus === 'APPROVED') {
+      setStage('success');
+      return;
+    }
+    if (dbKycStatus === 'REJECTED') {
+      setStage('declined');
+      return;
+    }
+    if (dbKycStatus === 'UNDER_REVIEW') {
+      setStage('in_review');
+      if (existingDiditSessionId) {
+        setDiditSessionId(existingDiditSessionId);
+        sessionIdRef.current = existingDiditSessionId;
+        startPolling(existingDiditSessionId);
+      }
+    }
+  }, [active, dbKycStatus, existingDiditSessionId, resumeSessionId, startPolling]);
+
   useEffect(() => {
     if (!active || !resumeSessionId) return;
+    dbHydratedRef.current = true;
     setDiditSessionId(resumeSessionId);
     setVerificationUrl(getKycVerificationUrl());
     setStage('verifying');
@@ -205,6 +240,7 @@ export function useDiditKycVerification({
   }, [active, resumeSessionId, startPolling]);
 
   const startVerification = async () => {
+    if (dbKycStatus === 'UNDER_REVIEW') return;
     setStage('loading');
     setError(null);
     const webSdk = shouldUseDiditWebSdk();
@@ -277,14 +313,22 @@ export function useDiditKycVerification({
     approvedHandledRef.current = false;
     sessionIdRef.current = null;
     forceFreshRef.current = true;
+    dbHydratedRef.current = false;
   };
 
   /** Resume an in-flight Didit session (portal modal). */
   const resumePendingSession = useCallback(
-    (sessionId: string) => {
+    (sessionId: string, verificationStatus?: string) => {
       setDiditSessionId(sessionId);
       sessionIdRef.current = sessionId;
-      setStage('verifying');
+      dbHydratedRef.current = true;
+
+      if (verificationStatus === 'UNDER_REVIEW') {
+        setStage('in_review');
+      } else {
+        setStage('verifying');
+      }
+
       setUseWebSdk(shouldUseDiditWebSdk());
       startPolling(sessionId);
 
@@ -308,6 +352,7 @@ export function useDiditKycVerification({
     setDeclineReasons([]);
     approvedHandledRef.current = false;
     sessionIdRef.current = null;
+    dbHydratedRef.current = false;
   };
 
   return {

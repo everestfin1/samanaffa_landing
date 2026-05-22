@@ -4,6 +4,7 @@ import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types';
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications';
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings';
 import { createUserNotification } from '@/lib/user-notifications';
+import { isOnboardingInProgress } from '@/lib/onboarding-progress';
 import {
   buildRedactedDecisionPayload,
   buildUserPatchFromDiditIdentity,
@@ -55,6 +56,7 @@ export async function syncDiditDecision(
           idNumber: true,
           idExpiryDate: true,
           placeOfBirth: true,
+          investorProfile: true,
         },
       },
     },
@@ -106,6 +108,7 @@ export async function syncDiditDecision(
     idNumber: string | null;
     idExpiryDate: Date | null;
     placeOfBirth: string | null;
+    investorProfile: unknown;
   } | undefined;
   if (!user) return true;
 
@@ -198,10 +201,14 @@ export async function syncDiditDecision(
     }
   }
   if (!alreadySynced && shouldSendKYCSMS(emailKycStatus, notifSettings)) {
-    try {
-      await sendKYCStatusSMS(user.phone, emailKycStatus);
-    } catch (e) {
-      console.error('[kyc-sync] Error sending KYC SMS:', e);
+    const skipRejectionSmsDuringOnboarding =
+      mapped.kycStatus === 'REJECTED' && isOnboardingInProgress(user.investorProfile);
+    if (!skipRejectionSmsDuringOnboarding) {
+      try {
+        await sendKYCStatusSMS(user.phone, emailKycStatus);
+      } catch (e) {
+        console.error('[kyc-sync] Error sending KYC SMS:', e);
+      }
     }
   }
 

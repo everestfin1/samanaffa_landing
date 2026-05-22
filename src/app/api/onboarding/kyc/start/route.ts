@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAppBaseUrl } from '@/lib/app-url';
-import { ensureDiditCaptureMethodAllowsDesktop } from '@/lib/didit-capture-method';
 import {
   applyDiditKycBypassApproval,
   isDiditKycBypassEnabled,
@@ -38,8 +37,6 @@ export async function POST(request: NextRequest) {
       console.error('[kyc/start] DIDIT_API_KEY or DIDIT_WORKFLOW_ID not configured');
       return NextResponse.json({ error: 'Service de vérification non configuré' }, { status: 503 });
     }
-
-    await ensureDiditCaptureMethodAllowsDesktop(apiKey);
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {

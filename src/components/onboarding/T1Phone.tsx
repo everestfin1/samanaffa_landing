@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { ChevronDownIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { countries as ALL_COUNTRIES, type Country } from '@/components/data/countries';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
+import { GENERIC_OTP_SEND_MESSAGE } from '@/lib/otp-send-response';
 
 interface T1PhoneProps {
   simulation: unknown;
@@ -101,6 +103,8 @@ export default function T1Phone({
   };
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  /** Shown when send-otp succeeds without sessionId (existing account — ONB-048). */
+  const [existingAccountHint, setExistingAccountHint] = useState<string | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -130,6 +134,7 @@ export default function T1Phone({
   const handleSendOtp = async () => {
     setLoading(true);
     setError(null);
+    setExistingAccountHint(null);
     try {
       const res = await fetch('/api/onboarding/create-account', {
         method: 'POST',
@@ -143,6 +148,14 @@ export default function T1Phone({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
+
+      if (!data.sessionId) {
+        setExistingAccountHint(
+          typeof data.message === 'string' ? data.message : GENERIC_OTP_SEND_MESSAGE,
+        );
+        return;
+      }
+
       setSessionId(data.sessionId);
       setMockOtp(null);
       if (data.mockMode && data.sessionId) {
@@ -287,7 +300,26 @@ export default function T1Phone({
                 type="tel"
                 inputMode="numeric"
                 value={formatLocal(digits, country)}
-                onChange={(e) => setLocal(digitsOnly(e.target.value).slice(0, expected))}
+                onChange={(e) => {
+                  setLocal(digitsOnly(e.target.value).slice(0, expected));
+                  setExistingAccountHint(null);
+                }}
+                onBlur={async () => {
+                  if (!isValidLength || existingAccountHint) return;
+                  try {
+                    const res = await fetch('/api/auth/check-availability', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ phone: fullPhone }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.phoneAvailable === false) {
+                      setExistingAccountHint(GENERIC_OTP_SEND_MESSAGE);
+                    }
+                  } catch {
+                    // non-fatal
+                  }
+                }}
                 placeholder={country.code === 'SN' ? '77 123 45 67' : 'Numéro'}
                 className="flex-1 px-4 h-14 text-lg border border-timberwolf/40 rounded-xl focus:outline-none focus:ring-2 focus:ring-gold"
                 autoFocus
@@ -304,6 +336,20 @@ export default function T1Phone({
             </div>
 
             {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
+            {existingAccountHint && (
+              <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-night/80 space-y-3">
+                <p>{existingAccountHint}</p>
+                <p>
+                  Vous avez déjà un compte ?{' '}
+                  <Link
+                    href="/login"
+                    className="font-medium text-gold-metallic hover:underline"
+                  >
+                    Connectez-vous avec ce numéro
+                  </Link>
+                </p>
+              </div>
+            )}
             <button
               onClick={handleSendOtp}
               disabled={loading || !isValidLength}

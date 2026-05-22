@@ -10,6 +10,12 @@ import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 import { issuePostSignupToken } from '@/lib/post-signup-token';
 import { genericOtpSendResponse } from '@/lib/otp-send-response';
 
+function isUniqueConstraintError(err: unknown): boolean {
+  if (!err || typeof err !== 'object') return false;
+  const e = err as { code?: string; message?: string };
+  return e.code === 'P2002' || e.code === '23505' || Boolean(e.message?.toLowerCase().includes('unique'));
+}
+
 /**
  * New onboarding flow (T1) — phone-only account creation.
  *
@@ -150,16 +156,21 @@ export async function POST(request: NextRequest) {
       const phone: string = sessionData.phone;
       const email: string = sessionData.email;
 
-      // Defensive double-check
-      const existing = await prisma.user.findFirst({ where: { phone } });
-      if (existing && !(existing.firstName === 'Temporary' && existing.lastName === 'User')) {
+      // Defensive double-check (all phone format variants — ONB-049)
+      const phoneFormats = generatePhoneFormats(phone);
+      let temporaryUserId: string | null = null;
+      for (const fmt of phoneFormats) {
+        const row = await prisma.user.findFirst({ where: { phone: fmt } });
+        if (!row) continue;
+        if (row.firstName === 'Temporary' && row.lastName === 'User') {
+          temporaryUserId = row.id;
+          break;
+        }
         await prisma.registrationSession.delete({ where: { id: sessionId } });
         return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
       }
-
-      // Clean up temporary user if any
-      if (existing) {
-        await prisma.user.delete({ where: { id: existing.id } });
+      if (temporaryUserId) {
+        await prisma.user.delete({ where: { id: temporaryUserId } });
       }
 
       const simulation = sessionData.simulation ?? null;
@@ -170,18 +181,27 @@ export async function POST(request: NextRequest) {
           })
         : mergeInvestorProfile(null, { onboarding: { step: 'T2' } });
 
-      const newUser = await prisma.user.create({
-        data: {
-          phone,
-          email,
-          firstName: 'Nouveau',
-          lastName: 'Membre',
-          phoneVerified: true,
-          otpVerifiedAt: new Date(),
-          preferredLanguage: 'fr',
-          investorProfile,
-        },
-      });
+      let newUser;
+      try {
+        newUser = await prisma.user.create({
+          data: {
+            phone,
+            email,
+            firstName: 'Nouveau',
+            lastName: 'Membre',
+            phoneVerified: true,
+            otpVerifiedAt: new Date(),
+            preferredLanguage: 'fr',
+            investorProfile,
+          },
+        });
+      } catch (err) {
+        if (isUniqueConstraintError(err)) {
+          await prisma.registrationSession.delete({ where: { id: sessionId } });
+          return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
+        }
+        throw err;
+      }
 
       // Auto-create Sama Naffa + APE accounts (mirrors existing register flow)
       const defaultProduct = getNaffaProductById('default');

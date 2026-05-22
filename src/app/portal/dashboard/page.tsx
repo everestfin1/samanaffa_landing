@@ -29,6 +29,7 @@ import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
+import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
@@ -85,6 +86,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
+  const [showKycModal, setShowKycModal] = useState(false);
   const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
 
   // Use Tanstack Query hooks for data fetching
@@ -225,7 +227,7 @@ export default function DashboardPage() {
           {(kycStatus === 'PENDING' || kycStatus === 'REJECTED') && (
             <button
               type="button"
-              onClick={() => router.push('/onboarding')}
+              onClick={() => setShowKycModal(true)}
               className="mt-3 text-sm font-medium text-gold-metallic hover:underline"
             >
               {kycStatus === 'REJECTED' ? 'Relancer la vérification' : 'Compléter la vérification'}
@@ -437,6 +439,12 @@ export default function DashboardPage() {
               }
             : undefined
         }
+      />
+
+      <KYCInitiationModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        onComplete={() => window.location.reload()}
       />
 
     </div>

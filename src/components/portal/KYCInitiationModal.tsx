@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useUserProfile } from '@/hooks/useUserProfile';
+import { useEffect, useMemo } from 'react';
+import { useUserProfile, useInvalidateUserProfile } from '@/hooks/useUserProfile';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import DiditKycStagePanels from '@/components/kyc/DiditKycStagePanels';
-import { useDiditKycVerification } from '@/hooks/useDiditKycVerification';
+import { useDiditKycVerification, type DbKycStatus } from '@/hooks/useDiditKycVerification';
+import { getLatestDiditSession } from '@/lib/kyc-session';
 
 interface KYCInitiationModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ interface KYCInitiationModalProps {
 
 export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCInitiationModalProps) {
   const { data: userProfile } = useUserProfile();
+  const invalidateProfile = useInvalidateUserProfile();
   const firstName = userProfile?.firstName || '';
 
   const returnPath =
@@ -21,38 +23,33 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
       ? `${window.location.pathname}${window.location.search}`
       : '/portal/dashboard';
 
+  const latestDidit = useMemo(
+    () => getLatestDiditSession(userProfile?.kycDocuments ?? []),
+    [userProfile?.kycDocuments],
+  );
+
   const kyc = useDiditKycVerification({
     firstName,
     returnPath,
     active: isOpen,
+    dbKycStatus: userProfile?.kycStatus as DbKycStatus | undefined,
+    existingDiditSessionId: latestDidit?.sessionId ?? null,
   });
 
   useEffect(() => {
     if (!isOpen || !userProfile?.id) return;
 
-    const checkExistingKYC = async () => {
-      try {
-        const res = await fetch('/api/users/profile');
-        if (!res.ok) return;
-        const data = await res.json();
-        const user = data.user;
+    const activeDidit = userProfile.kycDocuments?.find(
+      (d) =>
+        d.documentType === 'didit_kyc_session' &&
+        (d.verificationStatus === 'PENDING' || d.verificationStatus === 'UNDER_REVIEW'),
+    );
 
-        const pendingKyc = user.kycDocuments?.find(
-          (d: { documentType: string; verificationStatus: string; fileUrl: string }) =>
-            d.documentType === 'didit_kyc_session' && d.verificationStatus === 'PENDING',
-        );
-
-        if (pendingKyc?.fileUrl) {
-          kyc.resumePendingSession(pendingKyc.fileUrl);
-        }
-      } catch {
-        // start fresh
-      }
-    };
-
-    void checkExistingKYC();
+    if (activeDidit?.fileUrl) {
+      kyc.resumePendingSession(activeDidit.fileUrl, activeDidit.verificationStatus);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, userProfile?.id]);
+  }, [isOpen, userProfile?.id, userProfile?.kycDocuments]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -62,6 +59,7 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
   }, [isOpen]);
 
   const handleComplete = () => {
+    invalidateProfile();
     onClose();
     onComplete?.();
   };

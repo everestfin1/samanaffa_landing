@@ -34,9 +34,11 @@ Refer by **title** in standups when ambiguous.
 
 | Priority | IDs | Theme |
 |----------|-----|--------|
-| high | ONB-008, ONB-048, ONB-049 | Tests; T1 duplicate phone UX; verify phone format parity |
-| medium | ONB-050, ONB-051, AUTH-022, AUTH-023, AUTH-026 | Email/phone blur checks; KYC SMS during onboarding; Upstash; sessionVersion column; Didit capture_method ops |
-| low | ONB-052, ONB-043–047, AUTH-024–025 | Race 409; [backlog](./post-review-backlog-2026-05-20.md) |
+| high | ONB-008 | Automated tests |
+| medium | AUTH-022, AUTH-023 | Upstash rate limits; sessionVersion column |
+| low | ONB-044–047, AUTH-024–025 | [backlog](./post-review-backlog-2026-05-20.md) |
+
+**Closed 2026-05-21 (step-by-step fix sprint):** ONB-048–052, ONB-053, ONB-043, AUTH-026.
 
 **Next product:** KYC capture-only (no upload); deprecate Emprunt obligataire. Didit desktop web SDK (**done** 2026-05-21).
 
@@ -50,4 +52,4 @@ Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested
 | 2026-05-19 | Full flow + login/auth audit (`feat/onboarding-flow-mock`) |
 | 2026-05-19 | Post-OTP-login orchestration review; sprint plan + ONB-041, AUTH-020/021/022 |
 | 2026-05-20 | Phases 1–4; ONB-026/029/039/040; review fixes H4/H5/H1/M4; [backlog](./post-review-backlog-2026-05-20.md) |
-| 2026-05-21 | Didit desktop SDK (`35cab5c`); signup/comms review → ONB-048–052, AUTH-026 |
+| 2026-05-21 | Step-by-step fix sprint: ONB-048–053, ONB-043, AUTH-026 |

@@ -54,6 +54,12 @@ export function readOnboardingProgress(raw: unknown): Partial<OnboardingProgress
   return {};
 }
 
+/** True while the user has not finished onboarding T6 (used to defer portal-only comms). */
+export function isOnboardingInProgress(raw: unknown): boolean {
+  const step = readOnboardingProgress(raw).step;
+  return step == null || step !== 'T6';
+}
+
 export function mergeInvestorProfile(
   existing: unknown,
   patch: {

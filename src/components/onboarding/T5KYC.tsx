@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import DiditKycStagePanels from '@/components/kyc/DiditKycStagePanels';
-import { useDiditKycVerification } from '@/hooks/useDiditKycVerification';
+import { useDiditKycVerification, type DbKycStatus } from '@/hooks/useDiditKycVerification';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { getLatestDiditSession } from '@/lib/kyc-session';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T5KYCProps {
@@ -25,6 +27,12 @@ export default function T5KYC({
 }: T5KYCProps) {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
+  const { data: profile } = useUserProfile();
+
+  const latestDidit = useMemo(
+    () => getLatestDiditSession(profile?.kycDocuments ?? []),
+    [profile?.kycDocuments],
+  );
 
   const kyc = useDiditKycVerification({
     firstName,
@@ -32,6 +40,8 @@ export default function T5KYC({
     resumeSessionId,
     onApproved,
     autoAdvanceOnApproved: true,
+    dbKycStatus: profile?.kycStatus as DbKycStatus | undefined,
+    existingDiditSessionId: latestDidit?.sessionId ?? null,
   });
 
   const goToPortal = useCallback(() => {

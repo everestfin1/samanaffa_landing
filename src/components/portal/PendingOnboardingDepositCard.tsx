@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { formatCurrency } from '@/lib/utils';
 import OnboardingDepositModal, {
   type PendingOnboardingDeposit,
@@ -13,6 +13,8 @@ interface PendingOnboardingDepositCardProps {
   onCancelled: () => void;
   onPaymentComplete: () => void;
   autoOpenConfirm?: boolean;
+  /** Return false to block opening the Intouch confirm modal (e.g. profile incomplete — ONB-043). */
+  onBeforeConfirm?: () => boolean;
 }
 
 export default function PendingOnboardingDepositCard({
@@ -21,11 +23,24 @@ export default function PendingOnboardingDepositCard({
   onCancelled,
   onPaymentComplete,
   autoOpenConfirm = false,
+  onBeforeConfirm,
 }: PendingOnboardingDepositCardProps) {
-  const [showConfirmModal, setShowConfirmModal] = useState(autoOpenConfirm);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showModify, setShowModify] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+
+  const openConfirm = () => {
+    if (onBeforeConfirm && !onBeforeConfirm()) return;
+    setShowConfirmModal(true);
+  };
+
+  useEffect(() => {
+    if (autoOpenConfirm) {
+      openConfirm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpenConfirm]);
 
   const handleCancel = async () => {
     if (!window.confirm('Annuler ce dépôt programmé ? Vous pourrez en créer un nouveau plus tard.')) {
@@ -73,7 +88,7 @@ export default function PendingOnboardingDepositCard({
         <div className="flex flex-col sm:flex-row gap-2">
           <button
             type="button"
-            onClick={() => setShowConfirmModal(true)}
+            onClick={openConfirm}
             className="flex-1 px-5 py-2.5 bg-gold-metallic text-white rounded-lg font-semibold hover:bg-gold-dark transition-colors"
           >
             Confirmer via Intouch

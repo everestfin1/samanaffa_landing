@@ -49,6 +49,7 @@ export default function ProfileCompletionModal({
   const [step, setStep] = useState<ModalStep>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailHint, setEmailHint] = useState<string | null>(null);
   const [signature, setSignature] = useState('');
 
   const initialFormData = useMemo(
@@ -77,6 +78,7 @@ export default function ProfileCompletionModal({
       setSignature('');
       setStep('email');
       setError(null);
+      setEmailHint(null);
     }
   }, [isOpen, initialFormData]);
 
@@ -239,11 +241,34 @@ export default function ProfileCompletionModal({
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    setEmailHint(null);
+                  }}
+                  onBlur={async () => {
+                    const email = formData.email.trim();
+                    if (!email || !isValidEmail(email)) return;
+                    try {
+                      const res = await fetch('/api/auth/check-availability', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email }),
+                      });
+                      const data = await res.json();
+                      if (res.ok && data.emailAvailable === false) {
+                        setEmailHint('Cet email est déjà associé à un compte existant.');
+                      }
+                    } catch {
+                      // non-fatal
+                    }
+                  }}
                   className="w-full px-4 py-3 border border-timberwolf/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gold focus:border-transparent"
                   placeholder="votre@email.com"
                   autoComplete="email"
                 />
+                {emailHint && (
+                  <p className="text-sm text-amber-700 mt-2">{emailHint}</p>
+                )}
                 <p className="text-xs text-night/50 mt-2">
                   Reçus de transaction, alertes de sécurité et informations sur votre épargne.
                 </p>

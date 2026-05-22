@@ -545,6 +545,13 @@ export default function SamaNaffaPortal({
         <PendingOnboardingDepositCard
           intent={pendingDeposit}
           autoOpenConfirm={autoConfirmDeposit}
+          onBeforeConfirm={() => {
+            if (isProfileIncomplete) {
+              setShowProfileModal(true);
+              return false;
+            }
+            return true;
+          }}
           onUpdated={refreshPendingDeposit}
           onCancelled={clearPending}
           onPaymentComplete={async () => {
