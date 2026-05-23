@@ -170,7 +170,6 @@ export function useDiditKycVerification({
   const startPolling = useCallback(
     (sessionId: string) => {
       sessionIdRef.current = sessionId;
-      pollStartedAtRef.current = Date.now();
       stopPolling();
       pollStartedAtRef.current = Date.now();
       void pollOnce(sessionId);

@@ -30,7 +30,7 @@ export default function T5KYC({
   const { data: profile } = useUserProfile();
 
   const latestDidit = useMemo(
-    () => getLatestDiditSession(profile?.kycDocuments ?? []),
+    () => getLatestDiditSession(profile?.kycDocuments ?? [], 'poll'),
     [profile?.kycDocuments],
   );
 

@@ -248,6 +248,13 @@ export default function ProfileCompletionModal({
                   onBlur={async () => {
                     const email = formData.email.trim();
                     if (!email || !isValidEmail(email)) return;
+                    const currentEmail = sanitizeEmail(initialData.email);
+                    if (
+                      currentEmail &&
+                      email.toLowerCase() === currentEmail.toLowerCase()
+                    ) {
+                      return;
+                    }
                     try {
                       const res = await fetch('/api/auth/check-availability', {
                         method: 'POST',
@@ -255,6 +262,7 @@ export default function ProfileCompletionModal({
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ email }),
                       });
+                      if (res.status === 401 || res.status === 429) return;
                       const data = await res.json();
                       if (res.ok && data.emailAvailable === false) {
                         setEmailHint('Cet email est déjà associé à un compte existant.');

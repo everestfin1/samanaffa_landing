@@ -29,6 +29,14 @@ describe('getNotificationActionUrl', () => {
         metadata: JSON.stringify({ actionUrl: 'https://evil.com' }),
       }),
     ).toBe('/portal/dashboard');
+
+    expect(
+      getNotificationActionUrl({
+        type: 'WARNING',
+        title: 'Test',
+        metadata: JSON.stringify({ actionUrl: '//evil.com/phish' }),
+      }),
+    ).toBe('/portal/dashboard');
   });
 
   it('allows safe internal actionUrl', () => {

@@ -4,6 +4,10 @@ import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase()
+}
+
 /**
  * Email availability for authenticated profile completion only.
  * Phone enumeration is intentionally not supported here (AUTH-007 / ONB-050);
@@ -30,22 +34,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!email) {
+    if (!email || typeof email !== 'string') {
       return NextResponse.json(
         { error: 'Email requis' },
         { status: 400 },
       )
     }
 
-    if (!session?.user) {
+    const userId = (session?.user as { id?: string } | undefined)?.id
+    if (!userId) {
       return NextResponse.json(
         { error: 'Authentification requise' },
         { status: 401 },
       )
     }
 
+    const normalizedEmail = normalizeEmail(email)
+
     const existingEmailUser = await prisma.user.findFirst({
-      where: { email },
+      where: {
+        email: normalizedEmail,
+        NOT: { id: userId },
+      },
     })
 
     const emailAvailable = !existingEmailUser

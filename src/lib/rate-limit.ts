@@ -338,7 +338,7 @@ async function withUpstashFallback(
     console.error(`[rate-limit] Upstash ${type} failed:`, e);
     if (OTP_UPSTASH_TYPES.has(type)) {
       const cfg = RATE_LIMITS[type];
-      return failClosedResult(cfg.windowMs);
+      return failClosedResult(cfg.blockMs);
     }
     return fallback();
   }

@@ -24,7 +24,7 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
       : '/portal/dashboard';
 
   const latestDidit = useMemo(
-    () => getLatestDiditSession(userProfile?.kycDocuments ?? []),
+    () => getLatestDiditSession(userProfile?.kycDocuments ?? [], 'poll'),
     [userProfile?.kycDocuments],
   );
 
@@ -39,14 +39,10 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
   useEffect(() => {
     if (!isOpen || !userProfile?.id) return;
 
-    const activeDidit = userProfile.kycDocuments?.find(
-      (d) =>
-        d.documentType === 'didit_kyc_session' &&
-        (d.verificationStatus === 'PENDING' || d.verificationStatus === 'UNDER_REVIEW'),
-    );
+    const activeDidit = getLatestDiditSession(userProfile.kycDocuments ?? [], 'resumable');
 
-    if (activeDidit?.fileUrl) {
-      kyc.resumePendingSession(activeDidit.fileUrl, activeDidit.verificationStatus);
+    if (activeDidit?.sessionId) {
+      kyc.resumePendingSession(activeDidit.sessionId, activeDidit.verificationStatus);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, userProfile?.id, userProfile?.kycDocuments]);

@@ -54,6 +54,27 @@ describe('getLatestDiditSession', () => {
     });
   });
 
+  it('poll mode returns latest session even when doc status is terminal', () => {
+    const result = getLatestDiditSession(
+      [
+        {
+          documentType: 'didit_kyc_session',
+          fileUrl: 'old-active',
+          verificationStatus: 'UNDER_REVIEW',
+          uploadDate: '2026-01-01T00:00:00.000Z',
+        },
+        {
+          documentType: 'didit_kyc_session',
+          fileUrl: 'newest-approved',
+          verificationStatus: 'APPROVED',
+          uploadDate: '2026-06-01T00:00:00.000Z',
+        },
+      ],
+      'poll',
+    );
+    expect(result?.sessionId).toBe('newest-approved');
+  });
+
   it('treats invalid uploadDate as oldest', () => {
     const result = getLatestDiditSession([
       {
