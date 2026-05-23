@@ -4,7 +4,10 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateReferenceNumber } from '@/lib/utils';
 import { createUserNotification } from '@/lib/user-notifications';
-import { findOnboardingDepositIntent } from '@/lib/onboarding-deposit';
+import {
+  findOnboardingDepositIntent,
+  normalizeLegacyOnboardingPaymentMethod,
+} from '@/lib/onboarding-deposit';
 
 function serializeIntent(intent: {
   id: string;
@@ -43,9 +46,14 @@ export async function GET() {
       return NextResponse.json({ success: true, intent: null });
     }
 
+    const paymentMethod = await normalizeLegacyOnboardingPaymentMethod(
+      intent.id,
+      intent.paymentMethod,
+    );
+
     return NextResponse.json({
       success: true,
-      intent: serializeIntent(intent),
+      intent: serializeIntent({ ...intent, paymentMethod }),
     });
   } catch (error) {
     console.error('[onboarding/pending-deposit]', error);

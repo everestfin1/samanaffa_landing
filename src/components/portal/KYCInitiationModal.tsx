@@ -32,6 +32,7 @@ export default function KYCInitiationModal({ isOpen, onClose, onComplete }: KYCI
     firstName,
     returnPath,
     active: isOpen,
+    openDiditInNewTab: true,
     dbKycStatus: userProfile?.kycStatus as DbKycStatus | undefined,
     existingDiditSessionId: latestDidit?.sessionId ?? null,
   });

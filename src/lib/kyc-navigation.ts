@@ -40,10 +40,28 @@ export function clearKycNavigationState() {
   sessionStorage.removeItem(KYC_VERIFICATION_URL_KEY);
 }
 
-/** Navigate to Didit in the same tab (avoids a confusing second tab). */
-export function navigateToDiditVerification(verificationUrl: string, sessionId: string, returnPath: string) {
+function persistDiditNavigationState(verificationUrl: string, sessionId: string, returnPath: string) {
   setKycReturnPath(returnPath);
   setKycSessionId(sessionId);
   setKycVerificationUrl(verificationUrl);
+}
+
+/** Navigate to Didit in the same tab (onboarding default). */
+export function navigateToDiditVerification(
+  verificationUrl: string,
+  sessionId: string,
+  returnPath: string,
+) {
+  persistDiditNavigationState(verificationUrl, sessionId, returnPath);
   window.location.href = verificationUrl;
+}
+
+/** Open Didit in a new tab; caller stays on portal and keeps polling (ONB-044). */
+export function openDiditVerificationInNewTab(
+  verificationUrl: string,
+  sessionId: string,
+  returnPath: string,
+): void {
+  persistDiditNavigationState(verificationUrl, sessionId, returnPath);
+  window.open(verificationUrl, '_blank', 'noopener,noreferrer');
 }

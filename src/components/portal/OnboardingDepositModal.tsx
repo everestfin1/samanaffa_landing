@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSession } from 'next-auth/react';
 import IntouchPayment from '@/components/payments/IntouchPayment';
 import { formatCurrency } from '@/lib/utils';
+import { getPaymentMethodDisplayLabel } from '@/lib/payment-method-label';
 
 export interface PendingOnboardingDeposit {
   id: string;
@@ -66,6 +67,7 @@ export default function OnboardingDepositModal({
         ) : (
           <DepositModalIntro
             amount={intent.amount}
+            paymentMethodLabel={getPaymentMethodDisplayLabel(intent.paymentMethod)}
             error={error}
             userId={userId}
             onLater={onClose}
@@ -109,12 +111,14 @@ function DepositModalHeader({ title, onClose }: { title: string; onClose: () => 
 
 function DepositModalIntro({
   amount,
+  paymentMethodLabel,
   error,
   userId,
   onLater,
   onPay,
 }: {
   amount: number;
+  paymentMethodLabel: string;
   error: string;
   userId?: string;
   onLater: () => void;
@@ -133,7 +137,7 @@ function DepositModalIntro({
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-night/60">Paiement</span>
-          <span className="font-medium text-night">Intouch</span>
+          <span className="font-medium text-night">{paymentMethodLabel}</span>
         </div>
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}

@@ -12,9 +12,16 @@ interface T6DashboardProps {
   firstName: string;
   depositAmount: number;
   formula: string;
+  /** When false, KYC is approved but deposit intent release may still be syncing (ONB-047). */
+  depositReady?: boolean;
 }
 
-export default function T6Dashboard({ firstName, depositAmount, formula }: T6DashboardProps) {
+export default function T6Dashboard({
+  firstName,
+  depositAmount,
+  formula,
+  depositReady = true,
+}: T6DashboardProps) {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
   const [showConfetti, setShowConfetti] = useState(true);
@@ -70,13 +77,23 @@ export default function T6Dashboard({ firstName, depositAmount, formula }: T6Das
           <div className="flex-1">
             <div className="flex justify-between items-start mb-1">
               <h3 className="font-bold text-night">Dépôt programmé</h3>
-              <span className="text-[10px] font-bold uppercase px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full">Prêt</span>
+              <span
+                className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
+                  depositReady
+                    ? 'bg-emerald-100 text-emerald-800'
+                    : 'bg-amber-100 text-amber-800'
+                }`}
+              >
+                {depositReady ? 'Prêt' : 'En préparation'}
+              </span>
             </div>
             <p className="text-sm text-night/60 mb-2">
               {formatCurrency(depositAmount)} FCFA vers {formula}
             </p>
             <p className="text-xs text-night/40 italic">
-              Identité validée. Confirmez ce dépôt via Intouch depuis votre tableau de bord Sama Naffa.
+              {depositReady
+                ? 'Identité validée. Confirmez ce dépôt via Intouch depuis votre tableau de bord Sama Naffa.'
+                : 'Identité validée. Votre dépôt programmé est en cours de finalisation — ouvrez Sama Naffa dans quelques instants pour le confirmer via Intouch.'}
             </p>
           </div>
         </motion.div>

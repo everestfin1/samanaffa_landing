@@ -24,11 +24,11 @@ Use this file when picking up polish before or alongside new product work (depre
 | ID | Severity | Title | Files / notes |
 |----|----------|-------|----------------|
 | ONB-043 | medium | Profile comms modal: gate all deposit confirms on Sama Naffa | `SamaNaffaPortal.tsx`, `PendingOnboardingDepositCard.tsx` — today only `?confirmDeposit=1` |
-| ONB-044 | low | Portal KYC modal: resume Didit in new tab (optional) | `useDiditKycVerification.ts` — `openInNewTab` for portal callers |
-| ONB-045 | low | `kyc-deposit-intents` scope to `ONBOARDING_V2\|` notes only | `kyc-deposit-intents.ts` — match `findOnboardingDepositIntent` filter |
-| ONB-046 | low | Legacy intents: `paymentMethod` ≠ intouch label in confirm modal | Data backfill or one-time notice |
-| ONB-047 | low | T6 “Prêt” vs webhook race | Edge case; optional poll before T6 |
-| ONB-008 | high | Automated tests (unchanged) | Vitest for `notification-action-url`, `kyc-deposit-intents`, KYC hook |
+| ONB-044 | low | Portal KYC modal: resume Didit in new tab | **done 2026-05-23** — `openDiditInNewTab` on portal modal |
+| ONB-045 | low | `kyc-deposit-intents` scope to `ONBOARDING_V2\|` notes only | **done 2026-05-21** |
+| ONB-046 | low | Legacy intents: `paymentMethod` label in confirm modal | **done 2026-05-23** — labels + lazy backfill |
+| ONB-047 | low | T6 “Prêt” vs webhook race | **done 2026-05-23** — `release-deposit` + T6 readiness |
+| ONB-008 | high | Automated tests | **done 2026-05-21+** — Vitest core libs |
 
 ### 2026-05-21 review → main trackers
 
@@ -47,7 +47,7 @@ Use this file when picking up polish before or alongside new product work (depre
 
 - **Didit web browser verification** — **done (2026-05-21):** `@didit-protocol/sdk-web` modal on desktop (≥1024px, fine pointer); mobile keeps redirect. `callback_method: both`, `GET /api/onboarding/kyc/session-url`, CSP `frame-src` + camera/mic for `verify.didit.me`. If QR still shows, set Didit `capture_method` to `both` via `scripts/ensure-didit-capture-method.ts` or Didit Console → API & Webhooks (`DIDIT_CAPTURE_METHOD=both`).
 - **Deprecate Emprunt obligataire** — remove routes, copy, and DB references per product decision.
-- **KYC capture-only (no file upload)** — force live scan/selfie in Didit flow (workflow/console + verify upload paths in `Step4Documents` / legacy KYC if any). Didit: confirm workflow disables gallery upload; app: remove or hide file-picker fallbacks where KYC still allows upload.
+- **KYC capture-only (no file upload)** — **configured in Didit** (workflow/console). App-side: only remove file-picker fallbacks if any legacy upload UI remains outside Didit.
 
 ---
 

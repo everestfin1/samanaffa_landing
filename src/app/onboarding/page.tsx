@@ -11,6 +11,7 @@ import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
 import T6Dashboard from '@/components/onboarding/T6Dashboard';
+import { ensureOnboardingDepositReleased } from '@/lib/onboarding-deposit-release';
 import {
   getOnboardingProgressPercent,
   ONBOARDING_QUIZ_QUESTIONS,
@@ -84,6 +85,7 @@ function OnboardingPageContent() {
   const [authPending, setAuthPending] = useState(false);
   const [resumeChecked, setResumeChecked] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const [depositReady, setDepositReady] = useState(true);
   const [quizProgress, setQuizProgress] = useState<{
     questionIndex: number;
     totalQuestions: number;
@@ -431,6 +433,9 @@ function OnboardingPageContent() {
                   resumeSessionId={kycResumeSessionId}
                   onBack={() => setStep('T4')}
                   onApproved={async () => {
+                    const { ready } = await ensureOnboardingDepositReleased();
+                    setDepositReady(ready);
+
                     const res = await fetch('/api/onboarding/progress', {
                       method: 'PATCH',
                       headers: { 'Content-Type': 'application/json' },
@@ -467,6 +472,7 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   depositAmount={state.depositAmount}
                   formula={state.formula}
+                  depositReady={depositReady}
                 />
               </motion.div>
             )}

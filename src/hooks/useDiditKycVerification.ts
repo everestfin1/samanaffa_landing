@@ -7,6 +7,7 @@ import { shouldUseDiditWebSdk } from '@/lib/kyc-device';
 import {
   getKycVerificationUrl,
   navigateToDiditVerification,
+  openDiditVerificationInNewTab,
   setKycVerificationUrl,
 } from '@/lib/kyc-navigation';
 
@@ -38,6 +39,8 @@ export interface UseDiditKycVerificationOptions {
   dbKycStatus?: DbKycStatus;
   /** Latest Didit session id from profile — poll until terminal status. */
   existingDiditSessionId?: string | null;
+  /** Portal: open Didit redirect flow in a new tab (ONB-044). */
+  openDiditInNewTab?: boolean;
 }
 
 async function fetchVerificationUrlForSession(sessionId: string): Promise<string | null> {
@@ -73,6 +76,7 @@ export function useDiditKycVerification({
   autoAdvanceOnApproved = false,
   dbKycStatus,
   existingDiditSessionId,
+  openDiditInNewTab = false,
 }: UseDiditKycVerificationOptions) {
   const [stage, setStage] = useState<DiditKycStage>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -320,7 +324,14 @@ export function useDiditKycVerification({
       setVerificationUrl(data.verificationUrl);
       setDiditSessionId(data.sessionId);
       setKycVerificationUrl(data.verificationUrl);
-      navigateToDiditVerification(data.verificationUrl, data.sessionId, returnPath);
+      setStage('verifying');
+      setError(null);
+      if (openDiditInNewTab) {
+        openDiditVerificationInNewTab(data.verificationUrl, data.sessionId, returnPath);
+        startPolling(data.sessionId);
+      } else {
+        navigateToDiditVerification(data.verificationUrl, data.sessionId, returnPath);
+      }
     } catch (e: unknown) {
       setStage('error');
       setError(e instanceof Error ? e.message : 'Erreur');
@@ -344,6 +355,11 @@ export function useDiditKycVerification({
     }
 
     if (!verificationUrl) return;
+    if (openDiditInNewTab) {
+      openDiditVerificationInNewTab(verificationUrl, sessionId, returnPath);
+      startPolling(sessionId);
+      return;
+    }
     if (diditSessionId) {
       navigateToDiditVerification(verificationUrl, diditSessionId, returnPath);
     } else {

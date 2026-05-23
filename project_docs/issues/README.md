@@ -34,7 +34,7 @@ Refer by **title** in standups when ambiguous.
 
 | Priority | IDs | Theme |
 |----------|-----|--------|
-| low | ONB-044, ONB-046, ONB-047 | Optional portal KYC tab; legacy intent labels; T6 webhook race |
+| low | — | ONB-044-portal, ONB-046, ONB-047 done 2026-05-23 |
 
 **Closed 2026-05-21 (continued):** AUTH-022, AUTH-023, AUTH-024, AUTH-025, ONB-008 (core tests), ONB-045.
 

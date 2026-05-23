@@ -19,9 +19,9 @@
 | critical | 0 | — (ONB-023/041 done 2026-05-20) |
 | high     | 0 | — |
 | medium   | 0 | — |
-| low      | 3 | ONB-044, ONB-046, ONB-047 (optional polish) |
+| low      | 0 | — |
 
-_Done:_ ONB-001–ONB-022 (except ONB-008 tests), ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044 (KYC notification deep links by status). **Didit desktop web SDK** (commits `35cab5c`, `1d8d5d3`, 2026-05-21).
+_Done:_ ONB-001–ONB-022, ONB-024 (localhost callback), ONB-030–034, ONB-036–038 (bar + KYC redirect), ONB-035 (poll errors in verifying UI), ONB-044-notif (KYC notification deep links by status), ONB-044-portal (Didit new tab in portal modal), ONB-046, ONB-047, ONB-008 (core unit tests). **Didit desktop web SDK** (commits `35cab5c`, `1d8d5d3`, 2026-05-21).
 
 ---
 
@@ -282,6 +282,24 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 - **Area:** maintenance
 - **Files:** `kyc-sync.ts`, `kyc-deposit-intents.ts`, `src/app/api/admin/kyc/[id]/route.ts`
 - **Resolution (2026-05-20):** `updateOnboardingDepositIntentsForKycStatus()` shared by Didit sync and admin KYC PUT.
+
+### ONB-044-portal — Portal KYC modal: resume Didit in new tab
+- **Status:** done
+- **Area:** ux
+- **Files:** `useDiditKycVerification.ts`, `kyc-navigation.ts`, `KYCInitiationModal.tsx`
+- **Resolution (2026-05-23):** `openDiditInNewTab` for portal; same-tab redirect kept for onboarding T5.
+
+### ONB-046 — Legacy intents: `paymentMethod` ≠ Intouch label in confirm modal
+- **Status:** done
+- **Area:** ux / data
+- **Files:** `payment-method-label.ts`, `onboarding-deposit.ts`, `pending-deposit/route.ts`, `OnboardingDepositModal.tsx`
+- **Resolution (2026-05-23):** Display labels via helper; lazy DB backfill `orange_money` / `wave` / `free_money` → `intouch` on pending-deposit GET.
+
+### ONB-047 — T6 “Prêt” vs webhook / sync race
+- **Status:** done
+- **Area:** ux
+- **Files:** `release-deposit/route.ts`, `onboarding-deposit-release.ts`, `onboarding/page.tsx`, `T6Dashboard.tsx`
+- **Resolution (2026-05-23):** `POST /api/onboarding/release-deposit` before T6; T6 shows “En préparation” if release not confirmed within poll window.
 
 ---
 
