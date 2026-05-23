@@ -4,7 +4,9 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import APEPortal from '../../../components/portal/APEPortal';
+import ApeDeprecatedNotice from '../../../components/portal/ApeDeprecatedNotice';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import { isApeDeprecated } from '@/lib/product-flags';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -94,7 +96,11 @@ export default function APEPage() {
       />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <APEPortal kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'} />
+        {isApeDeprecated() ? (
+          <ApeDeprecatedNotice />
+        ) : (
+          <APEPortal kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'} />
+        )}
       </main>
     </div>
   );

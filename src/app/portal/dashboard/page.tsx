@@ -30,6 +30,7 @@ import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
 import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
+import { isApeDeprecated } from '@/lib/product-flags';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
@@ -305,29 +306,31 @@ export default function DashboardPage() {
             </div>
           </button>
 
-          <button 
-            onClick={() => router.push('/portal/ape')}
-            className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
-          >
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
-                <BuildingLibraryIcon className="w-8 h-8 text-white" />
+          {!isApeDeprecated() && (
+            <button
+              onClick={() => router.push('/portal/ape')}
+              className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
+            >
+              <div className="flex items-center space-x-4 mb-6">
+                <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
+                  <BuildingLibraryIcon className="w-8 h-8 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">
+                    Emprunt Obligataire
+                  </h3>
+                  <p className="text-sm text-night/60 font-medium">Obligations d&apos;État</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">Emprunt Obligataire</h3>
-                <p className="text-sm text-night/60 font-medium">Obligations d'État</p>
+              <div className="text-sm text-night/70 mb-6 leading-relaxed">
+                Investissez dans les obligations souveraines avec un rendement garanti.
               </div>
-            </div>
-            <div className="text-sm text-night/70 mb-6 leading-relaxed">
-              Investissez dans les obligations souveraines avec un rendement garanti.
-            </div>
-            <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
-              <span>Accéder au service</span>
-              <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-            </div>
-          </button>
-
-          {/* Comparison tool removed as per simplification requirements */}
+              <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
+                <span>Accéder au service</span>
+                <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+          )}
         </div>
       </div>
 

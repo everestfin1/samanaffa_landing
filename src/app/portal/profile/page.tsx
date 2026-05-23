@@ -20,10 +20,10 @@ import {
   IdentificationIcon,
   BanknotesIcon,
   ArrowRightIcon,
-  CloudArrowUpIcon,
   CalendarDaysIcon,
 } from '@heroicons/react/24/outline';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
 import { meetsVerifiedIdentityRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -101,7 +101,7 @@ export default function ProfilePage() {
     country: '',
     preferredLanguage: 'fr',
   });
-  const [uploadingFile, setUploadingFile] = useState(false);
+  const [showKycModal, setShowKycModal] = useState(false);
 
   const error = profileError?.message || updateProfileMutation.error?.message || '';
   const identityVerified = userData
@@ -194,36 +194,10 @@ export default function ProfilePage() {
     setSuccess(''); // Clear success message when canceling
   };
 
-  const handleFileUpload = async (file: File, documentType: string) => {
-    setUploadingFile(true);
-    setSuccess('');
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('documentType', documentType);
-
-      const response = await fetch('/api/kyc/upload', {
-        method: 'POST',
-        body: formData,
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        setSuccess('Document téléchargé avec succès');
-        // Invalidate and refetch user profile data to show updated KYC document status
-        invalidateUserProfile();
-      } else {
-        // Error handling is done by setting error state
-        console.error('Upload failed:', data.error);
-      }
-    } catch (error) {
-      console.error('Upload error:', error);
-    } finally {
-      setUploadingFile(false);
-    }
-  };
+  const canStartDiditKyc =
+    userData?.kycStatus === 'PENDING' ||
+    userData?.kycStatus === 'REJECTED' ||
+    userData?.kycStatus === 'UNDER_REVIEW';
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -609,79 +583,81 @@ export default function ProfilePage() {
                 ? 'Votre vérification KYC est en cours de révision par notre équipe.'
                 : userData?.kycStatus === 'REJECTED'
                 ? 'Votre vérification KYC a été rejetée. Veuillez contacter le support.'
-                : 'Votre vérification KYC est en attente. Veuillez soumettre vos documents.'
+                : 'Complétez la vérification Didit (pièce d’identité et selfie en direct, sans import de fichier).'
               }
             </p>
+            {canStartDiditKyc && (
+              <button
+                type="button"
+                onClick={() => setShowKycModal(true)}
+                className="mt-4 px-5 py-2.5 bg-gold-metallic text-white rounded-lg font-medium hover:bg-gold-dark transition-colors"
+              >
+                {userData?.kycStatus === 'REJECTED'
+                  ? 'Relancer la vérification Didit'
+                  : 'Vérifier mon identité (Didit)'}
+              </button>
+            )}
           </div>
 
-          {/* Documents */}
+          {/* Documents (Didit — no manual upload) */}
           <div className="bg-white rounded-2xl border border-timberwolf/20 p-8">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-night">Documents KYC</h2>
-              <button
-                onClick={() => document.getElementById('file-upload')?.click()}
-                disabled={uploadingFile}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                  uploadingFile
-                    ? 'bg-timberwolf/50 text-night/50 cursor-not-allowed'
-                    : 'bg-gold-metallic text-white hover:bg-gold-dark'
-                }`}
-              >
-                {uploadingFile ? (
-                  <div className="w-4 h-4 border-2 border-night/30 border-t-night rounded-full animate-spin" />
-                ) : (
-                  <CloudArrowUpIcon className="w-4 h-4" />
-                )}
-                <span>{uploadingFile ? 'Téléchargement...' : 'Télécharger'}</span>
-              </button>
-              <input
-                id="file-upload"
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    handleFileUpload(file, 'identity_document');
-                  }
-                }}
-                className="hidden"
-              />
+              <h2 className="text-xl font-bold text-night">Vérification Didit</h2>
             </div>
+            <p className="text-sm text-night/60 mb-4">
+              La capture se fait en direct dans Didit (pas d&apos;import depuis la galerie).
+            </p>
             <div className="space-y-4">
               {userData?.kycDocuments && userData.kycDocuments.length > 0 ? (
-                userData.kycDocuments.map((doc) => (
-                  <div key={doc.id} className="flex items-center justify-between p-4 border border-timberwolf/20 rounded-lg">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-gold-metallic/10 rounded-lg flex items-center justify-center">
-                        <DocumentTextIcon className="w-5 h-5 text-gold-metallic" />
+                userData.kycDocuments.map((doc) => {
+                  const isDiditSession = doc.documentType === 'didit_kyc_session';
+                  return (
+                    <div
+                      key={doc.id}
+                      className="flex items-center justify-between p-4 border border-timberwolf/20 rounded-lg"
+                    >
+                      <div className="flex items-center space-x-4">
+                        <div className="w-10 h-10 bg-gold-metallic/10 rounded-lg flex items-center justify-center">
+                          <DocumentTextIcon className="w-5 h-5 text-gold-metallic" />
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-night">
+                            {isDiditSession ? 'Session Didit' : doc.documentType}
+                          </h3>
+                          {!isDiditSession && (
+                            <p className="text-sm text-night/60">{doc.fileName}</p>
+                          )}
+                          <p className="text-xs text-night/50">
+                            {new Date(doc.uploadDate).toLocaleDateString('fr-FR')}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-medium text-night">{doc.documentType}</h3>
-                        <p className="text-sm text-night/60">{doc.fileName}</p>
-                        <p className="text-xs text-night/50">Téléchargé le {new Date(doc.uploadDate).toLocaleDateString('fr-FR')}</p>
+                      <div className="flex items-center space-x-3">
+                        <span
+                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.verificationStatus)}`}
+                        >
+                          {getStatusText(doc.verificationStatus)}
+                        </span>
+                        {getStatusIcon(doc.verificationStatus)}
+                        {!isDiditSession && doc.fileUrl.startsWith('http') && (
+                          <a
+                            href={doc.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-2 text-night/60 hover:text-night transition-colors"
+                          >
+                            <EyeIcon className="w-4 h-4" />
+                          </a>
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center space-x-3">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(doc.verificationStatus)}`}>
-                        {getStatusText(doc.verificationStatus)}
-                      </span>
-                      {getStatusIcon(doc.verificationStatus)}
-                      <a
-                        href={doc.fileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="p-2 text-night/60 hover:text-night transition-colors"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                      </a>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="text-center py-8 text-night/60">
                   <DocumentTextIcon className="w-12 h-12 mx-auto mb-4 text-night/30" />
-                  <p>Aucun document téléchargé</p>
-                  <p className="text-sm">Téléchargez vos documents d'identité pour compléter votre profil</p>
+                  <p>Aucune vérification enregistrée</p>
+                  <p className="text-sm">Lancez Didit pour vérifier votre identité</p>
                 </div>
               )}
             </div>
@@ -751,6 +727,15 @@ export default function ProfilePage() {
           </div>
         </div>
       </main>
+
+      <KYCInitiationModal
+        isOpen={showKycModal}
+        onClose={() => setShowKycModal(false)}
+        onComplete={() => {
+          invalidateUserProfile();
+          setShowKycModal(false);
+        }}
+      />
     </div>
   );
 }

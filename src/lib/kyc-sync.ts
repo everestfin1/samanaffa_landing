@@ -3,7 +3,10 @@ import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-in
 import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types';
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications';
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings';
-import { createUserNotification } from '@/lib/user-notifications';
+import {
+  createUserNotification,
+  sanitizeNotificationActionUrl,
+} from '@/lib/user-notifications';
 import { isOnboardingInProgress } from '@/lib/onboarding-progress';
 import {
   buildRedactedDecisionPayload,
@@ -182,7 +185,9 @@ export async function syncDiditDecision(
         kycStatus: mapped.kycStatus,
         diditSessionId: sessionId,
         kind: 'kyc_status',
-        ...(notif.actionUrl ? { actionUrl: notif.actionUrl } : {}),
+        ...(notif.actionUrl
+          ? { actionUrl: sanitizeNotificationActionUrl(notif.actionUrl) }
+          : {}),
       },
     });
   }

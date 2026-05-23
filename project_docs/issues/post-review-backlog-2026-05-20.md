@@ -3,51 +3,54 @@
 Deferred after code review of Phases 1–4 + ONB-026/029/039/040.  
 **Fixed same day:** H4 (T3 quiz), H5 (KYC poll UI), H1 (JWT sessionVersion throttle), M4 (notification deep links).
 
-**2026-05-21 review** (Didit desktop SDK + signup/comms): tracked as **ONB-048–052** and **AUTH-026** in main issue files — see [onboarding-issues.md](./onboarding-issues.md) and [auth-issues.md](./auth-issues.md).
+**2026-05-21 review** (Didit desktop SDK + signup/comms): **ONB-048–052**, **AUTH-026** — done in main trackers.
 
-Use this file when picking up polish before or alongside new product work (deprecate Emprunt obligataire, KYC capture-only).
+**2026-05-23:** ONB-044-portal, ONB-046, ONB-047, review hardening (rate-limit, check-availability, KYC hook).
 
----
-
-## Auth (`auth-issues.md`)
-
-| ID | Severity | Title | Files / notes |
-|----|----------|-------|----------------|
-| AUTH-023 | medium | `sessionVersion` in `investorProfile` JSON (race) | Move to dedicated DB column; `auth-session.ts`, Prisma migration |
-| AUTH-024 | low | Portal idle banner: French + English time mix | `useSessionTimeout.ts` `formatTimeRemaining` |
-| AUTH-025 | low | `metadata.actionUrl` allowlist at write time | `user-notifications.ts`, `kyc-sync.ts` (read path hardened in M4 fix) |
+Use this file for remaining product/env toggles.
 
 ---
 
-## Onboarding / portal (`onboarding-issues.md`)
+## Auth (`auth-issues.md`) — done
 
-| ID | Severity | Title | Files / notes |
-|----|----------|-------|----------------|
-| ONB-043 | medium | Profile comms modal: gate all deposit confirms on Sama Naffa | `SamaNaffaPortal.tsx`, `PendingOnboardingDepositCard.tsx` — today only `?confirmDeposit=1` |
-| ONB-044 | low | Portal KYC modal: resume Didit in new tab | **done 2026-05-23** — `openDiditInNewTab` on portal modal |
-| ONB-045 | low | `kyc-deposit-intents` scope to `ONBOARDING_V2\|` notes only | **done 2026-05-21** |
-| ONB-046 | low | Legacy intents: `paymentMethod` label in confirm modal | **done 2026-05-23** — labels + lazy backfill |
-| ONB-047 | low | T6 “Prêt” vs webhook race | **done 2026-05-23** — `release-deposit` + T6 readiness |
-| ONB-008 | high | Automated tests | **done 2026-05-21+** — Vitest core libs |
-
-### 2026-05-21 review → main trackers
-
-| ID | Severity | Title | Tracker |
-|----|----------|-------|---------|
-| ONB-048 | high | T1 duplicate phone: generic OTP, no sessionId / login CTA | [onboarding-issues.md](./onboarding-issues.md#onb-048--t1-duplicate-phone-generic-otp-response-without-session-or-login-cta) |
-| ONB-049 | high | `verify-otp` phone duplicate: single format only | [onboarding-issues.md](./onboarding-issues.md#onb-049--verify-otp-duplicate-phone-check-uses-single-format) |
-| ONB-050 | medium | `check-availability` unused; no blur validation | [onboarding-issues.md](./onboarding-issues.md#onb-050--apiauthcheck-availability-unused-no-live-emailphone-validation-in-ui) |
-| ONB-051 | medium | KYC rejection SMS during onboarding | [onboarding-issues.md](./onboarding-issues.md#onb-051--kyc-rejection-sms-during-active-onboarding) |
-| ONB-052 | low | Prisma unique → 409 on create-account | [onboarding-issues.md](./onboarding-issues.md#onb-052--usercreate-unique-violation-should-return-409) |
-| AUTH-026 | medium | Didit `capture_method` PATCH from KYC start | [auth-issues.md](./auth-issues.md#auth-026--didit-capture_method-patched-from-public-kyc-start) |
+| ID | Status | Notes |
+|----|--------|-------|
+| AUTH-023 | done | `users.sessionVersion` column + migration |
+| AUTH-024 | done | `formatTimeRemaining` French in `useSessionTimeout.ts` |
+| AUTH-025 | done | `sanitizeNotificationActionUrl` on write + read; **2026-05-23** kyc-sync notifications sanitized |
 
 ---
 
-## Product / features (not in trackers yet)
+## Onboarding / portal — done
 
-- **Didit web browser verification** — **done (2026-05-21):** `@didit-protocol/sdk-web` modal on desktop (≥1024px, fine pointer); mobile keeps redirect. `callback_method: both`, `GET /api/onboarding/kyc/session-url`, CSP `frame-src` + camera/mic for `verify.didit.me`. If QR still shows, set Didit `capture_method` to `both` via `scripts/ensure-didit-capture-method.ts` or Didit Console → API & Webhooks (`DIDIT_CAPTURE_METHOD=both`).
-- **Deprecate Emprunt obligataire** — remove routes, copy, and DB references per product decision.
-- **KYC capture-only (no file upload)** — **configured in Didit** (workflow/console). App-side: only remove file-picker fallbacks if any legacy upload UI remains outside Didit.
+| ID | Status | Notes |
+|----|--------|-------|
+| ONB-043 | done | `onBeforeConfirm` on Sama Naffa deposit card |
+| ONB-044-portal | done | `openDiditInNewTab` on portal KYC modal |
+| ONB-045 | done | `ONBOARDING_V2\|` scope on deposit intents |
+| ONB-046 | done | Payment labels + lazy backfill |
+| ONB-047 | done | `release-deposit` + T6 readiness |
+| ONB-008 | done | Vitest: kyc-session, auth-session, notification URLs, payment-method-label |
+| ONB-048–052 | done | See [onboarding-issues.md](./onboarding-issues.md) |
+| AUTH-026 | done | No runtime Didit `capture_method` PATCH from public KYC start |
+
+---
+
+## Product / features
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Didit web browser verification | done | SDK modal desktop; redirect mobile |
+| KYC capture-only | done (Didit) + app | Didit workflow configured in console. **App (2026-05-23):** profile page — file upload removed; Didit modal CTA. Legacy `/register` + `Step4Documents` unchanged (redirects to `/onboarding`). |
+| Deprecate Emprunt obligataire | **flag ready** | Set `NEXT_PUBLIC_APE_DEPRECATED=true` on Vercel to hide nav/dashboard card and show sunset on `/portal/ape` + `/souscrire-ape`. Marketing/FAQ copy not stripped (follow-up). |
+| Broader API integration tests | optional | OTP/rate-limit E2E not added |
+
+### Enable APE sunset (ops)
+
+```bash
+# Vercel → Environment Variables (Preview + Production when ready)
+NEXT_PUBLIC_APE_DEPRECATED=true
+```
 
 ---
 

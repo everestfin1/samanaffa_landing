@@ -38,7 +38,7 @@ Refer by **title** in standups when ambiguous.
 
 **Closed 2026-05-21 (continued):** AUTH-022, AUTH-023, AUTH-024, AUTH-025, ONB-008 (core tests), ONB-045.
 
-**Next product:** KYC capture-only (no upload); deprecate Emprunt obligataire. Didit desktop web SDK (**done** 2026-05-21).
+**Next product / ops:** Set `NEXT_PUBLIC_APE_DEPRECATED=true` to sunset Emprunt obligataire in portal. Optional: strip APE from marketing/FAQ. Didit capture-only + portal profile Didit CTA (**done** 2026-05-23).
 
 Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested-fix-order-implementation-sprint), [onboarding-issues.md § Suggested fix order](./onboarding-issues.md#suggested-fix-order).
 

@@ -8,6 +8,8 @@ import Link from "next/link";
 import { useSelection } from "@/lib/selection-context";
 import TransferModal from "@/components/modals/TransferModal";
 import KYCVerificationMessage from "@/components/kyc/KYCVerificationMessage";
+import ApeDeprecatedNotice from "@/components/portal/ApeDeprecatedNotice";
+import { isApeDeprecated } from "@/lib/product-flags";
 
 interface UserAccount {
   id: string;
@@ -43,6 +45,14 @@ export default function SouscrireAPEPage() {
       return;
     }
   }, [session, router]);
+
+  if (isApeDeprecated()) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center p-4">
+        <ApeDeprecatedNotice />
+      </div>
+    );
+  }
 
   // Fetch user's APE account and KYC status
   useEffect(() => {

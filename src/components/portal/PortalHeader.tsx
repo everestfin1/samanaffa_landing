@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { usePrefetchTransactions } from '../../hooks/useTransactions';
 import NotificationBell from '../notifications/NotificationBell';
 import PortalSessionShell from '@/components/portal/PortalSessionShell';
+import { isApeDeprecated } from '@/lib/product-flags';
 import {
   UserIcon,
   HomeIcon,
@@ -77,15 +78,18 @@ export default function PortalHeader({
       href: '/portal/sama-naffa',
       requiresKYC: true // Requires KYC approval
     },
-    {
-      id: 'ape' as ActiveTab,
-      label: 'Emprunt Obligataire',
-      icon: BuildingLibraryIcon,
-      ariaLabel: 'Accéder à Emprunt Obligataire',
-      href: '/portal/ape',
-      requiresKYC: true // Requires KYC approval
-    }
-    // Removed comparison page as per simplification requirements
+    ...(!isApeDeprecated()
+      ? [
+          {
+            id: 'ape' as ActiveTab,
+            label: 'Emprunt Obligataire',
+            icon: BuildingLibraryIcon,
+            ariaLabel: 'Accéder à Emprunt Obligataire',
+            href: '/portal/ape',
+            requiresKYC: true,
+          },
+        ]
+      : []),
   ];
 
   const handleTabChange = (tab: ActiveTab, href: string, requiresKYC: boolean = false) => {
