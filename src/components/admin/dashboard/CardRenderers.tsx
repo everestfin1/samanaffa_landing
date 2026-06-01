@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import {
   ArrowUpRight, Wallet, Users, ShieldCheck, Clock, CheckCircle2,
-  TrendingUp, LayoutDashboard,
+  TrendingUp, LayoutDashboard, BarChart3, List, ExternalLink,
 } from 'lucide-react'
 import { Sparkline, Avatar } from '@/components/admin/layout/visuals'
 import { fmtCompact, fmtFCFA, fmtDate } from '@/lib/admin/format'
 import type { DashboardCardConfig } from '@/lib/admin/types'
+import { resolveDashboardCardVariant } from '@/lib/admin/dashboard-config-validation'
 
 const TX_TYPE_LABEL: Record<string, string> = {
   DEPOSIT: 'Dépôt',
@@ -33,6 +34,7 @@ const COLOR_OPTIONS = [
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Wallet, Users, ShieldCheck, Clock, CheckCircle2, TrendingUp, ArrowUpRight, LayoutDashboard,
+  BarChart3, List, ExternalLink,
 }
 
 function resolveValue(stats: any, source: string) {
@@ -52,8 +54,9 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
   const isDark = card.color === 'dark' || card.color === 'green' || card.color === 'gradient'
   const Icon = card.icon ? (ICON_MAP[card.icon] ?? LayoutDashboard) : LayoutDashboard
 
-  // AUM chart: explicit dataSource='aum' OR type='chart' with aum source only
-  if (card.dataSource === 'aum') {
+  const variant = resolveDashboardCardVariant(card)
+
+  if (variant === 'aum') {
     const aum = ctx.stats.totalDeposits + ctx.stats.totalInvestments
     return (
       <div className={`relative flex h-full flex-col justify-between overflow-hidden rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
@@ -85,7 +88,7 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
     )
   }
 
-  if (card.type === 'link' || card.dataSource === 'kycAction') {
+  if (variant === 'link') {
     return (
       <Link
         href={card.link || '/admin/kyc'}
@@ -110,7 +113,7 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
     )
   }
 
-  if (card.type === 'list' || card.dataSource === 'recentActivity') {
+  if (variant === 'list') {
     return (
       <div className={`flex h-full flex-col overflow-hidden rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
         <div className="mb-4 flex shrink-0 items-center justify-between">
@@ -147,9 +150,9 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
     )
   }
 
-  if (card.type === 'group' || card.dataSource === 'transactionBreakdown') {
+  if (variant === 'group') {
     return (
-      <div className="grid h-full grid-cols-2 gap-5">
+      <div className="grid h-full min-h-0 grid-cols-2 gap-5">
         {[
           { label: 'En attente', value: ctx.stats.pendingTransactions, icon: Clock, color: 'text-[#C38D1C]' },
           { label: 'Complétées', value: ctx.stats.completedTransactions, icon: CheckCircle2, color: 'text-[#435933]' },

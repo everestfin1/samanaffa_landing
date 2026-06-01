@@ -45,6 +45,8 @@ interface AdminDataContextValue {
   peeLeadStats: PeeLeadStats
   dashboardCards: DashboardCardConfig[]
   refresh: () => Promise<void>
+  /** Re-fetch dashboard card layout only (no global loading flash). */
+  refreshDashboardCards: () => Promise<void>
   /** fetch wrapper that injects the admin bearer token; redirects to login on 401 */
   authedFetch: (input: string, init?: RequestInit) => Promise<Response>
 }
@@ -189,6 +191,27 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     }
   }, [router])
 
+  const refreshDashboardCards = useCallback(async () => {
+    const token = getToken()
+    if (!token) {
+      router.push('/admin/login')
+      return
+    }
+    try {
+      const res = await fetch('/api/admin/dashboard-config', {
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      })
+      if (res.status === 401) {
+        router.push('/admin/login')
+        return
+      }
+      const data = await res.json()
+      if (data.success) setDashboardCards(data.cards)
+    } catch (err) {
+      console.error('Error refreshing dashboard cards:', err)
+    }
+  }, [router])
+
   const didInit = useRef(false)
   useEffect(() => {
     if (didInit.current) return
@@ -219,6 +242,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       peeLeadStats,
       dashboardCards,
       refresh,
+      refreshDashboardCards,
       authedFetch,
     }),
     [
@@ -237,6 +261,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       peeLeadStats,
       dashboardCards,
       refresh,
+      refreshDashboardCards,
       authedFetch,
     ],
   )

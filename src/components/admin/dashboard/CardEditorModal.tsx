@@ -3,28 +3,33 @@
 import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { DashboardCardConfig } from '@/lib/admin/types'
+import {
+  DASHBOARD_CARD_TYPES,
+  DASHBOARD_DATA_SOURCES,
+  DASHBOARD_ICONS,
+} from '@/lib/admin/dashboard-config-validation'
 
-const DATA_SOURCE_OPTIONS = [
-  { value: 'aum', label: 'AUM (Actifs sous gestion)' },
-  { value: 'totalUsers', label: 'Total utilisateurs' },
-  { value: 'pendingKyc', label: 'KYC en attente' },
-  { value: 'underReviewKyc', label: 'KYC en révision' },
-  { value: 'pendingTransactions', label: 'Transactions en attente' },
-  { value: 'completedTransactions', label: 'Transactions complétées' },
-  { value: 'totalDeposits', label: 'Dépôts totaux' },
-  { value: 'totalInvestments', label: 'Investissements totaux' },
-  { value: 'recentActivity', label: 'Activité récente' },
-  { value: 'kycAction', label: 'Action KYC (CTA)' },
-  { value: 'transactionBreakdown', label: 'Répartition transactions' },
-]
+const CARD_TYPE_LABELS: Record<(typeof DASHBOARD_CARD_TYPES)[number], string> = {
+  stat: 'Statistique',
+  chart: 'Graphique',
+  list: 'Liste',
+  link: 'Lien / CTA',
+  group: 'Groupe',
+}
 
-const CARD_TYPE_OPTIONS = [
-  { value: 'stat', label: 'Statistique' },
-  { value: 'chart', label: 'Graphique' },
-  { value: 'list', label: 'Liste' },
-  { value: 'link', label: 'Lien / CTA' },
-  { value: 'group', label: 'Groupe' },
-]
+const DATA_SOURCE_LABELS: Record<(typeof DASHBOARD_DATA_SOURCES)[number], string> = {
+  aum: 'AUM (Actifs sous gestion)',
+  totalUsers: 'Total utilisateurs',
+  pendingKyc: 'KYC en attente',
+  underReviewKyc: 'KYC en révision',
+  pendingTransactions: 'Transactions en attente',
+  completedTransactions: 'Transactions complétées',
+  totalDeposits: 'Dépôts totaux',
+  totalInvestments: 'Investissements totaux',
+  recentActivity: 'Activité récente',
+  kycAction: 'Action KYC (CTA)',
+  transactionBreakdown: 'Répartition transactions',
+}
 
 const COLOR_OPTIONS = [
   { value: 'default', label: 'Blanc', bg: 'bg-white border-slate-200' },
@@ -34,11 +39,6 @@ const COLOR_OPTIONS = [
   { value: 'amber', label: 'Ambre', bg: 'bg-amber-50' },
   { value: 'blue', label: 'Bleu', bg: 'bg-blue-50' },
   { value: 'red', label: 'Rouge', bg: 'bg-rose-50' },
-]
-
-const ICON_KEYS = [
-  'Wallet', 'Users', 'ShieldCheck', 'Clock', 'CheckCircle2', 'TrendingUp',
-  'ArrowUpRight', 'LayoutDashboard', 'BarChart3', 'List', 'ExternalLink',
 ]
 
 export default function CardEditorModal({
@@ -109,8 +109,8 @@ export default function CardEditorModal({
                 onChange={(e) => setType(e.target.value as DashboardCardConfig['type'])}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
               >
-                {CARD_TYPE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {DASHBOARD_CARD_TYPES.map((value) => (
+                  <option key={value} value={value}>{CARD_TYPE_LABELS[value]}</option>
                 ))}
               </select>
             </div>
@@ -121,8 +121,8 @@ export default function CardEditorModal({
                 onChange={(e) => setDataSource(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
               >
-                {DATA_SOURCE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>{o.label}</option>
+                {DASHBOARD_DATA_SOURCES.map((value) => (
+                  <option key={value} value={value}>{DATA_SOURCE_LABELS[value]}</option>
                 ))}
               </select>
             </div>
@@ -147,7 +147,9 @@ export default function CardEditorModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Largeur: {colSpan}/12 col.</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Largeur: {colSpan}/12 col.
+              </label>
               <input
                 type="range"
                 min={1}
@@ -158,7 +160,9 @@ export default function CardEditorModal({
               />
             </div>
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Hauteur: {rowSpan} rang{rowSpan > 1 ? 's' : ''}</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Hauteur: {rowSpan} rang{rowSpan > 1 ? 's' : ''}
+              </label>
               <input
                 type="range"
                 min={1}
@@ -167,6 +171,7 @@ export default function CardEditorModal({
                 onChange={(e) => setRowSpan(Number(e.target.value))}
                 className="w-full accent-[#435933]"
               />
+              <p className="mt-1 text-[11px] text-slate-400">≈ {rowSpan * 180}px par rang</p>
             </div>
           </div>
 
@@ -178,7 +183,7 @@ export default function CardEditorModal({
                 onChange={(e) => setIcon(e.target.value)}
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
               >
-                {ICON_KEYS.map((k) => (
+                {DASHBOARD_ICONS.map((k) => (
                   <option key={k} value={k}>{k}</option>
                 ))}
               </select>
@@ -189,9 +194,10 @@ export default function CardEditorModal({
                 type="text"
                 value={link}
                 onChange={(e) => setLink(e.target.value)}
-                placeholder="/admin/..."
+                placeholder="/admin/kyc"
                 className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
               />
+              <p className="mt-1 text-[11px] text-slate-400">Chemins /admin/… uniquement</p>
             </div>
           </div>
 
@@ -203,7 +209,7 @@ export default function CardEditorModal({
               onChange={(e) => setVisible(e.target.checked)}
               className="h-4 w-4 rounded border-slate-300 text-[#435933] focus:ring-[#435933]"
             />
-            <label htmlFor="visible" className="text-sm text-slate-700">Visible</label>
+            <label htmlFor="visible" className="text-sm text-slate-700">Visible sur le tableau de bord</label>
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">

@@ -1,3 +1,26 @@
+/** Must match `auto-rows-[…]` on the dashboard grid in EditableDashboard. */
+export const DASHBOARD_GRID_ROW_PX = 180
+/** Must match `gap-5` (1.25rem) on the dashboard grid. */
+export const DASHBOARD_GRID_GAP_PX = 20
+
+export function dashboardRowSpan(n: number): number {
+  return Math.max(1, Math.min(4, Math.round(n) || 1))
+}
+
+/** Explicit min-height so row span is visible even when Tailwind row-span utilities are purged. */
+export function dashboardCardMinHeight(rowSpan: number): number {
+  const span = dashboardRowSpan(rowSpan)
+  return span * DASHBOARD_GRID_ROW_PX + (span - 1) * DASHBOARD_GRID_GAP_PX
+}
+
+export function dashboardGridRowStyle(rowSpan: number): { gridRow: string; minHeight: number } {
+  const span = dashboardRowSpan(rowSpan)
+  return {
+    gridRow: `span ${span} / span ${span}`,
+    minHeight: dashboardCardMinHeight(span),
+  }
+}
+
 // Tailwind-safe col-span class resolver (JIT requires literal strings)
 export const colSpanClass = (n: number): string => {
   const map: Record<number, string> = {

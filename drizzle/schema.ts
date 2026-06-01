@@ -280,6 +280,7 @@ export const dashboardCards = pgTable("dashboard_cards", {
 	dataSource: text("dataSource").notNull(),
 	color: text().notNull().default('default'),
 	colSpan: integer("colSpan").notNull().default(3),
+	rowSpan: integer("rowSpan").notNull().default(1),
 	order: integer().notNull().default(0),
 	icon: text(),
 	link: text(),
