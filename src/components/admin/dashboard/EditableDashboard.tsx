@@ -110,11 +110,13 @@ export default function EditableDashboard() {
       setSaving(true)
       setSaveError(null)
       try {
+        console.log('[FE Save] sending card:', JSON.stringify(card))
         const res = await authedFetch('/api/admin/dashboard-config', {
           method: card.id ? 'PUT' : 'POST',
           body: JSON.stringify(card.id ? card : { ...card, order: visibleCards.length }),
         })
         const data = await res.json()
+        console.log('[FE Save] response:', data)
         if (!data.success) throw new Error(data.error || 'Erreur de sauvegarde')
         await refreshCards()
         setEditingCard(null)
@@ -206,7 +208,11 @@ export default function EditableDashboard() {
       ) : (
         <div className="grid auto-rows-[180px] grid-cols-12 gap-5">
           {visibleCards.map((card, idx) => (
-            <div key={card.id} className={`relative col-span-12 ${colSpanClass(card.colSpan)} ${rowSpanClass(card.rowSpan ?? 1)} group`}>
+            <div
+              key={card.id}
+              className={`relative col-span-12 ${colSpanClass(card.colSpan)} ${rowSpanClass(card.rowSpan ?? 1)} group`}
+              style={{ gridRow: `span ${card.rowSpan ?? 1}` }}
+            >
               {renderCard(card, ctx)}
 
               {editMode && (

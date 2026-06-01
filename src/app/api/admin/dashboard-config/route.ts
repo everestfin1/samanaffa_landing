@@ -143,6 +143,7 @@ export async function PUT(request: NextRequest) {
 
     // Single card update
     const { id, title, type, dataSource, color, colSpan, rowSpan, order, icon, link, visible } = body;
+    console.log('[API PUT] body fields:', { id, title, rowSpan, colSpan, hasRowSpan: 'rowSpan' in body });
 
     if (!id) {
       return NextResponse.json(
