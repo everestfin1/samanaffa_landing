@@ -112,14 +112,14 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
 
   if (card.type === 'list' || card.dataSource === 'recentActivity') {
     return (
-      <div className={`h-full rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
-        <div className="mb-5 flex items-center justify-between">
+      <div className={`flex h-full flex-col overflow-hidden rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
+        <div className="mb-4 flex shrink-0 items-center justify-between">
           <h2 className={`text-lg font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{card.title}</h2>
           <Link href="/admin/transactions" className={`text-sm font-semibold hover:underline ${isDark ? 'text-emerald-300' : 'text-[#435933]'}`}>
             Tout voir
           </Link>
         </div>
-        <div className="flex flex-col">
+        <div className="flex-1 overflow-y-auto pr-1">
           {ctx.recent.length === 0 && (
             <p className={`py-8 text-center text-sm ${isDark ? 'text-white/50' : 'text-slate-400'}`}>
               {ctx.loading ? 'Chargement…' : 'Aucune transaction.'}
