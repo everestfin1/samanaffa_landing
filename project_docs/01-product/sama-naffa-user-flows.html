@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sama Naffa — Parcours utilisateur</title>
+  <title>Sama Naffa — Parcours utilisateur & administrateur</title>
   <style>
     :root {
       --green: #435933;
@@ -181,6 +181,48 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-bottom: 14px;
+    }
+
+    .flow-overview.cols-3 {
+      grid-template-columns: 1fr 1fr 1fr;
+    }
+
+    .nav-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 10px 0 14px;
+    }
+
+    .nav-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: var(--white);
+      font-size: 9pt;
+    }
+
+    .nav-item strong {
+      display: block;
+      color: var(--green-dark);
+      font-size: 9.5pt;
+      margin-bottom: 2px;
+    }
+
+    .nav-item .route {
+      font-family: ui-monospace, monospace;
+      font-size: 8pt;
+      color: var(--green);
+      font-weight: 600;
+    }
+
+    .nav-item p { color: var(--muted); font-size: 8.5pt; margin-top: 3px; }
+
+    h3.section-sub {
+      font-size: 11pt;
+      font-weight: 700;
+      color: var(--green);
+      margin: 14px 0 8px;
     }
 
     .flow-card {
@@ -369,12 +411,12 @@
         </div>
         <div>
           <h1>
-            Parcours utilisateur
+            Parcours utilisateur &amp; administrateur
             <span class="gold-line">Sama Naffa · Épargne intelligente</span>
           </h1>
-          <p class="subtitle">Inscription, connexion et accès au portail — version produit actuelle (2026)</p>
+          <p class="subtitle">Portail client (OTP SMS), back-office admin (email / mot de passe) — version produit actuelle (2026)</p>
         </div>
-        <p class="cover-meta">Document interne · Everest Finance · Connexion par SMS OTP uniquement</p>
+        <p class="cover-meta">Document interne · Everest Finance · Clients : OTP SMS · Admins : JWT sécurisé</p>
       </div>
     </header>
 
@@ -382,22 +424,27 @@
     <section>
       <h2>Vue d’ensemble</h2>
       <p class="lead">
-        Sama Naffa propose deux entrées principales pour les utilisateurs : la <strong>création de compte</strong> (parcours guidé en 6 étapes visibles) et la <strong>connexion</strong> pour les comptes déjà enregistrés.
+        Trois entrées produit : <strong>inscription client</strong> (onboarding T0–T6), <strong>connexion client</strong> (OTP SMS), et <strong>administration</strong> (back-office sécurisé pour les équipes Everest Finance).
       </p>
-      <div class="flow-overview">
+      <div class="flow-overview cols-3">
         <div class="flow-card">
           <h3>1 · Nouveau client</h3>
-          <p>Simulation d’épargne → téléphone & OTP → profil & dépôt → vérification d’identité (Didit) → portail.</p>
+          <p>Simulation → téléphone & OTP → profil & dépôt → KYC Didit → portail.</p>
           <p class="route">/onboarding</p>
         </div>
         <div class="flow-card">
           <h3>2 · Client existant</h3>
-          <p>Numéro de téléphone → code SMS à 6 chiffres → tableau de bord portail.</p>
+          <p>Numéro → code SMS → tableau de bord portail.</p>
           <p class="route">/login</p>
+        </div>
+        <div class="flow-card">
+          <h3>3 · Administrateur</h3>
+          <p>Email & mot de passe → vue d’ensemble configurable → opérations & conformité.</p>
+          <p class="route">/admin/login</p>
         </div>
       </div>
       <div class="note">
-        <strong>Sécurité :</strong> le message après demande de code de connexion est volontairement générique (« si ce numéro est enregistré… ») pour ne pas révéler si un compte existe.
+        <strong>Clients :</strong> message OTP générique pour ne pas révéler l’existence d’un compte. <strong>Admins :</strong> comptes <code>admin_users</code> (rôles ADMIN, MANAGER, SUPPORT) ; session JWT 24 h + jeton de rafraîchissement.
       </div>
     </section>
 
@@ -481,12 +528,195 @@
       </ol>
 
       <div class="note">
-        <strong>Hors scope de ce document :</strong> parcours admin (<code>/admin</code>), landing marketing APE/PEE, et ancienne inscription <code>/register</code> (redirige vers <code>/onboarding</code>).
+        <strong>Liens :</strong> ancienne route <code>/register</code> redirige vers <code>/onboarding</code>. Les parcours marketing APE/PEE publics alimentent les sections admin correspondantes.
+      </div>
+    </section>
+
+    <!-- ADMIN AUTH -->
+    <section style="page-break-before: always;">
+      <h2>Parcours 3 — Administration (connexion)</h2>
+      <p class="lead">Réservé aux comptes staff. Authentification par <strong>email + mot de passe</strong> (distinct du parcours client OTP).</p>
+
+      <div class="login-flow">
+        <div class="login-node">
+          <h4>Étape A — Page de connexion</h4>
+          <p><code>/admin/login</code> — saisie email et mot de passe. Branding Sama Naffa / Everest Finance SGI.</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape B — Vérification serveur</h4>
+          <p>API <code>POST /api/admin/auth/login</code> : contrôle identifiants, compte actif, émission JWT.</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape C — Session locale</h4>
+          <p>Stockage <code>admin_token</code>, <code>admin_refresh_token</code> et profil <code>admin_user</code> (nom, email, rôle).</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape D — Tableau de bord</h4>
+          <p>Redirection vers <code>/admin</code> (Vue d’ensemble). Toutes les requêtes API portent le Bearer token ; 401 → retour login.</p>
+        </div>
+        <div class="login-node">
+          <h4>Déconnexion</h4>
+          <p>Menu utilisateur (coin droit) → <code>POST /api/admin/auth/logout</code> → purge localStorage → <code>/admin/login</code>.</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Rôles :</strong> ADMIN, MANAGER, SUPPORT (schéma base). L’interface actuelle partage les mêmes écrans pour tous les rôles connectés ; affiner les droits par rôle reste une évolution possible.
+      </div>
+    </section>
+
+    <!-- ADMIN NAV -->
+    <section>
+      <h2>Navigation admin — cartographie</h2>
+      <p class="lead">Menu principal en pillule centrale, regroupé par domaine métier. Badges sur KYC en attente, transactions en attente et paiements APE initiés.</p>
+
+      <div class="nav-grid">
+        <div class="nav-item">
+          <strong>Pilotage</strong>
+          <span class="route">/admin</span>
+          <p>Vue d’ensemble — tableau de bord configurable (cartes stats, listes, CTA).</p>
+        </div>
+        <div class="nav-item">
+          <strong>Opérations · Transactions</strong>
+          <span class="route">/admin/transactions</span>
+          <p>Dépôts / investissements / retraits — validation manuelle des intentions en attente.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Opérations · APE Sénégal</strong>
+          <span class="route">/admin/ape</span>
+          <p>Souscriptions obligataires, suivi des statuts de paiement InTouch.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Opérations · Réconciliation</strong>
+          <span class="route">/admin/reconciliation</span>
+          <p>Import fichier Intouch, rapprochement avec les souscriptions APE.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Acquisition · Codes parrainage</strong>
+          <span class="route">/admin/sponsor-codes</span>
+          <p>CRUD codes promo APE (actif / inactif / expiré, plafond d’usage).</p>
+        </div>
+        <div class="nav-item">
+          <strong>Acquisition · PEE Leads</strong>
+          <span class="route">/admin/pee-leads</span>
+          <p>Demandes Plan Épargne Entreprise — statut CRM et notes.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Acquisition · Leads abandonnés</strong>
+          <span class="route">/admin/abandoned-leads</span>
+          <p>Parcours onboarding non terminés (brouillons) — relance et conversion.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Conformité · Utilisateurs</strong>
+          <span class="route">/admin/users</span>
+          <p>Liste clients, statut KYC global, documents associés.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Conformité · Vérification KYC</strong>
+          <span class="route">/admin/kyc</span>
+          <p>File des pièces Didit — approbation / rejet document par document.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Système · Notifications</strong>
+          <span class="route">/admin/notifications</span>
+          <p>Campagnes et envois notifications clients.</p>
+        </div>
+        <div class="nav-item">
+          <strong>Système · Paramètres</strong>
+          <span class="route">/admin/settings</span>
+          <p>Préférences de notification plateforme (email, etc.).</p>
+        </div>
+      </div>
+
+      <p class="note"><strong>Legacy :</strong> l’ancienne interface monolithique reste accessible via <code>/admin/legacy</code> (hors parcours standard).</p>
+    </section>
+
+    <!-- ADMIN OVERVIEW -->
+    <section style="page-break-before: always;">
+      <h2>Vue d’ensemble — tableau de bord admin</h2>
+      <p class="lead">Page d’accueil après connexion. Grille bento personnalisable par les administrateurs (« Personnaliser »).</p>
+
+      <ol class="steps-detail">
+        <li><strong>Indicateurs temps réel.</strong> Données chargées via <code>AdminDataProvider</code> : utilisateurs, transactions, KYC, APE, codes parrain, leads PEE.</li>
+        <li><strong>Cartes par défaut.</strong> AUM (dépôts + investissements + courbe), clients, activité récente, CTA KYC, mini-stats transactions.</li>
+        <li><strong>Mode édition.</strong> Ajouter / modifier / masquer / réordonner des cartes ; largeur (1–12 colonnes) et hauteur (1–4 rangs). Modèles rapides (KYC, APE, PEE, AUM).</li>
+        <li><strong>Sources de données.</strong> Métriques trésorerie, transactions, KYC, APE, PEE, parrainage ; listes (transactions, file KYC, APE récentes, leads PEE) ; liens CTA vers les sections détaillées.</li>
+        <li><strong>Persistance.</strong> Configuration en base (<code>dashboard_cards</code>), API <code>/api/admin/dashboard-config</code>.</li>
+      </ol>
+    </section>
+
+    <!-- ADMIN OPERATIONS -->
+    <section>
+      <h2>Opérations — flux métier admin</h2>
+
+      <h3 class="section-sub">Transactions (<code>/admin/transactions</code>)</h3>
+      <ol class="steps-detail">
+        <li>Liste des <em>intentions de transaction</em> (dépôt, investissement, retrait) avec filtres et recherche.</li>
+        <li>Ouverture du tiroir détail : client, montant, référence, statut, dates.</li>
+        <li>Si statut <strong>PENDING</strong> : l’admin peut <strong>approuver</strong> (→ COMPLETED) ou <strong>rejeter</strong> (→ FAILED), avec note optionnelle.</li>
+        <li>Synchronisation Didit : les dépôts post-KYC peuvent aussi être mis à jour automatiquement via webhooks ; la file admin couvre les cas manuels.</li>
+      </ol>
+
+      <h3 class="section-sub">APE Sénégal (<code>/admin/ape</code>)</h3>
+      <ol class="steps-detail">
+        <li>Consultation des souscriptions (identité, montant CFA, code parrainage, référence).</li>
+        <li>Statuts : PENDING → PAYMENT_INITIATED → PAYMENT_SUCCESS / PAYMENT_FAILED / CANCELLED.</li>
+        <li>Changement de statut manuel depuis le tiroir détail (suivi opérationnel si écart avec InTouch).</li>
+      </ol>
+
+      <h3 class="section-sub">Réconciliation Intouch (<code>/admin/reconciliation</code>)</h3>
+      <ol class="steps-detail">
+        <li>Import d’un export transactions Intouch (fichier).</li>
+        <li>Rapprochement automatique avec les souscriptions APE (correspondance exacte, écart de montant, non trouvé).</li>
+        <li>Synthèse : matches, écarts, lignes orphelines côté Intouch ou côté APE.</li>
+      </ol>
+    </section>
+
+    <!-- ADMIN ACQUISITION & COMPLIANCE -->
+    <section style="page-break-before: always;">
+      <h2>Acquisition &amp; conformité</h2>
+
+      <h3 class="section-sub">Codes parrainage &amp; PEE</h3>
+      <ol class="steps-detail">
+        <li><strong>Codes parrainage</strong> — création et gestion des codes pour campagnes APE (usage, expiration, activation).</li>
+        <li><strong>PEE Leads</strong> — suivi des prospects Plan Épargne Entreprise issus des formulaires marketing.</li>
+        <li><strong>Leads abandonnés</strong> — brouillons d’onboarding (email/téléphone partiels, étape atteinte, score) ; statuts : abandonné, contacté, converti, ignoré ; notes admin.</li>
+      </ol>
+
+      <h3 class="section-sub">Utilisateurs &amp; KYC</h3>
+      <ol class="steps-detail">
+        <li><strong>Utilisateurs</strong> — recherche client, consultation profil, modification du <strong>statut KYC global</strong> (PENDING, UNDER_REVIEW, APPROVED, REJECTED), liste des documents.</li>
+        <li><strong>Vérification KYC</strong> — file centrée sur les <em>documents</em> (pièce, selfie Didit) ; visualisation, notes, <strong>Approuver</strong> / <strong>Rejeter</strong> par document.</li>
+        <li><strong>Complément Didit.</strong> Le parcours client T5 alimente ces documents ; le webhook Didit peut aussi faire évoluer le statut utilisateur sans action admin.</li>
+      </ol>
+
+      <div class="pipeline" style="margin-top: 12px;">
+        <div class="step"><div class="step-id">Client</div><div class="step-title">Didit T5</div><div class="step-desc">Upload pièce + selfie</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">Auto</div><div class="step-title">Webhook</div><div class="step-desc">Décision Didit</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">Admin</div><div class="step-title">File KYC</div><div class="step-desc">Revue manuelle</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">Client</div><div class="step-title">Dépôt T4</div><div class="step-desc">Paiement InTouch</div></div>
+      </div>
+    </section>
+
+    <!-- ADMIN SYSTEM -->
+    <section>
+      <h2>Système &amp; boucle client ↔ admin</h2>
+      <ol class="steps-detail">
+        <li><strong>Notifications admin</strong> (<code>/admin/notifications</code>) — gestion des campagnes / messages vers les utilisateurs portail.</li>
+        <li><strong>Paramètres</strong> (<code>/admin/settings</code>) — configuration des canaux de notification (ex. emails opérationnels).</li>
+        <li><strong>Rafraîchissement données</strong> — bouton sync dans la barre nav ; rechargement global des jeux de données admin.</li>
+      </ol>
+
+      <div class="note">
+        <strong>Vue d’ensemble du lien client / admin :</strong> l’onboarding crée l’utilisateur et les intentions ; l’admin valide KYC et transactions ; le client voit le résultat dans <code>/portal</code> (statut KYC, confirmation dépôt, notifications).
       </div>
     </section>
 
     <footer class="footer-doc">
-      Sama Naffa · Parcours utilisateur · Généré pour usage produit / PM · Juin 2026
+      Sama Naffa · Parcours utilisateur &amp; administrateur · Everest Finance · Juin 2026
     </footer>
   </div>
 </body>
