@@ -180,6 +180,7 @@ export interface DashboardCardConfig {
   dataSource: string
   color: string
   colSpan: number
+  rowSpan: number
   order: number
   icon?: string
   link?: string

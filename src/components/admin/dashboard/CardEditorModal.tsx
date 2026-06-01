@@ -58,6 +58,7 @@ export default function CardEditorModal({
   const [dataSource, setDataSource] = useState(card?.dataSource ?? 'totalUsers')
   const [color, setColor] = useState(card?.color ?? 'default')
   const [colSpan, setColSpan] = useState(card?.colSpan ?? 3)
+  const [rowSpan, setRowSpan] = useState(card?.rowSpan ?? 1)
   const [icon, setIcon] = useState(card?.icon ?? 'LayoutDashboard')
   const [link, setLink] = useState(card?.link ?? '')
   const [visible, setVisible] = useState(card?.visible ?? true)
@@ -71,6 +72,7 @@ export default function CardEditorModal({
       dataSource,
       color,
       colSpan,
+      rowSpan,
       icon,
       link: link || undefined,
       visible,
@@ -145,7 +147,7 @@ export default function CardEditorModal({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Largeur: {colSpan}/12</label>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Largeur: {colSpan}/12 col.</label>
               <input
                 type="range"
                 min={1}
@@ -155,6 +157,20 @@ export default function CardEditorModal({
                 className="w-full accent-[#435933]"
               />
             </div>
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Hauteur: {rowSpan} rang{rowSpan > 1 ? 's' : ''}</label>
+              <input
+                type="range"
+                min={1}
+                max={4}
+                value={rowSpan}
+                onChange={(e) => setRowSpan(Number(e.target.value))}
+                className="w-full accent-[#435933]"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Icône</label>
               <select
@@ -167,17 +183,16 @@ export default function CardEditorModal({
                 ))}
               </select>
             </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Lien (optionnel)</label>
-            <input
-              type="text"
-              value={link}
-              onChange={(e) => setLink(e.target.value)}
-              placeholder="/admin/..."
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
-            />
+            <div>
+              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-slate-500">Lien (optionnel)</label>
+              <input
+                type="text"
+                value={link}
+                onChange={(e) => setLink(e.target.value)}
+                placeholder="/admin/..."
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
+              />
+            </div>
           </div>
 
           <div className="flex items-center gap-2">

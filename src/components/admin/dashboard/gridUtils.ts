@@ -16,3 +16,14 @@ export const colSpanClass = (n: number): string => {
   }
   return map[Math.max(1, Math.min(12, n))] ?? 'lg:col-span-3'
 }
+
+// Tailwind-safe row-span class resolver
+export const rowSpanClass = (n: number): string => {
+  const map: Record<number, string> = {
+    1: 'row-span-1',
+    2: 'row-span-2',
+    3: 'row-span-3',
+    4: 'row-span-4',
+  }
+  return map[Math.max(1, Math.min(4, n))] ?? 'row-span-1'
+}

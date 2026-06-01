@@ -8,7 +8,7 @@ import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import type { DashboardCardConfig } from '@/lib/admin/types'
 import { renderCard } from './CardRenderers'
 import CardEditorModal from './CardEditorModal'
-import { colSpanClass } from './gridUtils'
+import { colSpanClass, rowSpanClass } from './gridUtils'
 
 export default function EditableDashboard() {
   const {
@@ -72,7 +72,7 @@ export default function EditableDashboard() {
       try {
         const res = await authedFetch('/api/admin/dashboard-config', {
           method: 'PUT',
-          body: JSON.stringify({ cards: next.map((c) => ({ id: c.id, order: c.order, colSpan: c.colSpan })) }),
+          body: JSON.stringify({ cards: next.map((c) => ({ id: c.id, order: c.order, colSpan: c.colSpan, rowSpan: c.rowSpan })) }),
         })
         const data = await res.json()
         if (!data.success) throw new Error(data.error || 'Erreur de sauvegarde')
@@ -204,9 +204,9 @@ export default function EditableDashboard() {
           </button>
         </div>
       ) : (
-        <div className="grid auto-rows-[minmax(150px,auto)] grid-cols-12 gap-5">
+        <div className="grid auto-rows-[180px] grid-cols-12 gap-5">
           {visibleCards.map((card, idx) => (
-            <div key={card.id} className={`relative col-span-12 ${colSpanClass(card.colSpan)} group`}>
+            <div key={card.id} className={`relative col-span-12 ${colSpanClass(card.colSpan)} ${rowSpanClass(card.rowSpan ?? 1)} group`}>
               {renderCard(card, ctx)}
 
               {editMode && (

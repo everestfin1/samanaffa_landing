@@ -450,6 +450,7 @@ export const dashboardCards = pgTable('dashboard_cards', {
   dataSource: text('dataSource').notNull(), // e.g. 'aum', 'totalUsers', 'pendingKyc', 'recentActivity'
   color: text('color').notNull().default('default'), // 'default' | 'dark' | 'green' | 'amber' | 'blue' | 'red' | 'gradient'
   colSpan: integer('colSpan').notNull().default(3), // 1..12
+  rowSpan: integer('rowSpan').notNull().default(1), // 1..4
   order: integer('order').notNull().default(0),
   icon: text('icon'),
   link: text('link'), // href for link-type cards
