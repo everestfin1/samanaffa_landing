@@ -8,7 +8,6 @@ import {
 import { Sparkline, Avatar } from '@/components/admin/layout/visuals'
 import { fmtCompact, fmtFCFA, fmtDate } from '@/lib/admin/format'
 import type { DashboardCardConfig } from '@/lib/admin/types'
-import { colSpanClass } from './gridUtils'
 
 const TX_TYPE_LABEL: Record<string, string> = {
   DEPOSIT: 'Dépôt',
@@ -52,12 +51,12 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
   const colorCls = COLOR_OPTIONS.find((c) => c.value === card.color)?.class ?? COLOR_OPTIONS[0].class
   const isDark = card.color === 'dark' || card.color === 'green' || card.color === 'gradient'
   const Icon = card.icon ? (ICON_MAP[card.icon] ?? LayoutDashboard) : LayoutDashboard
-  const spanClass = `col-span-12 ${colSpanClass(card.colSpan)}`
 
-  if (card.type === 'chart' || card.dataSource === 'aum') {
+  // AUM chart: explicit dataSource='aum' OR type='chart' with aum source only
+  if (card.dataSource === 'aum') {
     const aum = ctx.stats.totalDeposits + ctx.stats.totalInvestments
     return (
-      <div className={`relative flex flex-col justify-between overflow-hidden rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${spanClass} ${colorCls}`}>
+      <div className={`relative flex h-full flex-col justify-between overflow-hidden rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
         <div className="flex items-start justify-between">
           <div>
             <div className={`flex items-center gap-2 text-sm font-medium ${isDark ? 'text-white/70' : 'text-slate-500'}`}>
@@ -90,7 +89,7 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
     return (
       <Link
         href={card.link || '/admin/kyc'}
-        className={`group relative flex items-center justify-between overflow-hidden rounded-[1.75rem] p-7 shadow-[0_12px_40px_-16px_rgba(67,89,51,0.6)] ${spanClass} ${colorCls}`}
+        className={`group relative flex h-full items-center justify-between overflow-hidden rounded-[1.75rem] p-7 shadow-[0_12px_40px_-16px_rgba(67,89,51,0.6)] ${colorCls}`}
       >
         <div className="relative z-10">
           <div className={`flex items-center gap-2 text-sm font-medium ${isDark ? 'text-white/70' : 'text-slate-500'}`}>
@@ -113,7 +112,7 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
 
   if (card.type === 'list' || card.dataSource === 'recentActivity') {
     return (
-      <div className={`rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${spanClass} ${colorCls}`}>
+      <div className={`h-full rounded-[1.75rem] p-7 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.12)] ${colorCls}`}>
         <div className="mb-5 flex items-center justify-between">
           <h2 className={`text-lg font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>{card.title}</h2>
           <Link href="/admin/transactions" className={`text-sm font-semibold hover:underline ${isDark ? 'text-emerald-300' : 'text-[#435933]'}`}>
@@ -150,7 +149,7 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
 
   if (card.type === 'group' || card.dataSource === 'transactionBreakdown') {
     return (
-      <div className={`grid grid-cols-2 gap-5 ${spanClass}`}>
+      <div className="grid h-full grid-cols-2 gap-5">
         {[
           { label: 'En attente', value: ctx.stats.pendingTransactions, icon: Clock, color: 'text-[#C38D1C]' },
           { label: 'Complétées', value: ctx.stats.completedTransactions, icon: CheckCircle2, color: 'text-[#435933]' },
@@ -171,14 +170,14 @@ export function renderCard(card: DashboardCardConfig, ctx: RenderContext) {
     )
   }
 
-  // Default: stat card
+  // Default: stat card (covers type='stat' and type='chart' with non-aum sources)
   const value = resolveValue(ctx.stats, card.dataSource)
   const isMoney = card.dataSource === 'totalDeposits' || card.dataSource === 'totalInvestments'
   const formatted = isMoney ? fmtCompact(value) : String(value)
   const unit = isMoney ? 'FCFA' : ''
 
   return (
-    <div className={`flex flex-col justify-between rounded-[1.5rem] p-5 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.1)] ${spanClass} ${colorCls}`}>
+    <div className={`flex h-full flex-col justify-between rounded-[1.5rem] p-5 shadow-[0_8px_30px_-16px_rgba(1,8,27,0.1)] ${colorCls}`}>
       <div className="flex items-center justify-between">
         <span className={`text-xs font-medium ${isDark ? 'text-white/70' : 'text-slate-500'}`}>{card.title}</span>
         <Icon size={15} className={isDark ? 'text-white/50' : 'text-slate-300'} />

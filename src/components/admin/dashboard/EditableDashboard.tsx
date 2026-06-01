@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import {
-  Pencil, Trash2, Plus, Save, ChevronUp, ChevronDown, LayoutDashboard,
+  Pencil, Trash2, Plus, Save, ChevronUp, ChevronDown, LayoutDashboard, X,
 } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import type { DashboardCardConfig } from '@/lib/admin/types'
@@ -19,6 +19,7 @@ export default function EditableDashboard() {
   const [editingCard, setEditingCard] = useState<DashboardCardConfig | null>(null)
   const [showAdd, setShowAdd] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const visibleCards = useMemo(
     () => [...dashboardCards].filter((c) => c.visible).sort((a, b) => a.order - b.order),
@@ -51,6 +52,11 @@ export default function EditableDashboard() {
     return 'Bonsoir'
   })()
 
+  // Lightweight refresh: only re-fetches dashboard cards, not all admin data
+  const refreshCards = useCallback(async () => {
+    await refresh()
+  }, [refresh])
+
   const handleReorder = useCallback(
     async (id: string, direction: 'up' | 'down') => {
       const idx = visibleCards.findIndex((c) => c.id === id)
@@ -62,56 +68,64 @@ export default function EditableDashboard() {
       next[idx].order = next[swapIdx].order
       next[swapIdx].order = temp
       setSaving(true)
+      setSaveError(null)
       try {
-        await authedFetch('/api/admin/dashboard-config', {
+        const res = await authedFetch('/api/admin/dashboard-config', {
           method: 'PUT',
           body: JSON.stringify({ cards: next.map((c) => ({ id: c.id, order: c.order, colSpan: c.colSpan })) }),
         })
-        await refresh()
+        const data = await res.json()
+        if (!data.success) throw new Error(data.error || 'Erreur de sauvegarde')
+        await refreshCards()
+      } catch (e: any) {
+        setSaveError(e.message ?? 'Erreur de sauvegarde')
       } finally {
         setSaving(false)
       }
     },
-    [visibleCards, authedFetch, refresh],
+    [visibleCards, authedFetch, refreshCards],
   )
 
   const handleDelete = useCallback(
     async (id: string) => {
       if (!confirm('Supprimer cette carte ?')) return
       setSaving(true)
+      setSaveError(null)
       try {
-        await authedFetch(`/api/admin/dashboard-config?id=${id}`, { method: 'DELETE' })
-        await refresh()
+        const res = await authedFetch(`/api/admin/dashboard-config?id=${id}`, { method: 'DELETE' })
+        const data = await res.json()
+        if (!data.success) throw new Error(data.error || 'Erreur de suppression')
+        await refreshCards()
+      } catch (e: any) {
+        setSaveError(e.message ?? 'Erreur de suppression')
       } finally {
         setSaving(false)
       }
     },
-    [authedFetch, refresh],
+    [authedFetch, refreshCards],
   )
 
   const handleSaveCard = useCallback(
     async (card: Partial<DashboardCardConfig>) => {
       setSaving(true)
+      setSaveError(null)
       try {
-        if (card.id) {
-          await authedFetch('/api/admin/dashboard-config', {
-            method: 'PUT',
-            body: JSON.stringify(card),
-          })
-        } else {
-          await authedFetch('/api/admin/dashboard-config', {
-            method: 'POST',
-            body: JSON.stringify({ ...card, order: visibleCards.length }),
-          })
-        }
-        await refresh()
+        const res = await authedFetch('/api/admin/dashboard-config', {
+          method: card.id ? 'PUT' : 'POST',
+          body: JSON.stringify(card.id ? card : { ...card, order: visibleCards.length }),
+        })
+        const data = await res.json()
+        if (!data.success) throw new Error(data.error || 'Erreur de sauvegarde')
+        await refreshCards()
         setEditingCard(null)
         setShowAdd(false)
+      } catch (e: any) {
+        setSaveError(e.message ?? 'Erreur de sauvegarde')
       } finally {
         setSaving(false)
       }
     },
-    [authedFetch, refresh, visibleCards.length],
+    [authedFetch, refreshCards, visibleCards.length],
   )
 
   return (
@@ -155,6 +169,15 @@ export default function EditableDashboard() {
           Mode édition actif. Cliquez sur <Pencil size={14} className="inline mx-1" /> pour modifier,
           <ChevronUp size={14} className="inline mx-1" /> <ChevronDown size={14} className="inline mx-1" /> pour réorganiser,
           et <Trash2 size={14} className="inline mx-1" /> pour supprimer.
+        </div>
+      )}
+
+      {saveError && (
+        <div className="mb-4 flex items-center justify-between rounded-2xl border border-rose-200 bg-rose-50 px-5 py-3 text-sm text-rose-800">
+          <span>{saveError}</span>
+          <button type="button" onClick={() => setSaveError(null)} className="ml-3 text-rose-400 hover:text-rose-600">
+            <X size={16} />
+          </button>
         </div>
       )}
 
