@@ -13,6 +13,8 @@ Product specifications, business requirements, and feature documentation.
 | 04-technical-specs.md | Technical requirements and architecture |
 | 05-kyc-onboarding.md | User verification and onboarding flow |
 | 06-product-models.md | Data models and product definitions |
+| **sama-naffa-user-flows.pdf** | **PM brief** — new user flows (onboarding, login, portal) |
+| sama-naffa-user-flows.html | Source for the PDF (brand-styled); regenerate with `bun run docs:user-flows-pdf` |
 
 ## Key Information
 

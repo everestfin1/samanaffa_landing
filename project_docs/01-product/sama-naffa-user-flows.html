@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sama Naffa — Parcours utilisateur</title>
+  <style>
+    :root {
+      --green: #435933;
+      --green-dark: #30461f;
+      --green-light: #e8f5e8;
+      --gold: #c38d1c;
+      --gold-light: #f4e9c9;
+      --night: #01081b;
+      --muted: #4d525f;
+      --bg: #f7f6f6;
+      --white: #ffffff;
+      --border: rgba(67, 89, 51, 0.15);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    @page {
+      size: A4;
+      margin: 14mm 12mm;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--night);
+      background: var(--bg);
+      font-size: 10.5pt;
+      line-height: 1.45;
+    }
+
+    .page {
+      background: var(--white);
+      max-width: 210mm;
+      margin: 0 auto;
+      padding: 0;
+    }
+
+    /* Cover — sama-naffa_bg.jpg (home / brand hero) + brand overlay */
+    .cover {
+      position: relative;
+      color: var(--white);
+      page-break-after: always;
+      min-height: 260mm;
+      overflow: hidden;
+    }
+
+    .cover-bg {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .cover-bg img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: left center;
+      display: block;
+    }
+
+    .cover-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      /* Illustration on the left; clear readable zone on the right */
+      background:
+        linear-gradient(
+          90deg,
+          rgba(255, 255, 255, 0) 0%,
+          rgba(247, 246, 246, 0.65) 48%,
+          rgba(255, 255, 255, 0.92) 62%,
+          rgba(255, 255, 255, 0.97) 100%
+        );
+    }
+
+    .cover-inner {
+      position: relative;
+      z-index: 2;
+      min-height: 260mm;
+      padding: 28mm 18mm 22mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      align-items: flex-end;
+      text-align: right;
+      max-width: 52%;
+      margin-left: auto;
+    }
+
+    .cover-top {
+      align-self: flex-end;
+    }
+
+    .cover-top img {
+      height: 52px;
+      width: auto;
+      filter: none;
+    }
+
+    .cover-logo-text {
+      font-size: 22pt;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .cover-logo-text span { color: var(--gold-light); }
+
+    .cover h1 {
+      font-size: 26pt;
+      font-weight: 800;
+      line-height: 1.15;
+      margin-top: 24mm;
+      letter-spacing: -0.03em;
+      color: var(--green-dark);
+    }
+
+    .cover h1 .gold-line {
+      display: block;
+      font-size: 14pt;
+      font-weight: 600;
+      color: var(--gold);
+      margin-top: 6px;
+    }
+
+    .cover .subtitle {
+      font-size: 13pt;
+      margin-top: 8px;
+      max-width: 100%;
+      color: var(--muted);
+    }
+
+    .cover-meta {
+      font-size: 9.5pt;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      align-self: stretch;
+    }
+
+    /* Content sections */
+    section {
+      padding: 14mm 16mm;
+      page-break-inside: avoid;
+    }
+
+    section + section {
+      border-top: 3px solid var(--green-light);
+    }
+
+    h2 {
+      font-size: 14pt;
+      font-weight: 800;
+      color: var(--green-dark);
+      margin-bottom: 6px;
+      letter-spacing: -0.02em;
+    }
+
+    h2::after {
+      content: "";
+      display: block;
+      width: 36px;
+      height: 3px;
+      background: var(--gold);
+      margin-top: 6px;
+      border-radius: 2px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin-bottom: 12px;
+      font-size: 10pt;
+    }
+
+    .flow-overview {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .flow-card {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--green-light);
+    }
+
+    .flow-card h3 {
+      font-size: 11pt;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+
+    .flow-card p { font-size: 9.5pt; color: var(--muted); }
+
+    .flow-card .route {
+      font-family: ui-monospace, monospace;
+      font-size: 8.5pt;
+      color: var(--green);
+      margin-top: 6px;
+      font-weight: 600;
+    }
+
+    /* Step pipeline */
+    .pipeline {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin: 10px 0 14px;
+    }
+
+    .step {
+      background: var(--white);
+      border: 1.5px solid var(--green);
+      border-radius: 8px;
+      padding: 8px 10px;
+      min-width: 72px;
+      flex: 1 1 auto;
+      max-width: 100%;
+    }
+
+    .step-id {
+      font-size: 8pt;
+      font-weight: 700;
+      color: var(--gold);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .step-title {
+      font-size: 9.5pt;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-top: 2px;
+    }
+
+    .step-desc {
+      font-size: 8.5pt;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .arrow {
+      color: var(--gold);
+      font-weight: 700;
+      font-size: 14pt;
+      flex-shrink: 0;
+    }
+
+    /* Detail list */
+    ol.steps-detail {
+      list-style: none;
+      counter-reset: step;
+      margin-top: 8px;
+    }
+
+    ol.steps-detail > li {
+      counter-increment: step;
+      position: relative;
+      padding: 8px 0 8px 36px;
+      border-bottom: 1px solid var(--border);
+      font-size: 9.5pt;
+    }
+
+    ol.steps-detail > li:last-child { border-bottom: none; }
+
+    ol.steps-detail > li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 8px;
+      width: 24px;
+      height: 24px;
+      background: var(--green);
+      color: var(--white);
+      border-radius: 50%;
+      font-size: 8.5pt;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    ol.steps-detail strong { color: var(--green-dark); }
+
+    /* Login flow vertical */
+    .login-flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 12px 0;
+      max-width: 120mm;
+    }
+
+    .login-node {
+      border-left: 3px solid var(--gold);
+      padding: 8px 0 8px 14px;
+      margin-left: 8px;
+      position: relative;
+    }
+
+    .login-node::before {
+      content: "";
+      position: absolute;
+      left: -11px;
+      top: 12px;
+      width: 10px;
+      height: 10px;
+      background: var(--gold);
+      border-radius: 50%;
+      border: 2px solid var(--white);
+    }
+
+    .login-node h4 {
+      font-size: 10pt;
+      color: var(--green-dark);
+      margin-bottom: 2px;
+    }
+
+    .login-node p { font-size: 9pt; color: var(--muted); }
+
+    /* Notes box */
+    .note {
+      background: var(--gold-light);
+      border-left: 4px solid var(--gold);
+      padding: 10px 12px;
+      border-radius: 0 8px 8px 0;
+      font-size: 9pt;
+      margin-top: 12px;
+    }
+
+    .note strong { color: var(--green-dark); }
+
+    .footer-doc {
+      padding: 10mm 16mm;
+      font-size: 8.5pt;
+      color: var(--muted);
+      text-align: center;
+      border-top: 1px solid var(--border);
+    }
+
+    @media print {
+      body { background: white; }
+      .page { max-width: none; box-shadow: none; }
+      .cover,
+      .cover-inner { min-height: auto; height: 100vh; }
+      .cover-bg img { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- COVER -->
+    <header class="cover">
+      <div class="cover-bg" aria-hidden="true">
+        <img src="../../public/sama-naffa_bg.jpg" alt="" />
+      </div>
+      <div class="cover-overlay" aria-hidden="true"></div>
+      <div class="cover-inner">
+        <div class="cover-top">
+          <img src="../../public/sama_naffa_logo.png" alt="Sama Naffa" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
+          <div class="cover-logo-text" style="display:none;">Sama <span>Naffa</span></div>
+        </div>
+        <div>
+          <h1>
+            Parcours utilisateur
+            <span class="gold-line">Sama Naffa · Épargne intelligente</span>
+          </h1>
+          <p class="subtitle">Inscription, connexion et accès au portail — version produit actuelle (2026)</p>
+        </div>
+        <p class="cover-meta">Document interne · Everest Finance · Connexion par SMS OTP uniquement</p>
+      </div>
+    </header>
+
+    <!-- OVERVIEW -->
+    <section>
+      <h2>Vue d’ensemble</h2>
+      <p class="lead">
+        Sama Naffa propose deux entrées principales pour les utilisateurs : la <strong>création de compte</strong> (parcours guidé en 6 étapes visibles) et la <strong>connexion</strong> pour les comptes déjà enregistrés.
+      </p>
+      <div class="flow-overview">
+        <div class="flow-card">
+          <h3>1 · Nouveau client</h3>
+          <p>Simulation d’épargne → téléphone & OTP → profil & dépôt → vérification d’identité (Didit) → portail.</p>
+          <p class="route">/onboarding</p>
+        </div>
+        <div class="flow-card">
+          <h3>2 · Client existant</h3>
+          <p>Numéro de téléphone → code SMS à 6 chiffres → tableau de bord portail.</p>
+          <p class="route">/login</p>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Sécurité :</strong> le message après demande de code de connexion est volontairement générique (« si ce numéro est enregistré… ») pour ne pas révéler si un compte existe.
+      </div>
+    </section>
+
+    <!-- ONBOARDING -->
+    <section style="page-break-before: always;">
+      <h2>Parcours 1 — Inscription (onboarding)</h2>
+      <p class="lead">Six étapes visibles (T0 à T6). La progression est sauvegardée côté serveur ; l’utilisateur peut reprendre après déconnexion ou retour Didit.</p>
+
+      <div class="pipeline">
+        <div class="step"><div class="step-id">T0</div><div class="step-title">Simulation</div><div class="step-desc">Projet, montant, durée</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T1</div><div class="step-title">Téléphone</div><div class="step-desc">OTP SMS + compte</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T2</div><div class="step-title">Prénom</div><div class="step-desc">Personnalisation</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T3</div><div class="step-title">Quiz</div><div class="step-desc">Profil investisseur</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T4</div><div class="step-title">Dépôt</div><div class="step-desc">Montant & InTouch</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T5</div><div class="step-title">KYC Didit</div><div class="step-desc">Pièce + selfie</div></div>
+        <span class="arrow">→</span>
+        <div class="step"><div class="step-id">T6</div><div class="step-title">Bienvenue</div><div class="step-desc">Accès portail</div></div>
+      </div>
+
+      <ol class="steps-detail">
+        <li><strong>T0 — Simulateur.</strong> L’utilisateur choisit un objectif d’épargne (maison, études, etc.), un montant mensuel et une durée. Résultat affiché pour motiver la suite.</li>
+        <li><strong>T1 — Téléphone & vérification.</strong> Saisie du numéro (format international), envoi d’un code OTP par SMS, validation. Création du compte utilisateur et connexion automatique via jeton serveur sécurisé (pas de mot de passe).</li>
+        <li><strong>T2 — Prénom.</strong> Collecte du prénom pour personnaliser l’expérience.</li>
+        <li><strong>T3 — Questionnaire (3 questions).</strong> Situation, capacité d’épargne, expérience → recommandation de formule (ex. Formule Libre).</li>
+        <li><strong>T4 — Intention de dépôt.</strong> Montant du premier dépôt et choix du portefeuille mobile (InTouch). Une <em>intention de transaction</em> est enregistrée ; le paiement réel intervient après validation KYC.</li>
+        <li><strong>T5 — Vérification d’identité (Didit).</strong> Parcours Didit : document d’identité et selfie. Sur ordinateur : modale SDK ; sur mobile : redirection. Statuts : en cours, approuvé, refusé (avec nouvelle tentative possible).</li>
+        <li><strong>T6 — Écran de succès.</strong> Félicitations, rappel du dépôt et de la formule. Bouton vers le <strong>portail client</strong> (<code>/portal/dashboard</code>).</li>
+      </ol>
+
+      <div class="note">
+        <strong>Après T1 :</strong> si la connexion automatique échoue, redirection vers <code>/login?callbackUrl=/onboarding</code> pour reprendre avec le même numéro.
+      </div>
+    </section>
+
+    <!-- LOGIN -->
+    <section>
+      <h2>Parcours 2 — Connexion (client existant)</h2>
+      <p class="lead">Réservé aux numéros déjà enregistrés lors de l’onboarding. Aucun mot de passe.</p>
+
+      <div class="login-flow">
+        <div class="login-node">
+          <h4>Étape A — Saisie du numéro</h4>
+          <p>Validation du format (ex. +221 77 …). Bouton « Recevoir mon code ».</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape B — Envoi OTP</h4>
+          <p>SMS avec code à 6 chiffres (valide 5 min). Message générique si le compte existe.</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape C — Saisie du code</h4>
+          <p>Vérification du code. Aide affichée si aucun SMS (« même numéro qu’à l’inscription », lien création de compte).</p>
+        </div>
+        <div class="login-node">
+          <h4>Étape D — Portail</h4>
+          <p>Redirection vers le tableau de bord ou l’URL demandée (<code>callbackUrl</code>).</p>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Environnement de test :</strong> avec <code>MOCK_OTP=true</code>, aucun SMS réel ; le code de test s’affiche en local pour les numéros enregistrés. Numéro inconnu : message explicite en dev uniquement.
+      </div>
+    </section>
+
+    <!-- PORTAL -->
+    <section style="page-break-before: always;">
+      <h2>Après inscription — Portail client</h2>
+      <p class="lead">Une fois connecté, l’utilisateur accède à l’espace sécurisé <code>/portal</code>.</p>
+
+      <ol class="steps-detail">
+        <li><strong>Tableau de bord.</strong> Vue d’ensemble des comptes (Sama Naffa, produits liés selon configuration).</li>
+        <li><strong>Complétion du profil (si nécessaire).</strong> Modal : email, acceptation des conditions, signature — avant certaines actions.</li>
+        <li><strong>Sama Naffa — dépôt.</strong> Après KYC approuvé : confirmation du dépôt initié en T4 via InTouch (lien de paiement / instructions).</li>
+        <li><strong>Profil & KYC.</strong> Consultation du statut ; relance Didit depuis le profil si besoin.</li>
+        <li><strong>Notifications.</strong> Mises à jour KYC, transactions, etc.</li>
+        <li><strong>Déconnexion / session.</strong> JWT avec expiration ; déconnexion après inactivité (~15 min) dans le portail.</li>
+      </ol>
+
+      <div class="note">
+        <strong>Hors scope de ce document :</strong> parcours admin (<code>/admin</code>), landing marketing APE/PEE, et ancienne inscription <code>/register</code> (redirige vers <code>/onboarding</code>).
+      </div>
+    </section>
+
+    <footer class="footer-doc">
+      Sama Naffa · Parcours utilisateur · Généré pour usage produit / PM · Juin 2026
+    </footer>
+  </div>
+</body>
+</html>
