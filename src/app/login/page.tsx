@@ -4,7 +4,13 @@ import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import PhoneInput from '@/components/ui/PhoneInput';
+import OtpDeliveryHelp from '@/components/auth/OtpDeliveryHelp';
 import { safeCallbackUrl } from '@/lib/safe-callback-url';
+import {
+  DEV_NO_ACCOUNT_MESSAGE,
+  GENERIC_OTP_SEND_MESSAGE,
+  MOCK_OTP_SEND_MESSAGE,
+} from '@/lib/otp-send-response';
 import {
   ShieldCheckIcon,
   ArrowRightIcon,
@@ -29,6 +35,7 @@ function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [devInfo, setDevInfo] = useState('');
   const [otpTimer, setOtpTimer] = useState(0);
   const [phoneValidation, setPhoneValidation] = useState({ isValid: true, error: '' });
 
@@ -49,6 +56,7 @@ function LoginForm() {
   const handlePhoneChange = (value: string | undefined) => {
     setPhone(value || '');
     if (error) setError('');
+    if (devInfo) setDevInfo('');
   };
 
   const startOtpTimer = () => {
@@ -88,15 +96,27 @@ function LoginForm() {
     error?: string;
     mockOtp?: string;
     mockMode?: boolean;
+    devNoAccount?: boolean;
   }) => {
     if (!data.success) {
       setError(data.error || 'Erreur lors de l\'envoi du code');
       return false;
     }
+
+    if (data.devNoAccount) {
+      setDevInfo(DEV_NO_ACCOUNT_MESSAGE);
+      setSuccess('');
+      setError('');
+      setMockMode(false);
+      setMockOtp(null);
+      return false;
+    }
+
+    setDevInfo('');
     setSuccess(
       data.mockMode
-        ? 'Mode test : aucun SMS réel envoyé. Utilisez le code affiché ci-dessous.'
-        : data.message || 'Code envoyé par SMS',
+        ? MOCK_OTP_SEND_MESSAGE
+        : data.message || GENERIC_OTP_SEND_MESSAGE,
     );
     setMockMode(Boolean(data.mockMode));
     setMockOtp(null);
@@ -126,6 +146,7 @@ function LoginForm() {
     e?.preventDefault();
     setError('');
     setSuccess('');
+    setDevInfo('');
     if (!validatePhone()) return;
 
     setIsLoading(true);
@@ -150,6 +171,7 @@ function LoginForm() {
     if (otpTimer > 0 || isLoading) return;
     setError('');
     setSuccess('');
+    setDevInfo('');
     if (!validatePhone()) return;
 
     setIsLoading(true);
@@ -164,7 +186,7 @@ function LoginForm() {
         setSuccess(
           data.mockMode
             ? 'Nouveau code test généré.'
-            : 'Code renvoyé par SMS',
+            : 'Si ce numéro est enregistré, un nouveau SMS vient d’être envoyé.',
         );
         if (data.mockMode && phone) {
           await fetchMockOtpHint(phone);
@@ -217,6 +239,7 @@ function LoginForm() {
     setOtpTimer(0);
     setError('');
     setSuccess('');
+    setDevInfo('');
   };
 
   const fillMockOtp = () => {
@@ -231,7 +254,7 @@ function LoginForm() {
           <p className="text-night/70">
             {step === 'phone'
               ? 'Recevez un code par SMS pour accéder à votre portail'
-              : 'Saisissez le code reçu par SMS'}
+              : 'Saisissez le code à 6 chiffres envoyé par SMS'}
           </p>
         </div>
 
@@ -247,6 +270,19 @@ function LoginForm() {
             <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4 flex items-center space-x-2">
               <CheckCircleIcon className="w-5 h-5 text-green-500 shrink-0" />
               <p className="text-green-800 text-sm">{success}</p>
+            </div>
+          )}
+
+          {devInfo && (
+            <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <p className="text-sm text-amber-900">{devInfo}</p>
+              <button
+                type="button"
+                onClick={() => router.push('/onboarding')}
+                className="mt-3 text-sm font-medium text-gold-metallic hover:text-gold-metallic/80"
+              >
+                Créer un compte →
+              </button>
             </div>
           )}
 
@@ -289,7 +325,11 @@ function LoginForm() {
             <form onSubmit={handleVerifyOTP} className="space-y-6">
               <div className="text-center space-y-2">
                 <p className="text-sm text-night/70">
-                  Code envoyé au <span className="font-medium text-night">{phone}</span>
+                  Code demandé pour{' '}
+                  <span className="font-medium text-night">{phone}</span>
+                </p>
+                <p className="text-xs text-night/55">
+                  Envoyé uniquement si ce numéro est déjà enregistré
                 </p>
                 {otpTimer > 0 && (
                   <div className="flex items-center justify-center gap-2 text-gold-metallic">
@@ -319,6 +359,8 @@ function LoginForm() {
                   Mode dev : utiliser le code {mockOtp}
                 </button>
               )}
+
+              <OtpDeliveryHelp />
 
               <div>
                 <label htmlFor="otp" className="block text-sm font-medium text-night mb-2">
