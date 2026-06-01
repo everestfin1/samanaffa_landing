@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Shield, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
+import { AlertCircle } from 'lucide-react'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
@@ -43,95 +44,88 @@ export default function AdminLogin() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
-        {/* Logo and branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-[var(--admin-primary)] mb-5">
-            <Shield className="w-7 h-7 text-white" />
+    <div className="admin-login-page">
+      <div className="admin-login-card">
+        <div className="admin-login-brand">
+          <div className="admin-login-logo-wrap">
+            <Image
+              src="/sama_naffa_logo.png"
+              alt="Sama Naffa"
+              width={160}
+              height={48}
+              className="h-12 w-auto object-contain"
+              priority
+            />
           </div>
-          <h1 className="text-xl font-semibold text-[var(--admin-text-primary)] mb-1">
-            Administration
-          </h1>
-          <p className="text-[var(--admin-text-muted)] text-sm">
-            Sama Naffa • Portail sécurisé
+          <h1 className="admin-login-title">Administration</h1>
+          <p className="admin-login-subtitle">
+            Portail sécurisé · Everest Finance SGI
           </p>
         </div>
 
-        {/* Login card */}
-        <div className="bg-white rounded-lg border border-[var(--admin-border-light)] shadow-sm p-6">
-          <form onSubmit={handleLogin} className="space-y-5">
-            {/* Email field */}
-            <div className="space-y-1.5">
-              <label htmlFor="email" className="admin-label">
-                Adresse email
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="admin-input"
-                placeholder="admin@samanaffa.sn"
-              />
-            </div>
+        <form onSubmit={handleLogin} className="space-y-5">
+          <div className="space-y-1.5">
+            <label htmlFor="email" className="admin-label">
+              Adresse email
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="admin-input"
+              placeholder="admin@samanaffa.sn"
+            />
+          </div>
 
-            {/* Password field */}
-            <div className="space-y-1.5">
-              <label htmlFor="password" className="admin-label">
-                Mot de passe
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="admin-input"
-                placeholder="••••••••••••"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label htmlFor="password" className="admin-label">
+              Mot de passe
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="admin-input"
+              placeholder="••••••••••••"
+            />
+          </div>
 
-            {/* Error message */}
-            {error && (
-              <div className="flex items-center gap-2 p-3 rounded-md text-sm bg-[var(--admin-rose-bg)] text-[var(--admin-rose)] border border-[var(--admin-rose)]/20">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                <span>{error}</span>
-              </div>
+          {error && (
+            <div className="admin-login-error" role="alert">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="admin-btn admin-btn-primary w-full py-3 text-sm"
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-2">
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Connexion…
+              </span>
+            ) : (
+              'Se connecter'
             )}
+          </button>
+        </form>
 
-            {/* Submit button */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="admin-btn admin-btn-primary w-full py-2.5 text-sm font-medium"
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Connexion...</span>
-                </div>
-              ) : (
-                <span>Se connecter</span>
-              )}
-            </button>
-          </form>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-6 text-center">
-          <p className="text-[var(--admin-text-dim)] text-xs">
-            Accès réservé aux administrateurs
-          </p>
-          <p className="text-[var(--admin-text-dim)] text-xs mt-1 opacity-60">
-            © {new Date().getFullYear()} Everest Finance SGI
-          </p>
-        </div>
+        <p className="admin-login-footer">
+          Accès réservé aux administrateurs
+          <br />
+          © {new Date().getFullYear()} Everest Finance SGI
+        </p>
       </div>
     </div>
   )

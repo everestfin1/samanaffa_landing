@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { 
   LayoutDashboard, 
   Users, 
@@ -10,14 +11,14 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Shield,
   Gift,
   GraduationCap,
-  RefreshCw
+  RefreshCw,
+  Archive
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 
-type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'
+type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'
 
 interface NavItem {
   id: TabId
@@ -59,6 +60,7 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
     { id: 'reconciliation', label: 'Réconciliation', icon: RefreshCw },
     { id: 'sponsorCodes', label: 'Codes Parrainage', icon: Gift },
     { id: 'peeLeads', label: 'PEE Leads', icon: GraduationCap },
+    { id: 'abandonedLeads', label: 'Leads abandonnés', icon: Archive },
     { id: 'users', label: 'Utilisateurs', icon: Users },
     { id: 'kyc', label: 'KYC', icon: FileText, badge: stats?.pendingKyc },
     { id: 'notifications', label: 'Notifications', icon: MessageSquare },
@@ -75,14 +77,22 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
         <button 
           onClick={() => onTabChange('overview')} 
           className="admin-sidebar-logo"
+          type="button"
         >
           <div className="admin-sidebar-logo-icon">
-            <Shield className="w-5 h-5 text-white" />
+            <Image
+              src="/sama_naffa_logo.png"
+              alt="Sama Naffa"
+              width={collapsed ? 36 : 40}
+              height={collapsed ? 36 : 40}
+              className="h-9 w-9 object-contain"
+              priority
+            />
           </div>
           {!collapsed && (
             <div className="admin-sidebar-logo-text">
               <span className="admin-sidebar-logo-title">Sama Naffa</span>
-              <span className="admin-sidebar-logo-badge">Admin</span>
+              <span className="admin-sidebar-logo-badge">Administration</span>
             </div>
           )}
         </button>

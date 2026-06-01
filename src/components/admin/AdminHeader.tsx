@@ -61,15 +61,17 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
         {/* Actions */}
         <div className="admin-topbar-actions">
           <button 
+            type="button"
             className="admin-topbar-action-btn"
             title="Notifications"
+            aria-label="Notifications"
           >
             <Bell className="w-5 h-5" />
-            <span className="admin-topbar-action-badge">3</span>
           </button>
 
           {onRefresh && (
             <button 
+              type="button"
               onClick={onRefresh}
               disabled={loading}
               className="admin-btn admin-btn-secondary"
@@ -81,6 +83,7 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
           )}
 
           <button 
+            type="button"
             onClick={handleLogout}
             className="admin-btn admin-btn-ghost"
             title="Déconnexion"

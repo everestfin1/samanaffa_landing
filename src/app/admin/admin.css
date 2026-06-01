@@ -74,7 +74,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle background pattern */
+/* Subtle background pattern (behind content; z-index set in admin-sama-theme.css) */
 .admin-root::before {
   content: '';
   position: fixed;
@@ -82,7 +82,7 @@
   background: 
     linear-gradient(180deg, rgba(45, 90, 61, 0.02) 0%, transparent 30%);
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 /* ============================================
@@ -820,6 +820,36 @@
 .admin-stat-card[data-color="violet"] {
   --stat-color: var(--admin-violet);
   --stat-bg: var(--admin-violet-bg);
+}
+
+.admin-stat-card[data-color="neutral"] {
+  --stat-color: var(--admin-text-secondary);
+  --stat-bg: var(--admin-bg-tertiary);
+}
+
+.admin-stat-card[data-color="blue"] {
+  --stat-color: var(--admin-sky);
+  --stat-bg: var(--admin-sky-bg);
+}
+
+.admin-card-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  line-height: 1.4;
+}
+
+.admin-card-body {
+  padding: 1.25rem;
+}
+
+.admin-card-body.p-0 {
+  padding: 0;
+}
+
+.admin-table-container {
+  overflow-x: auto;
+  width: 100%;
 }
 
 /* ============================================

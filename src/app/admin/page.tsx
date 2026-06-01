@@ -9,6 +9,7 @@ import NotificationSettings from '@/components/admin/NotificationSettings'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
 import IntouchReconciliation from '@/components/admin/IntouchReconciliation'
+import AbandonedLeadsTab from '@/components/admin/AbandonedLeadsTab'
 import { 
   Users, 
   FileText, 
@@ -205,7 +206,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -1234,10 +1235,10 @@ export default function AdminDashboard() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="admin-loading-shell">
         <div className="text-center">
           <div className="admin-spinner mx-auto"></div>
-          <p className="mt-4 text-[var(--admin-text-muted)]">Vérification de l'authentification...</p>
+          <p className="mt-4 text-[var(--admin-text-muted)]">Vérification de l&apos;authentification…</p>
         </div>
       </div>
     )
@@ -1245,10 +1246,10 @@ export default function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="admin-loading-shell">
         <div className="text-center">
           <div className="admin-spinner mx-auto"></div>
-          <p className="mt-4 text-[var(--admin-text-muted)]">Chargement du tableau de bord...</p>
+          <p className="mt-4 text-[var(--admin-text-muted)]">Chargement du tableau de bord…</p>
         </div>
       </div>
     )
@@ -1262,6 +1263,8 @@ export default function AdminDashboard() {
       case 'apeSubscriptions': return 'APE Sénégal'
       case 'sponsorCodes': return 'Codes Parrainage'
       case 'peeLeads': return 'PEE Leads'
+      case 'abandonedLeads': return 'Leads abandonnés'
+      case 'reconciliation': return 'Réconciliation'
       case 'users': return 'Utilisateurs'
       case 'transactions': return 'Transactions'
       case 'notifications': return 'Notifications'
@@ -3002,6 +3005,8 @@ export default function AdminDashboard() {
             </div>
           </div>
         )}
+
+        {activeTab === 'abandonedLeads' && <AbandonedLeadsTab />}
 
         {/* Notifications Tab */}
         {activeTab === 'notifications' && (

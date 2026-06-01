@@ -1,0 +1,454 @@
+/* ============================================
+   SAMA NAFFA — Admin brand alignment
+   Maps admin shell to public-site design tokens (globals.css)
+   ============================================ */
+
+.admin-root {
+  position: relative;
+  isolation: isolate;
+  /* Surfaces */
+  --admin-bg-primary: var(--sama-bg-light);
+  --admin-bg-secondary: var(--sama-bg-card);
+  --admin-bg-tertiary: var(--sama-bg-light-green-card);
+  --admin-bg-elevated: var(--sama-bg-card);
+  --admin-bg-card: var(--sama-bg-card);
+  --admin-bg-card-hover: var(--sama-bg-light-green-alt);
+
+  --admin-glass: var(--sama-bg-overlay);
+  --admin-glass-border: var(--sama-border-light);
+  --admin-glass-highlight: rgba(67, 89, 51, 0.03);
+
+  /* Brand greens & gold */
+  --admin-primary: var(--sama-primary-green);
+  --admin-primary-light: var(--sama-primary-green-light);
+  --admin-primary-dark: var(--sama-primary-green-dark);
+  --admin-primary-bg: rgba(67, 89, 51, 0.1);
+  --admin-primary-subtle: rgba(67, 89, 51, 0.05);
+
+  --admin-accent: var(--sama-accent-gold);
+  --admin-accent-bg: rgba(195, 141, 28, 0.12);
+  --admin-accent-dark: var(--sama-accent-gold-dark);
+
+  /* Semantic (aligned with product) */
+  --admin-emerald: var(--sama-success);
+  --admin-emerald-bg: rgba(55, 126, 54, 0.12);
+  --admin-sky: #0284c7;
+  --admin-sky-bg: rgba(2, 132, 199, 0.1);
+  --admin-rose: #dc2626;
+  --admin-rose-bg: rgba(220, 38, 38, 0.1);
+  --admin-amber: var(--sama-warning);
+  --admin-amber-bg: rgba(252, 190, 29, 0.15);
+  --admin-violet: #7c3aed;
+  --admin-violet-bg: rgba(124, 58, 237, 0.1);
+
+  /* Typography */
+  --admin-text-primary: var(--sama-text-primary);
+  --admin-text-secondary: var(--sama-text-secondary);
+  --admin-text-muted: var(--sama-text-muted);
+  --admin-text-dim: #b0b0b0;
+
+  /* Borders & shadows */
+  --admin-border-subtle: var(--sama-border-light);
+  --admin-border-light: var(--sama-border-light);
+  --admin-border-medium: var(--sama-border-medium);
+  --admin-border-primary: var(--sama-border-dark);
+
+  --admin-shadow-sm: 0 2px 8px var(--sama-shadow-light);
+  --admin-shadow-md: 0 6px 20px var(--sama-shadow-light);
+  --admin-shadow-lg: 0 12px 32px var(--sama-shadow-medium);
+  --admin-shadow-card: 0 6px 24px var(--sama-shadow-light);
+
+  /* Radii — match portal / marketing (rounded-2xl cards, lg controls) */
+  --admin-radius-sm: 0.5rem;
+  --admin-radius-md: 0.75rem;
+  --admin-radius-lg: 1rem;
+  --admin-radius-xl: 1.25rem;
+  --admin-radius-2xl: 1.5rem;
+
+  font-family: var(--font-geist-sans), var(--font-outfit), system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Keep decorative background behind all admin UI (fixes “invisible until hover”) */
+.admin-root::before {
+  z-index: -1;
+  background:
+    radial-gradient(ellipse 80% 50% at 0% 0%, rgba(67, 89, 51, 0.06) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 40% at 100% 0%, rgba(195, 141, 28, 0.05) 0%, transparent 50%),
+    linear-gradient(180deg, var(--sama-bg-light-green-alt) 0%, var(--sama-bg-light) 40%);
+}
+
+.admin-layout,
+.admin-main,
+.admin-main-content {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-main {
+  background: var(--admin-bg-primary);
+}
+
+/* —— Sidebar —— */
+.admin-sidebar {
+  background: var(--sama-gradient-bg-light);
+  border-right: 1px solid var(--sama-border-light);
+  box-shadow: 4px 0 24px var(--sama-shadow-light);
+}
+
+.admin-sidebar-header {
+  border-bottom-color: var(--sama-border-light);
+  min-height: 72px;
+}
+
+.admin-sidebar-logo-icon {
+  background: transparent;
+  border-radius: var(--admin-radius-md);
+  overflow: hidden;
+  padding: 0;
+}
+
+.admin-sidebar-logo-title {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--sama-text-primary);
+}
+
+.admin-sidebar-logo-badge {
+  color: var(--sama-accent-gold);
+  font-weight: 700;
+}
+
+.admin-sidebar-toggle {
+  border-radius: var(--admin-radius-md);
+  border-color: var(--sama-border-light);
+  background: var(--sama-bg-card);
+}
+
+.admin-sidebar-nav-item {
+  border-radius: var(--admin-radius-lg);
+}
+
+.admin-sidebar-nav-item:hover {
+  background: var(--sama-bg-light-green);
+}
+
+.admin-sidebar-nav-item.active {
+  background: var(--sama-bg-light-green-card);
+  color: var(--sama-primary-green);
+  font-weight: 600;
+}
+
+.admin-sidebar-nav-item.active::before {
+  background: var(--sama-accent-gold);
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+}
+
+.admin-sidebar-nav-badge {
+  background: var(--sama-accent-gold);
+  border-radius: 9999px;
+}
+
+/* —— Topbar —— */
+.admin-topbar {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom-color: var(--sama-border-light);
+}
+
+.admin-topbar-heading {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--sama-text-primary);
+}
+
+.admin-topbar-search-input {
+  border-radius: var(--admin-radius-lg);
+  background: var(--sama-bg-light-green-card);
+  border: 1px solid var(--sama-border-light);
+}
+
+.admin-topbar-search-input:focus {
+  border-color: var(--sama-primary-green);
+  box-shadow: 0 0 0 3px rgba(67, 89, 51, 0.12);
+  outline: none;
+}
+
+.admin-topbar-action-btn {
+  border-radius: var(--admin-radius-md);
+}
+
+/* —— Buttons —— */
+.admin-btn {
+  border-radius: var(--admin-radius-lg);
+  font-weight: 600;
+}
+
+.admin-btn-primary {
+  background: var(--sama-gradient-primary);
+  border-color: transparent;
+  color: var(--sama-white);
+  box-shadow: 0 4px 12px var(--sama-shadow-light);
+}
+
+.admin-btn-primary:hover:not(:disabled) {
+  background: var(--sama-gradient-primary-hover);
+  border-color: transparent;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px var(--sama-shadow-medium);
+}
+
+.admin-btn-secondary {
+  background: var(--sama-bg-card);
+  border-color: var(--sama-border-medium);
+  color: var(--sama-text-secondary);
+}
+
+.admin-btn-secondary:hover:not(:disabled) {
+  background: var(--sama-bg-light-green-card);
+  border-color: var(--sama-primary-green);
+  color: var(--sama-primary-green);
+}
+
+/* —— Cards & stats —— */
+.admin-card,
+.admin-stat-card {
+  background: #ffffff;
+  border-radius: var(--admin-radius-xl);
+  border: 1px solid var(--sama-border-medium);
+  box-shadow:
+    0 1px 2px rgba(1, 8, 27, 0.04),
+    0 4px 16px var(--sama-shadow-light);
+}
+
+.admin-stat-label {
+  color: var(--sama-text-secondary);
+}
+
+.admin-stat-value {
+  color: var(--sama-text-primary);
+}
+
+.admin-card-header {
+  background: var(--sama-bg-light-green-card);
+  border-bottom-color: var(--sama-border-light);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--admin-shadow-md);
+  border-color: var(--sama-border-medium);
+}
+
+.admin-stat-card[data-color="gold"] {
+  --stat-color: var(--sama-accent-gold);
+  --stat-bg: var(--admin-accent-bg);
+}
+
+.admin-stat-card[data-color="primary"] {
+  --stat-color: var(--sama-primary-green);
+  --stat-bg: var(--admin-primary-bg);
+}
+
+.admin-stat-card[data-color="neutral"] {
+  --stat-color: var(--sama-text-secondary);
+  --stat-bg: var(--sama-bg-light-green-card);
+}
+
+.admin-stat-card[data-color="blue"] {
+  --stat-color: var(--admin-sky);
+  --stat-bg: var(--admin-sky-bg);
+}
+
+.admin-stat-icon {
+  border-radius: var(--admin-radius-md);
+}
+
+/* Card sections used in dashboard tabs */
+.admin-card-subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--sama-text-secondary);
+  line-height: 1.4;
+}
+
+.admin-card-body {
+  padding: 1.25rem;
+}
+
+.admin-card-body.p-0 {
+  padding: 0;
+}
+
+.admin-table-container {
+  overflow-x: auto;
+  width: 100%;
+}
+
+.admin-table-container .admin-table {
+  min-width: 720px;
+}
+
+.admin-card .admin-table th,
+.admin-card .admin-table td {
+  color: var(--sama-text-primary);
+}
+
+.admin-card .admin-table td {
+  color: var(--sama-text-secondary);
+}
+
+.admin-card .admin-table-cell-primary,
+.admin-card .admin-table .font-medium,
+.admin-card .admin-table .font-semibold {
+  color: var(--sama-text-primary);
+}
+
+/* —— Forms —— */
+.admin-input,
+.admin-textarea,
+.admin-select {
+  border-radius: var(--admin-radius-lg);
+  border-color: var(--sama-border-light);
+  border-width: 2px;
+}
+
+.admin-input:focus,
+.admin-textarea:focus,
+.admin-select:focus {
+  border-color: var(--sama-primary-green);
+  box-shadow: 0 0 0 3px rgba(67, 89, 51, 0.1);
+  outline: none;
+}
+
+.admin-label {
+  color: var(--sama-text-primary);
+  font-weight: 600;
+}
+
+/* —— Tables —— */
+.admin-table thead {
+  background: var(--sama-bg-light-green-card);
+}
+
+.admin-table th {
+  color: var(--sama-primary-green);
+  font-weight: 700;
+}
+
+/* —— Badges —— */
+.admin-badge {
+  border-radius: 9999px;
+  font-weight: 600;
+}
+
+/* —— Modals —— */
+.admin-modal {
+  border-radius: var(--admin-radius-2xl);
+  border: 1px solid var(--sama-border-light);
+  box-shadow: 0 24px 48px var(--sama-shadow-dark);
+}
+
+.admin-modal-overlay {
+  background: rgba(1, 8, 27, 0.45);
+  backdrop-filter: blur(4px);
+}
+
+/* —— Nav tabs (legacy in-page) —— */
+.admin-nav {
+  border-radius: var(--admin-radius-xl);
+  background: var(--sama-bg-light-green-card);
+  border-color: var(--sama-border-light);
+}
+
+.admin-nav-item {
+  border-radius: var(--admin-radius-lg);
+}
+
+.admin-nav-item.active .admin-nav-icon {
+  color: var(--sama-accent-gold);
+}
+
+/* —— Login shell (admin-login-page on body wrapper) —— */
+.admin-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(
+    135deg,
+    var(--sama-bg-light) 0%,
+    var(--sama-bg-light-green-alt) 45%,
+    rgba(244, 233, 201, 0.35) 100%
+  );
+}
+
+.admin-login-card {
+  width: 100%;
+  max-width: 26rem;
+  background: var(--sama-bg-card);
+  border-radius: var(--admin-radius-2xl);
+  border: 1px solid var(--sama-border-light);
+  box-shadow: 0 12px 40px var(--sama-shadow-medium);
+  padding: 2rem;
+}
+
+.admin-login-brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.admin-login-logo-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.admin-login-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--sama-text-primary);
+  margin: 0 0 0.35rem;
+}
+
+.admin-login-subtitle {
+  font-size: 0.9375rem;
+  color: var(--sama-text-secondary);
+  margin: 0;
+}
+
+.admin-login-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--admin-radius-lg);
+  font-size: 0.875rem;
+  background: var(--admin-rose-bg);
+  color: var(--admin-rose);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+}
+
+.admin-login-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--sama-text-muted);
+}
+
+.admin-loading-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    var(--sama-bg-light) 0%,
+    var(--sama-bg-light-green-alt) 50%,
+    rgba(244, 233, 201, 0.25) 100%
+  );
+}

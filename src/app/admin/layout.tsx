@@ -1,13 +1,13 @@
 'use client'
 
-import { Outfit } from 'next/font/google'
+import { Geist } from 'next/font/google'
 import '../globals.css'
 import './admin.css'
+import './admin-sama-theme.css'
 
-const outfit = Outfit({
-  variable: '--font-outfit',
+const geistSans = Geist({
+  variable: '--font-geist-sans',
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700', '800'],
 })
 
 export default function AdminLayout({
@@ -16,7 +16,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className={`${outfit.variable} admin-root`}>
+    <div className={`${geistSans.variable} admin-root`}>
       {children}
     </div>
   )
