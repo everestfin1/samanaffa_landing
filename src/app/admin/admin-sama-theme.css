@@ -139,10 +139,9 @@
   font-weight: 600;
 }
 
+/* Active state: filled pill (see admin-ui.css), no side stripe */
 .admin-sidebar-nav-item.active::before {
-  background: var(--sama-accent-gold);
-  width: 4px;
-  border-radius: 0 4px 4px 0;
+  display: none;
 }
 
 .admin-sidebar-nav-badge {

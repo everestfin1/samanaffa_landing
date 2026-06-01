@@ -1,35 +1,17 @@
 'use client'
 
 import Image from 'next/image'
-import { 
-  LayoutDashboard, 
-  Users, 
-  CreditCard, 
-  FileText, 
-  FileSpreadsheet,
-  MessageSquare,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Gift,
-  GraduationCap,
-  RefreshCw,
-  Archive
-} from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect } from 'react'
-
-type TabId = 'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'
-
-interface NavItem {
-  id: TabId
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: number
-}
+import {
+  ADMIN_NAV_GROUPS,
+  type AdminNavItem,
+  type AdminTabId,
+} from '@/lib/admin/nav'
 
 interface AdminSidebarProps {
-  activeTab: TabId
-  onTabChange: (tab: TabId) => void
+  activeTab: AdminTabId
+  onTabChange: (tab: AdminTabId) => void
   collapsed: boolean
   onCollapsedChange: (collapsed: boolean) => void
   stats?: {
@@ -39,12 +21,17 @@ interface AdminSidebarProps {
   }
 }
 
-export default function AdminSidebar({ activeTab, onTabChange, collapsed, onCollapsedChange, stats }: AdminSidebarProps) {
-  // Persist collapsed state
+export default function AdminSidebar({
+  activeTab,
+  onTabChange,
+  collapsed,
+  onCollapsedChange,
+  stats,
+}: AdminSidebarProps) {
   useEffect(() => {
     const saved = localStorage.getItem('admin_sidebar_collapsed')
     if (saved) onCollapsedChange(saved === 'true')
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const toggleCollapsed = () => {
@@ -53,29 +40,22 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
     localStorage.setItem('admin_sidebar_collapsed', String(newState))
   }
 
-  const navItems: NavItem[] = [
-    { id: 'overview', label: 'Vue d\'ensemble', icon: LayoutDashboard },
-    { id: 'transactions', label: 'Transactions', icon: CreditCard, badge: stats?.pendingTransactions },
-    { id: 'apeSubscriptions', label: 'APE Sénégal', icon: FileSpreadsheet, badge: stats?.paymentInitiated },
-    { id: 'reconciliation', label: 'Réconciliation', icon: RefreshCw },
-    { id: 'sponsorCodes', label: 'Codes Parrainage', icon: Gift },
-    { id: 'peeLeads', label: 'PEE Leads', icon: GraduationCap },
-    { id: 'abandonedLeads', label: 'Leads abandonnés', icon: Archive },
-    { id: 'users', label: 'Utilisateurs', icon: Users },
-    { id: 'kyc', label: 'KYC', icon: FileText, badge: stats?.pendingKyc },
-    { id: 'notifications', label: 'Notifications', icon: MessageSquare },
-    { id: 'settings', label: 'Paramètres', icon: Settings },
-  ]
+  const getBadge = (key?: AdminNavItem['badgeKey']) => {
+    if (!key || !stats) return undefined
+    if (key === 'pendingKyc') return stats.pendingKyc
+    if (key === 'pendingTransactions') return stats.pendingTransactions
+    if (key === 'paymentInitiated') return stats.paymentInitiated
+    return undefined
+  }
 
   return (
-    <aside 
+    <aside
       className={`admin-sidebar ${collapsed ? 'admin-sidebar-collapsed' : ''}`}
       data-collapsed={collapsed}
     >
-      {/* Logo */}
       <div className="admin-sidebar-header">
-        <button 
-          onClick={() => onTabChange('overview')} 
+        <button
+          onClick={() => onTabChange('overview')}
           className="admin-sidebar-logo"
           type="button"
         >
@@ -96,53 +76,70 @@ export default function AdminSidebar({ activeTab, onTabChange, collapsed, onColl
             </div>
           )}
         </button>
-        <button 
+        <button
+          type="button"
           onClick={toggleCollapsed}
           className="admin-sidebar-toggle"
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-label={collapsed ? 'Déplier le menu' : 'Replier le menu'}
         >
-          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          {collapsed ? (
+            <ChevronRight className="w-4 h-4" />
+          ) : (
+            <ChevronLeft className="w-4 h-4" />
+          )}
         </button>
       </div>
 
-      {/* Navigation */}
-      <nav className="admin-sidebar-nav">
-        <ul className="admin-sidebar-nav-list">
-          {navItems.map((item) => {
-            const Icon = item.icon
-            const active = activeTab === item.id
-            
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => onTabChange(item.id)}
-                  className={`admin-sidebar-nav-item ${active ? 'active' : ''}`}
-                  title={collapsed ? item.label : undefined}
-                >
-                  <Icon className="admin-sidebar-nav-icon" />
-                  {!collapsed && (
-                    <>
-                      <span className="admin-sidebar-nav-label">{item.label}</span>
-                      {item.badge !== undefined && item.badge > 0 && (
-                        <span className="admin-sidebar-nav-badge">{item.badge}</span>
+      <nav className="admin-sidebar-nav" aria-label="Navigation admin">
+        {ADMIN_NAV_GROUPS.map((group) => (
+          <div key={group.id} className="admin-sidebar-nav-group">
+            {!collapsed && (
+              <span className="admin-sidebar-nav-group-label">{group.label}</span>
+            )}
+            <ul className="admin-sidebar-nav-list">
+              {group.items.map((item) => {
+                const Icon = item.icon
+                const active = activeTab === item.id
+                const badge = getBadge(item.badgeKey)
+
+                return (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => onTabChange(item.id)}
+                      className={`admin-sidebar-nav-item ${active ? 'active' : ''}`}
+                      title={collapsed ? item.label : undefined}
+                      aria-current={active ? 'page' : undefined}
+                    >
+                      <Icon className="admin-sidebar-nav-icon" />
+                      {!collapsed && (
+                        <>
+                          <span className="admin-sidebar-nav-label">
+                            {item.label}
+                          </span>
+                          {badge !== undefined && badge > 0 && (
+                            <span className="admin-sidebar-nav-badge">
+                              {badge}
+                            </span>
+                          )}
+                        </>
                       )}
-                    </>
-                  )}
-                  {collapsed && item.badge !== undefined && item.badge > 0 && (
-                    <span className="admin-sidebar-nav-badge-dot" />
-                  )}
-                </button>
-              </li>
-            )
-          })}
-        </ul>
+                      {collapsed && badge !== undefined && badge > 0 && (
+                        <span className="admin-sidebar-nav-badge-dot" />
+                      )}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      {/* Footer */}
       <div className="admin-sidebar-footer">
         {!collapsed && (
           <p className="admin-sidebar-footer-text">
-            © {new Date().getFullYear()} Everest Finance
+            © {new Date().getFullYear()} Everest Finance SGI
           </p>
         )}
       </div>

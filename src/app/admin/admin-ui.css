@@ -1,0 +1,939 @@
+/* ============================================
+   Admin UI v2 — product-grade shell & surfaces
+   ============================================ */
+
+/* —— Page structure —— */
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.admin-page-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+  padding-bottom: 0.25rem;
+}
+
+.admin-page-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--sama-text-primary);
+}
+
+.admin-page-description {
+  margin: 0.35rem 0 0;
+  max-width: 42rem;
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  color: var(--sama-text-secondary);
+}
+
+.admin-page-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-page-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* —— Slim global chrome (replaces heavy topbar) —— */
+.admin-chrome {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0.5rem 1.5rem;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--sama-border-light);
+  backdrop-filter: blur(8px);
+}
+
+.admin-chrome-user {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  margin-right: auto;
+  font-size: 0.8125rem;
+  color: var(--sama-text-secondary);
+}
+
+@media (min-width: 768px) {
+  .admin-chrome-user {
+    display: flex;
+  }
+}
+
+.admin-chrome-user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 9999px;
+  background: var(--sama-bg-light-green-card);
+  color: var(--sama-primary-green);
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+/* —— Sidebar groups —— */
+.admin-sidebar-nav-group {
+  margin-bottom: 1rem;
+}
+
+.admin-sidebar-nav-group-label {
+  display: block;
+  padding: 0 0.875rem 0.375rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sama-text-muted);
+}
+
+.admin-sidebar-collapsed .admin-sidebar-nav-group-label {
+  display: none;
+}
+
+/* Active nav: filled pill, no side stripe (impeccable) */
+.admin-sidebar-nav-item.active::before {
+  display: none;
+}
+
+.admin-sidebar-nav-item.active {
+  background: var(--sama-bg-light-green-card);
+  color: var(--sama-primary-green);
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--sama-border-light);
+}
+
+.admin-sidebar-nav-badge {
+  background: var(--sama-primary-green);
+  color: #fff;
+}
+
+/* —— Metric strip (replaces card grid for KPIs) —— */
+.admin-metric-strip {
+  display: flex;
+  flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid var(--sama-border-medium);
+  border-radius: var(--admin-radius-xl, 1.25rem);
+  box-shadow: 0 1px 2px rgba(1, 8, 27, 0.04);
+  overflow: hidden;
+}
+
+.admin-metric-strip-item {
+  position: relative;
+  flex: 1 1 8rem;
+  min-width: 7rem;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.admin-metric-strip-divider {
+  position: absolute;
+  right: 0;
+  top: 1rem;
+  bottom: 1rem;
+  width: 1px;
+  background: var(--sama-border-light);
+}
+
+.admin-metric-strip-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sama-text-muted);
+}
+
+.admin-metric-strip-value {
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--sama-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-metric-strip-item[data-tone='success'] .admin-metric-strip-value {
+  color: var(--sama-success);
+}
+
+.admin-metric-strip-item[data-tone='warning'] .admin-metric-strip-value {
+  color: var(--sama-accent-gold-dark);
+}
+
+.admin-metric-strip-item[data-tone='danger'] .admin-metric-strip-value {
+  color: #dc2626;
+}
+
+.admin-metric-strip-item[data-tone='info'] .admin-metric-strip-value {
+  color: #0284c7;
+}
+
+.admin-metric-strip-item[data-tone='muted'] .admin-metric-strip-value {
+  color: var(--sama-text-secondary);
+}
+
+/* —— Panel (primary content surface) —— */
+.admin-panel {
+  background: #fff;
+  border: 1px solid var(--sama-border-medium);
+  border-radius: var(--admin-radius-xl, 1.25rem);
+  box-shadow: 0 1px 2px rgba(1, 8, 27, 0.04);
+  overflow: hidden;
+}
+
+.admin-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--sama-border-light);
+  background: var(--sama-bg-light-green-card);
+}
+
+.admin-panel-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sama-text-primary);
+}
+
+.admin-panel-description {
+  margin: 0.2rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--sama-text-secondary);
+}
+
+.admin-panel-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.admin-panel-body {
+  padding: 1.25rem;
+}
+
+.admin-panel-body-flush {
+  padding: 0;
+}
+
+/* —— Table v2 —— */
+.admin-table-v2 {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.admin-table-v2 thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #fff;
+}
+
+.admin-table-v2 th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--sama-text-muted);
+  border-bottom: 1px solid var(--sama-border-light);
+  white-space: nowrap;
+}
+
+.admin-table-v2 td {
+  padding: 0.875rem 1rem;
+  color: var(--sama-text-secondary);
+  border-bottom: 1px solid var(--sama-border-light);
+  vertical-align: middle;
+}
+
+.admin-table-v2 tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-table-v2 tbody tr:hover td {
+  background: var(--sama-bg-light-green-card);
+}
+
+.admin-table-v2 .admin-table-primary {
+  color: var(--sama-text-primary);
+  font-weight: 600;
+}
+
+.admin-table-v2 .admin-table-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sama-primary-green);
+}
+
+.admin-table-scroll {
+  overflow-x: auto;
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+}
+
+.admin-table-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+}
+
+/* —— Empty state v2 —— */
+.admin-empty-state-v2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+}
+
+.admin-empty-state-v2-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  border-radius: 9999px;
+  background: var(--sama-bg-light-green-card);
+  color: var(--sama-primary-green);
+}
+
+.admin-empty-state-v2-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--sama-text-primary);
+}
+
+.admin-empty-state-v2-text {
+  margin: 0.35rem 0 0;
+  max-width: 20rem;
+  font-size: 0.8125rem;
+  color: var(--sama-text-secondary);
+}
+
+.admin-empty-state-v2-action {
+  margin-top: 1.25rem;
+}
+
+/* —— Filter chips —— */
+.admin-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.admin-filter-chip {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  font-family: inherit;
+  color: var(--sama-text-secondary);
+  background: #fff;
+  border: 1px solid var(--sama-border-light);
+  border-radius: 9999px;
+  cursor: pointer;
+  transition:
+    background 150ms ease-out,
+    border-color 150ms ease-out,
+    color 150ms ease-out;
+}
+
+.admin-filter-chip:hover {
+  border-color: var(--sama-border-medium);
+  color: var(--sama-text-primary);
+}
+
+.admin-filter-chip.active {
+  background: var(--sama-primary-green);
+  border-color: var(--sama-primary-green);
+  color: #fff;
+}
+
+/* —— Layout rhythm —— */
+.admin-main-content {
+  padding: 1.25rem 1.5rem 2rem;
+}
+
+@media (min-width: 1024px) {
+  .admin-main-content {
+    padding: 1.5rem 2rem 2.5rem;
+  }
+}
+
+/* ============================================================
+   CRAFT LAYER — Didit-grade refinement (loads last; authoritative)
+   Quiet surfaces, hairline structure, one restrained green accent.
+   ============================================================ */
+.admin-root {
+  /* Neutrals tinted toward the brand ink (#01081b), not flat gray */
+  --admin-ink: #01081b;
+  --admin-hairline: rgba(1, 8, 27, 0.07);
+  --admin-hairline-strong: rgba(1, 8, 27, 0.11);
+  --admin-surface-hover: rgba(1, 8, 27, 0.025);
+  --admin-surface-sunken: #f6f7f7;
+  --admin-shadow-soft:
+    0 1px 2px rgba(1, 8, 27, 0.04),
+    0 1px 1px rgba(1, 8, 27, 0.03);
+  --admin-shadow-raise:
+    0 8px 28px -10px rgba(1, 8, 27, 0.12),
+    0 2px 8px -3px rgba(1, 8, 27, 0.06);
+  --admin-radius-card: 1rem;
+}
+
+/* —— Canvas: gentle elevation, cards float on a soft sunken field —— */
+.admin-main {
+  background: var(--admin-surface-sunken);
+}
+
+/* —— Page header: more air, calmer scale —— */
+.admin-page-header {
+  padding-bottom: 0.5rem;
+}
+.admin-page-title {
+  font-size: 1.5rem;
+  font-weight: 650;
+  letter-spacing: -0.025em;
+  color: var(--admin-ink);
+}
+.admin-page-description {
+  color: var(--sama-text-secondary);
+  font-size: 0.875rem;
+}
+
+/* —— Surfaces: hairline borders, single soft shadow, larger radius —— */
+.admin-card,
+.admin-stat-card {
+  background: #fff;
+  border: 1px solid var(--admin-hairline);
+  border-radius: var(--admin-radius-card);
+  box-shadow: var(--admin-shadow-soft);
+}
+
+.admin-card-header {
+  background: transparent;
+  border-bottom: 1px solid var(--admin-hairline);
+  padding: 1.125rem 1.5rem;
+}
+
+.admin-card-title {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--admin-ink);
+}
+
+/* Accent is reserved for action/selection, not decoration: mute header icons */
+.admin-card-title-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--sama-text-muted);
+}
+
+.admin-card-content {
+  padding: 1.5rem;
+}
+.admin-card-content.p-0,
+.admin-card-body.p-0 {
+  padding: 0;
+}
+
+/* —— Tables: airy rows, quiet muted headers, hairline dividers —— */
+.admin-table {
+  font-size: 0.8125rem;
+}
+.admin-table thead {
+  background: transparent;
+  border-bottom: none;
+}
+.admin-table th {
+  padding: 0.8125rem 1.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sama-text-muted);
+  border-bottom: 1px solid var(--admin-hairline);
+}
+.admin-table td {
+  padding: 1rem 1.25rem;
+  color: var(--sama-text-secondary);
+  border-bottom: 1px solid var(--admin-hairline);
+}
+.admin-table tbody tr {
+  transition: background 150ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.admin-table tbody tr:hover {
+  background: var(--admin-surface-hover);
+}
+.admin-card .admin-table-cell-primary,
+.admin-table-cell-primary {
+  color: var(--admin-ink);
+  font-weight: 550;
+}
+.admin-table-cell-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.75rem;
+  color: var(--sama-text-muted);
+  letter-spacing: -0.01em;
+}
+
+/* —— Badges: soft sentence-case pills, not shouty uppercase chips —— */
+.admin-badge {
+  padding: 0.25rem 0.625rem 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 550;
+  letter-spacing: 0;
+  text-transform: none;
+  border-radius: 9999px;
+}
+.admin-badge-dot {
+  width: 6px;
+  height: 6px;
+}
+
+/* —— Buttons: solid, calm, no gradient/lift theatrics —— */
+.admin-btn {
+  border-radius: 0.625rem;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  transition:
+    background 150ms ease-out,
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
+.admin-btn-primary {
+  background: var(--sama-primary-green);
+  border-color: var(--sama-primary-green);
+  color: #fff;
+  box-shadow: none;
+}
+.admin-btn-primary:hover:not(:disabled) {
+  background: var(--sama-primary-green-dark);
+  border-color: var(--sama-primary-green-dark);
+  transform: none;
+  box-shadow: 0 4px 14px -4px rgba(67, 89, 51, 0.45);
+}
+.admin-btn-secondary {
+  background: #fff;
+  border-color: var(--admin-hairline-strong);
+  color: var(--sama-text-secondary);
+}
+.admin-btn-secondary:hover:not(:disabled) {
+  background: var(--admin-surface-hover);
+  border-color: var(--admin-hairline-strong);
+  color: var(--admin-ink);
+}
+.admin-btn-ghost:hover:not(:disabled) {
+  background: var(--admin-surface-hover);
+  color: var(--admin-ink);
+}
+
+/* —— Stat cards (interactive filters): quiet by default, accent on select —— */
+.admin-stat-card {
+  padding: 1.25rem 1.375rem;
+  transition:
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out,
+    background 150ms ease-out;
+}
+.admin-stat-card:hover {
+  transform: none;
+  border-color: var(--admin-hairline-strong);
+  box-shadow: var(--admin-shadow-raise);
+}
+.admin-stat-label {
+  text-transform: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--sama-text-secondary);
+}
+.admin-stat-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  color: var(--admin-ink);
+}
+.admin-stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--admin-surface-hover);
+  color: var(--sama-text-muted);
+}
+.admin-stat-card.active {
+  border-color: var(--stat-color, var(--sama-primary-green));
+  box-shadow: inset 0 0 0 1px var(--stat-color, var(--sama-primary-green));
+  background: #fff;
+}
+.admin-stat-card.active .admin-stat-icon {
+  background: var(--stat-bg, var(--admin-primary-bg));
+  color: var(--stat-color, var(--sama-primary-green));
+}
+.admin-stat-card.active .admin-stat-value.colored,
+.admin-stat-card .admin-stat-value.colored {
+  color: var(--stat-color, var(--sama-primary-green));
+}
+
+/* —— Metric strip: more breathing room, refined number rendering —— */
+.admin-metric-strip {
+  border-color: var(--admin-hairline);
+  box-shadow: var(--admin-shadow-soft);
+}
+.admin-metric-strip-item {
+  padding: 1.25rem 1.5rem;
+}
+.admin-metric-strip-label {
+  text-transform: none;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+.admin-metric-strip-value {
+  font-size: 1.625rem;
+  letter-spacing: -0.03em;
+}
+
+/* —— Dropdowns: softer container —— */
+.admin-dropdown-menu {
+  border-radius: 0.75rem;
+  border-color: var(--admin-hairline);
+  box-shadow: var(--admin-shadow-raise);
+  padding: 0.25rem;
+}
+.admin-dropdown-item {
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.625rem;
+}
+.admin-dropdown-item:hover {
+  background: var(--admin-surface-hover);
+}
+
+/* —— Inputs / selects: hairline, calm focus ring —— */
+.admin-input,
+.admin-select,
+.admin-textarea {
+  border-radius: 0.625rem;
+  border: 1px solid var(--admin-hairline-strong);
+}
+.admin-input:focus,
+.admin-select:focus,
+.admin-textarea:focus {
+  border-color: var(--sama-primary-green);
+  box-shadow: 0 0 0 3px rgba(67, 89, 51, 0.12);
+}
+
+/* —— Modals: larger radius, softer overlay —— */
+.admin-modal {
+  border-radius: 1rem;
+  border-color: var(--admin-hairline);
+  box-shadow: var(--admin-shadow-raise);
+}
+.admin-modal-header,
+.admin-modal-footer {
+  background: transparent;
+  border-color: var(--admin-hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-table tbody tr,
+  .admin-btn,
+  .admin-stat-card {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   CANVAS SHELL — route-based admin (floating top nav)
+   ============================================================ */
+.admin-canvas {
+  min-height: 100vh;
+  background: #eef0f3;
+  padding-bottom: 4rem;
+}
+.admin-canvas-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 6.5rem 1.25rem 2rem;
+}
+@media (min-width: 640px) {
+  .admin-canvas-main {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Brand (top-left) */
+.admin-topnav-brand {
+  position: fixed;
+  top: 1.25rem;
+  left: 1.25rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  padding: 0.625rem 1rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 40px -12px rgba(1, 8, 27, 0.18);
+  backdrop-filter: blur(16px);
+}
+
+/* Center pill */
+.admin-topnav {
+  position: fixed;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.4rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 40px -12px rgba(1, 8, 27, 0.18);
+  backdrop-filter: blur(16px);
+}
+.admin-topnav-group {
+  position: relative;
+}
+.admin-topnav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sama-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 150ms ease-out, color 150ms ease-out;
+}
+.admin-topnav-item:hover {
+  background: rgba(1, 8, 27, 0.04);
+  color: var(--admin-ink, #01081b);
+}
+.admin-topnav-item.active {
+  background: #01081b;
+  color: #fff;
+}
+.admin-topnav-item-icon {
+  width: 15px;
+  height: 15px;
+}
+.admin-topnav-chevron {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+  transition: transform 160ms ease-out;
+}
+.admin-topnav-chevron.open {
+  transform: rotate(180deg);
+}
+.admin-topnav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--sama-accent-gold, #c38d1c);
+}
+
+/* Dropdown */
+.admin-topnav-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 60;
+  min-width: 230px;
+  padding: 0.375rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(1, 8, 27, 0.07);
+  background: #fff;
+  box-shadow: 0 18px 50px -16px rgba(1, 8, 27, 0.28);
+  animation: adminDropIn 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.admin-topnav-dropdown-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+@keyframes adminDropIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-6px);
+  }
+}
+.admin-topnav-dropdown-right {
+  animation: adminDropInRight 140ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes adminDropInRight {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+.admin-topnav-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.625rem;
+  border-radius: 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--sama-text-secondary);
+  width: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background 130ms ease-out, color 130ms ease-out;
+}
+.admin-topnav-dropdown-item:hover {
+  background: rgba(1, 8, 27, 0.04);
+  color: var(--admin-ink, #01081b);
+}
+.admin-topnav-dropdown-item.active {
+  background: #f0f8f0;
+  color: var(--sama-primary-green, #435933);
+}
+.admin-topnav-dropdown-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 0.5rem;
+  background: rgba(1, 8, 27, 0.04);
+  color: var(--sama-text-muted);
+  flex-shrink: 0;
+}
+.admin-topnav-dropdown-item.active .admin-topnav-dropdown-icon {
+  background: #e8f5e8;
+  color: var(--sama-primary-green, #435933);
+}
+.admin-topnav-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  background: var(--sama-accent-gold, #c38d1c);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+}
+
+/* Right cluster */
+.admin-topnav-cluster {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.admin-topnav-icon-btn {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--sama-text-secondary);
+  box-shadow: 0 10px 40px -12px rgba(1, 8, 27, 0.18);
+  backdrop-filter: blur(16px);
+  cursor: pointer;
+  transition: color 150ms ease-out;
+}
+.admin-topnav-icon-btn:hover:not(:disabled) {
+  color: var(--admin-ink, #01081b);
+}
+.admin-topnav-icon-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.admin-topnav-user {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+.admin-topnav-avatar {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background: var(--sama-primary-green, #435933);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  box-shadow: 0 10px 40px -12px rgba(1, 8, 27, 0.18);
+}
+.admin-topnav-user-info {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.625rem 0.625rem;
+  border-bottom: 1px solid rgba(1, 8, 27, 0.07);
+  margin-bottom: 0.25rem;
+}
+.admin-topnav-user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-ink, #01081b);
+}
+.admin-topnav-user-role {
+  font-size: 0.75rem;
+  color: var(--sama-text-muted);
+}
+
+@media (max-width: 860px) {
+  .admin-topnav-item span:not(.admin-topnav-dot) {
+    display: none;
+  }
+  .admin-topnav-group .admin-topnav-item span {
+    display: inline;
+  }
+}

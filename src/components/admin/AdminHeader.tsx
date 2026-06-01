@@ -1,19 +1,28 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { RefreshCw, LogOut, Bell, Search } from 'lucide-react'
-import { useState } from 'react'
+import { RefreshCw, LogOut } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 interface AdminHeaderProps {
-  title: string
-  subtitle?: string
   onRefresh?: () => void
   loading?: boolean
 }
 
-export default function AdminHeader({ title, subtitle, onRefresh, loading }: AdminHeaderProps) {
+export default function AdminHeader({ onRefresh, loading }: AdminHeaderProps) {
   const router = useRouter()
-  const [searchQuery, setSearchQuery] = useState('')
+  const [adminLabel, setAdminLabel] = useState('Administrateur')
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('admin_user')
+      if (!raw) return
+      const user = JSON.parse(raw) as { name?: string; email?: string }
+      setAdminLabel(user.name || user.email || 'Administrateur')
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -22,7 +31,7 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
         await fetch('/api/admin/auth/logout', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
         })
@@ -37,62 +46,44 @@ export default function AdminHeader({ title, subtitle, onRefresh, loading }: Adm
     }
   }
 
+  const initials = adminLabel
+    .split(/\s+/)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
   return (
-    <header className="admin-topbar">
-      <div className="admin-topbar-inner">
-        {/* Page Title */}
-        <div className="admin-topbar-title">
-          <h1 className="admin-topbar-heading">{title}</h1>
-          {subtitle && <p className="admin-topbar-subtitle">{subtitle}</p>}
-        </div>
-
-        {/* Search Bar */}
-        <div className="admin-topbar-search">
-          <Search className="admin-topbar-search-icon" />
-          <input
-            type="text"
-            placeholder="Rechercher..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="admin-topbar-search-input"
-          />
-        </div>
-
-        {/* Actions */}
-        <div className="admin-topbar-actions">
-          <button 
-            type="button"
-            className="admin-topbar-action-btn"
-            title="Notifications"
-            aria-label="Notifications"
-          >
-            <Bell className="w-5 h-5" />
-          </button>
-
-          {onRefresh && (
-            <button 
-              type="button"
-              onClick={onRefresh}
-              disabled={loading}
-              className="admin-btn admin-btn-secondary"
-              title="Actualiser"
-            >
-              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">Actualiser</span>
-            </button>
-          )}
-
-          <button 
-            type="button"
-            onClick={handleLogout}
-            className="admin-btn admin-btn-ghost"
-            title="Déconnexion"
-          >
-            <LogOut className="w-4 h-4" />
-            <span className="hidden sm:inline">Déconnexion</span>
-          </button>
-        </div>
+    <header className="admin-chrome">
+      <div className="admin-chrome-user">
+        <span className="admin-chrome-user-avatar" aria-hidden>
+          {initials}
+        </span>
+        <span>{adminLabel}</span>
       </div>
+
+      {onRefresh ? (
+        <button
+          type="button"
+          onClick={onRefresh}
+          disabled={loading}
+          className="admin-btn admin-btn-secondary admin-btn-sm"
+          title="Actualiser les données"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">Actualiser</span>
+        </button>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="admin-btn admin-btn-ghost admin-btn-sm"
+        title="Déconnexion"
+      >
+        <LogOut className="w-4 h-4" />
+        <span className="hidden sm:inline">Déconnexion</span>
+      </button>
     </header>
   )
 }

@@ -1,16 +1,10 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import {
-  AlertCircle,
-  Archive,
-  CheckCircle,
-  Edit,
-  Mail,
-  Phone,
-  X,
-  XCircle,
-} from 'lucide-react';
+import { Archive, Edit, Mail, Phone, X } from 'lucide-react';
+import AdminMetricStrip from '@/components/admin/layout/AdminMetricStrip';
+import AdminPanel from '@/components/admin/layout/AdminPanel';
+import AdminEmptyState from '@/components/admin/layout/AdminEmptyState';
 
 interface AbandonedLead {
   id: string;
@@ -145,68 +139,45 @@ export default function AbandonedLeadsTab() {
 
   return (
     <>
-      <div className="space-y-8">
-        <div className="admin-grid admin-grid-5">
-          <div className="admin-stat-card" data-color="sky">
-            <div className="admin-stat-header">
-              <span className="admin-stat-label">Total</span>
-              <div className="admin-stat-icon">
-                <Archive className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="admin-stat-value">{stats.total}</div>
-          </div>
-          <div className="admin-stat-card" data-color="amber">
-            <div className="admin-stat-header">
-              <span className="admin-stat-label">Abandonnés</span>
-              <div className="admin-stat-icon">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="admin-stat-value colored">{stats.abandoned}</div>
-          </div>
-          <div className="admin-stat-card" data-color="blue">
-            <div className="admin-stat-header">
-              <span className="admin-stat-label">Contactés</span>
-              <div className="admin-stat-icon">
-                <Phone className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="admin-stat-value">{stats.contacted}</div>
-          </div>
-          <div className="admin-stat-card" data-color="emerald">
-            <div className="admin-stat-header">
-              <span className="admin-stat-label">Convertis</span>
-              <div className="admin-stat-icon">
-                <CheckCircle className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="admin-stat-value colored">{stats.converted}</div>
-          </div>
-          <div className="admin-stat-card" data-color="rose">
-            <div className="admin-stat-header">
-              <span className="admin-stat-label">Écartés</span>
-              <div className="admin-stat-icon">
-                <XCircle className="w-5 h-5" />
-              </div>
-            </div>
-            <div className="admin-stat-value">{stats.dismissed}</div>
-          </div>
-        </div>
+      <div className="admin-page">
+        <AdminMetricStrip
+          metrics={[
+            { id: 'total', label: 'Total', value: stats.total, tone: 'info' },
+            {
+              id: 'abandoned',
+              label: 'Abandonnés',
+              value: stats.abandoned,
+              tone: 'warning',
+            },
+            {
+              id: 'contacted',
+              label: 'Contactés',
+              value: stats.contacted,
+              tone: 'muted',
+            },
+            {
+              id: 'converted',
+              label: 'Convertis',
+              value: stats.converted,
+              tone: 'success',
+            },
+            {
+              id: 'dismissed',
+              label: 'Écartés',
+              value: stats.dismissed,
+              tone: 'danger',
+            },
+          ]}
+        />
 
-        <div className="admin-card">
-          <div className="admin-card-header">
-            <div>
-              <h3 className="admin-card-title">Leads abandonnés</h3>
-              <p className="admin-card-subtitle">
-                Suivi des brouillons de formulaires non convertis
-              </p>
-            </div>
-          </div>
-          <div className="admin-card-body p-0">
-            <div className="admin-table-container">
-              {leads.length > 0 ? (
-                <table className="admin-table">
+        <AdminPanel
+          title="Brouillons de formulaires"
+          description="Parcours non terminés à relancer."
+          flush
+        >
+          {leads.length > 0 ? (
+            <div className="admin-table-scroll">
+              <table className="admin-table-v2">
                   <thead>
                     <tr>
                       <th>Contact</th>
@@ -273,13 +244,13 @@ export default function AbandonedLeadsTab() {
                             <span
                               className={`admin-badge ${
                                 lead.status === 'ABANDONED'
-                                  ? 'admin-badge-amber'
+                                  ? 'admin-badge-warning'
                                   : lead.status === 'CONTACTED'
-                                    ? 'admin-badge-blue'
+                                    ? 'admin-badge-info'
                                     : lead.status === 'CONVERTED'
-                                      ? 'admin-badge-emerald'
+                                      ? 'admin-badge-success'
                                       : lead.status === 'DISMISSED'
-                                        ? 'admin-badge-rose'
+                                        ? 'admin-badge-danger'
                                         : 'admin-badge-neutral'
                               }`}
                             >
@@ -318,19 +289,15 @@ export default function AbandonedLeadsTab() {
                     })}
                   </tbody>
                 </table>
-              ) : (
-                <div className="admin-empty-state">
-                  <Archive className="admin-empty-icon" />
-                  <h3 className="admin-empty-title">Aucun lead abandonné</h3>
-                  <p className="admin-empty-text">
-                    Les brouillons apparaîtront ici lorsque la télémétrie formulaire est
-                    active.
-                  </p>
-                </div>
-              )}
             </div>
-          </div>
-        </div>
+          ) : (
+            <AdminEmptyState
+              icon={Archive}
+              title="Aucun lead abandonné"
+              description="Les brouillons apparaîtront ici lorsque la télémétrie formulaire est active."
+            />
+          )}
+        </AdminPanel>
       </div>
 
       {showModal && selectedLead && (

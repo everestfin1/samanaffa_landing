@@ -8,8 +8,12 @@ import NotificationManagement from '@/components/admin/NotificationManagement'
 import NotificationSettings from '@/components/admin/NotificationSettings'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 import AdminHeader from '@/components/admin/AdminHeader'
+import AdminPageHeader from '@/components/admin/layout/AdminPageHeader'
+import AdminMetricStrip from '@/components/admin/layout/AdminMetricStrip'
+import SponsorCodesTab from '@/components/admin/SponsorCodesTab'
 import IntouchReconciliation from '@/components/admin/IntouchReconciliation'
 import AbandonedLeadsTab from '@/components/admin/AbandonedLeadsTab'
+import { ADMIN_TAB_META, type AdminTabId } from '@/lib/admin/nav'
 import { 
   Users, 
   FileText, 
@@ -206,7 +210,7 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [kycDocuments, setKycDocuments] = useState<KycDocument[]>([])
-  const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'transactions' | 'kyc' | 'apeSubscriptions' | 'reconciliation' | 'sponsorCodes' | 'peeLeads' | 'abandonedLeads' | 'notifications' | 'settings'>('overview')
+  const [activeTab, setActiveTab] = useState<AdminTabId>('overview')
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
@@ -1219,12 +1223,6 @@ export default function AdminDashboard() {
     }
   }
 
-  const SPONSOR_CODE_STATUS_CONFIG = {
-    ACTIVE: { label: 'Actif', color: 'emerald' },
-    INACTIVE: { label: 'Inactif', color: 'neutral' },
-    EXPIRED: { label: 'Expiré', color: 'rose' },
-  }
-
   const APE_STATUS_CONFIG = {
     PENDING: { label: 'En attente', color: 'amber', description: 'Souscription créée, paiement non initié' },
     PAYMENT_INITIATED: { label: 'Paiement initié', color: 'sky', description: 'Paiement en cours de traitement' },
@@ -1255,23 +1253,7 @@ export default function AdminDashboard() {
     )
   }
 
-  // Get tab title for header
-  const getTabTitle = () => {
-    switch (activeTab) {
-      case 'overview': return 'Vue d\'ensemble'
-      case 'kyc': return 'Vérification KYC'
-      case 'apeSubscriptions': return 'APE Sénégal'
-      case 'sponsorCodes': return 'Codes Parrainage'
-      case 'peeLeads': return 'PEE Leads'
-      case 'abandonedLeads': return 'Leads abandonnés'
-      case 'reconciliation': return 'Réconciliation'
-      case 'users': return 'Utilisateurs'
-      case 'transactions': return 'Transactions'
-      case 'notifications': return 'Notifications'
-      case 'settings': return 'Paramètres'
-      default: return 'Administration'
-    }
-  }
+  const tabMeta = ADMIN_TAB_META[activeTab]
 
   return (
     <div className="admin-layout" data-sidebar-collapsed={sidebarCollapsed}>
@@ -1290,69 +1272,46 @@ export default function AdminDashboard() {
       
       {/* Main Content */}
       <main className="admin-main">
-        <AdminHeader 
-          title={getTabTitle()}
-          subtitle="Tableau de bord administrateur"
-          onRefresh={fetchDashboardData}
-          loading={loading}
-        />
-        
+        <AdminHeader onRefresh={fetchDashboardData} loading={loading} />
+
         <div className="admin-main-content">
+          <AdminPageHeader
+            title={tabMeta.title}
+            description={tabMeta.description}
+          />
+
           {/* Overview Tab */}
         {activeTab === 'overview' && (
-          <div className="space-y-8">
-            {/* Stats Cards */}
-            <div className="admin-grid admin-grid-5">
-              <div className="admin-stat-card admin-animate-in" data-color="gold">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Utilisateurs</span>
-                  <div className="admin-stat-icon">
-                    <Users className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="admin-stat-value">{stats.totalUsers}</div>
-              </div>
-
-              <div className="admin-stat-card admin-animate-in" data-color="amber">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">KYC en attente</span>
-                  <div className="admin-stat-icon">
-                    <AlertCircle className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="admin-stat-value colored">{stats.pendingKyc}</div>
-              </div>
-
-              <div className="admin-stat-card admin-animate-in" data-color="sky">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">En révision</span>
-                  <div className="admin-stat-icon">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="admin-stat-value colored">{stats.underReviewKyc}</div>
-              </div>
-
-              <div className="admin-stat-card admin-animate-in" data-color="violet">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Trans. en attente</span>
-                  <div className="admin-stat-icon">
-                    <Clock className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="admin-stat-value colored">{stats.pendingTransactions}</div>
-              </div>
-
-              <div className="admin-stat-card admin-animate-in" data-color="emerald">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Trans. complétées</span>
-                  <div className="admin-stat-icon">
-                    <CheckCircle className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="admin-stat-value colored">{stats.completedTransactions}</div>
-              </div>
-            </div>
+          <div className="admin-page">
+            <AdminMetricStrip
+              metrics={[
+                { id: 'users', label: 'Utilisateurs', value: stats.totalUsers },
+                {
+                  id: 'kyc-pending',
+                  label: 'KYC en attente',
+                  value: stats.pendingKyc,
+                  tone: stats.pendingKyc > 0 ? 'warning' : 'muted',
+                },
+                {
+                  id: 'kyc-review',
+                  label: 'KYC en révision',
+                  value: stats.underReviewKyc,
+                  tone: 'info',
+                },
+                {
+                  id: 'tx-pending',
+                  label: 'Trans. en attente',
+                  value: stats.pendingTransactions,
+                  tone: stats.pendingTransactions > 0 ? 'warning' : 'muted',
+                },
+                {
+                  id: 'tx-done',
+                  label: 'Trans. complétées',
+                  value: stats.completedTransactions,
+                  tone: 'success',
+                },
+              ]}
+            />
 
             {/* Financial Summary */}
             <div className="admin-grid admin-grid-2">
@@ -1364,9 +1323,10 @@ export default function AdminDashboard() {
                   </h3>
                 </div>
                 <div className="admin-card-content">
-                  <div className="text-3xl font-bold text-[var(--admin-emerald)]">
-                    {Math.round(stats.totalDeposits).toLocaleString('fr-SN')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
+                  <div className="text-[2rem] font-bold tracking-tight tabular-nums text-[var(--admin-ink)]">
+                    {Math.round(stats.totalDeposits).toLocaleString('fr-SN')} <span className="text-base font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
+                  <p className="mt-1.5 text-xs text-[var(--admin-text-muted)]">Cumul des dépôts confirmés</p>
                 </div>
               </div>
 
@@ -1378,9 +1338,10 @@ export default function AdminDashboard() {
                   </h3>
                 </div>
                 <div className="admin-card-content">
-                  <div className="text-3xl font-bold text-[var(--admin-sky)]">
-                    {Math.round(stats.totalInvestments).toLocaleString('fr-SN')} <span className="text-lg font-medium text-[var(--admin-text-muted)]">FCFA</span>
+                  <div className="text-[2rem] font-bold tracking-tight tabular-nums text-[var(--admin-ink)]">
+                    {Math.round(stats.totalInvestments).toLocaleString('fr-SN')} <span className="text-base font-medium text-[var(--admin-text-muted)]">FCFA</span>
                   </div>
+                  <p className="mt-1.5 text-xs text-[var(--admin-text-muted)]">Cumul des investissements confirmés</p>
                 </div>
               </div>
             </div>
@@ -2666,183 +2627,19 @@ export default function AdminDashboard() {
 
         {/* Sponsor Codes Tab */}
         {activeTab === 'sponsorCodes' && (
-          <div className="space-y-8">
-            {/* Stats Cards */}
-            <div className="admin-grid admin-grid-4">
-              <div className="admin-stat-card" data-color="sky">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Total codes</span>
-                  <div className="admin-stat-icon"><Gift className="w-5 h-5" /></div>
-                </div>
-                <div className="admin-stat-value">{sponsorCodeStats.total}</div>
-              </div>
-              <div className="admin-stat-card" data-color="emerald">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Codes actifs</span>
-                  <div className="admin-stat-icon"><CheckCircle className="w-5 h-5" /></div>
-                </div>
-                <div className="admin-stat-value colored">{sponsorCodeStats.active}</div>
-              </div>
-              <div className="admin-stat-card" data-color="neutral">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Codes inactifs</span>
-                  <div className="admin-stat-icon"><XCircle className="w-5 h-5" /></div>
-                </div>
-                <div className="admin-stat-value">{sponsorCodeStats.inactive}</div>
-              </div>
-              <div className="admin-stat-card" data-color="rose">
-                <div className="admin-stat-header">
-                  <span className="admin-stat-label">Codes expirés</span>
-                  <div className="admin-stat-icon"><Clock className="w-5 h-5" /></div>
-                </div>
-                <div className="admin-stat-value">{sponsorCodeStats.expired}</div>
-              </div>
-            </div>
-
-            {/* Sponsor Codes Table */}
-            <div className="admin-card">
-              <div className="admin-card-header">
-                <div>
-                  <h3 className="admin-card-title">Codes de parrainage</h3>
-                  <p className="admin-card-subtitle">Gérez les codes de parrainage pour APE Sénégal</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <select
-                    value={sponsorCodeStatusFilter}
-                    onChange={(e) => setSponsorCodeStatusFilter(e.target.value)}
-                    className="admin-select"
-                  >
-                    <option value="">Tous les statuts</option>
-                    <option value="ACTIVE">Actifs</option>
-                    <option value="INACTIVE">Inactifs</option>
-                    <option value="EXPIRED">Expirés</option>
-                  </select>
-                  <button
-                    onClick={() => {
-                      setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
-                      setShowCreateCodeModal(true)
-                    }}
-                    className="admin-btn admin-btn-primary"
-                  >
-                    <Gift className="w-4 h-4 mr-2" />
-                    Nouveau code
-                  </button>
-                </div>
-              </div>
-              <div className="admin-card-body p-0">
-                <div className="admin-table-container">
-                  {sponsorCodes.filter(code => !sponsorCodeStatusFilter || code.status === sponsorCodeStatusFilter).length > 0 ? (
-                    <table className="admin-table">
-                      <thead>
-                        <tr>
-                          <th>Code</th>
-                          <th>Description</th>
-                          <th>Statut</th>
-                          <th>Utilisations</th>
-                          <th>Limite</th>
-                          <th>Expiration</th>
-                          <th>Créé par</th>
-                          <th>Date création</th>
-                          <th className="text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {sponsorCodes
-                          .filter(code => !sponsorCodeStatusFilter || code.status === sponsorCodeStatusFilter)
-                          .map((code) => {
-                            const statusConfig = SPONSOR_CODE_STATUS_CONFIG[code.status as keyof typeof SPONSOR_CODE_STATUS_CONFIG] || { label: code.status, color: 'neutral' }
-                            return (
-                              <tr key={code.id}>
-                                <td>
-                                  <span className="font-mono font-semibold text-[var(--admin-primary)]">{code.code}</span>
-                                </td>
-                                <td>
-                                  <span className="text-sm text-[var(--admin-text-muted)]">
-                                    {code.description || '-'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className={`admin-badge admin-badge-${statusConfig.color}`}>
-                                    {statusConfig.label}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="font-medium">{code.usageCount}</span>
-                                </td>
-                                <td>
-                                  <span className="text-sm">
-                                    {code.maxUsage ? code.maxUsage : 'Illimité'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="text-sm">
-                                    {code.expiresAt 
-                                      ? new Date(code.expiresAt).toLocaleDateString('fr-FR')
-                                      : 'Jamais'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="text-sm">
-                                    {code.createdByAdmin?.name || '-'}
-                                  </span>
-                                </td>
-                                <td>
-                                  <span className="text-sm text-[var(--admin-text-muted)]">
-                                    {new Date(code.createdAt).toLocaleDateString('fr-FR')}
-                                  </span>
-                                </td>
-                                <td>
-                                  <div className="flex items-center justify-end gap-2">
-                                    <button
-                                      onClick={() => openEditCodeModal(code)}
-                                      className="admin-btn admin-btn-ghost admin-btn-sm"
-                                      title="Modifier"
-                                    >
-                                      <Edit className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                      onClick={() => handleToggleSponsorCodeStatus(code)}
-                                      className={`admin-btn admin-btn-ghost admin-btn-sm ${code.status === 'ACTIVE' ? 'text-amber-600' : 'text-emerald-600'}`}
-                                      title={code.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
-                                      disabled={code.status === 'EXPIRED'}
-                                    >
-                                      {code.status === 'ACTIVE' ? <Ban className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-                                    </button>
-                                    <button
-                                      onClick={() => handleDeleteSponsorCode(code)}
-                                      className="admin-btn admin-btn-ghost admin-btn-sm text-rose-600"
-                                      title="Supprimer"
-                                    >
-                                      <Trash2 className="w-4 h-4" />
-                                    </button>
-                                  </div>
-                                </td>
-                              </tr>
-                            )
-                          })}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <div className="admin-empty-state">
-                      <Gift className="admin-empty-icon" />
-                      <p className="admin-empty-title">Aucun code de parrainage</p>
-                      <p className="admin-empty-text">Créez votre premier code de parrainage</p>
-                      <button
-                        onClick={() => {
-                          setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
-                          setShowCreateCodeModal(true)
-                        }}
-                        className="admin-btn admin-btn-primary mt-4"
-                      >
-                        <Gift className="w-4 h-4 mr-2" />
-                        Créer un code
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
+          <SponsorCodesTab
+            codes={sponsorCodes}
+            stats={sponsorCodeStats}
+            statusFilter={sponsorCodeStatusFilter}
+            onStatusFilterChange={setSponsorCodeStatusFilter}
+            onCreateClick={() => {
+              setNewCodeData({ code: '', description: '', maxUsage: '', expiresAt: '' })
+              setShowCreateCodeModal(true)
+            }}
+            onEdit={openEditCodeModal}
+            onToggleStatus={handleToggleSponsorCodeStatus}
+            onDelete={handleDeleteSponsorCode}
+          />
         )}
 
         {/* PEE Leads Tab */}
