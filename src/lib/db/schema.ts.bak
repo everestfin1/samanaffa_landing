@@ -442,24 +442,5 @@ export type PeeLead = typeof peeLeads.$inferSelect;
 export type NewPeeLead = typeof peeLeads.$inferInsert;
 export type FormDraft = typeof formDrafts.$inferSelect;
 export type NewFormDraft = typeof formDrafts.$inferInsert;
-// Dashboard Cards — admin-configurable overview widgets
-export const dashboardCards = pgTable('dashboard_cards', {
-  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  title: text('title').notNull(),
-  type: text('type').notNull(), // 'stat' | 'chart' | 'list' | 'link' | 'group'
-  dataSource: text('dataSource').notNull(), // e.g. 'aum', 'totalUsers', 'pendingKyc', 'recentActivity'
-  color: text('color').notNull().default('default'), // 'default' | 'dark' | 'green' | 'amber' | 'blue' | 'red' | 'gradient'
-  colSpan: integer('colSpan').notNull().default(3), // 1..12
-  order: integer('order').notNull().default(0),
-  icon: text('icon'),
-  link: text('link'), // href for link-type cards
-  visible: boolean('visible').notNull().default(true),
-  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
-  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
-});
-
-export type DashboardCard = typeof dashboardCards.$inferSelect;
-export type NewDashboardCard = typeof dashboardCards.$inferInsert;
-
 export type FormEvent = typeof formEvents.$inferSelect;
 export type NewFormEvent = typeof formEvents.$inferInsert;

@@ -273,6 +273,21 @@ export const paymentCallbackLogs = pgTable("payment_callback_logs", {
 		}).onUpdate("cascade").onDelete("cascade"),
 ]);
 
+export const dashboardCards = pgTable("dashboard_cards", {
+	id: text().primaryKey().notNull(),
+	title: text().notNull(),
+	type: text().notNull(),
+	dataSource: text("dataSource").notNull(),
+	color: text().notNull().default('default'),
+	colSpan: integer("colSpan").notNull().default(3),
+	order: integer().notNull().default(0),
+	icon: text(),
+	link: text(),
+	visible: boolean().notNull().default(true),
+	createdAt: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	updatedAt: timestamp({ precision: 3, mode: 'string' }).notNull(),
+});
+
 export const notifications = pgTable("notifications", {
 	id: text().primaryKey().notNull(),
 	userId: text().notNull(),

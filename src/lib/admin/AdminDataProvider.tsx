@@ -20,6 +20,7 @@ import {
   type AdminUser,
   type ApeStats,
   type ApeSubscription,
+  type DashboardCardConfig,
   type DashboardStats,
   type KycDocument,
   type PeeLead,
@@ -42,6 +43,7 @@ interface AdminDataContextValue {
   sponsorCodeStats: SponsorCodeStats
   peeLeads: PeeLead[]
   peeLeadStats: PeeLeadStats
+  dashboardCards: DashboardCardConfig[]
   refresh: () => Promise<void>
   /** fetch wrapper that injects the admin bearer token; redirects to login on 401 */
   authedFetch: (input: string, init?: RequestInit) => Promise<Response>
@@ -76,6 +78,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [sponsorCodeStats, setSponsorCodeStats] = useState<SponsorCodeStats>(EMPTY_SPONSOR_STATS)
   const [peeLeads, setPeeLeads] = useState<PeeLead[]>([])
   const [peeLeadStats, setPeeLeadStats] = useState<PeeLeadStats>(EMPTY_PEE_STATS)
+  const [dashboardCards, setDashboardCards] = useState<DashboardCardConfig[]>([])
 
   const authedFetch = useCallback(
     async (input: string, init: RequestInit = {}) => {
@@ -111,16 +114,17 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setError(null)
 
-      const [usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes] = await Promise.all([
+      const [usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes, cardsRes] = await Promise.all([
         fetch('/api/admin/users', { headers }),
         fetch('/api/admin/transactions', { headers }),
         fetch('/api/admin/kyc', { headers }),
         fetch('/api/admin/ape-subscriptions', { headers }),
         fetch('/api/admin/sponsor-codes', { headers }),
         fetch('/api/admin/pee-leads', { headers }),
+        fetch('/api/admin/dashboard-config', { headers }),
       ])
 
-      if ([usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes].some((r) => r.status === 401)) {
+      if ([usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes, cardsRes].some((r) => r.status === 401)) {
         router.push('/admin/login')
         return
       }
@@ -171,6 +175,11 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         setPeeLeadStats(peeData.stats)
       }
 
+      const cardsData = await cardsRes.json()
+      if (cardsData.success) {
+        setDashboardCards(cardsData.cards)
+      }
+
       setStats(nextStats)
     } catch (err) {
       console.error('Error fetching admin data:', err)
@@ -208,6 +217,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       sponsorCodeStats,
       peeLeads,
       peeLeadStats,
+      dashboardCards,
       refresh,
       authedFetch,
     }),
@@ -225,6 +235,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       sponsorCodeStats,
       peeLeads,
       peeLeadStats,
+      dashboardCards,
       refresh,
       authedFetch,
     ],

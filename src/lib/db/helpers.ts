@@ -1333,6 +1333,52 @@ const utils = {
   },
 };
 
+// Prisma-compatible query builder for Dashboard Cards
+export const dashboardCard = {
+  async findMany(params?: { where?: WhereClause; orderBy?: any }) {
+    let query = db.select().from(schema.dashboardCards);
+
+    if (params?.where) {
+      const condition = buildWhereConditions(schema.dashboardCards, params.where);
+      if (condition) query = query.where(condition) as any;
+    }
+
+    if (params?.orderBy) {
+      const orderKey = Object.keys(params.orderBy)[0];
+      const orderDir = params.orderBy[orderKey];
+      const column = (schema.dashboardCards as any)[orderKey];
+      if (column) {
+        query = query.orderBy(orderDir === 'desc' ? desc(column) : asc(column)) as any;
+      }
+    }
+
+    return await query;
+  },
+
+  async create(params: { data: any }) {
+    const now = new Date();
+    const dataWithTimestamps = {
+      ...params.data,
+      createdAt: params.data.createdAt || now,
+      updatedAt: params.data.updatedAt || now
+    };
+    const results = await db.insert(schema.dashboardCards).values(dataWithTimestamps).returning();
+    return results[0];
+  },
+
+  async update(params: { where: { id: string }; data: any }) {
+    const results = await db.update(schema.dashboardCards)
+      .set({ ...params.data, updatedAt: new Date() })
+      .where(eq(schema.dashboardCards.id, params.where.id))
+      .returning();
+    return results[0];
+  },
+
+  async delete(params: { where: { id: string } }) {
+    await db.delete(schema.dashboardCards).where(eq(schema.dashboardCards.id, params.where.id));
+  },
+};
+
 // Export Prisma-compatible interface
 export const prisma = {
   user,
@@ -1348,6 +1394,7 @@ export const prisma = {
   session,
   apeSubscription,
   apeSponsorCode,
+  dashboardCard,
   $transaction: utils.$transaction,
   $disconnect: utils.$disconnect,
 };

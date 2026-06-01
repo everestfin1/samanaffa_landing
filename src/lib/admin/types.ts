@@ -172,3 +172,18 @@ export const EMPTY_PEE_STATS: PeeLeadStats = {
   contacted: 0,
   converted: 0,
 }
+
+export interface DashboardCardConfig {
+  id: string
+  title: string
+  type: 'stat' | 'chart' | 'list' | 'link' | 'group'
+  dataSource: string
+  color: string
+  colSpan: number
+  order: number
+  icon?: string
+  link?: string
+  visible: boolean
+  createdAt: string
+  updatedAt: string
+}

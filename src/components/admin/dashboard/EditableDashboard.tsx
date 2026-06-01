@@ -1,0 +1,244 @@
+'use client'
+
+import { useState, useMemo, useCallback } from 'react'
+import {
+  Pencil, Trash2, Plus, Save, ChevronUp, ChevronDown, LayoutDashboard,
+} from 'lucide-react'
+import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import type { DashboardCardConfig } from '@/lib/admin/types'
+import { renderCard } from './CardRenderers'
+import CardEditorModal from './CardEditorModal'
+import { colSpanClass } from './gridUtils'
+
+export default function EditableDashboard() {
+  const {
+    stats, transactions, loading, dashboardCards, refresh, authedFetch,
+  } = useAdminData()
+
+  const [editMode, setEditMode] = useState(false)
+  const [editingCard, setEditingCard] = useState<DashboardCardConfig | null>(null)
+  const [showAdd, setShowAdd] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const visibleCards = useMemo(
+    () => [...dashboardCards].filter((c) => c.visible).sort((a, b) => a.order - b.order),
+    [dashboardCards],
+  )
+
+  const recent = useMemo(
+    () =>
+      [...transactions]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+    [transactions],
+  )
+
+  const trend = useMemo(() => {
+    const completed = [...transactions]
+      .filter((t) => t.status === 'COMPLETED' && t.intentType !== 'WITHDRAWAL')
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    if (completed.length < 2) return []
+    let acc = 0
+    return completed.map((t) => (acc += Number(t.amount) || 0))
+  }, [transactions])
+
+  const ctx = { stats, loading, recent, trend }
+
+  const greeting = (() => {
+    const h = new Date().getHours()
+    if (h < 12) return 'Bonjour'
+    if (h < 18) return 'Bon après-midi'
+    return 'Bonsoir'
+  })()
+
+  const handleReorder = useCallback(
+    async (id: string, direction: 'up' | 'down') => {
+      const idx = visibleCards.findIndex((c) => c.id === id)
+      if (idx === -1) return
+      const swapIdx = direction === 'up' ? idx - 1 : idx + 1
+      if (swapIdx < 0 || swapIdx >= visibleCards.length) return
+      const next = [...visibleCards]
+      const temp = next[idx].order
+      next[idx].order = next[swapIdx].order
+      next[swapIdx].order = temp
+      setSaving(true)
+      try {
+        await authedFetch('/api/admin/dashboard-config', {
+          method: 'PUT',
+          body: JSON.stringify({ cards: next.map((c) => ({ id: c.id, order: c.order, colSpan: c.colSpan })) }),
+        })
+        await refresh()
+      } finally {
+        setSaving(false)
+      }
+    },
+    [visibleCards, authedFetch, refresh],
+  )
+
+  const handleDelete = useCallback(
+    async (id: string) => {
+      if (!confirm('Supprimer cette carte ?')) return
+      setSaving(true)
+      try {
+        await authedFetch(`/api/admin/dashboard-config?id=${id}`, { method: 'DELETE' })
+        await refresh()
+      } finally {
+        setSaving(false)
+      }
+    },
+    [authedFetch, refresh],
+  )
+
+  const handleSaveCard = useCallback(
+    async (card: Partial<DashboardCardConfig>) => {
+      setSaving(true)
+      try {
+        if (card.id) {
+          await authedFetch('/api/admin/dashboard-config', {
+            method: 'PUT',
+            body: JSON.stringify(card),
+          })
+        } else {
+          await authedFetch('/api/admin/dashboard-config', {
+            method: 'POST',
+            body: JSON.stringify({ ...card, order: visibleCards.length }),
+          })
+        }
+        await refresh()
+        setEditingCard(null)
+        setShowAdd(false)
+      } finally {
+        setSaving(false)
+      }
+    },
+    [authedFetch, refresh, visibleCards.length],
+  )
+
+  return (
+    <div>
+      {/* Header */}
+      <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-500">
+            {new Date().toLocaleDateString('fr-SN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+          <h1 className="mt-1 text-[2.25rem] font-bold leading-none tracking-tight">{greeting}.</h1>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setEditMode((v) => !v)}
+            disabled={saving}
+            className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-[0_8px_30px_-12px_rgba(1,8,27,0.18)] transition-all disabled:opacity-50 ${
+              editMode ? 'bg-[#01081b] text-white' : 'bg-white text-[#01081b] hover:shadow-[0_12px_36px_-12px_rgba(1,8,27,0.28)]'
+            }`}
+          >
+            {editMode ? <Save size={16} /> : <Pencil size={16} />}
+            {editMode ? 'Terminer' : 'Personnaliser'}
+          </button>
+          {editMode && (
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              disabled={saving}
+              className="flex items-center gap-2 rounded-full bg-[#435933] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(67,89,51,0.6)] transition-all hover:bg-[#36482a] disabled:opacity-50"
+            >
+              <Plus size={16} />
+              Ajouter
+            </button>
+          )}
+        </div>
+      </header>
+
+      {editMode && (
+        <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-sm text-amber-800">
+          Mode édition actif. Cliquez sur <Pencil size={14} className="inline mx-1" /> pour modifier,
+          <ChevronUp size={14} className="inline mx-1" /> <ChevronDown size={14} className="inline mx-1" /> pour réorganiser,
+          et <Trash2 size={14} className="inline mx-1" /> pour supprimer.
+        </div>
+      )}
+
+      {/* Grid */}
+      {loading && visibleCards.length === 0 ? (
+        <div className="grid grid-cols-12 gap-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="col-span-12 lg:col-span-3 h-32 animate-pulse rounded-[1.5rem] bg-slate-100" />
+          ))}
+        </div>
+      ) : visibleCards.length === 0 ? (
+        <div className="py-20 text-center">
+          <div className="mx-auto mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-slate-50 text-slate-300">
+            <LayoutDashboard size={24} />
+          </div>
+          <p className="text-lg font-bold text-slate-700">Aucune carte configurée</p>
+          <p className="mt-1 text-sm text-slate-400">Activez le mode édition pour ajouter des widgets.</p>
+          <button
+            type="button"
+            onClick={() => { setEditMode(true); setShowAdd(true) }}
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-[#435933] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(67,89,51,0.6)]"
+          >
+            <Plus size={16} /> Ajouter une carte
+          </button>
+        </div>
+      ) : (
+        <div className="grid auto-rows-[minmax(150px,auto)] grid-cols-12 gap-5">
+          {visibleCards.map((card, idx) => (
+            <div key={card.id} className={`relative col-span-12 ${colSpanClass(card.colSpan)} group`}>
+              {renderCard(card, ctx)}
+
+              {editMode && (
+                <div className="absolute inset-0 z-20 flex items-start justify-end gap-1 rounded-[1.75rem] bg-[#01081b]/5 p-3 opacity-0 transition-opacity group-hover:opacity-100">
+                  <button
+                    type="button"
+                    onClick={() => handleReorder(card.id, 'up')}
+                    disabled={idx === 0 || saving}
+                    className="rounded-full bg-white p-2 text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-30"
+                    title="Monter"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleReorder(card.id, 'down')}
+                    disabled={idx === visibleCards.length - 1 || saving}
+                    className="rounded-full bg-white p-2 text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-30"
+                    title="Descendre"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingCard(card)}
+                    disabled={saving}
+                    className="rounded-full bg-white p-2 text-[#435933] shadow-sm hover:bg-[#f5faf5] disabled:opacity-30"
+                    title="Modifier"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(card.id)}
+                    disabled={saving}
+                    className="rounded-full bg-white p-2 text-rose-500 shadow-sm hover:bg-rose-50 disabled:opacity-30"
+                    title="Supprimer"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {(showAdd || editingCard) && (
+        <CardEditorModal
+          card={editingCard}
+          onClose={() => { setShowAdd(false); setEditingCard(null) }}
+          onSave={handleSaveCard}
+          saving={saving}
+        />
+      )}
+    </div>
+  )
+}
