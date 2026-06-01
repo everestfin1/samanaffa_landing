@@ -49,15 +49,10 @@ describe('dashboard-config-validation', () => {
     }
   })
 
-  it('resolveDashboardCardVariant prefers dataSource for charts', () => {
-    expect(
-      resolveDashboardCardVariant({ type: 'chart', dataSource: 'totalUsers' }),
-    ).toBe('stat')
-    expect(
-      resolveDashboardCardVariant({ type: 'stat', dataSource: 'aum' }),
-    ).toBe('aum')
-    expect(
-      resolveDashboardCardVariant({ type: 'stat', dataSource: 'kycAction' }),
-    ).toBe('link')
+  it('resolveDashboardCardVariant uses registry', () => {
+    expect(resolveDashboardCardVariant({ type: 'chart', dataSource: 'totalUsers' })).toBe('stat')
+    expect(resolveDashboardCardVariant({ type: 'stat', dataSource: 'aum' })).toBe('aum')
+    expect(resolveDashboardCardVariant({ type: 'stat', dataSource: 'kycAction' })).toBe('link')
+    expect(resolveDashboardCardVariant({ type: 'stat', dataSource: 'recentApe' })).toBe('list')
   })
 })

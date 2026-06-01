@@ -147,7 +147,9 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         const list: AdminTransaction[] = txData.transactionIntents
         setTransactions(list)
         nextStats.pendingTransactions = list.filter((t) => t.status === 'PENDING').length
+        nextStats.processingTransactions = list.filter((t) => t.status === 'PROCESSING').length
         nextStats.completedTransactions = list.filter((t) => t.status === 'COMPLETED').length
+        nextStats.failedTransactions = list.filter((t) => t.status === 'FAILED').length
         nextStats.totalDeposits = list
           .filter((t) => t.intentType === 'DEPOSIT' && t.status === 'COMPLETED')
           .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)

@@ -2,7 +2,23 @@
 
 ## Overview
 
-Admins customize the `/admin` overview via a bento grid stored in `dashboard_cards`. Layout uses **largeur** (`colSpan`, 1–12) and **hauteur** (`rowSpan`, 1–4). Each row track is 180px (`gap-5` between rows); `dashboardGridRowStyle()` sets `grid-row: span N` plus an explicit `minHeight` so height changes are visible.
+Admins customize the `/admin` overview via a bento grid stored in `dashboard_cards`. Layout uses **largeur** (`colSpan`, 1–12) and **hauteur** (`rowSpan`, 1–4).
+
+## Data sources
+
+All metrics and list types are defined in `src/lib/admin/dashboard-data-registry.ts`, grouped by domain:
+
+| Category | Examples |
+|----------|----------|
+| Trésorerie | AUM, dépôts, investissements |
+| Utilisateurs | Total clients |
+| Transactions | En attente, complétées, activité récente |
+| KYC | File documents, CTA `/admin/kyc` |
+| APE | Souscriptions, montants, liste récente |
+| PEE | Leads nouveaux / convertis |
+| Codes parrain | Actifs, total |
+
+The card editor applies **defaults** (type, icon, link, size) when the data source changes. **Modèles rapides** speed up adding common cards.
 
 ## API
 

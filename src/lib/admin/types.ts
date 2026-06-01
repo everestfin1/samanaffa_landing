@@ -5,7 +5,9 @@ export interface DashboardStats {
   pendingKyc: number
   underReviewKyc: number
   pendingTransactions: number
+  processingTransactions: number
   completedTransactions: number
+  failedTransactions: number
   totalDeposits: number
   totalInvestments: number
 }
@@ -144,7 +146,9 @@ export const EMPTY_DASHBOARD_STATS: DashboardStats = {
   pendingKyc: 0,
   underReviewKyc: 0,
   pendingTransactions: 0,
+  processingTransactions: 0,
   completedTransactions: 0,
+  failedTransactions: 0,
   totalDeposits: 0,
   totalInvestments: 0,
 }

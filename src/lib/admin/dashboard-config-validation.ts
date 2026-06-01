@@ -1,21 +1,13 @@
 import type { DashboardCardConfig } from '@/lib/admin/types'
+import {
+  DASHBOARD_DATA_SOURCES,
+  resolveDashboardCardVariant,
+} from '@/lib/admin/dashboard-data-registry'
+
+export { DASHBOARD_DATA_SOURCES, resolveDashboardCardVariant }
 
 export const DASHBOARD_CARD_TYPES = ['stat', 'chart', 'list', 'link', 'group'] as const
 export type DashboardCardType = (typeof DASHBOARD_CARD_TYPES)[number]
-
-export const DASHBOARD_DATA_SOURCES = [
-  'aum',
-  'totalUsers',
-  'pendingKyc',
-  'underReviewKyc',
-  'pendingTransactions',
-  'completedTransactions',
-  'totalDeposits',
-  'totalInvestments',
-  'recentActivity',
-  'kycAction',
-  'transactionBreakdown',
-] as const
 
 export const DASHBOARD_ICONS = [
   'Wallet',
@@ -154,20 +146,6 @@ export function validateDashboardCardWrite(
       visible: body.visible !== false,
     },
   }
-}
-
-export type DashboardCardVariant = 'aum' | 'link' | 'list' | 'group' | 'stat'
-
-/** Determines which renderer branch to use (dataSource wins over type). */
-export function resolveDashboardCardVariant(card: {
-  type: string
-  dataSource: string
-}): DashboardCardVariant {
-  if (card.dataSource === 'aum') return 'aum'
-  if (card.type === 'link' || card.dataSource === 'kycAction') return 'link'
-  if (card.type === 'list' || card.dataSource === 'recentActivity') return 'list'
-  if (card.type === 'group' || card.dataSource === 'transactionBreakdown') return 'group'
-  return 'stat'
 }
 
 export function serializeDashboardCard(card: {

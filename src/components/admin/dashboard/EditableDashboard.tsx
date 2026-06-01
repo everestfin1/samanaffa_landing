@@ -6,13 +6,24 @@ import {
 } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import type { DashboardCardConfig } from '@/lib/admin/types'
-import { renderCard } from './CardRenderers'
+import { renderCard, type RenderContext } from './CardRenderers'
 import CardEditorModal from './CardEditorModal'
 import { colSpanClass, dashboardGridRowStyle, rowSpanClass } from './gridUtils'
 
 export default function EditableDashboard() {
   const {
-    stats, transactions, loading, dashboardCards, refreshDashboardCards, authedFetch,
+    stats,
+    transactions,
+    kycDocuments,
+    apeSubscriptions,
+    apeStats,
+    peeLeads,
+    peeLeadStats,
+    sponsorCodeStats,
+    loading,
+    dashboardCards,
+    refreshDashboardCards,
+    authedFetch,
   } = useAdminData()
 
   const [editMode, setEditMode] = useState(false)
@@ -53,7 +64,43 @@ export default function EditableDashboard() {
     return completed.map((t) => (acc += Number(t.amount) || 0))
   }, [transactions])
 
-  const ctx = { stats, loading, recent, trend }
+  const kycQueue = useMemo(
+    () =>
+      [...kycDocuments]
+        .filter((d) => d.verificationStatus === 'PENDING' || d.verificationStatus === 'UNDER_REVIEW')
+        .sort((a, b) => new Date(b.uploadDate).getTime() - new Date(a.uploadDate).getTime())
+        .slice(0, 5),
+    [kycDocuments],
+  )
+
+  const recentApe = useMemo(
+    () =>
+      [...apeSubscriptions]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+    [apeSubscriptions],
+  )
+
+  const recentPee = useMemo(
+    () =>
+      [...peeLeads]
+        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+        .slice(0, 5),
+    [peeLeads],
+  )
+
+  const ctx: RenderContext = {
+    stats,
+    apeStats,
+    peeLeadStats,
+    sponsorCodeStats,
+    loading,
+    recent,
+    kycQueue,
+    recentApe,
+    recentPee,
+    trend,
+  }
 
   const greeting = (() => {
     const h = new Date().getHours()
@@ -340,8 +387,9 @@ export default function EditableDashboard() {
 
       {(showAdd || editingCard) && (
         <CardEditorModal
-          key={editingCard?.id ?? 'new'}
+          key={editingCard?.id ?? `new-${showAdd}`}
           card={editingCard}
+          isNew={showAdd && !editingCard}
           onClose={() => { setShowAdd(false); setEditingCard(null) }}
           onSave={handleSaveCard}
           saving={saving}
