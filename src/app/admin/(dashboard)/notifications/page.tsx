@@ -1,5 +1,5 @@
-import SectionPlaceholder from '@/components/admin/layout/SectionPlaceholder'
+import NotificationManagement from '@/components/admin/NotificationManagement'
 
 export default function NotificationsPage() {
-  return <SectionPlaceholder tabId="notifications" />
+  return <NotificationManagement />
 }

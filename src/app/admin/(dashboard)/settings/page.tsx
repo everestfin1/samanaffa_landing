@@ -1,5 +1,5 @@
-import SectionPlaceholder from '@/components/admin/layout/SectionPlaceholder'
+import NotificationSettings from '@/components/admin/NotificationSettings'
 
 export default function SettingsPage() {
-  return <SectionPlaceholder tabId="settings" />
+  return <NotificationSettings />
 }

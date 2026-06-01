@@ -1,5 +1,5 @@
-import SectionPlaceholder from '@/components/admin/layout/SectionPlaceholder'
+import IntouchReconciliation from '@/components/admin/IntouchReconciliation'
 
 export default function ReconciliationPage() {
-  return <SectionPlaceholder tabId="reconciliation" />
+  return <IntouchReconciliation onReconcile={async () => {}} />
 }

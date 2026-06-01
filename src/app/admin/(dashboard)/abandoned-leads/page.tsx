@@ -1,5 +1,5 @@
-import SectionPlaceholder from '@/components/admin/layout/SectionPlaceholder'
+import AbandonedLeadsTab from '@/components/admin/AbandonedLeadsTab'
 
 export default function AbandonedLeadsPage() {
-  return <SectionPlaceholder tabId="abandonedLeads" />
+  return <AbandonedLeadsTab />
 }
