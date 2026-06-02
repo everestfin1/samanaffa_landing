@@ -40,7 +40,7 @@
       padding: 0;
     }
 
-    /* Cover — sama-naffa_bg.jpg (home / brand hero) + brand overlay */
+    /* Cover — sama-naffa_bg.jpg (home / brand hero), no tint overlay */
     .cover {
       position: relative;
       color: var(--white);
@@ -61,21 +61,6 @@
       object-fit: cover;
       object-position: left center;
       display: block;
-    }
-
-    .cover-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      /* Illustration on the left; clear readable zone on the right */
-      background:
-        linear-gradient(
-          90deg,
-          rgba(255, 255, 255, 0) 0%,
-          rgba(247, 246, 246, 0.65) 48%,
-          rgba(255, 255, 255, 0.92) 62%,
-          rgba(255, 255, 255, 0.97) 100%
-        );
     }
 
     .cover-inner {
@@ -403,7 +388,6 @@
       <div class="cover-bg" aria-hidden="true">
         <img src="../../public/sama-naffa_bg.jpg" alt="" />
       </div>
-      <div class="cover-overlay" aria-hidden="true"></div>
       <div class="cover-inner">
         <div class="cover-top">
           <img src="../../public/sama_naffa_logo.png" alt="Sama Naffa" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';" />
