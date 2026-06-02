@@ -40,10 +40,10 @@ interface ReconciliationResult {
 }
 
 interface IntouchReconciliationProps {
-  onReconcile: (matches: ReconciliationMatch[]) => Promise<void>
+  onReconcileSuccess?: () => void | Promise<void>
 }
 
-export default function IntouchReconciliation({ onReconcile }: IntouchReconciliationProps) {
+export default function IntouchReconciliation({ onReconcileSuccess }: IntouchReconciliationProps) {
   const [file, setFile] = useState<File | null>(null)
   const [parsing, setParsing] = useState(false)
   const [reconciling, setReconciling] = useState(false)
@@ -141,7 +141,20 @@ export default function IntouchReconciliation({ onReconcile }: IntouchReconcilia
 
     setReconciling(true)
     try {
-      await onReconcile(matchesToReconcile)
+      const token = localStorage.getItem('admin_token')
+      const response = await fetch('/api/admin/ape-subscriptions/reconcile', {
+        method: 'PATCH',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ matches: matchesToReconcile }),
+      })
+      const data = await response.json()
+      if (!data.success) {
+        throw new Error(data.error)
+      }
+      await onReconcileSuccess?.()
       alert(`✅ ${matchesToReconcile.length} transaction(s) réconciliée(s) avec succès`)
       setFile(null)
       setResult(null)

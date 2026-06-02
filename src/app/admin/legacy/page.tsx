@@ -2280,25 +2280,7 @@ export default function AdminDashboard() {
 
         {/* Reconciliation Tab */}
         {activeTab === 'reconciliation' && (
-          <IntouchReconciliation
-            onReconcile={async (matches) => {
-              const token = localStorage.getItem('admin_token')
-              const response = await fetch('/api/admin/ape-subscriptions/reconcile', {
-                method: 'PATCH',
-                headers: {
-                  'Authorization': `Bearer ${token}`,
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ matches }),
-              })
-              const data = await response.json()
-              if (!data.success) {
-                throw new Error(data.error)
-              }
-              // Refresh APE subscriptions data
-              await fetchDashboardData()
-            }}
-          />
+          <IntouchReconciliation onReconcileSuccess={fetchDashboardData} />
         )}
 
         {/* APE Subscriptions Tab */}
