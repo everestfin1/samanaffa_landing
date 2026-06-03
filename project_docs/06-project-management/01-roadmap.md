@@ -1,38 +1,24 @@
 # Sama Naffa — Roadmap & Travaux en cours
 
-**Mis à jour :** Mars 2026
+**Mis à jour :** Juin 2026
+
+**Priorité produit actuelle :** [07-active-product-scope.md](../01-product/07-active-product-scope.md) — **Sama Naffa uniquement** (comptes, KYC, Naffa, dépôts Intouch). APE & PEE **inactifs** côté ops.
 
 ---
 
 ## 🚧 En cours (In Progress)
 
-### PEE Leads — Intégration formulaire
-**Statut :** ⚠️ Partiellement complété — migration DB requise
+### Admin canvas — Sama Naffa ops
+**Statut :** En cours — voir [admin-issues.md](../issues/admin-issues.md)
 
-| Étape | Statut | Action |
-|-------|--------|--------|
-| Schéma DB | ✅ | Table `peeLeads` ajoutée à `drizzle/schema.ts` |
-| Migration SQL | ✅ | Fichier `drizzle/0004_add_pee_leads.sql` créé |
-| API endpoint public | ✅ | `POST /api/lead-pee` sauvegarde DB + email |
-| API endpoint admin | ✅ | `GET/PATCH /api/admin/pee-leads` créé |
-| **Appliquer migration** | ⚠️ | `bun x drizzle-kit push` — **ACTION REQUISE** |
-| **Interface admin** | ⚠️ | Ajouter onglet PEE Leads dans `src/app/admin/page.tsx` — **ACTION REQUISE** |
+| Priorité | Thème |
+|----------|--------|
+| P0 | Transactions dépôt : PENDING → PROCESSING → COMPLETED (Intouch) |
+| P1 | Utilisateurs suspend/activate ; recalcul soldes |
+| P2 | Leads abandonnés (UI canvas) ; masquer nav APE/PEE |
 
-**Schéma :**
-```typescript
-peeLeads {
-  id, civilite, prenom, nom, categorie, pays, ville,
-  telephone, email, status: 'NEW'|'CONTACTED'|'CONVERTED',
-  adminNotes, createdAt, updatedAt
-}
-```
-
-**Test du flux complet :**
-1. Soumettre formulaire sur `/pee`
-2. Vérifier sauvegarde en DB
-3. Confirmer notification email
-4. Visualiser lead dans admin
-5. Mettre à jour statut/notes depuis admin
+### ~~PEE Leads — Intégration formulaire~~
+**Statut :** ⏸️ **Inactif (PM, juin 2026)** — pas de travail admin/CRM. APIs et pages peuvent rester en place pour données historiques.
 
 ---
 

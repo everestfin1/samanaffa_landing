@@ -1,5 +1,7 @@
 # Réconciliation Intouch - Documentation d'implémentation
 
+> **Statut produit (juin 2026) :** réconciliation CSV = flux **APE Sénégal** uniquement. **Ops APE inactives** — conserver ce doc comme référence technique / historique. Les dépôts **Sama Naffa** passent par les **transaction intents** et la confirmation Intouch manuelle ([07-active-product-scope.md](../01-product/07-active-product-scope.md), `ADM-004`).
+
 ## Vue d'ensemble
 
 Système de réconciliation des paiements APE avec les transactions Intouch via import CSV.

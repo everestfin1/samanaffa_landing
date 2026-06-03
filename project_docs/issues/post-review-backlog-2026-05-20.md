@@ -42,13 +42,22 @@ Use this file for remaining product/env toggles.
 |------|--------|-------|
 | Didit web browser verification | done | SDK modal desktop; redirect mobile |
 | KYC capture-only | done (Didit) + app | Didit workflow configured in console. **App (2026-05-23):** profile page — file upload removed; Didit modal CTA. Legacy `/register` + `Step4Documents` unchanged (redirects to `/onboarding`). |
-| Deprecate Emprunt obligataire | **flag ready** | Set `NEXT_PUBLIC_APE_DEPRECATED=true` on Vercel to hide nav/dashboard card and show sunset on `/portal/ape` + `/souscrire-ape`. Marketing/FAQ copy not stripped (follow-up). |
+| Deprecate Emprunt obligataire (portal) | **optional env** | `NEXT_PUBLIC_APE_DEPRECATED=true` hides client APE nav/routes. **Not the same as admin ops** — see below. |
 | Broader API integration tests | optional | OTP/rate-limit E2E not added |
 
-### Enable APE sunset (ops)
+### APE & PEE — business de-scope (2026-06-02)
+
+**PM decision:** APE and PEE are **no longer active** for operations. Engineering focus is **Sama Naffa** (accounts, KYC, Naffa, deposit/Intouch transactions). Withdrawals later.
+
+| Area | Action |
+|------|--------|
+| Admin backlog | ADM-001, ADM-002, ADM-003, ADM-009 → **wontfix** in [admin-issues.md](./admin-issues.md) |
+| Canonical scope | [07-active-product-scope.md](../01-product/07-active-product-scope.md) |
+| Portal (optional) | Still valid to set `NEXT_PUBLIC_APE_DEPRECATED=true` to hide client APE UI |
+| Code (later) | ADM-017: hide admin nav for APE / PEE / réconciliation / sponsor codes |
 
 ```bash
-# Vercel → Environment Variables (Preview + Production when ready)
+# Optional — client portal only (Preview + Production)
 NEXT_PUBLIC_APE_DEPRECATED=true
 ```
 

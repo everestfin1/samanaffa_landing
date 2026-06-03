@@ -6,9 +6,10 @@ Product specifications, business requirements, and feature documentation.
 
 | File | Description |
 |------|-------------|
+| **07-active-product-scope.md** | **Current PM scope (June 2026)** — Sama Naffa ops active; APE/PEE inactive |
 | 00-project-overview.md | High-level project vision and goals |
 | 01-business-requirements.md | **Primary reference** - Complete functional specs |
-| 02-ape-senegal-context.md | Government bond program details |
+| 02-ape-senegal-context.md | **Archive** — APE program context (product line inactive for ops) |
 | 03-client-portal-spec.md | Client portal feature specifications |
 | 04-technical-specs.md | Technical requirements and architecture |
 | 05-kyc-onboarding.md | User verification and onboarding flow |
@@ -18,11 +19,7 @@ Product specifications, business requirements, and feature documentation.
 
 ## Key Information
 
-**APE Senegal Bonds:**
-- Minimum: 10,000 FCFA
-- Terms: 3/5/7/10 years
-- Rates: 6.40% - 6.95%
-- Semi-annual interest payments
+**Active product (ops & engineering priority):** Sama Naffa épargne — see [07-active-product-scope.md](./07-active-product-scope.md).
 
 **Sama Naffa Platform:**
 - Mobile-first financial services

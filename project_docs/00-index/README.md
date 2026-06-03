@@ -1,6 +1,6 @@
 # Sama Naffa Project Documentation
 
-**Version 4.0 | Last Updated: March 2026**
+**Version 4.1 | Last Updated: June 2026**
 
 ## Quick Navigation
 
@@ -19,9 +19,10 @@
 ## Documentation by Role
 
 ### For Product Managers & Business Stakeholders
-1. Start with [01 - Product/00-project-overview.md](./01-product/00-project-overview.md)
-2. Review [01 - Product/01-business-requirements.md](./01-product/01-business-requirements.md)
-3. Check [06 - Project Management/01-roadmap.md](./06-project-management/01-roadmap.md) for timeline
+1. **Current scope:** [01 - Product/07-active-product-scope.md](./01-product/07-active-product-scope.md) (Sama Naffa ops only; APE/PEE inactive)
+2. [01 - Product/00-project-overview.md](./01-product/00-project-overview.md)
+3. [issues/admin-issues.md](./issues/admin-issues.md) — engineering backlog for admin canvas
+4. [06 - Project Management/01-roadmap.md](./06-project-management/01-roadmap.md) for timeline
 
 ### For Developers
 1. Setup: [03 - Development/04-setup-guide.md](./03-development/04-setup-guide.md)

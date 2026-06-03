@@ -1,7 +1,9 @@
 # Sama Naffa & APE Sénégal — Vue d'ensemble du projet
 
-**Mis à jour :** Mars 2026  
+**Mis à jour :** Juin 2026  
 **Société :** Everest Finance SGI (Société de Gestion et d'Intermédiation)
+
+> **Priorité ops (PM, juin 2026) :** seul **Sama Naffa** est actif (comptes, KYC, Naffa, dépôts Intouch). Les sections **APE** et **PEE** ci-dessous restent comme contexte historique — voir [07-active-product-scope.md](./07-active-product-scope.md).
 
 ---
 
@@ -58,6 +60,8 @@ La plateforme couvre 14 personas représentant des segments variés :
 ---
 
 ## 2. APE Sénégal — Appel Public à l'Épargne
+
+> **Inactif (ops, juin 2026)** — pas de nouvelles souscriptions ni d'ops admin APE/réconciliation.
 
 ### Contexte
 L'APE Sénégal est l'initiative d'obligations d'épargne publique du gouvernement sénégalais à hauteur de **150 milliards CFA**, destinée à financer des projets nationaux stratégiques inscrits dans la Vision Sénégal 2050 et la Loi de Finances 2025.
