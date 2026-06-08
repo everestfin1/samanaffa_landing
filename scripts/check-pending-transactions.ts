@@ -8,9 +8,7 @@
  *   npx tsx scripts/check-pending-transactions.ts
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/db/helpers';
 
 async function checkPendingTransactions() {
   console.log('\n=== Checking Pending Transactions ===\n');

@@ -12,13 +12,23 @@ function PaymentSuccessContent() {
   const [processingStatus, setProcessingStatus] = useState<'checking' | 'processing' | 'completed' | 'error'>('checking');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  const transactionId = searchParams.get('transactionId');
-  const referenceNumber = searchParams.get('referenceNumber');
-  const amount = searchParams.get('amount');
+  const transactionId =
+    searchParams.get('transactionId') || searchParams.get('num_transaction_from_gu');
+  const referenceNumber =
+    searchParams.get('referenceNumber') ||
+    searchParams.get('command_number') ||
+    searchParams.get('num_command');
+  const amount =
+    searchParams.get('amount') ||
+    searchParams.get('paid_amount') ||
+    searchParams.get('paid_sum');
   const status = searchParams.get('status');
-  
-  // InTouch specific parameters
-  const errorCode = searchParams.get('errorCode');
+
+  // InTouch redirect / callback parameters (names vary by channel)
+  const errorCode =
+    searchParams.get('errorCode') ||
+    searchParams.get('payment_status') ||
+    searchParams.get('status_code');
   const numTransactionFromGu = searchParams.get('num_transaction_from_gu');
 
   // Check if callback was received and process if not
@@ -85,6 +95,14 @@ function PaymentSuccessContent() {
               setProcessingStatus('error');
               setErrorMessage(manualResult.error || 'Erreur lors du traitement du paiement');
             }
+          } else if (transaction.status === 'PENDING') {
+            console.warn(
+              '[Payment Success] Transaction still PENDING — no InTouch errorCode in redirect URL; webhook may arrive later',
+            );
+            setProcessingStatus('error');
+            setErrorMessage(
+              'Paiement reçu par InTouch mais non confirmé sur votre compte. Actualisez le portail dans quelques instants ou contactez le support.',
+            );
           } else {
             setProcessingStatus('completed');
           }

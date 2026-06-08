@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
+import { getClientAppBaseUrl } from '@/lib/app-url';
 
 interface IntouchPaymentProps {
   amount: number;
@@ -289,10 +290,21 @@ export default function IntouchPayment({
         );
       }
 
-      // Construct redirect URLs - Intouch NEEDS these to redirect back after payment
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://samanaffa.com';
+      // InTouch only redirects to URLs on the registered merchant domain (see `domain` arg).
+      // On localhost, use dev.samanaffa.com (or NEXT_PUBLIC_APP_URL) — not window.location.origin.
+      const baseUrl = getClientAppBaseUrl();
       const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`;
       const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`;
+
+      if (
+        typeof window !== 'undefined' &&
+        window.location.origin !== baseUrl
+      ) {
+        console.warn(
+          '[InTouch Payment] Redirect base differs from current origin (expected for local dev):',
+          { currentOrigin: window.location.origin, redirectBase: baseUrl, intouchDomain: domain },
+        );
+      }
 
       console.log('[InTouch Payment] === CALLING SENDPAYMENTINFOS ===');
       console.log('[InTouch Payment] Reference Number:', referenceNumber);

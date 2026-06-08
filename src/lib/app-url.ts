@@ -55,3 +55,43 @@ export function getAppBaseUrl(request?: NextRequest): string {
 
   return 'http://localhost:3000';
 }
+
+function isTestIntouchEnvironment(): boolean {
+  return (
+    process.env.NEXT_PUBLIC_APP_ENV === 'development' ||
+    process.env.NEXT_PUBLIC_APP_ENV === 'test' ||
+    process.env.VERCEL_ENV === 'development' ||
+    process.env.VERCEL_ENV === 'preview' ||
+    (!process.env.NEXT_PUBLIC_APP_ENV && process.env.NODE_ENV !== 'production')
+  );
+}
+
+/**
+ * Base URL for InTouch browser redirects (success / failed pages).
+ * InTouch only honors redirect URLs on the registered merchant domain — passing
+ * http://localhost while domain=dev.samanaffa.com leaves users on touchpay.gutouch.net.
+ */
+export function getClientAppBaseUrl(): string {
+  if (typeof window !== 'undefined') {
+    const fromEnv = process.env.NEXT_PUBLIC_APP_URL?.trim();
+    if (fromEnv && !isLocalhostUrl(fromEnv)) {
+      return stripTrailingSlash(fromEnv);
+    }
+
+    const intouchDomain = (
+      isTestIntouchEnvironment()
+        ? process.env.NEXT_PUBLIC_INTOUCH_TEST_DOMAIN
+        : process.env.NEXT_PUBLIC_INTOUCH_DOMAIN
+    )
+      ?.trim()
+      .replace(/^https?:\/\//, '');
+
+    if (intouchDomain && isLocalhostUrl(window.location.origin)) {
+      return `https://${intouchDomain}`;
+    }
+
+    return stripTrailingSlash(window.location.origin);
+  }
+
+  return getAppBaseUrl();
+}

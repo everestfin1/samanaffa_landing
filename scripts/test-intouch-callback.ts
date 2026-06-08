@@ -14,9 +14,7 @@
  *   npx tsx scripts/test-intouch-callback.ts SAMA-NAFFA-DEPOSIT-1234567890-ABC123 420
  */
 
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { prisma } from '../src/lib/db/helpers';
 
 interface CallbackTestConfig {
   referenceNumber: string;
@@ -30,7 +28,7 @@ async function testCallback(config: CallbackTestConfig) {
   const {
     referenceNumber,
     paymentStatus,
-    baseUrl = process.env.INTOUCH_CALLBACK_TEST_BASE_URL || 'https://samanaffa.com',
+    baseUrl = process.env.INTOUCH_CALLBACK_TEST_BASE_URL || 'http://localhost:3000',
     username = process.env.INTOUCH_BASIC_AUTH_USERNAME_TEST,
     password = process.env.INTOUCH_BASIC_AUTH_PASSWORD_TEST,
   } = config;

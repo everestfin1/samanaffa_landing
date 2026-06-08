@@ -45,3 +45,41 @@ Mixed Auth: HIGH (maintenance burden)
 3. Implement TODOs (4-6h)
 4. Total: ~15h minimum
 
+---
+
+## CHECKPOINT — June 8, 2026
+
+**Branch:** `main-2` (1 commit ahead of `origin/main-2`, working tree clean)  
+**Product focus:** Sama Naffa ops only — see [07-active-product-scope.md](project_docs/01-product/07-active-product-scope.md)  
+**Canonical backlog:** [admin-issues.md](project_docs/issues/admin-issues.md)
+
+### This session
+No implementation work in the current chat — status review and doc refresh only.
+
+### Recent commits (code + docs)
+- **Docs (Jun 3):** v4.1 doc index, active product scope, admin issues tracker, roadmap alignment
+- **Admin canvas:** configurable bento dashboard, notification management refactor, Intouch reconciliation simplification
+- **Product PDF:** Sama Naffa user flows documentation
+
+### Health check (verified today)
+| Check | Status |
+|-------|--------|
+| `bun run type-check` | ✅ Pass |
+| `bun run test` | ✅ 9 files, 32 tests |
+| `bun run lint` | 🔴 Still broken (ESLint config schema error) |
+| `bun run build` | ⚠️ Not re-run this checkpoint |
+
+### Open engineering priorities (Sama Naffa)
+| Priority | ID | Item |
+|----------|-----|------|
+| P0 | ADM-004 | Transactions: restore PENDING → **PROCESSING** → COMPLETED workflow in canvas admin |
+| P1 | ADM-005 | User suspend/activate in canvas drawer (API exists) |
+| P1 | ADM-006 | Recalculate balances action on overview dashboard |
+| P2 | ADM-007, ADM-017 | Abandoned leads canvas UI; hide inactive APE/PEE nav |
+
+### Suggested next work
+1. **ADM-004** — highest ops impact: add "Traiter" (→ PROCESSING) and "Compléter" (→ COMPLETED) in transaction drawer; scope DEPOSIT intents first
+2. **ADM-005 + ADM-006** — wire existing APIs into canvas admin (users drawer + overview)
+3. **Push** `cd59247` to `origin/main-2` when ready
+4. **Stabilization** — fix ESLint config; confirm production build
+
