@@ -102,6 +102,21 @@ If `staging` has diverged from `origin/staging`, coordinate with the team before
 
 Configure Coolify/Vercel (or other hosts) so the staging environment tracks `staging` and production tracks `main`.
 
+### Vercel environment variables
+
+Set variables in the Vercel project for **Preview** (staging branch deploys) and **Production** separately. Minimum for a successful build and runtime:
+
+| Variable | Required |
+|----------|----------|
+| `DATABASE_URL` | Yes |
+| `NEXTAUTH_URL` | Yes |
+| `NEXTAUTH_SECRET` | Yes |
+| `ADMIN_JWT_SECRET` | Yes (admin routes) |
+
+Copy the full list from [`env.example`](../../env.example). Scope `MOCK_OTP=true` to Preview only — never Production.
+
+**Note:** `DATABASE_URL` must be present at **runtime**. The app lazy-connects to the database so `next build` does not open a connection during static analysis, but API routes will fail at request time if the variable is missing.
+
 ## Recommended GitHub settings
 
 - **Default branch:** `staging` (so PRs and clones target the integration branch).

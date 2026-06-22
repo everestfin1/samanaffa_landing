@@ -10,16 +10,22 @@ if (process.env.NODE_ENV !== 'production') {
   dotenv.config({ path: '.env.local', override: true });
 }
 
-if (!process.env.DATABASE_URL) {
+/** Placeholder only — satisfies module init during `next build` when env is unset. */
+const BUILD_PLACEHOLDER_URL =
+  'postgresql://build:build@127.0.0.1:5432/build?sslmode=disable';
+
+function resolveDatabaseUrl(): string {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+  // Vercel/CI builds import API routes before runtime env is guaranteed.
+  if (process.env.NEXT_PHASE === 'phase-production-build') {
+    return BUILD_PLACEHOLDER_URL;
+  }
   throw new Error('DATABASE_URL is not defined');
 }
 
-// Create a connection pool
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
-// Create the Drizzle instance
+const pool = new Pool({ connectionString: resolveDatabaseUrl() });
 export const db = drizzle(pool, { schema });
 
-// Export schema for convenience
 export * from './schema';
-
