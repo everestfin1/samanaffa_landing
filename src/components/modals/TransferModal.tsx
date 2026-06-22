@@ -81,11 +81,11 @@ export default function TransferModal({
     // Validate multiples of 1000 in production for both deposits and withdrawals
     if (isProduction) {
       if (requestedAmount < 1000) {
-        setError(`Le montant minimum pour un ${type === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`);
+        setError(`Le montant minimum pour un ${type === 'deposit' ? 'versement' : 'retrait'} est de 1000 FCFA`);
         return;
       }
       if (requestedAmount % 1000 !== 0) {
-        setError(`Les ${type === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`);
+        setError(`Les ${type === 'deposit' ? 'versements' : 'retraits'} doivent être des multiples de 1000 FCFA`);
         return;
       }
     }
@@ -184,11 +184,11 @@ export default function TransferModal({
     // Validate multiples of 1000 in production for both deposits and withdrawals
     if (isProduction) {
       if (requestedAmount < 1000) {
-        setError(`Le montant minimum pour un ${type === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`);
+        setError(`Le montant minimum pour un ${type === 'deposit' ? 'versement' : 'retrait'} est de 1000 FCFA`);
         return;
       }
       if (requestedAmount % 1000 !== 0) {
-        setError(`Les ${type === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`);
+        setError(`Les ${type === 'deposit' ? 'versements' : 'retraits'} doivent être des multiples de 1000 FCFA`);
         return;
       }
     }
@@ -221,7 +221,7 @@ export default function TransferModal({
 
     // Fallback to WhatsApp for other methods
     const message = encodeURIComponent(
-      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'dépôt' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA. Pouvez-vous m'aider avec le traitement du paiement ?`
+      `Bonjour, je souhaite effectuer un ${type === 'deposit' ? 'versement' : 'retrait'} de ${requestedAmount.toLocaleString()} FCFA. Pouvez-vous m'aider avec le traitement du paiement ?`
     );
     const whatsappUrl = `https://wa.me/221770993382?text=${message}`;
     window.open(whatsappUrl, '_blank');
@@ -346,10 +346,10 @@ export default function TransferModal({
           <div className="flex items-center justify-between mb-6">
             <div>
               <h3 className="text-xl font-bold text-night">
-                {type === 'deposit' ? 'Dépôt' : 'Retrait'}
+                {type === 'deposit' ? 'Versement' : 'Retrait'}
               </h3>
               <p className="text-sm text-gray-600 mt-1">
-                {type === 'deposit' ? 'Dépôt vers:' : 'Retrait depuis:'} {accountName}
+                {type === 'deposit' ? 'Versement vers:' : 'Retrait depuis:'} {accountName}
               </p>
             </div>
             <button

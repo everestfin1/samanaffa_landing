@@ -1,5 +1,7 @@
 # APE Senegal Project Context
 
+> **Archive — inactive product line (June 2026).** Public APE routes redirect to Sama Naffa. Admin and API code remain for historical subscriptions. See [07-active-product-scope.md](./07-active-product-scope.md).
+
 ## Project Overview
 
 The APE Senegal (Appel Public à l'Épargne) project represents the Senegalese government's ambitious 150 billion CFA franc public savings bond initiative. This financial instrument is designed to mobilize domestic savings and fund strategic national development projects outlined in the Vision Sénégal 2050 and the 2025 Finance Law.

@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            'Seul le paiement via Intouch est disponible pour le premier dépôt. Choisissez Intouch à l’étape précédente.',
+            'Seul le paiement via Intouch est disponible pour le premier versement. Choisissez Intouch à l’étape précédente.',
         },
         { status: 400 },
       );
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest) {
     });
 
     await createUserNotification(userId, {
-      title: 'Premier dépôt programmé',
-      message: `Votre dépôt de ${numericAmount.toLocaleString('fr-FR')} FCFA sera confirmé via Intouch après validation de votre identité.`,
+      title: 'Premier versement programmé',
+      message: `Votre versement de ${numericAmount.toLocaleString('fr-FR')} FCFA sera confirmé via Intouch après validation de votre identité.`,
       type: 'TRANSACTION',
       priority: 'NORMAL',
       metadata: {

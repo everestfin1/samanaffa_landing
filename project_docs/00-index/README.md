@@ -41,7 +41,8 @@
 | Document | Purpose | Status |
 |----------|---------|--------|
 | Business Requirements | Functional specifications | Current |
-| APE Senegal Context | Government bond program details | Current |
+| [Mise a Niveau Lexicale SamaNaffa.docx](../Mise%20a%20Niveau%20Lexicale%20SamaNaffa.docx) | Lexical compliance audit (EF/DSI/2026/LEX-SN-001) | Current |
+| APE Senegal Context | Government bond program details | **Archive** — inactive product line |
 | Architecture Overview | System design (EN) | Current |
 | Architecture FR | System design (FR) | Current |
 | KYC Onboarding | User verification flow | Current |

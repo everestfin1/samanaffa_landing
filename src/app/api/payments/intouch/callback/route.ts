@@ -932,8 +932,8 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         try {
           const { createUserNotification } = await import('@/lib/user-notifications');
           await createUserNotification(updatedIntent.userId, {
-            title: 'Premier dépôt confirmé ✅',
-            message: `Votre dépôt de ${Number(updatedIntent.amount).toLocaleString('fr-FR')} FCFA a bien été enregistré sur votre compte Sama Naffa.`,
+            title: 'Premier versement confirmé ✅',
+            message: `Votre versement de ${Number(updatedIntent.amount).toLocaleString('fr-FR')} FCFA a bien été enregistré sur votre compte Sama Naffa.`,
             type: 'SUCCESS',
             priority: 'HIGH',
             metadata: {

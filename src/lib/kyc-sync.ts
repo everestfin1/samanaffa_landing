@@ -155,7 +155,7 @@ export async function syncDiditDecision(
     APPROVED: {
       title: 'Identité vérifiée ✅',
       message:
-        'Votre identité est validée. Indiquez votre email et vos préférences, puis confirmez votre dépôt sur Sama Naffa.',
+        'Votre identité est validée. Indiquez votre email et vos préférences, puis confirmez votre versement sur Sama Naffa.',
       type: 'SUCCESS',
       priority: 'HIGH',
       actionUrl: '/portal/sama-naffa?confirmDeposit=1',

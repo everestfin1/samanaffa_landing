@@ -79,7 +79,7 @@ export async function PATCH(request: NextRequest) {
       awaitingKycApproval: false,
     });
     if (!intent) {
-      return NextResponse.json({ error: 'Aucun dépôt programmé à modifier' }, { status: 404 });
+      return NextResponse.json({ error: 'Aucun versement programmé à modifier' }, { status: 404 });
     }
 
     const referenceNumber = generateReferenceNumber(
@@ -99,8 +99,8 @@ export async function PATCH(request: NextRequest) {
     });
 
     await createUserNotification(session.user.id, {
-      title: 'Dépôt programmé mis à jour',
-      message: `Votre premier dépôt a été modifié à ${numericAmount.toLocaleString('fr-FR')} FCFA. Confirmez-le depuis Sama Naffa.`,
+      title: 'Versement programmé mis à jour',
+      message: `Votre premier versement a été modifié à ${numericAmount.toLocaleString('fr-FR')} FCFA. Confirmez-le depuis Sama Naffa.`,
       type: 'TRANSACTION',
       priority: 'NORMAL',
       metadata: {
@@ -132,7 +132,7 @@ export async function DELETE() {
       awaitingKycApproval: false,
     });
     if (!intent) {
-      return NextResponse.json({ error: 'Aucun dépôt programmé à annuler' }, { status: 404 });
+      return NextResponse.json({ error: 'Aucun versement programmé à annuler' }, { status: 404 });
     }
 
     await prisma.transactionIntent.update({
@@ -144,9 +144,9 @@ export async function DELETE() {
     });
 
     await createUserNotification(session.user.id, {
-      title: 'Dépôt programmé annulé',
+      title: 'Versement programmé annulé',
       message:
-        'Votre premier dépôt programmé a été annulé. Vous pouvez effectuer un nouveau dépôt à tout moment depuis Sama Naffa.',
+        'Votre premier versement programmé a été annulé. Vous pouvez effectuer un nouveau versement à tout moment depuis Sama Naffa.',
       type: 'TRANSACTION',
       priority: 'NORMAL',
       metadata: {

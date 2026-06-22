@@ -15,11 +15,10 @@ import {
   BellIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
-  ScaleIcon,
 } from '@heroicons/react/24/outline';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
-type ActiveTab = 'dashboard' | 'sama-naffa' | 'ape' | 'compare' | 'profile' | 'notifications';
+type ActiveTab = 'dashboard' | 'sama-naffa' | 'ape' | 'profile' | 'notifications';
 
 interface UserData {
   firstName: string;
@@ -101,7 +100,6 @@ export default function PortalHeader({
   const getCurrentActiveTab = (): ActiveTab => {
     if (pathname.includes('/sama-naffa')) return 'sama-naffa';
     if (pathname.includes('/ape')) return 'ape';
-    if (pathname.includes('/compare')) return 'compare';
     if (pathname.includes('/profile')) return 'profile';
     if (pathname.includes('/notifications')) return 'notifications';
     return 'dashboard';

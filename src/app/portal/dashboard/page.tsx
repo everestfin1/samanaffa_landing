@@ -4,25 +4,14 @@ import { useSession, signOut } from 'next-auth/react';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useRecentTransactions } from '../../../hooks/useTransactions';
 import {
-  UserIcon,
-  ShieldCheckIcon,
-  DocumentTextIcon,
-  CameraIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
   ClockIcon,
-  EyeIcon,
   ArrowRightIcon,
   ArrowDownTrayIcon,
   ArrowUpTrayIcon,
-  BanknotesIcon,
   ChartBarIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
-  BellIcon,
-  QuestionMarkCircleIcon,
-  PhoneIcon,
-  StarIcon
 } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
@@ -34,52 +23,6 @@ import type { PendingOnboardingDeposit } from '../../../components/portal/Onboar
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
-
-interface KYCStep {
-  id: string;
-  title: string;
-  description: string;
-  status: 'completed' | 'current' | 'pending' | 'failed';
-  required: boolean;
-}
-
-interface UserData {
-  id: string;
-  userId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  kycStatus: KYCStatus;
-  isNewUser: boolean;
-  profileCompletionStatus?: string;
-  dateOfBirth?: string;
-  address?: string;
-  city?: string;
-  country?: string;
-  statutEmploi?: string;
-  termsAccepted?: boolean;
-  privacyAccepted?: boolean;
-  accounts: Array<{
-    id: string;
-    accountType: string;
-    accountNumber: string;
-    balance: number;
-    status: string;
-  }>;
-}
-
-interface TransactionIntent {
-  id: string;
-  accountType: string;
-  intentType: string;
-  type: 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
-  amount: number;
-  paymentMethod: string;
-  status: string;
-  referenceNumber: string;
-  createdAt: string;
-}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -135,11 +78,6 @@ export default function DashboardPage() {
       cancelled = true;
     };
   }, [userData, isProfileIncomplete]);
-
-  // Calculate APE investment total from completed transactions
-  const apeInvestmentTotal = recentTransactions
-    .filter(tx => tx.accountType === 'APE_INVESTMENT' && tx.intentType === 'INVESTMENT' && tx.status === 'COMPLETED')
-    .reduce((sum, tx) => sum + tx.amount, 0);
 
   // Combined loading and error states
   const isLoading = isLoadingProfile || isLoadingTransactions;

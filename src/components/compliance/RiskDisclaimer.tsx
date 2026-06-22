@@ -1,4 +1,4 @@
-import { RISK_DISCLAIMER_SHORT } from '@/lib/compliance-copy';
+import { RISK_DISCLAIMER_SHORT, RISK_DISCLAIMER_SIMULATOR } from '@/lib/compliance-copy';
 
 interface RiskDisclaimerProps {
   className?: string;
@@ -10,9 +10,7 @@ export default function RiskDisclaimer({
   variant = 'short',
 }: RiskDisclaimerProps) {
   const text =
-    variant === 'simulator'
-      ? 'Simulation indicative à titre d\'objectif de rendement. Résultat non garanti — la valeur peut varier.'
-      : RISK_DISCLAIMER_SHORT;
+    variant === 'simulator' ? RISK_DISCLAIMER_SIMULATOR : RISK_DISCLAIMER_SHORT;
 
   return (
     <p
