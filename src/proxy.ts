@@ -67,7 +67,13 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+  // secureCookie must match authOptions.useSecureCookies so the cookie name
+  // (`__Secure-next-auth.session-token` in prod/preview) lines up on read.
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === 'production',
+  });
 
   if (pathname.startsWith('/portal')) {
     if (!token) {

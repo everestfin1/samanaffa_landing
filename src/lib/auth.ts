@@ -273,5 +273,10 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login',
     error: '/login',
   },
+  // Pin cookie security to the runtime, not to NEXTAUTH_URL. This keeps the
+  // session-token cookie name (`__Secure-` prefix in prod/preview) consistent
+  // with how middleware reads it via getToken, even if NEXTAUTH_URL is unset or
+  // points at localhost on a deployed environment.
+  useSecureCookies: process.env.NODE_ENV === 'production',
   secret: process.env.NEXTAUTH_SECRET,
 }
