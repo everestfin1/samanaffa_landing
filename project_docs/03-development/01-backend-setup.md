@@ -276,7 +276,7 @@ DEBUG=*
 
 1. Connect your GitHub repository to Vercel
 2. Set environment variables in Vercel dashboard
-3. Deploy automatically on push to main branch
+3. Deploy staging on push to `staging`; production on push to `main` (see [07-git-workflow.md](./07-git-workflow.md))
 
 ### Environment Variables for Production
 

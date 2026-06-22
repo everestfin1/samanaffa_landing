@@ -13,6 +13,7 @@ All documentation is in **[`project_docs/`](./project_docs/00-index/README.md)**
 | Index & navigation | [`project_docs/00-index/README.md`](./project_docs/00-index/README.md) |
 | Active product scope | [`project_docs/01-product/07-active-product-scope.md`](./project_docs/01-product/07-active-product-scope.md) |
 | Local setup | [`project_docs/03-development/04-setup-guide.md`](./project_docs/03-development/04-setup-guide.md) |
+| Git branches & workflow | [`project_docs/03-development/07-git-workflow.md`](./project_docs/03-development/07-git-workflow.md) |
 | Lexical compliance audit | [`project_docs/Mise a Niveau Lexicale SamaNaffa.docx`](./project_docs/Mise%20a%20Niveau%20Lexicale%20SamaNaffa.docx) |
 
 ## Quick start
