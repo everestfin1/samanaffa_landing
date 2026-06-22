@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import { NotificationType, NotificationPriority } from '@/lib/types'
+import { count, desc, eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { kycDocuments, transactionIntents, userAccounts, users } from '@/lib/db/schema'
+import { NotificationType, NotificationPriority, KycStatus } from '@/lib/types'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
+import { createUserNotification } from '@/lib/user-notifications'
 
 export async function PUT(
   request: NextRequest,
@@ -35,25 +38,40 @@ export async function PUT(
       )
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id },
-      data: {
-        kycStatus: kycStatus.toUpperCase(),
+    const normalizedStatus = kycStatus.toUpperCase() as KycStatus
+
+    const [updatedUser] = await db
+      .update(users)
+      .set({
+        kycStatus: normalizedStatus,
         updatedAt: new Date(),
-      },
-      include: {
-        accounts: true,
-        kycDocuments: {
-          orderBy: { uploadDate: 'desc' }
-        },
-        _count: {
-          select: {
-            transactionIntents: true,
-            kycDocuments: true,
-          }
-        }
-      }
-    })
+      })
+      .where(eq(users.id, id))
+      .returning()
+
+    if (!updatedUser) {
+      return NextResponse.json(
+        { error: 'User not found' },
+        { status: 404 }
+      )
+    }
+
+    const [accounts, kycDocs, txCountResult, kycCountResult] = await Promise.all([
+      db.select().from(userAccounts).where(eq(userAccounts.userId, id)),
+      db
+        .select()
+        .from(kycDocuments)
+        .where(eq(kycDocuments.userId, id))
+        .orderBy(desc(kycDocuments.uploadDate)),
+      db
+        .select({ total: count() })
+        .from(transactionIntents)
+        .where(eq(transactionIntents.userId, id)),
+      db
+        .select({ total: count() })
+        .from(kycDocuments)
+        .where(eq(kycDocuments.userId, id)),
+    ])
 
     // Create in-app notification
     let title = ''
@@ -61,7 +79,7 @@ export async function PUT(
     let notificationType: NotificationType = 'KYC_STATUS'
     let priority: NotificationPriority = 'NORMAL'
 
-    switch (kycStatus.toUpperCase()) {
+    switch (normalizedStatus) {
       case 'APPROVED':
         title = 'KYC Approuvé'
         message = 'Félicitations ! Votre dossier KYC a été approuvé avec succès.'
@@ -82,37 +100,38 @@ export async function PUT(
         break
     }
 
-    // Create in-app notification
-    try {
-      await prisma.notification.create({
-        data: {
-          userId: id,
+    if (title) {
+      try {
+        await createUserNotification(id, {
           title,
           message,
           type: notificationType,
           priority,
-          metadata: JSON.stringify({
-            kycStatus: kycStatus.toUpperCase(),
+          metadata: {
+            kycStatus: normalizedStatus,
             adminNotes,
             adminId: user.id,
-            adminEmail: user.email
-          })
-        }
-      })
-    } catch (notificationError) {
-      console.error('Error creating notification:', notificationError)
+            adminEmail: user.email,
+          },
+        })
+      } catch (notificationError) {
+        console.error('Error creating notification:', notificationError)
+      }
     }
 
     // Get notification settings
     const notificationSettings = getServerSideNotificationSettings()
 
     // Send email notification if enabled
-    if (shouldSendKYCEmail(kycStatus.toUpperCase() as any, notificationSettings)) {
+    if (
+      normalizedStatus !== 'PENDING' &&
+      shouldSendKYCEmail(normalizedStatus, notificationSettings)
+    ) {
       try {
         await sendKYCStatusEmail(
           updatedUser.email,
           `${updatedUser.firstName} ${updatedUser.lastName}`,
-          kycStatus.toUpperCase() as any
+          normalizedStatus
         )
       } catch (emailError) {
         console.error('Error sending KYC status email:', emailError)
@@ -120,9 +139,12 @@ export async function PUT(
     }
 
     // Send SMS notification if enabled and configured
-    if (shouldSendKYCSMS(kycStatus.toUpperCase() as any, notificationSettings)) {
+    if (
+      normalizedStatus !== 'PENDING' &&
+      shouldSendKYCSMS(normalizedStatus, notificationSettings)
+    ) {
       try {
-        await sendKYCStatusSMS(updatedUser.phone, kycStatus.toUpperCase() as any)
+        await sendKYCStatusSMS(updatedUser.phone, normalizedStatus)
       } catch (smsError) {
         console.error('Error sending KYC status SMS:', smsError)
       }
@@ -138,13 +160,13 @@ export async function PUT(
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
         kycStatus: updatedUser.kycStatus,
-        accounts: updatedUser.accounts,
-        kycDocuments: updatedUser.kycDocuments,
+        accounts,
+        kycDocuments: kycDocs,
         stats: {
-          totalTransactions: updatedUser._count.transactionIntents,
-          totalKycDocuments: updatedUser._count.kycDocuments,
-        }
-      }
+          totalTransactions: Number(txCountResult[0]?.total ?? 0),
+          totalKycDocuments: Number(kycCountResult[0]?.total ?? 0),
+        },
+      },
     })
   } catch (error) {
     console.error('Error updating KYC status:', error)

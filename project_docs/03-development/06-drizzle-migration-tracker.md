@@ -4,9 +4,13 @@
 
 **Source of truth:** `src/lib/db/schema.ts` + `drizzle/*.sql`
 
+**Status (2026-06-22):** All `src/` callers migrated — zero `import { prisma } from '@/lib/prisma'` in application code.
+
 ---
 
 ## Done (native Drizzle)
+
+### Core lib
 
 | File | Notes |
 |------|--------|
@@ -20,11 +24,21 @@
 | `src/lib/otp.ts` | `otpCodes`, `users`, registration sessions |
 | `src/lib/auth.ts` | NextAuth + `users` lookups |
 | `src/lib/kyc-sync.ts` | `kycDocuments`, `users` |
+
+### Auth & notifications API
+
+| File | Notes |
+|------|--------|
 | `src/app/api/auth/check-availability/route.ts` | email uniqueness |
 | `src/app/api/auth/send-otp/route.ts` | registration sessions, OTP |
 | `src/app/api/auth/dev-mock-otp-hint/route.ts` | OTP dev hint |
 | `src/app/api/notifications/route.ts` | list + admin create |
 | `src/app/api/notifications/[id]/route.ts` | CRUD |
+
+### Onboarding
+
+| File | Notes |
+|------|--------|
 | `src/app/api/onboarding/create-account/route.ts` | T1 phone signup |
 | `src/app/api/onboarding/profile/route.ts` | user profile patch |
 | `src/app/api/onboarding/progress/route.ts` | onboarding step state |
@@ -36,55 +50,60 @@
 | `src/app/api/onboarding/kyc/session-url/route.ts` | Didit URL reuse |
 | `src/app/api/onboarding/kyc/status/route.ts` | Didit status poll |
 
----
-
-## Remaining (still `import { prisma } from '@/lib/prisma'`)
-
 ### Portal / users
 
-- [ ] `src/app/api/users/profile/route.ts`
-- [ ] `src/app/api/portal/profile/complete/route.ts`
-- [ ] `src/app/api/accounts/route.ts`
+| File | Notes |
+|------|--------|
+| `src/app/api/users/profile/route.ts` | profile GET/PUT + accounts/KYC |
+| `src/app/api/portal/profile/complete/route.ts` | post-KYC communications |
+| `src/app/api/accounts/route.ts` | list/create Sama Naffa accounts |
 
 ### Transactions / payments
 
-- [ ] `src/app/api/transactions/route.ts`
-- [ ] `src/app/api/transactions/intent/route.ts`
-- [ ] `src/app/api/payments/intouch/callback/route.ts` (large)
-- [ ] `src/app/api/payments/intouch/manual-callback/route.ts`
+| File | Notes |
+|------|--------|
+| `src/app/api/transactions/route.ts` | lookup by reference/id |
+| `src/app/api/transactions/intent/route.ts` | create/list intents |
+| `src/app/api/payments/intouch/callback/route.ts` | Intouch webhook + `db.transaction` |
+| `src/app/api/payments/intouch/manual-callback/route.ts` | redirect fallback |
 
 ### KYC / webhooks
 
-- [ ] `src/app/api/kyc/upload/route.ts`
-- [ ] `src/app/api/webhooks/didit/route.ts`
+| File | Notes |
+|------|--------|
+| `src/app/api/kyc/upload/route.ts` | blob upload + KYC docs |
+| `src/app/api/webhooks/didit/route.ts` | Didit webhook → `syncDiditDecision` |
 
 ### Admin API
 
-- [ ] `src/app/api/admin/auth/login/route.ts`
-- [ ] `src/app/api/admin/dashboard-config/route.ts`
-- [ ] `src/app/api/admin/users/route.ts`
-- [ ] `src/app/api/admin/users/[id]/route.ts`
-- [ ] `src/app/api/admin/users/[id]/kyc/route.ts`
-- [ ] `src/app/api/admin/kyc/route.ts`
-- [ ] `src/app/api/admin/kyc/[id]/route.ts`
-- [ ] `src/app/api/admin/kyc/batch/route.ts`
-- [ ] `src/app/api/admin/transactions/route.ts`
-- [ ] `src/app/api/admin/transactions/[id]/route.ts`
-- [ ] `src/app/api/admin/notifications/route.ts`
-- [ ] `src/app/api/admin/settings/notifications/route.ts`
-- [ ] `src/app/api/admin/sponsor-codes/route.ts`
-- [ ] `src/app/api/admin/ape-subscriptions/route.ts`
-- [ ] `src/app/api/admin/accounts/recalculate-balances/route.ts`
+| File | Notes |
+|------|--------|
+| `src/app/api/admin/auth/login/route.ts` | admin login |
+| `src/app/api/admin/dashboard-config/route.ts` | `dashboardCards` CRUD |
+| `src/app/api/admin/users/route.ts` | paginated user list |
+| `src/app/api/admin/users/[id]/route.ts` | suspend/activate (account status) |
+| `src/app/api/admin/users/[id]/kyc/route.ts` | manual KYC status |
+| `src/app/api/admin/kyc/route.ts` | KYC document list |
+| `src/app/api/admin/kyc/[id]/route.ts` | document verification |
+| `src/app/api/admin/kyc/batch/route.ts` | batch document updates |
+| `src/app/api/admin/transactions/route.ts` | admin transaction list |
+| `src/app/api/admin/transactions/[id]/route.ts` | status + balance adjust |
+| `src/app/api/admin/notifications/route.ts` | admin notification feed |
+| `src/app/api/admin/settings/notifications/route.ts` | settings (in-memory) |
+| `src/app/api/admin/sponsor-codes/route.ts` | sponsor code CRUD |
+| `src/app/api/admin/ape-subscriptions/route.ts` | APE subscription list/export |
+| `src/app/api/admin/accounts/recalculate-balances/route.ts` | balance reconciliation |
 
 ---
 
-## Final cleanup (after all callers migrated)
+## Final cleanup (next)
 
-1. Delete Prisma-compatible exports from `src/lib/db/helpers.ts` (or split into domain repos).
-2. Delete `src/lib/prisma.ts`.
-3. Rewrite `prisma/seed.ts` with Drizzle or remove.
-4. Archive `prisma/migrations/` (historical reference only).
-5. Remove `db:seed` Prisma script from `package.json` if unused.
+- [ ] Grep repo for any remaining `@/lib/prisma` or `helpers.ts` shim usage (scripts, tests, seed).
+- [ ] Delete Prisma-compatible exports from `src/lib/db/helpers.ts` (or split into domain repos).
+- [ ] Delete `src/lib/prisma.ts`.
+- [ ] Rewrite `prisma/seed.ts` with Drizzle or remove.
+- [ ] Archive `prisma/migrations/` (historical reference only).
+- [ ] Remove `db:seed` Prisma script from `package.json` if unused.
 
 ---
 

@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
-// Prisma types no longer needed with Drizzle
-import { prisma } from '@/lib/prisma';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import {
+  paymentCallbackLogs,
+  transactionIntents,
+  userAccounts,
+  users,
+} from '@/lib/db/schema';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
 
 /**
  * Manual Callback Endpoint
- * 
- * This endpoint processes payment information from redirect URL parameters
- * when InTouch callbacks are not being received. It's a fallback mechanism
- * to ensure payments are processed even if server-to-server callbacks fail.
- * 
- * This should only be used as a temporary solution until InTouch properly
- * configures their callback system.
+ *
+ * Fallback when InTouch server-to-server callbacks fail — processes redirect URL params.
  */
 
 type CallbackStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -20,10 +21,28 @@ function appendAdminNote(existing: string | null | undefined, note: string): str
   return existing ? `${existing}\n${note}` : note;
 }
 
+async function loadIntentByReference(referenceNumber: string) {
+  const [intentRow] = await db
+    .select()
+    .from(transactionIntents)
+    .where(eq(transactionIntents.referenceNumber, referenceNumber))
+    .limit(1);
+
+  if (!intentRow) return null;
+
+  const [[account], [user]] = await Promise.all([
+    db.select().from(userAccounts).where(eq(userAccounts.id, intentRow.accountId)).limit(1),
+    db.select().from(users).where(eq(users.id, intentRow.userId)).limit(1),
+  ]);
+
+  if (!account || !user) return null;
+  return { ...intentRow, account, user };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     console.log('[Manual Callback] Processing manual callback from redirect:', body);
 
     const {
@@ -33,27 +52,19 @@ export async function POST(request: NextRequest) {
       amount: callbackAmount,
     } = body;
 
-    // Validate required fields
     if (!referenceNumber) {
       console.error('[Manual Callback] Missing referenceNumber');
-      return NextResponse.json(
-        { error: 'Missing referenceNumber' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing referenceNumber' }, { status: 400 });
     }
 
     if (!errorCode && errorCode !== 0) {
       console.error('[Manual Callback] Missing errorCode');
-      return NextResponse.json(
-        { error: 'Missing errorCode' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing errorCode' }, { status: 400 });
     }
 
-    // Map error code to status
     let mappedStatus: CallbackStatus;
     const errorCodeStr = String(errorCode).trim();
-    
+
     if (errorCodeStr === '200' || errorCodeStr === '0' || errorCodeStr === '00') {
       mappedStatus = 'COMPLETED';
     } else if (errorCodeStr === '420') {
@@ -69,21 +80,11 @@ export async function POST(request: NextRequest) {
       mappedStatus,
     });
 
-    // Find the transaction intent
-    const intent = await prisma.transactionIntent.findUnique({
-      where: { referenceNumber },
-      include: {
-        user: true,
-        account: true,
-      },
-    });
+    const intent = await loadIntentByReference(referenceNumber);
 
     if (!intent) {
       console.error('[Manual Callback] Transaction intent not found:', referenceNumber);
-      return NextResponse.json(
-        { error: 'Transaction intent not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Transaction intent not found' }, { status: 404 });
     }
 
     console.log('[Manual Callback] Found transaction intent:', {
@@ -92,7 +93,6 @@ export async function POST(request: NextRequest) {
       amount: intent.amount.toString(),
     });
 
-    // Check if already processed
     if (intent.status === 'COMPLETED') {
       console.log('[Manual Callback] Transaction already completed, skipping');
       return NextResponse.json({
@@ -103,11 +103,10 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Verify amount if provided
     if (callbackAmount) {
       const expectedAmount = parseFloat(intent.amount);
       const receivedAmount = parseFloat(callbackAmount);
-      
+
       if (expectedAmount !== receivedAmount) {
         console.error('[Manual Callback] Amount mismatch:', {
           expected: expectedAmount,
@@ -119,21 +118,36 @@ export async function POST(request: NextRequest) {
             expected: expectedAmount,
             received: receivedAmount,
           },
-          { status: 400 }
+          { status: 400 },
         );
       }
     }
 
-    // Process the transaction
-    const transactionResult = await prisma.$transaction(async (tx: any) => {
-      const currentIntent = await tx.transactionIntent.findUnique({
-        where: { id: intent.id },
-        include: { account: true, user: true },
-      });
+    const transactionResult = await db.transaction(async (tx) => {
+      const [currentIntentRow] = await tx
+        .select()
+        .from(transactionIntents)
+        .where(eq(transactionIntents.id, intent.id))
+        .limit(1);
 
-      if (!currentIntent) {
+      if (!currentIntentRow) {
         throw new Error('INTENT_NOT_FOUND');
       }
+
+      const [[currentAccount], [currentUser]] = await Promise.all([
+        tx.select().from(userAccounts).where(eq(userAccounts.id, currentIntentRow.accountId)).limit(1),
+        tx.select().from(users).where(eq(users.id, currentIntentRow.userId)).limit(1),
+      ]);
+
+      if (!currentAccount || !currentUser) {
+        throw new Error('INTENT_NOT_FOUND');
+      }
+
+      const currentIntent = {
+        ...currentIntentRow,
+        account: currentAccount,
+        user: currentUser,
+      };
 
       const currentBalance = parseFloat(currentIntent.account.balance);
       const transactionAmount = parseFloat(currentIntent.amount);
@@ -155,15 +169,21 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const statusChangedToCompleted = 
+      const statusChangedToCompleted =
         currentIntent.status !== 'COMPLETED' && finalStatus === 'COMPLETED';
 
       const adminNote = appendAdminNote(
         currentIntent.adminNotes,
-        `Manual callback processed from redirect URL. Error code: ${errorCodeStr}${num_transaction_from_gu ? `, InTouch TX: ${num_transaction_from_gu}` : ''} at ${new Date().toISOString()}`
+        `Manual callback processed from redirect URL. Error code: ${errorCodeStr}${num_transaction_from_gu ? `, InTouch TX: ${num_transaction_from_gu}` : ''} at ${new Date().toISOString()}`,
       );
 
-      const updateData: any = {
+      const updateData: {
+        providerStatus: string;
+        lastCallbackAt: Date;
+        adminNotes: string;
+        providerTransactionId?: string;
+        status?: CallbackStatus;
+      } = {
         providerStatus: errorCodeStr,
         lastCallbackAt: new Date(),
         adminNotes: adminNote,
@@ -177,39 +197,45 @@ export async function POST(request: NextRequest) {
         updateData.status = finalStatus;
       }
 
-      const updatedIntent = await tx.transactionIntent.update({
-        where: { id: currentIntent.id },
-        data: updateData,
-        include: { account: true, user: true },
+      const [updatedIntentRow] = await tx
+        .update(transactionIntents)
+        .set(updateData)
+        .where(eq(transactionIntents.id, currentIntent.id))
+        .returning();
+
+      if (!updatedIntentRow) {
+        throw new Error('INTENT_NOT_FOUND');
+      }
+
+      const updatedIntent = {
+        ...updatedIntentRow,
+        account: currentIntent.account,
+        user: currentIntent.user,
+      };
+
+      await tx.insert(paymentCallbackLogs).values({
+        transactionIntentId: updatedIntent.id,
+        status: `MANUAL_${errorCodeStr}`,
+        payload: body,
       });
 
-      // Log the callback
-      await tx.paymentCallbackLog.create({
-        data: {
-          transactionIntentId: updatedIntent.id,
-          status: `MANUAL_${errorCodeStr}`,
-          payload: body,
-        },
-      });
-
-      // Update balance if needed
       if (shouldUpdateBalance && finalStatus === 'COMPLETED') {
         const newBalance =
           currentIntent.intentType === 'WITHDRAWAL'
             ? (currentBalance - transactionAmount).toFixed(2)
             : (currentBalance + transactionAmount).toFixed(2);
 
-        await tx.userAccount.update({
-          where: { id: updatedIntent.accountId },
-          data: { balance: newBalance },
-        });
+        await tx
+          .update(userAccounts)
+          .set({ balance: newBalance })
+          .where(eq(userAccounts.id, updatedIntent.accountId));
 
-        updatedIntent.account.balance = newBalance;
-        
+        updatedIntent.account = { ...updatedIntent.account, balance: newBalance };
+
         console.log('[Manual Callback] Balance updated:', {
           accountId: updatedIntent.accountId,
           oldBalance: currentBalance.toString(),
-          newBalance: newBalance.toString(),
+          newBalance,
           intentType: currentIntent.intentType,
         });
       }
@@ -231,7 +257,6 @@ export async function POST(request: NextRequest) {
       statusChangedToCompleted,
     });
 
-    // Send email notification if completed
     if (statusChangedToCompleted) {
       console.log('[Manual Callback] Sending email notification');
       await sendTransactionIntentEmail(
@@ -246,7 +271,7 @@ export async function POST(request: NextRequest) {
           investmentTranche: updatedIntent.investmentTranche || undefined,
           investmentTerm: updatedIntent.investmentTerm || undefined,
           userNotes: updatedIntent.userNotes || undefined,
-        }
+        },
       );
     }
 
@@ -264,10 +289,9 @@ export async function POST(request: NextRequest) {
 
     const statusCode = finalStatus === 'COMPLETED' ? 200 : 420;
     return NextResponse.json(responsePayload, { status: statusCode });
-
   } catch (error) {
     console.error('[Manual Callback] Error processing manual callback:', error);
-    
+
     const failureMessage = error instanceof Error ? error.message : 'Internal server error';
 
     if (failureMessage === 'INTENT_NOT_FOUND') {
@@ -276,10 +300,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error', details: failureMessage },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-
-
-

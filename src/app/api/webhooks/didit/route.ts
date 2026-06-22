@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { prisma } from '@/lib/prisma';
+import { and, eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { kycDocuments } from '@/lib/db/schema';
 import { syncDiditDecision, DIDIT_STATUS_MAP } from '@/lib/kyc-sync';
 
 function isProductionEnv(): boolean {
@@ -9,8 +11,6 @@ function isProductionEnv(): boolean {
   );
 }
 
-// ── Signature verification (Didit V2) ──────────────────────────────────────
-// HMAC-SHA256 of "{timestamp}:{canonical_json}"
 function sortedStringify(v: unknown): unknown {
   if (Array.isArray(v)) return v.map(sortedStringify);
   if (v !== null && typeof v === 'object') {
@@ -36,7 +36,6 @@ function verifySignatureV2(body: object, signature: string, timestamp: string, s
   }
 }
 
-// ── Route ──────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   let body: Record<string, unknown>;
   try {
@@ -65,7 +64,6 @@ export async function POST(request: NextRequest) {
     session_id?: string;
     status?: string;
     vendor_data?: string;
-    webhook_type?: string;
   };
 
   if (!session_id || !status || !userId || !DIDIT_STATUS_MAP[status]) {
@@ -73,14 +71,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const kycDocs = await prisma.kycDocument.findMany({
-      where: {
-        documentType: 'didit_kyc_session',
-        fileUrl: session_id,
-      },
-      take: 1,
-    });
-    const kycDoc = kycDocs[0];
+    const [kycDoc] = await db
+      .select()
+      .from(kycDocuments)
+      .where(
+        and(
+          eq(kycDocuments.documentType, 'didit_kyc_session'),
+          eq(kycDocuments.fileUrl, session_id),
+        ),
+      )
+      .limit(1);
 
     if (!kycDoc || kycDoc.userId !== userId) {
       console.warn(

@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { transactionIntents, userAccounts, users } from '@/lib/db/schema'
+import type { TransactionStatus } from '@/lib/types'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { logTransactionUpdate } from '@/lib/audit-logger'
+
+function formatBalance(value: number): string {
+  return value.toFixed(2)
+}
 
 export async function PUT(
   request: NextRequest,
@@ -26,7 +33,8 @@ export async function PUT(
 
     // Validate status
     const validStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED', 'FAILED']
-    if (!validStatuses.includes(status.toUpperCase())) {
+    const normalizedStatus = status.toUpperCase()
+    if (!validStatuses.includes(normalizedStatus)) {
       return NextResponse.json(
         { error: 'Invalid status' },
         { status: 400 }
@@ -34,24 +42,28 @@ export async function PUT(
     }
 
     // First, get the current transaction intent to check if we need to update balance
-    const currentIntent = await prisma.transactionIntent.findUnique({
-      where: { id },
-      include: {
-        account: true
-      }
-    })
+    const [currentRow] = await db
+      .select({
+        intent: transactionIntents,
+        account: userAccounts,
+      })
+      .from(transactionIntents)
+      .innerJoin(userAccounts, eq(transactionIntents.accountId, userAccounts.id))
+      .where(eq(transactionIntents.id, id))
+      .limit(1)
 
-    if (!currentIntent) {
+    if (!currentRow) {
       return NextResponse.json(
         { error: 'Transaction intent not found' },
         { status: 404 }
       )
     }
 
+    const currentIntent = currentRow.intent
+    const account = currentRow.account
+
     // Handle balance updates based on status changes
-    if (status.toUpperCase() === 'COMPLETED' && currentIntent.status !== 'COMPLETED') {
-      // Transaction is being completed - add/subtract from balance
-      const account = currentIntent.account
+    if (normalizedStatus === 'COMPLETED' && currentIntent.status !== 'COMPLETED') {
       const currentBalance = Number(account.balance)
       const transactionAmount = Number(currentIntent.amount)
       let newBalance = currentBalance
@@ -64,14 +76,12 @@ export async function PUT(
         currentBalance,
       })
 
-      // Calculate new balance based on transaction type
       if (currentIntent.intentType === 'DEPOSIT') {
         newBalance = currentBalance + transactionAmount
         console.log(`Deposit: ${currentBalance} + ${transactionAmount} = ${newBalance}`)
       } else if (currentIntent.intentType === 'WITHDRAWAL') {
         newBalance = currentBalance - transactionAmount
         console.log(`Withdrawal: ${currentBalance} - ${transactionAmount} = ${newBalance}`)
-        // Ensure balance doesn't go negative
         if (newBalance < 0) {
           return NextResponse.json(
             { error: 'Insufficient funds for withdrawal' },
@@ -79,18 +89,14 @@ export async function PUT(
           )
         }
       }
-      // For INVESTMENT type, we don't change the balance as it's a separate investment account
 
-      // Update the account balance
-      await prisma.userAccount.update({
-        where: { id: account.id },
-        data: { balance: newBalance }
-      })
+      await db
+        .update(userAccounts)
+        .set({ balance: formatBalance(newBalance) })
+        .where(eq(userAccounts.id, account.id))
 
       console.log(`Account balance updated: ${account.accountNumber} = ${newBalance}`)
-    } else if (currentIntent.status === 'COMPLETED' && status.toUpperCase() !== 'COMPLETED') {
-      // Transaction is being reverted from completed - reverse the balance change
-      const account = currentIntent.account
+    } else if (currentIntent.status === 'COMPLETED' && normalizedStatus !== 'COMPLETED') {
       const currentBalance = Number(account.balance)
       const transactionAmount = Number(currentIntent.amount)
       let newBalance = currentBalance
@@ -103,11 +109,9 @@ export async function PUT(
         currentBalance,
       })
 
-      // Reverse the balance change
       if (currentIntent.intentType === 'DEPOSIT') {
         newBalance = currentBalance - transactionAmount
         console.log(`Reverting deposit: ${currentBalance} - ${transactionAmount} = ${newBalance}`)
-        // Ensure balance doesn't go negative
         if (newBalance < 0) {
           return NextResponse.json(
             { error: 'Cannot revert deposit - insufficient funds' },
@@ -118,51 +122,53 @@ export async function PUT(
         newBalance = currentBalance + transactionAmount
         console.log(`Reverting withdrawal: ${currentBalance} + ${transactionAmount} = ${newBalance}`)
       }
-      // For INVESTMENT type, we don't change the balance as it's a separate investment account
 
-      // Update the account balance
-      await prisma.userAccount.update({
-        where: { id: account.id },
-        data: { balance: newBalance }
-      })
+      await db
+        .update(userAccounts)
+        .set({ balance: formatBalance(newBalance) })
+        .where(eq(userAccounts.id, account.id))
 
       console.log(`Account balance reverted: ${account.accountNumber} = ${newBalance}`)
     }
 
-    // Update the transaction intent
-    const updatedIntent = await prisma.transactionIntent.update({
-      where: { id },
-      data: {
-        status: status.toUpperCase(),
+    const [updatedIntent] = await db
+      .update(transactionIntents)
+      .set({
+        status: normalizedStatus as TransactionStatus,
         adminNotes,
         updatedAt: new Date(),
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-          }
-        },
-        account: {
-          select: {
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-          }
-        }
-      }
-    })
+      })
+      .where(eq(transactionIntents.id, id))
+      .returning()
+
+    const [userData] = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+      })
+      .from(users)
+      .where(eq(users.id, updatedIntent.userId))
+      .limit(1)
+
+    const [accountData] = await db
+      .select({
+        accountNumber: userAccounts.accountNumber,
+        accountType: userAccounts.accountType,
+        balance: userAccounts.balance,
+      })
+      .from(userAccounts)
+      .where(eq(userAccounts.id, updatedIntent.accountId))
+      .limit(1)
 
     // Log the transaction update
     await logTransactionUpdate(
       user.id,
       id,
       currentIntent.status,
-      status.toUpperCase(),
+      normalizedStatus,
       request
     )
 
@@ -173,15 +179,15 @@ export async function PUT(
         id: updatedIntent.id,
         referenceNumber: updatedIntent.referenceNumber,
         user: {
-          id: updatedIntent.user.id,
-          name: `${updatedIntent.user.firstName} ${updatedIntent.user.lastName}`,
-          email: updatedIntent.user.email,
-          phone: updatedIntent.user.phone,
+          id: userData?.id,
+          name: `${userData?.firstName} ${userData?.lastName}`,
+          email: userData?.email,
+          phone: userData?.phone,
         },
         account: {
-          accountNumber: updatedIntent.account.accountNumber,
-          accountType: updatedIntent.account.accountType,
-          balance: updatedIntent.account.balance,
+          accountNumber: accountData?.accountNumber,
+          accountType: accountData?.accountType,
+          balance: accountData?.balance,
         },
         intentType: updatedIntent.intentType,
         amount: updatedIntent.amount,
@@ -193,7 +199,7 @@ export async function PUT(
         status: updatedIntent.status,
         createdAt: updatedIntent.createdAt,
         updatedAt: updatedIntent.updatedAt,
-      }
+      },
     })
   } catch (error) {
     console.error('Error updating transaction intent:', error)
@@ -217,35 +223,33 @@ export async function GET(
   try {
     const { id } = await params
 
-    const transactionIntent = await prisma.transactionIntent.findUnique({
-      where: { id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            kycStatus: true,
-          }
-        },
-        account: {
-          select: {
-            accountNumber: true,
-            accountType: true,
-            balance: true,
-          }
-        }
-      }
-    })
+    const [row] = await db
+      .select({
+        intent: transactionIntents,
+        userId: users.id,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+        userPhone: users.phone,
+        userKycStatus: users.kycStatus,
+        accountNumber: userAccounts.accountNumber,
+        accountType: userAccounts.accountType,
+        accountBalance: userAccounts.balance,
+      })
+      .from(transactionIntents)
+      .innerJoin(users, eq(transactionIntents.userId, users.id))
+      .innerJoin(userAccounts, eq(transactionIntents.accountId, userAccounts.id))
+      .where(eq(transactionIntents.id, id))
+      .limit(1)
 
-    if (!transactionIntent) {
+    if (!row) {
       return NextResponse.json(
         { error: 'Transaction intent not found' },
         { status: 404 }
       )
     }
+
+    const transactionIntent = row.intent
 
     return NextResponse.json({
       success: true,
@@ -253,16 +257,16 @@ export async function GET(
         id: transactionIntent.id,
         referenceNumber: transactionIntent.referenceNumber,
         user: {
-          id: transactionIntent.user.id,
-          name: `${transactionIntent.user.firstName} ${transactionIntent.user.lastName}`,
-          email: transactionIntent.user.email,
-          phone: transactionIntent.user.phone,
-          kycStatus: transactionIntent.user.kycStatus,
+          id: row.userId,
+          name: `${row.userFirstName} ${row.userLastName}`,
+          email: row.userEmail,
+          phone: row.userPhone,
+          kycStatus: row.userKycStatus,
         },
         account: {
-          accountNumber: transactionIntent.account.accountNumber,
-          accountType: transactionIntent.account.accountType,
-          balance: transactionIntent.account.balance,
+          accountNumber: row.accountNumber,
+          accountType: row.accountType,
+          balance: row.accountBalance,
         },
         intentType: transactionIntent.intentType,
         amount: transactionIntent.amount,
@@ -274,7 +278,7 @@ export async function GET(
         status: transactionIntent.status,
         createdAt: transactionIntent.createdAt,
         updatedAt: transactionIntent.updatedAt,
-      }
+      },
     })
   } catch (error) {
     console.error('Error fetching transaction intent:', error)

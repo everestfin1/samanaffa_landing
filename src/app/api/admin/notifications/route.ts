@@ -1,9 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { and, count, desc, eq, SQL } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { adminUsers, notifications, users } from '@/lib/db/schema'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
-import { NotificationPriority, NotificationType } from '@/lib/types'
+import { NotificationPriority, NotificationType, KycStatus } from '@/lib/types'
+
+function buildAdminNotificationFilter(
+  userId: string | null,
+  status: string | null,
+  type: string | null,
+): SQL | undefined {
+  const conditions: SQL[] = []
+
+  if (userId) {
+    conditions.push(eq(notifications.userId, userId))
+  }
+
+  if (status && status !== 'all') {
+    const normalized = status.toUpperCase()
+    if (normalized === 'READ') {
+      conditions.push(eq(notifications.isRead, true))
+    } else if (normalized === 'UNREAD') {
+      conditions.push(eq(notifications.isRead, false))
+    }
+  }
+
+  if (type) {
+    conditions.push(eq(notifications.type, type.toUpperCase() as NotificationType))
+  }
+
+  return conditions.length > 0 ? and(...conditions) : undefined
+}
 
 // GET /api/admin/notifications - Get all notifications (admin)
 export async function GET(request: NextRequest) {
@@ -14,10 +43,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email! }
-    })
+    const [adminUser] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, session.user.email))
+      .limit(1)
 
     if (!adminUser) {
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
@@ -31,54 +61,69 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type')
 
     const skip = (page - 1) * limit
+    const where = buildAdminNotificationFilter(userId, status, type)
 
-    // Build where clause
-    const where: any = {}
-    
-    if (userId) {
-      where.userId = userId
-    }
-    
-    if (status && status !== 'all') {
-      where.status = status.toUpperCase()
-    }
-    
-    if (type) {
-      where.type = type.toUpperCase()
-    }
-
-    const [notifications, totalCount] = await Promise.all([
-      prisma.notification.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: {
-          user: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              phone: true
-            }
-          }
-        }
-      }),
-      prisma.notification.count({ where })
+    const [rows, totalResult] = await Promise.all([
+      db
+        .select({
+          id: notifications.id,
+          userId: notifications.userId,
+          title: notifications.title,
+          message: notifications.message,
+          type: notifications.type,
+          priority: notifications.priority,
+          isRead: notifications.isRead,
+          metadata: notifications.metadata,
+          createdAt: notifications.createdAt,
+          updatedAt: notifications.updatedAt,
+          userFirstName: users.firstName,
+          userLastName: users.lastName,
+          userEmail: users.email,
+          userPhone: users.phone,
+        })
+        .from(notifications)
+        .innerJoin(users, eq(notifications.userId, users.id))
+        .where(where)
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit)
+        .offset(skip),
+      db
+        .select({ total: count() })
+        .from(notifications)
+        .where(where),
     ])
+
+    const totalCount = Number(totalResult[0]?.total ?? 0)
 
     return NextResponse.json({
       success: true,
       data: {
-        notifications,
+        notifications: rows.map((row) => ({
+          id: row.id,
+          userId: row.userId,
+          title: row.title,
+          message: row.message,
+          type: row.type,
+          priority: row.priority,
+          isRead: row.isRead,
+          metadata: row.metadata,
+          createdAt: row.createdAt,
+          updatedAt: row.updatedAt,
+          user: {
+            id: row.userId,
+            firstName: row.userFirstName,
+            lastName: row.userLastName,
+            email: row.userEmail,
+            phone: row.userPhone,
+          },
+        })),
         pagination: {
           page,
           limit,
           total: totalCount,
-          pages: Math.ceil(totalCount / limit)
-        }
-      }
+          pages: Math.ceil(totalCount / limit),
+        },
+      },
     })
 
   } catch (error) {
@@ -99,10 +144,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email! }
-    })
+    const [adminUser] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, session.user.email))
+      .limit(1)
 
     if (!adminUser) {
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
@@ -125,18 +171,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get user details
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        kycStatus: true
-      }
-    })
+    const [user] = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        kycStatus: users.kycStatus,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1)
 
     if (!user) {
       return NextResponse.json(
@@ -145,17 +191,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Update user KYC status
-    await prisma.user.update({
-      where: { id: userId },
-      data: { kycStatus }
-    })
+    await db
+      .update(users)
+      .set({ kycStatus: kycStatus as KycStatus })
+      .where(eq(users.id, userId))
 
-    // Create notification
     let title = ''
     let message = ''
-    let notificationType = 'KYC_STATUS'
-    let priority = 'NORMAL'
+    let notificationType: NotificationType = 'KYC_STATUS'
+    let priority: NotificationPriority = 'NORMAL'
 
     switch (kycStatus) {
       case 'APPROVED':
@@ -178,23 +222,23 @@ export async function POST(request: NextRequest) {
         break
     }
 
-    const notification = await prisma.notification.create({
-      data: {
+    const [notification] = await db
+      .insert(notifications)
+      .values({
         userId,
         title,
         message,
-        type: notificationType as NotificationType,
-        priority: priority as NotificationPriority,
+        type: notificationType,
+        priority,
         metadata: JSON.stringify({
           kycStatus,
           rejectionReasons,
           adminId: adminUser.id,
-          adminName: adminUser.name
-        })
-      }
-    })
+          adminName: adminUser.name,
+        }),
+      })
+      .returning()
 
-    // Send email notification
     if (sendEmail) {
       try {
         await sendKYCStatusEmail(
@@ -208,7 +252,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Send SMS notification
     if (sendSMS) {
       try {
         await sendKYCStatusSMS(user.phone, kycStatus)
@@ -226,9 +269,9 @@ export async function POST(request: NextRequest) {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email,
           phone: user.phone,
-          kycStatus
-        }
-      }
+          kycStatus,
+        },
+      },
     })
 
   } catch (error) {

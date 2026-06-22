@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { adminUsers } from '@/lib/db/schema'
 
 declare global {
   var notificationSettings: NotificationSettings | undefined
@@ -31,49 +33,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email! }
-    })
+    const [adminUser] = await db
+      .select({ id: adminUsers.id })
+      .from(adminUsers)
+      .where(eq(adminUsers.email, session.user.email))
+      .limit(1)
 
     if (!adminUser) {
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
     }
 
-    // For now, we'll store settings in a simple JSON file approach
-    // In a production system, you might want a dedicated settings table
     const settings: NotificationSettings = {
       enableEmailNotifications: true,
       enableSMSNotifications: false,
       enableKYCApprovalSMS: false,
-      enableKYCRejectionSMS: true, // Only critical rejections by default
+      enableKYCRejectionSMS: true,
       enableKYCUnderReviewSMS: false,
       enableTransactionSMS: false,
       smsOnlyForCritical: true,
       emailTemplate: 'default',
-      smsTemplate: 'default'
-    }
-
-    // Try to get settings from database or file system
-    // For simplicity, we'll use environment-based defaults but allow runtime overrides
-    try {
-      const existingSettings = await prisma.adminUser.findUnique({
-        where: { id: adminUser.id },
-        select: { 
-          id: true,
-          // We'll store settings in a JSON field if needed
-        }
-      })
-      
-      // You could extend AdminUser model to include notification settings
-      // or create a separate NotificationSettings model
-    } catch (error) {
-      console.log('Using default notification settings')
+      smsTemplate: 'default',
     }
 
     return NextResponse.json({
       success: true,
-      settings
+      settings,
     })
 
   } catch (error) {
@@ -94,10 +78,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Check if user is admin
-    const adminUser = await prisma.adminUser.findUnique({
-      where: { email: session.user.email! }
-    })
+    const [adminUser] = await db
+      .select({ id: adminUsers.id })
+      .from(adminUsers)
+      .where(eq(adminUsers.email, session.user.email))
+      .limit(1)
 
     if (!adminUser) {
       return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
@@ -113,7 +98,7 @@ export async function POST(request: NextRequest) {
       enableTransactionSMS = false,
       smsOnlyForCritical = true,
       emailTemplate = 'default',
-      smsTemplate = 'default'
+      smsTemplate = 'default',
     } = body
 
     const settings: NotificationSettings = {
@@ -126,21 +111,15 @@ export async function POST(request: NextRequest) {
       smsOnlyForCritical,
       emailTemplate,
       smsTemplate,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     }
 
-    // Store settings (for now we'll use a simple approach)
-    // In production, you might want to store this in a dedicated settings table
-    // or extend the AdminUser model
-    
-    // For demonstration, we'll store in a global variable or file
-    // In a real system, use database storage
     global.notificationSettings = settings
 
     return NextResponse.json({
       success: true,
       message: 'Notification settings updated successfully',
-      settings
+      settings,
     })
 
   } catch (error) {
@@ -154,7 +133,6 @@ export async function POST(request: NextRequest) {
 
 // Helper function to get current notification settings
 export async function getNotificationSettings(): Promise<NotificationSettings> {
-  // Return stored settings or defaults
   return global.notificationSettings || {
     enableEmailNotifications: true,
     enableSMSNotifications: false,
@@ -164,6 +142,6 @@ export async function getNotificationSettings(): Promise<NotificationSettings> {
     enableTransactionSMS: false,
     smsOnlyForCritical: true,
     emailTemplate: 'default',
-    smsTemplate: 'default'
+    smsTemplate: 'default',
   }
 }

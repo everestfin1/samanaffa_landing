@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { userAccounts, users } from '@/lib/db/schema'
+import type { AccountStatus } from '@/lib/types'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { logUserSuspension, logUserActivation } from '@/lib/audit-logger'
 
@@ -35,19 +38,17 @@ export async function PUT(
     }
 
     // Check if user exists
-    const targetUser = await prisma.user.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        phone: true,
-        isActive: true,
-        suspendedAt: true,
-        suspensionReason: true
-      }
-    })
+    const [targetUser] = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+      })
+      .from(users)
+      .where(eq(users.id, id))
+      .limit(1)
 
     if (!targetUser) {
       return NextResponse.json(
@@ -56,43 +57,31 @@ export async function PUT(
       )
     }
 
-    let updatedUser
     const isSuspending = action.toLowerCase() === 'suspend'
 
+    if (isSuspending && !reason) {
+      return NextResponse.json(
+        { error: 'Reason is required for suspension' },
+        { status: 400 }
+      )
+    }
+
+    const accountStatus: AccountStatus = isSuspending ? 'SUSPENDED' : 'ACTIVE'
+    const suspendedAt = isSuspending ? new Date() : null
+
+    await db
+      .update(userAccounts)
+      .set({ status: accountStatus })
+      .where(eq(userAccounts.userId, id))
+
+    await db
+      .update(users)
+      .set({ updatedAt: new Date() })
+      .where(eq(users.id, id))
+
     if (isSuspending) {
-      // Suspend user
-      if (!reason) {
-        return NextResponse.json(
-          { error: 'Reason is required for suspension' },
-          { status: 400 }
-        )
-      }
-
-      updatedUser = await prisma.user.update({
-        where: { id },
-        data: {
-          isActive: false,
-          suspendedAt: new Date(),
-          suspensionReason: reason,
-          updatedAt: new Date()
-        }
-      })
-
-      // Log suspension
       await logUserSuspension(user.id, id, reason, request)
     } else {
-      // Activate user
-      updatedUser = await prisma.user.update({
-        where: { id },
-        data: {
-          isActive: true,
-          suspendedAt: null,
-          suspensionReason: null,
-          updatedAt: new Date()
-        }
-      })
-
-      // Log activation
       await logUserActivation(user.id, id, request)
     }
 
@@ -100,15 +89,15 @@ export async function PUT(
       success: true,
       message: `User ${isSuspending ? 'suspended' : 'activated'} successfully`,
       user: {
-        id: updatedUser.id,
+        id: targetUser.id,
         firstName: targetUser.firstName,
         lastName: targetUser.lastName,
         email: targetUser.email,
         phone: targetUser.phone,
-        isActive: updatedUser.isActive,
-        suspendedAt: updatedUser.suspendedAt,
-        suspensionReason: updatedUser.suspensionReason
-      }
+        isActive: !isSuspending,
+        suspendedAt,
+        suspensionReason: isSuspending ? reason : null,
+      },
     })
 
   } catch (error) {

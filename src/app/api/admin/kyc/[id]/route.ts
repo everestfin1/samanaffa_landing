@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { kycDocuments, users } from '@/lib/db/schema'
 import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-intents'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
-import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types'
+import { KycStatus, NotificationPriority, NotificationType, VerificationStatus } from '@/lib/types'
 import { logKYCApproval, logKYCRejection } from '@/lib/audit-logger'
+import { createUserNotification } from '@/lib/user-notifications'
 
 export async function PUT(
   request: NextRequest,
@@ -30,49 +33,59 @@ export async function PUT(
 
     // Validate verification status
     const validStatuses = ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW']
-    if (!validStatuses.includes(verificationStatus.toUpperCase())) {
+    const normalizedStatus = verificationStatus.toUpperCase()
+    if (!validStatuses.includes(normalizedStatus)) {
       return NextResponse.json(
         { error: 'Invalid verification status' },
         { status: 400 }
       )
     }
 
-    const updatedDocument = await prisma.kycDocument.update({
-      where: { id },
-      data: {
-        verificationStatus: verificationStatus.toUpperCase(),
+    const [updatedDocument] = await db
+      .update(kycDocuments)
+      .set({
+        verificationStatus: normalizedStatus as VerificationStatus,
         adminNotes,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            kycStatus: true,
-          }
-        }
-      }
-    })
+      })
+      .where(eq(kycDocuments.id, id))
+      .returning()
 
     if (!updatedDocument) {
       return NextResponse.json(
-        { error: 'Failed to update KYC document' },
-        { status: 500 }
+        { error: 'KYC document not found' },
+        { status: 404 }
+      )
+    }
+
+    const [userData] = await db
+      .select({
+        id: users.id,
+        firstName: users.firstName,
+        lastName: users.lastName,
+        email: users.email,
+        phone: users.phone,
+        kycStatus: users.kycStatus,
+      })
+      .from(users)
+      .where(eq(users.id, updatedDocument.userId))
+      .limit(1)
+
+    if (!userData) {
+      return NextResponse.json(
+        { error: 'User not found for KYC document' },
+        { status: 404 }
       )
     }
 
     // Log KYC action
-    if (verificationStatus.toUpperCase() === 'APPROVED') {
+    if (normalizedStatus === 'APPROVED') {
       await logKYCApproval(
         adminUser.id,
         updatedDocument.userId,
         updatedDocument.id,
         request
       )
-    } else if (verificationStatus.toUpperCase() === 'REJECTED') {
+    } else if (normalizedStatus === 'REJECTED') {
       await logKYCRejection(
         adminUser.id,
         updatedDocument.userId,
@@ -83,15 +96,16 @@ export async function PUT(
     }
 
     // Check if we need to update user's overall KYC status
-    const userDocuments = await prisma.kycDocument.findMany({
-      where: { userId: updatedDocument.userId },
-    })
+    const userDocuments = await db
+      .select()
+      .from(kycDocuments)
+      .where(eq(kycDocuments.userId, updatedDocument.userId))
 
     const approvedDocs = userDocuments.filter(doc => doc.verificationStatus === 'APPROVED').length
     const rejectedDocs = userDocuments.filter(doc => doc.verificationStatus === 'REJECTED').length
     const pendingDocs = userDocuments.filter(doc => doc.verificationStatus === 'PENDING').length
 
-    let newKycStatus: string | null = null
+    let newKycStatus: KycStatus | null = null
     
     // If all documents are approved, approve user KYC
     if (approvedDocs > 0 && pendingDocs === 0 && rejectedDocs === 0) {
@@ -107,24 +121,24 @@ export async function PUT(
     }
 
     // Update user KYC status if needed
-    if (newKycStatus && newKycStatus !== (updatedDocument as any).user.kycStatus) {
-      await prisma.user.update({
-        where: { id: updatedDocument.userId },
-        data: { kycStatus: newKycStatus as KycStatus }
-      })
+    if (newKycStatus && newKycStatus !== userData.kycStatus) {
+      await db
+        .update(users)
+        .set({ kycStatus: newKycStatus })
+        .where(eq(users.id, updatedDocument.userId))
 
       if (newKycStatus === 'REJECTED' || newKycStatus === 'APPROVED') {
         await updateOnboardingDepositIntentsForKycStatus(
           updatedDocument.userId,
-          newKycStatus as 'APPROVED' | 'REJECTED',
+          newKycStatus,
         )
       }
 
       // Create notification for status change
       let title = ''
       let message = ''
-      let notificationType = 'KYC_STATUS'
-      let priority = 'NORMAL'
+      let notificationType: NotificationType = 'KYC_STATUS'
+      let priority: NotificationPriority = 'NORMAL'
 
       switch (newKycStatus) {
         case 'APPROVED':
@@ -148,39 +162,35 @@ export async function PUT(
       }
 
       // Create in-app notification
-      try {
-        await prisma.notification.create({
-          data: {
-            userId: updatedDocument.userId,
+      if (title) {
+        try {
+          await createUserNotification(updatedDocument.userId, {
             title,
             message,
-            type: notificationType as NotificationType,
-            priority: priority as NotificationPriority,
-            metadata: JSON.stringify({
+            type: notificationType,
+            priority,
+            metadata: {
               kycStatus: newKycStatus,
               documentId: updatedDocument.id,
               documentType: updatedDocument.documentType,
-              adminNotes: adminNotes
-            })
-          }
-        })
-      } catch (notificationError) {
-        console.error('Error creating notification:', notificationError)
+              adminNotes,
+            },
+          })
+        } catch (notificationError) {
+          console.error('Error creating notification:', notificationError)
+        }
       }
 
       // Get notification settings
       const notificationSettings = getServerSideNotificationSettings()
 
-      // Get user data for notifications
-      const userData = (updatedDocument as any).user;
-
       // Send email notification if enabled
-      if (shouldSendKYCEmail(newKycStatus as any, notificationSettings)) {
+      if (shouldSendKYCEmail(newKycStatus, notificationSettings)) {
         try {
           await sendKYCStatusEmail(
             userData.email,
             `${userData.firstName} ${userData.lastName}`,
-            newKycStatus as any
+            newKycStatus
           )
         } catch (emailError) {
           console.error('Error sending KYC status email:', emailError)
@@ -188,16 +198,15 @@ export async function PUT(
       }
 
       // Send SMS notification if enabled and configured
-      if (shouldSendKYCSMS(newKycStatus as any, notificationSettings)) {
+      if (shouldSendKYCSMS(newKycStatus, notificationSettings)) {
         try {
-          await sendKYCStatusSMS(userData.phone, newKycStatus as any)
+          await sendKYCStatusSMS(userData.phone, newKycStatus)
         } catch (smsError) {
           console.error('Error sending KYC status SMS:', smsError)
         }
       }
     }
 
-    const user = (updatedDocument as any).user;
     return NextResponse.json({
       success: true,
       message: 'KYC document verification status updated successfully',
@@ -210,13 +219,13 @@ export async function PUT(
         verificationStatus: updatedDocument.verificationStatus,
         adminNotes: updatedDocument.adminNotes,
         user: {
-          id: user.id,
-          name: `${user.firstName} ${user.lastName}`,
-          email: user.email,
-          phone: user.phone,
-          kycStatus: user.kycStatus,
-        }
-      }
+          id: userData.id,
+          name: `${userData.firstName} ${userData.lastName}`,
+          email: userData.email,
+          phone: userData.phone,
+          kycStatus: newKycStatus ?? userData.kycStatus,
+        },
+      },
     })
   } catch (error) {
     console.error('Error updating KYC document verification status:', error)

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { kycDocuments, users } from '@/lib/db/schema'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { KycStatus, VerificationStatus } from '@/lib/types'
 
@@ -49,45 +51,66 @@ export async function PUT(request: NextRequest) {
     }
 
     // Perform batch update using a transaction
-    const result = await prisma.$transaction(async (tx: any) => {
-      const updatedDocuments: any[] = []
+    const result = await db.transaction(async (tx) => {
+      const updatedDocuments: Array<{
+        doc: typeof kycDocuments.$inferSelect
+        user: {
+          id: string
+          firstName: string
+          lastName: string
+          email: string
+          phone: string
+          kycStatus: KycStatus
+        }
+      }> = []
 
       for (const update of updates) {
-        const updatedDocument = await tx.kycDocument.update({
-          where: { id: update.documentId },
-          data: {
+        const [updatedDocument] = await tx
+          .update(kycDocuments)
+          .set({
             verificationStatus: update.verificationStatus.toUpperCase() as VerificationStatus,
             adminNotes: update.adminNotes,
-          },
-          include: {
-            user: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                phone: true,
-                kycStatus: true,
-              }
-            }
-          }
-        })
-        updatedDocuments.push(updatedDocument)
+          })
+          .where(eq(kycDocuments.id, update.documentId))
+          .returning()
+
+        if (!updatedDocument) {
+          throw new Error(`KYC document not found: ${update.documentId}`)
+        }
+
+        const [docUser] = await tx
+          .select({
+            id: users.id,
+            firstName: users.firstName,
+            lastName: users.lastName,
+            email: users.email,
+            phone: users.phone,
+            kycStatus: users.kycStatus,
+          })
+          .from(users)
+          .where(eq(users.id, updatedDocument.userId))
+          .limit(1)
+
+        if (!docUser) {
+          throw new Error(`User not found for document: ${update.documentId}`)
+        }
+
+        updatedDocuments.push({ doc: updatedDocument, user: docUser })
       }
 
       // If userId is provided, check and update user KYC status
       let userKycStatusUpdated = false
-      let newUserKycStatus: string | null = null
+      let newUserKycStatus: KycStatus | null = null
 
       if (userId) {
-        // Fetch all user's KYC documents to determine overall status
-        const allUserDocuments = await tx.kycDocument.findMany({
-          where: { userId },
-        })
+        const allUserDocuments = await tx
+          .select()
+          .from(kycDocuments)
+          .where(eq(kycDocuments.userId, userId))
 
-        const pendingDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'PENDING')
-        const approvedDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'APPROVED')
-        const rejectedDocs = allUserDocuments.filter((doc: any) => doc.verificationStatus === 'REJECTED')
+        const pendingDocs = allUserDocuments.filter((doc) => doc.verificationStatus === 'PENDING')
+        const approvedDocs = allUserDocuments.filter((doc) => doc.verificationStatus === 'APPROVED')
+        const rejectedDocs = allUserDocuments.filter((doc) => doc.verificationStatus === 'REJECTED')
 
         // Determine new user KYC status
         if (approvedDocs.length > 0 && pendingDocs.length === 0 && rejectedDocs.length === 0) {
@@ -100,17 +123,17 @@ export async function PUT(request: NextRequest) {
           newUserKycStatus = 'PENDING'
         }
 
-        // Update user KYC status if it changed
-        const currentUser = await tx.user.findUnique({
-          where: { id: userId },
-          select: { kycStatus: true }
-        })
+        const [currentUser] = await tx
+          .select({ kycStatus: users.kycStatus })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1)
 
         if (currentUser && currentUser.kycStatus !== newUserKycStatus) {
-          await tx.user.update({
-            where: { id: userId },
-            data: { kycStatus: newUserKycStatus as KycStatus }
-          })
+          await tx
+            .update(users)
+            .set({ kycStatus: newUserKycStatus })
+            .where(eq(users.id, userId))
           userKycStatusUpdated = true
         }
       }
@@ -118,7 +141,7 @@ export async function PUT(request: NextRequest) {
       return {
         updatedDocuments,
         userKycStatusUpdated,
-        newUserKycStatus
+        newUserKycStatus,
       }
     })
 
@@ -126,7 +149,7 @@ export async function PUT(request: NextRequest) {
       success: true,
       message: `Successfully updated ${updates.length} KYC documents`,
       data: {
-        updatedDocuments: result.updatedDocuments.map((doc: any) => ({
+        updatedDocuments: result.updatedDocuments.map(({ doc, user: docUser }) => ({
           id: doc.id,
           documentType: doc.documentType,
           fileName: doc.fileName,
@@ -135,16 +158,18 @@ export async function PUT(request: NextRequest) {
           verificationStatus: doc.verificationStatus,
           adminNotes: doc.adminNotes,
           user: {
-            id: doc.user.id,
-            name: `${doc.user.firstName} ${doc.user.lastName}`,
-            email: doc.user.email,
-            phone: doc.user.phone,
-            kycStatus: doc.user.kycStatus,
-          }
+            id: docUser.id,
+            name: `${docUser.firstName} ${docUser.lastName}`,
+            email: docUser.email,
+            phone: docUser.phone,
+            kycStatus: result.userKycStatusUpdated && result.newUserKycStatus
+              ? result.newUserKycStatus
+              : docUser.kycStatus,
+          },
         })),
         userKycStatusUpdated: result.userKycStatusUpdated,
-        newUserKycStatus: result.newUserKycStatus
-      }
+        newUserKycStatus: result.newUserKycStatus,
+      },
     })
 
   } catch (error) {

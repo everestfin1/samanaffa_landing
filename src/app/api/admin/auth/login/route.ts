@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { prisma } from '@/lib/prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { adminUsers } from '@/lib/db/schema'
 import { createAuthResponse, createErrorResponse } from '@/lib/admin-auth'
 import { checkRateLimit, resetRateLimit } from '@/lib/rate-limit'
 import { logAdminLogin } from '@/lib/audit-logger'
@@ -31,9 +33,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Find admin user
-    const admin = await prisma.adminUser.findUnique({
-      where: { email: email.toLowerCase() }
-    })
+    const [admin] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.email, email.toLowerCase()))
+      .limit(1)
 
     if (!admin) {
       return createErrorResponse('Invalid credentials', 401)
@@ -63,26 +67,26 @@ export async function POST(request: NextRequest) {
         lockedUntil = new Date(Date.now() + 60 * 60 * 1000) // Lock for 1 hour
       }
 
-      await prisma.adminUser.update({
-        where: { id: admin.id },
-        data: {
+      await db
+        .update(adminUsers)
+        .set({
           failedAttempts,
-          lockedUntil
-        }
-      })
+          lockedUntil,
+        })
+        .where(eq(adminUsers.id, admin.id))
 
       return createErrorResponse('Invalid credentials', 401)
     }
 
     // Reset failed attempts and update last login
-    await prisma.adminUser.update({
-      where: { id: admin.id },
-      data: {
+    await db
+      .update(adminUsers)
+      .set({
         failedAttempts: 0,
         lockedUntil: null,
-        lastLogin: new Date()
-      }
-    })
+        lastLogin: new Date(),
+      })
+      .where(eq(adminUsers.id, admin.id))
 
     // Reset rate limit on successful login
     resetRateLimit(request, 'admin')

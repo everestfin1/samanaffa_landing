@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createHmac, timingSafeEqual, randomBytes } from 'crypto';
-// Prisma types no longer needed with Drizzle
-import { prisma } from '@/lib/prisma';
-import { db } from '@/lib/db';
-import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import {
+  apeSubscriptions,
+  paymentCallbackLogs,
+  transactionIntents,
+  userAccounts,
+  users,
+} from '@/lib/db/schema';
 import { sendTransactionIntentEmail } from '@/lib/notifications';
 import { isOnboardingDepositUserNotes } from '@/lib/onboarding-deposit';
 
@@ -731,13 +735,23 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
 
   console.log('[Intouch Callback] Looking up transaction intent with reference:', referenceNumber);
 
-  const intent = await prisma.transactionIntent.findUnique({
-    where: { referenceNumber: String(referenceNumber) },
-    include: {
-      user: true,
-      account: true,
-    },
-  });
+  const [intentRow] = await db
+    .select()
+    .from(transactionIntents)
+    .where(eq(transactionIntents.referenceNumber, String(referenceNumber)))
+    .limit(1);
+
+  let intent: (typeof intentRow & { user: typeof users.$inferSelect; account: typeof userAccounts.$inferSelect }) | null = null;
+
+  if (intentRow) {
+    const [[account], [user]] = await Promise.all([
+      db.select().from(userAccounts).where(eq(userAccounts.id, intentRow.accountId)).limit(1),
+      db.select().from(users).where(eq(users.id, intentRow.userId)).limit(1),
+    ]);
+    if (account && user) {
+      intent = { ...intentRow, account, user };
+    }
+  }
 
   // If no transactionIntent found, check if this is an APE subscription
   if (!intent) {
@@ -820,15 +834,31 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
   const customerInfo = parseCustomerInfo(customerInfoRaw);
 
   try {
-    const transactionResult = await prisma.$transaction(async (tx: any) => {
-      const currentIntent = await tx.transactionIntent.findUnique({
-        where: { id: intent.id },
-        include: { account: true, user: true },
-      });
+    const transactionResult = await db.transaction(async (tx) => {
+      const [currentIntentRow] = await tx
+        .select()
+        .from(transactionIntents)
+        .where(eq(transactionIntents.id, intent.id))
+        .limit(1);
 
-      if (!currentIntent) {
+      if (!currentIntentRow) {
         throw new Error('INTENT_NOT_FOUND');
       }
+
+      const [[currentAccount], [currentUser]] = await Promise.all([
+        tx.select().from(userAccounts).where(eq(userAccounts.id, currentIntentRow.accountId)).limit(1),
+        tx.select().from(users).where(eq(users.id, currentIntentRow.userId)).limit(1),
+      ]);
+
+      if (!currentAccount || !currentUser) {
+        throw new Error('INTENT_NOT_FOUND');
+      }
+
+      const currentIntent = {
+        ...currentIntentRow,
+        account: currentAccount,
+        user: currentUser,
+      };
 
       if (parseFloat(currentIntent.amount) !== parseFloat(callbackAmountDecimal)) {
         throw new Error('AMOUNT_MISMATCH');
@@ -854,14 +884,22 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         }
       }
 
-      const statusChangedToCompleted = currentIntent.status !== 'COMPLETED' && finalStatus === 'COMPLETED';
+      const statusChangedToCompleted =
+        currentIntent.status !== 'COMPLETED' && finalStatus === 'COMPLETED';
 
       const adminNote = appendAdminNote(
         currentIntent.adminNotes,
         `Intouch callback ${String(statusRaw)} (${providerTransactionId}) at ${callbackTimestamp.toISOString()}`,
       );
 
-      const updateData: any = {
+      const updateData: {
+        providerStatus: string;
+        lastCallbackAt: Date;
+        lastCallbackPayload: unknown;
+        adminNotes: string;
+        providerTransactionId?: string;
+        status?: CallbackStatus;
+      } = {
         providerStatus: String(statusRaw),
         lastCallbackAt: callbackTimestamp,
         lastCallbackPayload: toJsonValue(parsedBody),
@@ -876,21 +914,26 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         updateData.status = finalStatus;
       }
 
-      const updatedIntent = await tx.transactionIntent.update({
-        where: { id: currentIntent.id },
-        data: updateData,
-      });
-      
-      // Manually attach account and user since include doesn't work with Drizzle yet
-      updatedIntent.account = currentIntent.account;
-      updatedIntent.user = currentIntent.user;
+      const [updatedIntentRow] = await tx
+        .update(transactionIntents)
+        .set(updateData)
+        .where(eq(transactionIntents.id, currentIntent.id))
+        .returning();
 
-      await tx.paymentCallbackLog.create({
-        data: {
-          transactionIntentId: updatedIntent.id,
-          status: String(statusRaw),
-          payload: toJsonValue(parsedBody),
-        },
+      if (!updatedIntentRow) {
+        throw new Error('INTENT_NOT_FOUND');
+      }
+
+      const updatedIntent = {
+        ...updatedIntentRow,
+        account: currentIntent.account,
+        user: currentIntent.user,
+      };
+
+      await tx.insert(paymentCallbackLogs).values({
+        transactionIntentId: updatedIntent.id,
+        status: String(statusRaw),
+        payload: toJsonValue(parsedBody),
       });
 
       if (shouldUpdateBalance && finalStatus === 'COMPLETED') {
@@ -899,12 +942,12 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
             ? (currentBalance - transactionAmount).toFixed(2)
             : (currentBalance + transactionAmount).toFixed(2);
 
-        await tx.userAccount.update({
-          where: { id: updatedIntent.accountId },
-          data: { balance: newBalance },
-        });
+        await tx
+          .update(userAccounts)
+          .set({ balance: newBalance })
+          .where(eq(userAccounts.id, updatedIntent.accountId));
 
-        updatedIntent.account.balance = newBalance;
+        updatedIntent.account = { ...updatedIntent.account, balance: newBalance };
       }
 
       return {

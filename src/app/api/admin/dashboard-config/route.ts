@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { asc, eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { dashboardCards } from '@/lib/db/schema';
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth';
 import {
   buildDashboardCardPatch,
@@ -21,13 +23,16 @@ const DEFAULT_CARDS = [
 ] as const;
 
 async function seedDefaultCardsIfEmpty() {
-  return prisma.$transaction(async (tx) => {
-    const existing = await tx.dashboardCard.findMany({ orderBy: { order: 'asc' } });
+  return db.transaction(async (tx) => {
+    const existing = await tx
+      .select()
+      .from(dashboardCards)
+      .orderBy(asc(dashboardCards.order));
     if (existing.length > 0) return existing;
     for (const d of DEFAULT_CARDS) {
-      await tx.dashboardCard.create({ data: { ...d } });
+      await tx.insert(dashboardCards).values({ ...d });
     }
-    return tx.dashboardCard.findMany({ orderBy: { order: 'asc' } });
+    return tx.select().from(dashboardCards).orderBy(asc(dashboardCards.order));
   });
 }
 
@@ -40,9 +45,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let cards = await prisma.dashboardCard.findMany({
-      orderBy: { order: 'asc' },
-    });
+    let cards = await db
+      .select()
+      .from(dashboardCards)
+      .orderBy(asc(dashboardCards.order));
 
     if (cards.length === 0) {
       cards = await seedDefaultCardsIfEmpty();
@@ -77,8 +83,9 @@ export async function POST(request: NextRequest) {
     }
 
     const { data } = validated;
-    const card = await prisma.dashboardCard.create({
-      data: {
+    const [card] = await db
+      .insert(dashboardCards)
+      .values({
         title: data.title,
         type: data.type,
         dataSource: data.dataSource,
@@ -89,8 +96,8 @@ export async function POST(request: NextRequest) {
         icon: data.icon,
         link: data.link,
         visible: data.visible,
-      },
-    });
+      })
+      .returning();
 
     return NextResponse.json({
       success: true,
@@ -127,16 +134,16 @@ export async function PUT(request: NextRequest) {
           rowSpan: c.rowSpan !== undefined ? clampRowSpan(c.rowSpan) : undefined,
         }));
 
-      await prisma.$transaction(async (tx) => {
+      await db.transaction(async (tx) => {
         for (const { id, order, colSpan, rowSpan } of updates) {
-          await tx.dashboardCard.update({
-            where: { id },
-            data: {
+          await tx
+            .update(dashboardCards)
+            .set({
               ...(order !== undefined && { order }),
               ...(colSpan !== undefined && { colSpan }),
               ...(rowSpan !== undefined && { rowSpan }),
-            },
-          });
+            })
+            .where(eq(dashboardCards.id, id));
         }
       });
 
@@ -162,10 +169,11 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const card = await prisma.dashboardCard.update({
-      where: { id },
-      data: patched.data,
-    });
+    const [card] = await db
+      .update(dashboardCards)
+      .set(patched.data)
+      .where(eq(dashboardCards.id, id))
+      .returning();
 
     return NextResponse.json({ success: true, card: serializeDashboardCard(card) });
   } catch (err) {
@@ -196,7 +204,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.dashboardCard.delete({ where: { id } });
+    await db.delete(dashboardCards).where(eq(dashboardCards.id, id));
 
     return NextResponse.json({ success: true });
   } catch (err) {

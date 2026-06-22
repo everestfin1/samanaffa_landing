@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { count, desc, eq, sql } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { adminUsers, apeSponsorCodes } from '@/lib/db/schema';
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth';
 
 // GET - List all sponsor codes
@@ -17,30 +19,52 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50');
     const skip = (page - 1) * limit;
 
-    const where = status ? { status: status.toUpperCase() as any } : {};
+    const whereClause = status
+      ? eq(apeSponsorCodes.status, status.toUpperCase() as typeof apeSponsorCodes.status.enumValues[number])
+      : undefined;
 
-    const [codes, total] = await Promise.all([
-      prisma.apeSponsorCode.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take: limit,
-        include: { createdByAdmin: true }
-      }),
-      prisma.apeSponsorCode.count({ where })
+    const [codes, totalResult, statsResult] = await Promise.all([
+      db
+        .select({
+          id: apeSponsorCodes.id,
+          code: apeSponsorCodes.code,
+          description: apeSponsorCodes.description,
+          status: apeSponsorCodes.status,
+          usageCount: apeSponsorCodes.usageCount,
+          maxUsage: apeSponsorCodes.maxUsage,
+          expiresAt: apeSponsorCodes.expiresAt,
+          createdAt: apeSponsorCodes.createdAt,
+          updatedAt: apeSponsorCodes.updatedAt,
+          createdBy: apeSponsorCodes.createdBy,
+          adminId: adminUsers.id,
+          adminName: adminUsers.name,
+          adminEmail: adminUsers.email,
+        })
+        .from(apeSponsorCodes)
+        .leftJoin(adminUsers, eq(apeSponsorCodes.createdBy, adminUsers.id))
+        .where(whereClause)
+        .orderBy(desc(apeSponsorCodes.createdAt))
+        .limit(limit)
+        .offset(skip),
+      db
+        .select({ total: count() })
+        .from(apeSponsorCodes)
+        .where(whereClause),
+      db
+        .select({
+          total: sql<number>`count(*)`,
+          active: sql<number>`count(*) filter (where ${apeSponsorCodes.status} = 'ACTIVE')`,
+          inactive: sql<number>`count(*) filter (where ${apeSponsorCodes.status} = 'INACTIVE')`,
+          expired: sql<number>`count(*) filter (where ${apeSponsorCodes.status} = 'EXPIRED')`,
+        })
+        .from(apeSponsorCodes),
     ]);
 
-    // Calculate stats
-    const [totalCodes, activeCodes, inactiveCodes, expiredCodes] = await Promise.all([
-      prisma.apeSponsorCode.count(),
-      prisma.apeSponsorCode.count({ where: { status: 'ACTIVE' } }),
-      prisma.apeSponsorCode.count({ where: { status: 'INACTIVE' } }),
-      prisma.apeSponsorCode.count({ where: { status: 'EXPIRED' } }),
-    ]);
+    const total = Number(totalResult[0]?.total ?? 0);
 
     return NextResponse.json({
       success: true,
-      codes: codes.map(code => ({
+      codes: codes.map((code) => ({
         id: code.id,
         code: code.code,
         description: code.description,
@@ -51,24 +75,24 @@ export async function GET(request: NextRequest) {
         createdAt: code.createdAt,
         updatedAt: code.updatedAt,
         createdBy: code.createdBy,
-        createdByAdmin: (code as any).createdByAdmin ? {
-          id: (code as any).createdByAdmin.id,
-          name: (code as any).createdByAdmin.name,
-          email: (code as any).createdByAdmin.email,
+        createdByAdmin: code.adminId ? {
+          id: code.adminId,
+          name: code.adminName,
+          email: code.adminEmail,
         } : null,
       })),
       stats: {
-        total: totalCodes,
-        active: activeCodes,
-        inactive: inactiveCodes,
-        expired: expiredCodes,
+        total: Number(statsResult[0]?.total ?? 0),
+        active: Number(statsResult[0]?.active ?? 0),
+        inactive: Number(statsResult[0]?.inactive ?? 0),
+        expired: Number(statsResult[0]?.expired ?? 0),
       },
       pagination: {
         page,
         limit,
         total,
         totalPages: Math.ceil(total / limit),
-      }
+      },
     });
   } catch (error) {
     console.error('Error fetching sponsor codes:', error);
@@ -98,13 +122,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Normalize code to uppercase
     const normalizedCode = code.trim().toUpperCase();
 
-    // Check if code already exists
-    const existingCode = await prisma.apeSponsorCode.findUnique({
-      where: { code: normalizedCode }
-    });
+    const [existingCode] = await db
+      .select({ id: apeSponsorCodes.id })
+      .from(apeSponsorCodes)
+      .where(eq(apeSponsorCodes.code, normalizedCode))
+      .limit(1);
 
     if (existingCode) {
       return NextResponse.json(
@@ -113,9 +137,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create the sponsor code
-    const sponsorCode = await prisma.apeSponsorCode.create({
-      data: {
+    const [sponsorCode] = await db
+      .insert(apeSponsorCodes)
+      .values({
         code: normalizedCode,
         description: description?.trim() || null,
         createdBy: user.id,
@@ -123,8 +147,8 @@ export async function POST(request: NextRequest) {
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         status: 'ACTIVE',
         usageCount: 0,
-      }
-    });
+      })
+      .returning();
 
     console.log('[Admin] Created sponsor code:', {
       id: sponsorCode.id,
@@ -143,7 +167,7 @@ export async function POST(request: NextRequest) {
         maxUsage: sponsorCode.maxUsage,
         expiresAt: sponsorCode.expiresAt,
         createdAt: sponsorCode.createdAt,
-      }
+      },
     });
   } catch (error) {
     console.error('Error creating sponsor code:', error);
@@ -173,10 +197,11 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Check if code exists
-    const existingCode = await prisma.apeSponsorCode.findUnique({
-      where: { id }
-    });
+    const [existingCode] = await db
+      .select()
+      .from(apeSponsorCodes)
+      .where(eq(apeSponsorCodes.id, id))
+      .limit(1);
 
     if (!existingCode) {
       return NextResponse.json(
@@ -185,11 +210,12 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    // Build update data
-    const updateData: Record<string, any> = {};
+    const updateData: Partial<typeof apeSponsorCodes.$inferInsert> = {
+      updatedAt: new Date(),
+    };
     
     if (status && ['ACTIVE', 'INACTIVE', 'EXPIRED'].includes(status)) {
-      updateData.status = status;
+      updateData.status = status as typeof apeSponsorCodes.status.enumValues[number];
     }
     
     if (description !== undefined) {
@@ -204,10 +230,11 @@ export async function PATCH(request: NextRequest) {
       updateData.expiresAt = expiresAt ? new Date(expiresAt) : null;
     }
 
-    const updatedCode = await prisma.apeSponsorCode.update({
-      where: { id },
-      data: updateData
-    });
+    const [updatedCode] = await db
+      .update(apeSponsorCodes)
+      .set(updateData)
+      .where(eq(apeSponsorCodes.id, id))
+      .returning();
 
     console.log('[Admin] Updated sponsor code:', {
       id: updatedCode.id,
@@ -227,7 +254,7 @@ export async function PATCH(request: NextRequest) {
         maxUsage: updatedCode.maxUsage,
         expiresAt: updatedCode.expiresAt,
         updatedAt: updatedCode.updatedAt,
-      }
+      },
     });
   } catch (error) {
     console.error('Error updating sponsor code:', error);
@@ -257,10 +284,11 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    // Check if code exists
-    const existingCode = await prisma.apeSponsorCode.findUnique({
-      where: { id }
-    });
+    const [existingCode] = await db
+      .select()
+      .from(apeSponsorCodes)
+      .where(eq(apeSponsorCodes.id, id))
+      .limit(1);
 
     if (!existingCode) {
       return NextResponse.json(
@@ -269,9 +297,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await prisma.apeSponsorCode.delete({
-      where: { id }
-    });
+    await db.delete(apeSponsorCodes).where(eq(apeSponsorCodes.id, id));
 
     console.log('[Admin] Deleted sponsor code:', {
       id: existingCode.id,
@@ -281,7 +307,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: 'Code supprimé avec succès'
+      message: 'Code supprimé avec succès',
     });
   } catch (error) {
     console.error('Error deleting sponsor code:', error);

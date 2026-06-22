@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { and, eq, inArray } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { transactionIntents, userAccounts, users } from '@/lib/db/schema'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { calculateAccountBalance } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
-  // Verify admin authentication
   const { error, user } = await verifyAdminAuth(request)
   
   if (error || !user) {
@@ -12,19 +13,19 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Get all user accounts
-    const accounts = await prisma.userAccount.findMany({
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        }
-      }
-    })
+    const accounts = await db
+      .select({
+        id: userAccounts.id,
+        userId: userAccounts.userId,
+        accountNumber: userAccounts.accountNumber,
+        accountType: userAccounts.accountType,
+        balance: userAccounts.balance,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userEmail: users.email,
+      })
+      .from(userAccounts)
+      .innerJoin(users, eq(userAccounts.userId, users.id))
 
     const results: Array<{
       accountId: string;
@@ -42,39 +43,57 @@ export async function POST(request: NextRequest) {
       transactionCount: number;
     }> = []
 
-    for (const account of accounts) {
-      // Get all completed transactions for this account
-      const completedTransactions = await prisma.transactionIntent.findMany({
-        where: {
-          accountId: account.id,
-          status: 'COMPLETED'
-        }
-      })
+    const accountIds = accounts.map((a) => a.id)
 
-      // Calculate the correct balance
+    const completedTransactions = accountIds.length > 0
+      ? await db
+          .select()
+          .from(transactionIntents)
+          .where(
+            and(
+              inArray(transactionIntents.accountId, accountIds),
+              eq(transactionIntents.status, 'COMPLETED'),
+            ),
+          )
+      : []
+
+    const completedByAccount = new Map<string, typeof completedTransactions>()
+    for (const tx of completedTransactions) {
+      const list = completedByAccount.get(tx.accountId) ?? []
+      list.push(tx)
+      completedByAccount.set(tx.accountId, list)
+    }
+
+    for (const account of accounts) {
+      const accountTxs = completedByAccount.get(account.id) ?? []
+
       const correctBalance = calculateAccountBalance(
-        completedTransactions.map(t => ({
+        accountTxs.map((t) => ({
           intentType: t.intentType.toString(),
-          amount: Number(t.amount)
+          amount: Number(t.amount),
         }))
       )
 
-      // Update the account balance if it's different
       if (Number(account.balance) !== correctBalance) {
-        await prisma.userAccount.update({
-          where: { id: account.id },
-          data: { balance: correctBalance }
-        })
+        await db
+          .update(userAccounts)
+          .set({ balance: correctBalance.toFixed(2) })
+          .where(eq(userAccounts.id, account.id))
 
         results.push({
           accountId: account.id,
           accountNumber: account.accountNumber,
           accountType: account.accountType,
-          user: account.user,
+          user: {
+            id: account.userId,
+            firstName: account.userFirstName,
+            lastName: account.userLastName,
+            email: account.userEmail,
+          },
           oldBalance: Number(account.balance),
           newBalance: correctBalance,
           difference: correctBalance - Number(account.balance),
-          transactionCount: completedTransactions.length
+          transactionCount: accountTxs.length,
         })
       }
     }
@@ -84,7 +103,7 @@ export async function POST(request: NextRequest) {
       message: 'Account balances recalculated successfully',
       results,
       totalAccounts: accounts.length,
-      updatedAccounts: results.length
+      updatedAccounts: results.length,
     })
   } catch (error) {
     console.error('Error recalculating account balances:', error)

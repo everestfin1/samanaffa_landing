@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { and, eq, ne } from 'drizzle-orm';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
 /**
@@ -22,9 +24,7 @@ export async function PATCH(request: NextRequest) {
 
     const { email, termsAccepted, privacyAccepted, marketingAccepted } = body;
 
-    const currentUser = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const [currentUser] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
 
     if (!currentUser) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
@@ -60,12 +60,11 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (trimmedEmail !== currentEmailNorm) {
-      const existingEmailUser = await prisma.user.findFirst({
-        where: {
-          email: trimmedEmail,
-          id: { not: userId },
-        },
-      });
+      const [existingEmailUser] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.email, trimmedEmail), ne(users.id, userId)))
+        .limit(1);
       if (existingEmailUser) {
         return NextResponse.json(
           { error: 'Cet email est déjà associé à un compte existant.' },
@@ -88,13 +87,10 @@ export async function PATCH(request: NextRequest) {
     }
 
     const mergedEmail = (updateData.email as string) || currentUser.email;
-    const mergedTerms = true;
-    const mergedPrivacy = true;
-
     const communicationsComplete = meetsPortalCommunicationsRequirements({
       email: mergedEmail,
-      termsAccepted: mergedTerms,
-      privacyAccepted: mergedPrivacy,
+      termsAccepted: true,
+      privacyAccepted: true,
     });
 
     if (communicationsComplete && currentUser.profileCompletionStatus !== 'COMPLETE') {
@@ -103,10 +99,15 @@ export async function PATCH(request: NextRequest) {
       updateData.profileCompletionStep = null;
     }
 
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+    const [updatedUser] = await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (!updatedUser) {
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
+    }
 
     return NextResponse.json({
       success: true,
