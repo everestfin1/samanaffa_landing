@@ -8,7 +8,6 @@ import {
   Bars3Icon,
   XMarkIcon,
   DevicePhoneMobileIcon,
-  BuildingLibraryIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
 
@@ -178,19 +177,6 @@ export default function Navigation() {
               >
                 Sama Naffa
               </Link>
-
-              <Link
-                href="/apesenegal"
-                className={`transition-all duration-300 font-semibold text-base tracking-wide hover:scale-105 ${
-                  isOverLightBackground
-                    ? 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
-                    : isHomePage
-                      ? 'sama-text-primary/80 hover:sama-text-gold hover:drop-shadow-md'
-                      : 'sama-nav-text-secondary hover:sama-text-gold hover:drop-shadow-md'
-                }`}
-              >
-                Emprunt obligataire
-              </Link>
             </div>
           </div>
 
@@ -349,14 +335,6 @@ export default function Navigation() {
                   >
                     <DevicePhoneMobileIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
                     <span>Sama Naffa</span>
-                  </Link>
-
-                  <Link
-                    href="/apesenegal"
-                    className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-gold-metallic/10 hover:text-gold-metallic transition-all duration-200"
-                  >
-                    <BuildingLibraryIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>Emprunt obligataire</span>
                   </Link>
                 </div>
               </div>

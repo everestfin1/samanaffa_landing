@@ -5,7 +5,6 @@ import {
   ChevronDownIcon,
   QuestionMarkCircleIcon,
   DevicePhoneMobileIcon,
-  BuildingLibraryIcon,
   ShieldCheckIcon,
   BanknotesIcon
 } from '@heroicons/react/24/outline';
@@ -14,7 +13,7 @@ interface FAQItem {
   id: number;
   question: string;
   answer: string;
-  category: 'decouvrir' | 'utilisation' | 'ape' | 'glossaire';
+  category: 'decouvrir' | 'utilisation' | 'glossaire';
 }
 
 interface GlossaryItem {
@@ -27,7 +26,7 @@ const faqData: FAQItem[] = [
   {
     id: 1,
     question: "Qu'est-ce que Sama Naffa?",
-    answer: "SAMA NAFFA est une plateforme d'épargne inclusive, proposée par EVEREST Finance, qui a pour ambition de rendre l'épargne accessible à tous. Elle permet à chaque particulier, quels que soient ses revenus ou sa situation, de placer son argent en toute sécurité et de bénéficier d'un rendement. En offrant une alternative moderne aux solutions classiques, Sama Naffa contribue à l'inclusion financière et donne à toutes les couches de la population la possibilité de bâtir leur avenir grâce à l'épargne rémunérée.",
+    answer: "SAMA NAFFA est un service de gestion sous mandat proposé par EVEREST Finance (SGI). Nous plaçons et gérons votre épargne en obligations de l'État, pour votre compte, avec un objectif de rendement. Le rendement n'est pas garanti et la valeur peut varier.",
     category: 'decouvrir'
   },
   {
@@ -39,7 +38,7 @@ const faqData: FAQItem[] = [
   {
     id: 3,
     question: "Qu'est-ce qu'un Naffa?",
-    answer: "Un Naffa est une bourse digitale d'épargne (compte titre) dans laquelle vous déposez vos fonds pour les faire fructifier. Le mot Naffa vient du wolof et désigne une pochette traditionnelle que les anciens utilisaient pour garder leurs économies.",
+    answer: "Un Naffa, c'est votre épargne gérée pour un objectif — un compte-titres individuel ouvert à votre nom. Ce n'est pas un porte-monnaie de paiement. Le mot Naffa vient du wolof et désigne la pochette traditionnelle où l'on gardait ses économies.",
     category: 'decouvrir'
   },
   {
@@ -56,8 +55,8 @@ const faqData: FAQItem[] = [
   },
   {
     id: 6,
-    question: "Quelle est la fréquence des dépôts?",
-    answer: "La fréquence des dépôts n'est pas fixe. Chaque épargnant choisit librement quand et combien déposer dans son Naffa, selon ses possibilités et ses objectifs.",
+    question: "À quelle fréquence puis-je épargner?",
+    answer: "Chaque épargnant choisit librement quand et combien alimenter son Naffa, selon ses possibilités et ses objectifs. Il n'y a pas de fréquence imposée.",
     category: 'decouvrir'
   },
   {
@@ -68,32 +67,32 @@ const faqData: FAQItem[] = [
   },
   {
     id: 8,
-    question: "Peut-on retirer son argent avant l'échéance?",
-    answer: "Chez SAMA NAFFA, nous croyons que chaque projet mérite le temps de grandir. C'est pourquoi il n'est pas possible de retirer son argent avant l'échéance choisie. Cette discipline n'est pas une contrainte, c'est la clé qui transforme votre épargne en véritable réussite: vous sécurisez vos fonds, vous maximisez vos gains et vous atteignez vos objectifs sereinement.",
+    question: "Comment retirer mon argent?",
+    answer: "Les conditions de retrait (rachat) dépendent de votre formule et de la convention de gestion. Depuis votre espace client, vous pouvez formuler une demande de retrait pour le Naffa concerné. Le délai et les modalités vous sont communiqués avant validation.",
     category: 'decouvrir'
   },
   {
     id: 9,
     question: "Quelle est la particularité de Sama Naffa?",
-    answer: "Sama Naffa n'est pas un simple compte d'épargne: c'est une application qui investit directement vos dépôts sur le marché financier régional. Vos fonds sont bloqués jusqu'à l'échéance choisie, ce qui discipline l'épargne et assure un rendement croissant dans le temps.",
+    answer: "Sama Naffa n'est pas un compte d'épargne bancaire : c'est une gestion sous mandat. Votre épargne est investie en obligations de l'État et gérée pour votre compte par Everest Finance (SGI).",
     category: 'decouvrir'
   },
   {
     id: 10,
-    question: "Quel est le rendement offert par Sama Naffa?",
-    answer: "Avec Sama Naffa, vous épargnez librement et bénéficiez d'un rendement bien plus attractif qu'avec un compte d'épargne classique. Vos fonds sont investis sur le marché financier régional pour maximiser leur croissance. Plus, la durée est longue, plus vos gains augmentent en toute sécurité. Utilisez notre simulateur disponible sur la plateforme et estimez votre gain futur.",
+    question: "Combien peut me rapporter Sama Naffa?",
+    answer: "Sama Naffa vise un objectif de rendement sur votre épargne placée en obligations de l'État. Ce rendement n'est pas garanti : la valeur de votre portefeuille peut varier. Utilisez notre simulateur pour estimer un scénario indicatif.",
     category: 'decouvrir'
   },
   {
     id: 11,
-    question: "Quelle est la méthodologie de calcul des intérêts?",
-    answer: "Les fonds sont placés de manière structurée et disciplinée, la capitalisation est continue et optimisée dans le temps et l'épargne bénéficie d'un mécanisme de croissance automatique et efficiente grâce au marché. Les intérêts sont calculés sur la base du montant épargné et de la durée du placement. À l'échéance, vous recevez donc votre capital initial augmenté des intérêts cumulés.",
+    question: "Comment ma performance est-elle calculée?",
+    answer: "La performance reflète l'évolution de la valeur de votre portefeuille géré (rendement du portefeuille), en fonction des titres détenus et de la durée de placement. Il ne s'agit pas d'intérêts de dépôt bancaire.",
     category: 'decouvrir'
   },
   {
     id: 12,
     question: "Peut-on consulter l'évolution de son investissement?",
-    answer: "Oui. Depuis votre espace client, vous pouvez suivre à tout moment l'évolution de vos placements. Toutes les information essentielles (dépôts, rendement, échéances) sont accessibles en temps réel.",
+    answer: "Oui. Depuis votre espace client, vous pouvez suivre à tout moment l'évolution de vos placements : versements, performance et valeur de votre Naffa.",
     category: 'decouvrir'
   },
   {
@@ -104,8 +103,8 @@ const faqData: FAQItem[] = [
   },
   {
     id: 14,
-    question: "Mon argent est-il en sécurité avec Sama Naffa?",
-    answer: "Oui. Les fonds déposés sont gérés dans un cadre réglementé. Chaque transaction est protégée par des systèmes de sécurité avancés, et vous disposez d'une traçabilité complète.",
+    question: "Mon argent est-il en sécurité?",
+    answer: "Vos fonds sont cantonnés sur un compte dédié, séparé de celui d'Everest Finance, et inscrits sur un compte-titres à votre nom. Everest Finance est une SGI agréée et régulée par le CREPMF. Aucun placement financier n'est sans risque.",
     category: 'decouvrir'
   },
   {
@@ -117,7 +116,7 @@ const faqData: FAQItem[] = [
   {
     id: 16,
     question: "Endossement EVEREST",
-    answer: "SAMA NAFFA est développé à EVEREST Finance, Société de Gestion et d'Intermédiation (SGI) agréée par l'Autorité des Marchés Financiers (AMF) de l'UMOA. Ceci garantit que toutes les opérations respectent le cadre réglementaire et bénéficient de l'expertise d'un acteur reconnu des marchés financiers.",
+    answer: "SAMA NAFFA est développé par EVEREST Finance, Société de Gestion et d'Intermédiation (SGI) agréée et régulée par le CREPMF (Autorité des Marchés Financiers de l'UMOA).",
     category: 'decouvrir'
   },
 
@@ -136,14 +135,14 @@ const faqData: FAQItem[] = [
   },
   {
     id: 19,
-    question: "Comment effectuer un dépôt avec une carte bancaire depuis l'étranger?",
-    answer: "Grace à notre partenariat avec Intouch, vous pouvez alimenter votre Naffa directement depuis l'étranger. Les dépôts se font en toute sécurité à partir de votre compte bancaire ou de vos solutions de paiement habituelles, et sont crédités rapidement sur votre Naffa. Ce dispositif simplifie les transferts de la diaspora et vous permet d'investir facilement sur le marché financier régional, où que vous soyez.",
+    question: "Comment alimenter mon Naffa depuis l'étranger?",
+    answer: "Grâce à notre partenariat avec Intouch, vous pouvez alimenter votre Naffa depuis l'étranger via Mobile Money ou carte bancaire. Les fonds sont crédités sur votre Naffa après confirmation du paiement.",
     category: 'utilisation'
   },
   {
     id: 20,
-    question: "Comment faire un dépôt sur son Naffa?",
-    answer: "Grace à notre partenariat avec Intouch, vous pouvez alimenter votre Naffa. Les dépôts se font en toute sécurité à partir de votre compte bancaire ou de vos solutions de paiement habituelles, et sont crédités rapidement sur votre Naffa. Ce dispositif vous permet d'investir facilement sur le marché financier régional.",
+    question: "Comment alimenter mon Naffa?",
+    answer: "Grâce à notre partenariat avec Intouch, vous pouvez alimenter votre Naffa via Mobile Money (Orange Money, Wave, Free Money, etc.) ou carte bancaire. Les fonds sont investis en obligations de l'État selon votre mandat de gestion.",
     category: 'utilisation'
   },
   {
@@ -161,23 +160,9 @@ const faqData: FAQItem[] = [
   {
     id: 23,
     question: "Quels sont les frais liés à l'utilisation de Sama Naffa ?",
-    answer: "Ouvrir un compte Sama Naffa est totalement gratuit et sans frais cachés. Chaque dépôt que vous effectuez est investi à 100 % sur le marché financier régional pour maximiser votre rendement. Nous appliquons uniquement de légers frais de gestion déjà intégrés dans le calcul du rendement affiché: vous savez donc exactement ce que vous gagnez, en toute transparence. Le détail complet de la tarification est disponible sur la page des Conditions d'utilisation.",
+    answer: "L'ouverture d'un compte Sama Naffa est gratuite. Des frais de gestion peuvent s'appliquer selon la formule choisie ; ils sont intégrés dans le calcul de performance affiché. Le détail sera publié prochainement sur cette page.",
     category: 'utilisation'
   },
-
-  // Emprunt Obligataire par Appel Public à L'Épargne (APE)
-  {
-    id: 24,
-    question: "Comment souscrire à un Emprunt Obligataire ?",
-    answer: "Pour souscrire à un emprunt obligataire, il vous suffit de : 1. Aller dans l'onglet « Emprunt Obligataire ». 2. Sélectionner la tranche à laquelle vous souhaitez souscrire. 3. Indiquer le montant de votre souscription. 4. Signer électroniquement votre engagement. 5. Effectuer le paiement. Une fois ces étapes validées, votre souscription est enregistrée et confirmée.",
-    category: 'ape'
-  },
-  {
-    id: 25,
-    question: "Peut-on souscrire à plusieurs tranches avec le même profil?",
-    answer: "Oui. Avec un même profil, vous pouvez souscrire à plusieurs tranches. La souscription se fait une tranche à la fois, en répétant la même démarche que pour la souscription initiale.",
-    category: 'ape'
-  }
 ];
 
 const glossaryData: GlossaryItem[] = [
@@ -186,28 +171,24 @@ const glossaryData: GlossaryItem[] = [
     definition: "Autorité des Marchés Financiers de l'Union Monétaire Ouest Africaine"
   },
   {
-    term: "Appel Public à l'Épargne",
-    definition: "opération par laquelle une entreprise ou un État sollicite directement le grand public pour collecter des fonds, en émettant des titres (actions, obligations)."
-  },
-  {
-    term: "BCEAO",
-    definition: "Banque Centrale des États de l'Afrique de l'Ouest, qui encadre le système bancaire et monétaire de l'UMOA."
+    term: "CREPMF",
+    definition: "Conseil Régional de l'Épargne Publique et des Marchés Financiers — autorité de régulation des SGI et des marchés financiers de l'UMOA."
   },
   {
     term: "Capitalisation",
-    definition: "Méthode de calcul des intérêts où les gains générés périodiquement s'ajoutent au capital initial pour produire à leur tour des intérêts la période suivante."
+    definition: "Mécanisme par lequel les gains générés s'ajoutent au capital investi pour produire à leur tour un rendement sur la période suivante."
   },
   {
     term: "Échéance",
     definition: "Date à laquelle un Naffa arrive à son terme. L'épargnant peut alors retirer ses fonds ou reconduire son Naffa."
   },
   {
-    term: "Emprunt Obligataire",
-    definition: "opération par laquelle un État ou une entreprise emprunte de l'argent auprès du public en émettant des obligations, qu'il s'engage à rembourser avec intérêts."
+    term: "Gestion sous mandat",
+    definition: "Prestation par laquelle une SGI investit et gère l'épargne d'un client pour son compte, selon une convention signée. Obligation de moyens — le rendement n'est pas garanti."
   },
   {
     term: "Intouch",
-    definition: "Plateforme partenaire sécurisée par laquelle passent tous les dépôts et retraits effectués sur Sama Naffa. Elle permet d'utiliser différents moyens de paiement comme le Mobile Money et les cartes bancaires."
+    definition: "Plateforme partenaire par laquelle passent les versements et retraits sur Sama Naffa (Mobile Money, cartes bancaires)."
   },
   {
     term: "Marché financier régional (UMOA)",
@@ -215,15 +196,15 @@ const glossaryData: GlossaryItem[] = [
   },
   {
     term: "Naffa",
-    definition: "Bourse digitale d'épargne créée sur Sama Naffa pour déposer et faire fructifier son argent. Le terme vient du wolof et désigne la petite pochette traditionnelle où les anciens gardaient leurs économies."
+    definition: "Compte géré individuel ouvert sur Sama Naffa pour un objectif d'épargne. Ce n'est pas un porte-monnaie de paiement."
   },
   {
     term: "Obligation",
-    definition: "Titre de créance représentatif d'un prêt. Celui qui achète une obligation prête de l'argent à l'émetteur (État ou entreprise), qui s'engage à le rembourser à une date fixée avec un intérêt."
+    definition: "Titre de créance émis par un État ou une entreprise. Sama Naffa investit principalement en obligations de l'État (titres souverains UEMOA)."
   },
   {
     term: "OTP (One-Time Password)",
-    definition: "Code de sécurité à usage unique envoyé par SMS ou e-mail, utilisé pour valider certaines opérations sensibles (connexion, dépôt, retrait)."
+    definition: "Code de sécurité à usage unique envoyé par SMS ou e-mail, utilisé pour valider certaines opérations sensibles (connexion, versement, retrait)."
   },
   {
     term: "Placement",
@@ -259,7 +240,6 @@ export default function FAQPage() {
     { id: 'all', name: 'Toutes les questions', icon: QuestionMarkCircleIcon },
     { id: 'decouvrir', name: 'Découvrir Sama Naffa', icon: QuestionMarkCircleIcon },
     { id: 'utilisation', name: 'Utilisation', icon: DevicePhoneMobileIcon },
-    { id: 'ape', name: 'Emprunt Obligataire', icon: BuildingLibraryIcon },
     { id: 'glossaire', name: 'Glossaire', icon: BanknotesIcon }
   ];
 

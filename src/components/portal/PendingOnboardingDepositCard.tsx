@@ -43,7 +43,7 @@ export default function PendingOnboardingDepositCard({
   }, [autoOpenConfirm]);
 
   const handleCancel = async () => {
-    if (!window.confirm('Annuler ce dépôt programmé ? Vous pourrez en créer un nouveau plus tard.')) {
+    if (!window.confirm('Annuler ce versement programmé ? Vous pourrez en créer un nouveau plus tard.')) {
       return;
     }
     setIsCancelling(true);
@@ -77,11 +77,11 @@ export default function PendingOnboardingDepositCard({
     <>
       <section className="bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
         <div>
-          <p className="font-semibold text-amber-900">Confirmer votre premier dépôt</p>
+          <p className="font-semibold text-amber-900">Confirmer votre premier versement</p>
           <p className="text-sm text-amber-800/90 mt-1">
-            Votre identité est validée. Finalisez votre dépôt de{' '}
+            Votre identité est validée. Finalisez votre versement de{' '}
             <strong>{formatCurrency(intent.amount)} FCFA</strong> via Intouch (même parcours que les
-            dépôts sur ce compte).
+            versements sur ce compte).
           </p>
         </div>
         {actionError && <p className="text-sm text-red-600">{actionError}</p>}

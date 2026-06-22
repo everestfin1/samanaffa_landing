@@ -76,7 +76,7 @@ export default function T6Dashboard({
           </div>
           <div className="flex-1">
             <div className="flex justify-between items-start mb-1">
-              <h3 className="font-bold text-night">Dépôt programmé</h3>
+              <h3 className="font-bold text-night">Versement programmé</h3>
               <span
                 className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
                   depositReady
@@ -92,8 +92,8 @@ export default function T6Dashboard({
             </p>
             <p className="text-xs text-night/40 italic">
               {depositReady
-                ? 'Identité validée. Confirmez ce dépôt via Intouch depuis votre tableau de bord Sama Naffa.'
-                : 'Identité validée. Votre dépôt programmé est en cours de finalisation — ouvrez Sama Naffa dans quelques instants pour le confirmer via Intouch.'}
+                ? 'Identité validée. Confirmez ce versement via Intouch depuis votre tableau de bord Sama Naffa.'
+                : 'Identité validée. Votre versement programmé est en cours de finalisation — ouvrez Sama Naffa dans quelques instants pour le confirmer via Intouch.'}
             </p>
           </div>
         </motion.div>

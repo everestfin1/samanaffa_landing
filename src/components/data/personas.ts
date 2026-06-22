@@ -160,24 +160,11 @@ export const personas = [
     duration: 48,
     description: "Sage conseillère de son entourage",
     personalizedMessage:
-      "Réaliser un projet collectif\nOrganisez et financez un projet qui bénéficie à votre communauté",
+      "Réaliser un projet qui compte pour vous\nOrganisez et financez un objectif personnel à votre rythme",
     icon: "/ic_aminata.png", // L'amie conseillère
     shortName: "Aminata, l'amie toujours là",
     quote:
       "Tu conseilles, tu écoutes. Avec un projet commun, tu rassembles et tu bâtis.",
-  },
-  {
-    id: "tontine",
-    name: "La gérante de tontine – Yaay Absa",
-    amount: 40000,
-    duration: 24,
-    description: "Organise l'épargne collective du quartier",
-    personalizedMessage:
-      "Structurer l'épargne collective\nModernisez et sécurisez l'épargne de votre groupe",
-    icon: "/ic_yaay absa.png", // La gérante de tontine
-    shortName: "Yaay Absa, la force du quartier",
-    quote:
-      "Tu connais la valeur de l'union. En épargnant ensemble, on va plus loin.",
   },
   {
     id: "dewrigne",
@@ -186,7 +173,7 @@ export const personas = [
     duration: 36,
     description: "Guide spirituel et leader communautaire",
     personalizedMessage:
-      "Développer votre daahira\nFinancez les projets et infrastructures de votre communauté religieuse",
+      "Développer votre daahira\nFinancez un projet pour votre communauté religieuse, à votre rythme",
     icon: "/ic_mame malick.png", // Le dewrigne de daahira
     shortName: "Serigne Mame Malick, guide engagé",
     quote:

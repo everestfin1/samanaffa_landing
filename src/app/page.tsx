@@ -5,7 +5,6 @@ import { useRef, useEffect, useState } from 'react';
 import {
   ShieldCheckIcon,
   DevicePhoneMobileIcon,
-  BuildingLibraryIcon,
   ArrowRightIcon,
   CheckIcon,
   ChevronDownIcon,
@@ -528,114 +527,62 @@ export default function Home() {
 
         {/* Services Section */}
         <section className="pt-16 pb-32 " aria-label="Nos services">
-          <div className="max-w-6xl mx-auto px-6">
+          <div className="max-w-4xl mx-auto px-6">
             <div className="text-center mb-20">
               <h2 className="text-5xl lg:text-6xl sama-text-primary font-extralight mb-6 tracking-tight">
-                Deux solutions,
+                Votre épargne,
                 <span className="block sama-text-gold font-light">
-                  un objectif
+                  notre expertise
                 </span>
               </h2>
               <p className="text-xl sama-text-secondary font-light max-w-2xl mx-auto">
-                Choisissez la solution qui correspond parfaitement à vos ambitions financières
+                Nous la gérons pour vous — en obligations de l&apos;État, selon vos objectifs.
               </p>
             </div>
 
-            <div className="grid lg:grid-cols-2 gap-10">
-              {/* Sama Naffa Card */}
-              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-primary-green/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-primary-green/10 hover:-translate-y-2 overflow-hidden">
-                {/* Subtle accent */}
-                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="space-y-8">
-                  <div className="flex items-start gap-6">
-                    <div className="relative">
-                      <div className="w-16 h-16 sama-bg-light-green rounded-3xl flex items-center justify-center group-hover:bg-sama-primary-green/10 transition-all duration-300">
-                        <DevicePhoneMobileIcon className="w-8 h-8 sama-text-green" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="text-3xl font-light sama-text-primary mb-2">Sama Naffa</h3>
-                      <p className="sama-text-secondary text-lg font-light">Épargne Inclusive Moderne</p>
-                    </div>
-                  </div>
-                  
-                  <p className="sama-text-secondary leading-relaxed text-lg font-light">
-                    Épargne intelligente avec objectifs personnalisés, comptes joints et défis d'épargne communautaires pour une gestion financière moderne.
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Objectifs d'épargne personnalisés</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Comptes joints et tontines digitales</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Défis d'épargne motivants</span>
-                    </div>
-                  </div>
-                  
-                  <Link 
-                    href="/sama-naffa"
-                    className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
-                  >
-                    <span className="text-lg">Découvrir</span>
-                    <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
-                  </Link>
-                </div>
-              </div>
+            <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-primary-green/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-primary-green/10 hover:-translate-y-2 overflow-hidden max-w-2xl mx-auto">
+              <div className="absolute top-0 left-0 w-full h-1 sama-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-              {/* APE Card */}
-              <div className="group relative sama-bg-card backdrop-blur-sm rounded-3xl p-10 border sama-border-light hover:border-sama-accent-gold/30 transition-all duration-700 hover:shadow-2xl hover:shadow-sama-accent-gold/10 hover:-translate-y-2 overflow-hidden">
-                {/* Subtle accent */}
-                <div className="absolute top-0 left-0 w-full h-1 sama-gradient-accent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                
-                <div className="space-y-8">
-                  <div className="flex items-start gap-6">
-                    <div className="relative">
-                      <div className="w-16 h-16 bg-sama-accent-gold/10 rounded-3xl flex items-center justify-center group-hover:bg-sama-accent-gold/20 transition-all duration-300">
-                        <BuildingLibraryIcon className="w-8 h-8 sama-text-gold" />
-                      </div>
-                      <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="space-y-8">
+                <div className="flex items-start gap-6">
+                  <div className="relative">
+                    <div className="w-16 h-16 sama-bg-light-green rounded-3xl flex items-center justify-center group-hover:bg-sama-primary-green/10 transition-all duration-300">
+                      <DevicePhoneMobileIcon className="w-8 h-8 sama-text-green" />
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-3xl font-light sama-text-primary mb-2">Emprunt obligataire</h3>
-                      <p className="sama-text-secondary text-lg font-light">Appel Public à l'Épargne</p>
-                    </div>
+                    <div className="absolute -top-1 -right-1 w-6 h-6 sama-gradient-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  
-                  <p className="sama-text-secondary leading-relaxed text-lg font-light">
-                    Investissement sécurisé dans les obligations d'État avec rendement fixe garanti et échéances définies pour une croissance stable.
-                  </p>
-                  
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Rendement fixe garanti de 8%</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Sécurisé par l'État du Sénégal</span>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-2 h-2 sama-gradient-accent rounded-full"></div>
-                      <span className="sama-text-secondary font-light">Calculateur de rendement intégré</span>
-                    </div>
+                  <div className="flex-1">
+                    <h3 className="text-3xl font-light sama-text-primary mb-2">Sama Naffa</h3>
+                    <p className="sama-text-secondary text-lg font-light">Votre épargne, gérée par des experts</p>
                   </div>
-                  
-                  <Link 
-                    href="/apesenegal"
-                    className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
-                  >
-                    <span className="text-lg">Découvrir</span>
-                    <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
-                  </Link>
                 </div>
+
+                <p className="sama-text-secondary leading-relaxed text-lg font-light">
+                  Nous plaçons votre épargne en obligations de l&apos;État et la gérons pour vous, selon vos objectifs.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                    <span className="sama-text-secondary font-light">Objectifs d&apos;épargne personnalisés</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                    <span className="sama-text-secondary font-light">Obligations de l&apos;État — objectif de rendement</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <div className="w-2 h-2 sama-gradient-primary rounded-full"></div>
+                    <span className="sama-text-secondary font-light">Suivi de votre épargne en temps réel</span>
+                  </div>
+                </div>
+
+                <Link
+                  href="/sama-naffa"
+                  className="inline-flex items-center gap-3 sama-text-primary font-medium hover:sama-text-gold transition-all duration-300 group/link pt-4"
+                >
+                  <span className="text-lg">Découvrir</span>
+                  <ArrowRightIcon className="w-5 h-5 group-hover/link:translate-x-2 transition-transform duration-300" />
+                </Link>
               </div>
             </div>
           </div>

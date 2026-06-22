@@ -217,8 +217,7 @@ export default function ContactPage() {
                     )}
                     <option value="general">Question générale</option>
                     <option value="account">Ouverture de compte</option>
-                    <option value="sama-naffa">Sama Naffa - Épargne</option>
-                    <option value="ape">APE - Investissements</option>
+                    <option value="sama-naffa">Sama Naffa — Épargne gérée</option>
                     <option value="technical">Support technique</option>
                     <option value="partnership">Partenariat</option>
                   </select>

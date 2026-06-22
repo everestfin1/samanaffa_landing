@@ -61,18 +61,6 @@ export const naffaTypes: NaffaType[] = [
     description: 'Sécurisez votre avenir avec une épargne prudente sur 10 ans'
   },
   {
-    id: 'communautaire',
-    name: 'Naffa Communautaire',
-    persona: 'Gérantes de tontines, associations formelles ou informelles (Communautaire)',
-    defaultAmount: 10000,
-    duration: 5, // Flexible 3-7 ans, using 5 as default
-    objective: 'Épargne collective, projet commun, solidarité',
-    message: 'Épargnons ensemble, réussissons ensemble.',
-    icon: '🤝',
-    color: 'orange',
-    description: 'Épargnez en groupe pour des projets communautaires'
-  },
-  {
     id: 'liberte',
     name: 'Naffa Liberté',
     persona: 'Jeunes actifs (Explorer)',

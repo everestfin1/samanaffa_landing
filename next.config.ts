@@ -3,7 +3,19 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === 'development';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      { source: '/apesenegal', destination: '/sama-naffa', permanent: true },
+      { source: '/apesenegal/:path*', destination: '/sama-naffa', permanent: true },
+      { source: '/ape', destination: '/sama-naffa', permanent: true },
+      { source: '/ape/:path*', destination: '/sama-naffa', permanent: true },
+      { source: '/souscrire-ape', destination: '/sama-naffa', permanent: true },
+      { source: '/souscrire-ape/:path*', destination: '/sama-naffa', permanent: true },
+      { source: '/portal/ape', destination: '/portal/sama-naffa', permanent: true },
+      { source: '/portal/ape/:path*', destination: '/portal/sama-naffa', permanent: true },
+      { source: '/portal/compare', destination: '/portal/sama-naffa', permanent: true },
+    ];
+  },
   experimental: {
     turbopackFileSystemCacheForDev: true,
   },

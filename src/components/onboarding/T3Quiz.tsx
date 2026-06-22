@@ -178,7 +178,7 @@ export default function T3Quiz({ firstName, onSuccess, onBack, onProgressChange 
           disabled={loading}
           className="group relative w-full px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] disabled:opacity-50 text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
         >
-          <span className="relative z-10">{loading ? 'Enregistrement...' : error ? 'Réessayer' : 'Programmer mon premier dépôt'}</span>
+          <span className="relative z-10">{loading ? 'Enregistrement...' : error ? 'Réessayer' : 'Programmer mon premier versement'}</span>
           {!loading && !error && <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>}
         </button>
       </motion.div>

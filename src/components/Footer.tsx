@@ -2,12 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import React from 'react'
 import { PhoneIcon, EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { CREPMF_AGREMENT_LINE } from '@/lib/compliance-copy';
 
 export default function Footer() {
-    const router = useRouter();
     const pathname = usePathname();
     const isAdminPage = pathname.startsWith('/admin');
     const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
@@ -36,8 +36,7 @@ export default function Footer() {
               />
             </div>
             <p className="text-white/70 text-xl font-light leading-relaxed max-w-2xl">
-              Votre partenaire de confiance pour l'épargne et l'investissement au Sénégal. 
-              Une approche moderne de la finance traditionnelle.
+              Nous plaçons et gérons votre épargne en obligations de l&apos;État, selon vos objectifs.
             </p>
           </div>
 
@@ -46,18 +45,12 @@ export default function Footer() {
             <div>
               <h4 className="font-light mb-4 text-white/90 text-lg">Nos Solutions</h4>
               <div className="space-y-3">
-                <button 
-                  onClick={() => router.push('/sama-naffa')} 
+                <Link
+                  href="/sama-naffa"
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  SAMA NAFFA • Épargne Inclusive
-                </button>
-                <button 
-                  onClick={() => router.push('/apesenegal')} 
-                  className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
-                >
-                  Emprunt obligataire • Appel Public à l'Épargne
-                </button>
+                  SAMA NAFFA • Votre épargne gérée
+                </Link>
               </div>
             </div>
             
@@ -83,6 +76,20 @@ export default function Footer() {
 
         {/* Contact Section */}
         <div className="space-y-8">
+          {/* Everest Finance Logo and Agrément */}
+          <div className="flex flex-col gap-3">
+            <Image
+              src="/everestfin_logo.png"
+              alt="Everest Finance Logo"
+              width={120}
+              height={40}
+              className="opacity-90"
+            />
+            <span className="text-sm text-white/60 font-light">
+              {CREPMF_AGREMENT_LINE}
+            </span>
+          </div>
+
           <div>
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
@@ -103,30 +110,16 @@ export default function Footer() {
               </div>
             </div>
           </div>
-
-          {/* Everest Finance Logo and Agrément */}
-          <div className="flex flex-col gap-3">
-            <Image
-              src="/everestfin_logo.png"
-              alt="Everest Finance Logo"
-              width={120}
-              height={40}
-              className="opacity-90"
-            />
-            <span className="text-sm text-white/60 font-light">
-              Agrément n° SGI /DA/2016/60
-            </span>
-          </div>
         </div>
       </div>
 
       {/* Bottom Bar */}
       <div className="border-t border-white/10 mt-16 pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
-          <p>&copy; {currentYear} Copyright - EVERESY FINANCE</p>
+          <p>&copy; {currentYear} EVEREST FINANCE SA</p>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</a>
-            <a href="#" className="hover:text-sama-accent-gold transition-colors duration-300">Conditions d'utilisation</a>
+            <Link href="/faq" className="hover:text-sama-accent-gold transition-colors duration-300">FAQ</Link>
+            <Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Contact</Link>
           </div>
         </div>
       </div>

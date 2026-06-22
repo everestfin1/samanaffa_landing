@@ -30,7 +30,6 @@ import PortalHeader from '../../../components/portal/PortalHeader';
 import { SavingsPlanner } from '../../../components/SamaNaffa/SavingsPlanner';
 import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
 import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
-import { isApeDeprecated } from '@/lib/product-flags';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 
@@ -223,7 +222,7 @@ export default function DashboardPage() {
               ? 'Veuillez relancer votre vérification pour accéder à toutes les fonctionnalités.'
               : kycStatus === 'UNDER_REVIEW'
                 ? 'Notre équipe examine votre dossier (généralement moins de 24 h).'
-                : 'Finalisez votre KYC pour débloquer les dépôts et retraits.'}
+                : 'Finalisez votre KYC pour débloquer les versements et retraits.'}
           </p>
           {(kycStatus === 'PENDING' || kycStatus === 'REJECTED') && (
             <button
@@ -260,9 +259,9 @@ export default function DashboardPage() {
       {pendingDeposit && (
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <p className="font-semibold text-amber-900">Premier dépôt à confirmer</p>
+            <p className="font-semibold text-amber-900">Premier versement à confirmer</p>
             <p className="text-sm text-amber-800/90 mt-1">
-              Votre identité est validée. Finalisez votre dépôt de{' '}
+              Votre identité est validée. Finalisez votre versement de{' '}
               {pendingDeposit.amount.toLocaleString('fr-FR')} FCFA via Intouch.
             </p>
           </div>
@@ -283,55 +282,31 @@ export default function DashboardPage() {
           <div className="h-px bg-gradient-to-r from-gold-metallic/20 to-transparent flex-1 ml-4"></div>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-6">
-          <button 
-            onClick={() => router.push('/portal/sama-naffa')}
-            className="group bg-gradient-to-br from-sama-primary-green/5 to-sama-primary-green-light/10 rounded-2xl border-2 border-sama-primary-green/20 p-8 hover:shadow-xl hover:shadow-sama-primary-green/10 transition-all duration-300 text-left hover:border-sama-primary-green/40 hover:scale-[1.02]"
-          >
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="bg-sama-primary-green p-4 rounded-2xl shadow-lg">
+        <button
+          onClick={() => router.push('/portal/sama-naffa')}
+          className="group w-full bg-gradient-to-br from-sama-primary-green/5 to-sama-primary-green-light/10 rounded-2xl border-2 border-sama-primary-green/20 p-8 hover:shadow-xl hover:shadow-sama-primary-green/10 transition-all duration-300 text-left hover:border-sama-primary-green/40 hover:scale-[1.01]"
+        >
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="flex items-center space-x-4">
+              <div className="bg-sama-primary-green p-4 rounded-2xl shadow-lg shrink-0">
                 <DevicePhoneMobileIcon className="w-8 h-8 text-white" />
               </div>
               <div>
-                <h3 className="font-bold text-xl text-night group-hover:text-sama-primary-green transition-colors">Sama Naffa</h3>
-                <p className="text-sm text-night/60 font-medium">Épargne intelligente</p>
+                <h3 className="font-bold text-xl text-night group-hover:text-sama-primary-green transition-colors">
+                  Sama Naffa
+                </h3>
+                <p className="text-sm text-night/60 font-medium">Votre épargne gérée</p>
               </div>
             </div>
-            <div className="text-sm text-night/70 mb-6 leading-relaxed">
-              Gérez vos objectifs d'épargne, participez aux défis et créez des comptes joints.
-            </div>
-            <div className="flex items-center text-sama-primary-green text-sm font-bold group-hover:text-sama-primary-green transition-colors">
+            <p className="text-sm text-night/70 leading-relaxed md:max-w-md md:text-center">
+              Suivez vos objectifs d&apos;épargne et la valeur de votre Naffa, géré pour votre compte.
+            </p>
+            <div className="flex items-center text-sama-primary-green text-sm font-bold group-hover:text-sama-primary-green transition-colors shrink-0">
               <span>Accéder au service</span>
               <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
             </div>
-          </button>
-
-          {!isApeDeprecated() && (
-            <button
-              onClick={() => router.push('/portal/ape')}
-              className="group bg-gradient-to-br from-gold-metallic/5 to-gold-light/10 rounded-2xl border-2 border-gold-metallic/20 p-8 hover:shadow-xl hover:shadow-gold-metallic/10 transition-all duration-300 text-left hover:border-gold-metallic/40 hover:scale-[1.02]"
-            >
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="bg-sama-accent-gold-dark p-4 rounded-2xl shadow-lg">
-                  <BuildingLibraryIcon className="w-8 h-8 text-white" />
-                </div>
-                <div>
-                  <h3 className="font-bold text-xl text-night group-hover:text-gold-metallic transition-colors">
-                    Emprunt Obligataire
-                  </h3>
-                  <p className="text-sm text-night/60 font-medium">Obligations d&apos;État</p>
-                </div>
-              </div>
-              <div className="text-sm text-night/70 mb-6 leading-relaxed">
-                Investissez dans les obligations souveraines avec un rendement garanti.
-              </div>
-              <div className="flex items-center text-gold-metallic text-sm font-bold group-hover:text-gold-dark transition-colors">
-                <span>Accéder au service</span>
-                <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
-          )}
-        </div>
+          </div>
+        </button>
       </div>
 
       {/* Savings Planner Section */}
@@ -364,9 +339,9 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-medium text-night">
-                    {transaction.type === 'DEPOSIT' ? 'Dépôt' : 
+                    {transaction.type === 'DEPOSIT' ? 'Versement' : 
                      transaction.type === 'WITHDRAWAL' ? 'Retrait' : 
-                     'Investissement APE'}
+                     'Opération'}
                   </h3>
                   <p className="text-sm text-night/70">
                     {transaction.type === 'WITHDRAWAL' ? '-' : '+'}{transaction.amount.toLocaleString('fr-FR')} FCFA

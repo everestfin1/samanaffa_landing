@@ -89,7 +89,7 @@ export default function DepositIntentModal({ isOpen, onClose, onComplete }: Depo
         {/* Header */}
         <div className="sticky top-0 bg-white border-b border-timberwolf/20 px-6 py-4 flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-night">Programmer un dépôt</h2>
+            <h2 className="text-2xl font-bold text-night">Programmer un versement</h2>
             <p className="text-sm text-night/60 mt-1">Sera crédité après validation KYC</p>
           </div>
           <button
@@ -105,11 +105,11 @@ export default function DepositIntentModal({ isOpen, onClose, onComplete }: Depo
           <div className="text-center mb-6">
             <span className="text-5xl">💸</span>
             <p className="text-night/60 text-sm mt-2">
-              {firstName}, prépare ton premier dépôt
+              {firstName}, prépare ton premier versement
             </p>
             {pendingIntent && (
               <div className="mt-3 inline-block bg-amber-50 border border-amber-200 rounded-full px-4 py-2 text-sm text-amber-800">
-                ⏳ Dépôt en attente : {formatCurrency(parseFloat(pendingIntent.amount))} FCFA
+                ⏳ Versement en attente : {formatCurrency(parseFloat(pendingIntent.amount))} FCFA
               </div>
             )}
           </div>
@@ -177,7 +177,7 @@ export default function DepositIntentModal({ isOpen, onClose, onComplete }: Depo
           </button>
 
           <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-            <p className="font-semibold mb-1">⏳ Dépôt en attente de validation</p>
+            <p className="font-semibold mb-1">⏳ Versement en attente de validation</p>
             <p>
               Aucun montant n'est prélevé maintenant. Il le sera après validation de tes documents
               (généralement moins de 24h).

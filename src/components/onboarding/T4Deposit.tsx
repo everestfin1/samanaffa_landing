@@ -52,7 +52,7 @@ export default function T4Deposit({
         </button>
       )}
       <OnboardingStepHeader
-        title={`${firstName}, préparez votre premier dépôt`}
+        title={`${firstName}, préparez votre premier versement`}
         description="Aucun prélèvement maintenant. Après validation de votre identité, vous confirmerez le paiement via Intouch depuis votre espace client."
         className="mb-6"
       />
@@ -65,7 +65,7 @@ export default function T4Deposit({
         accountType="sama_naffa"
         scheduleIntentOnly
         initialAmount={initialAmount}
-        submitLabel={loading ? 'Programmation...' : 'Programmer le dépôt'}
+        submitLabel={loading ? 'Programmation...' : 'Programmer le versement'}
         cancelLabel="Retour"
         submitDisabled={loading}
         onClose={() => onBack?.()}
@@ -75,7 +75,7 @@ export default function T4Deposit({
       {error && <p className="mt-3 text-sm text-red-600 text-center">{error}</p>}
 
       <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-        <p className="font-semibold mb-1">⏳ Dépôt programmé</p>
+        <p className="font-semibold mb-1">⏳ Versement programmé</p>
         <p>
           Aucun montant n&apos;est prélevé maintenant. Vous finaliserez le paiement via Intouch une
           fois votre identité validée (généralement moins de 24 h).

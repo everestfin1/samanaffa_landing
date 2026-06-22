@@ -1,7 +1,7 @@
 {
-  "name": "Sama Naffa - Épargne Digitale et Emprunt Obligataire",
+  "name": "Sama Naffa — Nous gérons votre épargne",
   "short_name": "Sama Naffa",
-  "description": "Plateforme mobile-first pour l'épargne digitale et l'Appel Public à l'Épargne de l'État du Sénégal",
+  "description": "Nous plaçons et gérons votre épargne en obligations de l'État, avec un objectif de rendement. Everest Finance (SGI), agréée CREPMF.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

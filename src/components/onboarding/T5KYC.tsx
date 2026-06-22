@@ -71,7 +71,7 @@ export default function T5KYC({
         {depositAmount > 0 && kyc.stage !== 'success' && (
           <div className="mt-3 text-center">
             <div className="inline-block bg-gold/10 border border-gold/30 rounded-full px-4 py-2 text-sm text-night">
-              Débloquez votre dépôt de{' '}
+              Débloquez votre versement de{' '}
               <strong>{depositAmount.toLocaleString('fr-FR')} FCFA</strong>
             </div>
           </div>

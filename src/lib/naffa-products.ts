@@ -55,14 +55,6 @@ export const NAFFA_PRODUCTS: NaffaProduct[] = [
     allowAdditionalDeposits: true,
   },
   {
-    id: 'communautaire',
-    name: 'Naffa Communautaire',
-    productCode: 'SN-COMMUNAUTAIRE',
-    interestRate: 4.5,
-    lockPeriodMonths: yearToMonths(5),
-    allowAdditionalDeposits: true,
-  },
-  {
     id: 'liberte',
     name: 'Naffa Liberté',
     productCode: 'SN-LIBERTE',

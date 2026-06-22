@@ -44,7 +44,7 @@ export default function OnboardingDepositModal({
       <DepositModalCard>
         <DepositModalHeader
           title={
-            showIntouchPayment ? 'Paiement via Intouch' : 'Confirmer votre premier dépôt'
+            showIntouchPayment ? 'Paiement via Intouch' : 'Confirmer votre premier versement'
           }
           onClose={onClose}
         />
@@ -127,8 +127,8 @@ function DepositModalIntro({
   return (
     <div className="space-y-4">
       <p className="text-sm text-night/70">
-        Votre identité est validée. Finalisez le dépôt programmé lors de votre inscription via
-        Intouch (même parcours que les dépôts sur votre compte).
+        Votre identité est validée. Finalisez le versement programmé lors de votre inscription via
+        Intouch (même parcours que les versements sur votre compte).
       </p>
       <div className="p-4 bg-gold-light/20 border border-gold-metallic/30 rounded-xl space-y-2">
         <div className="flex justify-between text-sm">

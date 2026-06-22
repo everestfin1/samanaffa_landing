@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { objectives } from '@/components/data/objectives';
 import SavingsSimulatorControls from '@/components/SamaNaffa/SavingsSimulatorControls';
+import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
 import { validateDuree, validateMensualite } from '@/lib/savings-simulation';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 import { getProjectIconScaleClasses, isAutresProject } from '@/lib/project-icon-display';
@@ -176,6 +177,8 @@ export default function T0Simulator({ initial, onContinue }: T0SimulatorProps) {
                 layout="stacked"
               />
             </div>
+
+            <RiskDisclaimer variant="simulator" className="text-center mt-4" />
 
             {submitError && (
               <p className="text-sm text-red-600 text-center mt-3">{submitError}</p>

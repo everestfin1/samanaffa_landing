@@ -11,6 +11,7 @@ import {
   SAVINGS_MENSUALITE_STEP,
   tauxParDuree,
 } from '@/lib/savings-simulation';
+import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
 
 export interface SavingsSimulatorControlsProps {
   mensualite: number;
@@ -137,7 +138,7 @@ export default function SavingsSimulatorControls({
           <div className="p-3 sm:p-4 bg-gradient-to-r from-[#435933]/10 to-[#C38D1C]/10 rounded-lg sm:rounded-xl border border-[#435933]/20">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-2">
               <span className="text-[#435933] font-medium text-sm sm:text-base">
-                Taux d&apos;intérêt :{' '}
+                Objectif de rendement :{' '}
                 <span className="font-bold text-base sm:text-lg">{taux.toFixed(1)}%</span> par an
               </span>
               <span className="text-[10px] sm:text-xs text-gray-600">{dureeTermLabel(duree)}</span>
@@ -145,7 +146,7 @@ export default function SavingsSimulatorControls({
           </div>
 
           <div className="text-center space-y-2 sm:space-y-3 p-4 sm:p-6 bg-gradient-to-br from-[#F2F8F4] to-white rounded-lg sm:rounded-xl">
-            <h4 className="font-normal text-[#060606] text-base sm:text-lg">Capital final estimé</h4>
+            <h4 className="font-normal text-[#060606] text-base sm:text-lg">Valeur estimée</h4>
             <div className="font-bold text-[#435933] text-xl sm:text-2xl lg:text-3xl">
               {formatCurrency(Math.round(capitalFinal))}
             </div>
@@ -160,7 +161,7 @@ export default function SavingsSimulatorControls({
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-[10px] sm:text-xs text-gray-600 mb-1">Intérêts gagnés</div>
+                <div className="text-[10px] sm:text-xs text-gray-600 mb-1">Gain estimé</div>
                 <div className="font-bold text-[#435933] text-xs sm:text-sm break-words">
                   +{formatCurrency(Math.round(interets))}
                 </div>
@@ -174,9 +175,7 @@ export default function SavingsSimulatorControls({
                 </div>
               </div>
             </div>
-            <p className="text-[10px] text-night/40 italic">
-              * Simulation indicative, non contractuelle
-            </p>
+            <RiskDisclaimer variant="simulator" className="text-center" />
           </div>
         </>
       )}

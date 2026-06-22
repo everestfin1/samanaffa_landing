@@ -645,7 +645,7 @@ export default function SamaNaffaPortal({
             className="flex-1 bg-gold-metallic text-white py-4 px-6 rounded-xl font-semibold hover:bg-gold-dark transition-colors flex items-center justify-center space-x-2"
           >
             <ArrowDownIcon className="w-5 h-5" />
-            <span>Effectuer un dépôt</span>
+            <span>Alimenter mon Naffa</span>
           </button>
           <button
             onClick={() => handleOpenTransfer('withdraw')}
