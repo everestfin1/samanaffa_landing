@@ -1,4 +1,6 @@
-import { prisma } from './prisma';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import { parseInvestorProfile } from './onboarding-progress';
 
 const LEGACY_SESSION_VERSION_KEY = 'sessionVersion';
@@ -40,22 +42,27 @@ export function readSessionVersion(investorProfile: unknown): number {
 
 /** Invalidate all existing JWTs for this user (AUTH-008 / AUTH-023). */
 export async function bumpSessionVersion(userId: string): Promise<number> {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { sessionVersion: true, investorProfile: true },
-  });
+  const [user] = await db
+    .select({
+      sessionVersion: users.sessionVersion,
+      investorProfile: users.investorProfile,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
   if (!user) return 0;
 
   const current = resolveSessionVersionForBump(
-    user.sessionVersion as number | null | undefined,
+    user.sessionVersion,
     user.investorProfile,
   );
   const next = current + 1;
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { sessionVersion: next },
-  });
+  await db
+    .update(users)
+    .set({ sessionVersion: next, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   return next;
 }

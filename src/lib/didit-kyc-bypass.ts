@@ -1,4 +1,6 @@
-import { prisma } from '@/lib/prisma';
+import { and, eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { kycDocuments, users } from '@/lib/db/schema';
 import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-intents';
 import { isPlaceholderFamilyName } from '@/lib/portal-profile-completion';
 import type { KycStatus } from '@/lib/types';
@@ -44,43 +46,43 @@ const BYPASS_TEST_IDENTITY = {
 export async function applyDiditKycBypassApproval(userId: string): Promise<string> {
   const sessionId = buildBypassKycSessionId(userId);
 
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
   if (!user) {
     throw new Error(`User not found: ${userId}`);
   }
 
-  const existingDocs = await prisma.kycDocument.findMany({
-    where: {
-      userId,
-      documentType: 'didit_kyc_session',
-      fileUrl: sessionId,
-    },
-    take: 1,
-  });
-  const existingDoc = existingDocs[0];
+  const [existingDoc] = await db
+    .select()
+    .from(kycDocuments)
+    .where(
+      and(
+        eq(kycDocuments.userId, userId),
+        eq(kycDocuments.documentType, 'didit_kyc_session'),
+        eq(kycDocuments.fileUrl, sessionId),
+      ),
+    )
+    .limit(1);
 
   if (!existingDoc) {
-    await prisma.kycDocument.create({
-      data: {
-        userId,
-        documentType: 'didit_kyc_session',
-        fileName: 'Didit KYC (dev bypass)',
-        fileUrl: sessionId,
-        verificationStatus: 'APPROVED',
-        diditDecisionPayload: {
-          bypass: true,
-          note: 'DIDIT_KYC_BYPASS — not a real Didit session',
-        },
+    await db.insert(kycDocuments).values({
+      userId,
+      documentType: 'didit_kyc_session',
+      fileName: 'Didit KYC (dev bypass)',
+      fileUrl: sessionId,
+      verificationStatus: 'APPROVED',
+      diditDecisionPayload: {
+        bypass: true,
+        note: 'DIDIT_KYC_BYPASS — not a real Didit session',
       },
     });
   } else if (existingDoc.verificationStatus !== 'APPROVED') {
-    await prisma.kycDocument.update({
-      where: { id: existingDoc.id },
-      data: { verificationStatus: 'APPROVED' },
-    });
+    await db
+      .update(kycDocuments)
+      .set({ verificationStatus: 'APPROVED' })
+      .where(eq(kycDocuments.id, existingDoc.id));
   }
 
-  const userPatch: Record<string, unknown> = {};
+  const userPatch: Partial<typeof users.$inferInsert> = {};
 
   if (user.kycStatus !== 'APPROVED') {
     userPatch.kycStatus = 'APPROVED' as KycStatus;
@@ -114,10 +116,10 @@ export async function applyDiditKycBypassApproval(userId: string): Promise<strin
   }
 
   if (Object.keys(userPatch).length > 0) {
-    await prisma.user.update({
-      where: { id: userId },
-      data: userPatch,
-    });
+    await db
+      .update(users)
+      .set({ ...userPatch, updatedAt: new Date() })
+      .where(eq(users.id, userId));
   }
 
   if (user.kycStatus !== 'APPROVED') {

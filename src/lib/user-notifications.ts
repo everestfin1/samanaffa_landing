@@ -1,4 +1,5 @@
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { notifications } from '@/lib/db/schema';
 import type { NotificationPriority, NotificationType } from '@/lib/types';
 import { isAllowedNotificationActionUrl } from '@/lib/notification-url-allowlist';
 
@@ -37,15 +38,13 @@ export async function createUserNotification(
 ): Promise<boolean> {
   try {
     const metadata = sanitizeMetadata(payload.metadata);
-    await prisma.notification.create({
-      data: {
-        userId,
-        title: payload.title,
-        message: payload.message,
-        type: payload.type,
-        priority: payload.priority,
-        metadata: metadata ? JSON.stringify(metadata) : null,
-      },
+    await db.insert(notifications).values({
+      userId,
+      title: payload.title,
+      message: payload.message,
+      type: payload.type,
+      priority: payload.priority,
+      metadata: metadata ? JSON.stringify(metadata) : null,
     });
     return true;
   } catch (e) {

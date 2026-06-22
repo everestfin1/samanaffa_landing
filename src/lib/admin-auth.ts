@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import jwt from 'jsonwebtoken'
-import { prisma } from './prisma'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { adminUsers } from '@/lib/db/schema'
 
 const ADMIN_TOKEN_COOKIE = 'admin_token'
 
@@ -69,9 +71,11 @@ export async function verifyAdminAuth(request: NextRequest): Promise<AuthResult>
       return { error: 'Invalid or expired token', user: null }
     }
     
-    const admin = await prisma.adminUser.findUnique({
-      where: { id: decoded.adminId }
-    })
+    const [admin] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.id, decoded.adminId))
+      .limit(1)
     
     if (!admin) {
       return { error: 'Admin not found', user: null }
@@ -113,9 +117,11 @@ export async function verifyAdminRefreshToken(token: string): Promise<AuthResult
       return { error: 'Invalid token type', user: null }
     }
 
-    const admin = await prisma.adminUser.findUnique({
-      where: { id: decoded.adminId }
-    })
+    const [admin] = await db
+      .select()
+      .from(adminUsers)
+      .where(eq(adminUsers.id, decoded.adminId))
+      .limit(1)
     
     if (!admin || !admin.isActive) {
       return { error: 'Admin not found or inactive', user: null }

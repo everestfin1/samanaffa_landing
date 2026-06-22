@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { prisma } from './prisma';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { userAccounts, users } from '@/lib/db/schema';
 import { mergeInvestorProfile, readOnboardingProgress } from './onboarding-progress';
 
 const PURPOSE = 'post_signup';
@@ -32,10 +34,12 @@ export async function issuePostSignupToken(userId: string): Promise<string> {
   const jti = randomUUID();
   const expiresAt = new Date(Date.now() + TTL_MS);
 
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { investorProfile: true },
-  });
+  const [user] = await db
+    .select({ investorProfile: users.investorProfile })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
   if (!user) {
     throw new Error('User not found');
   }
@@ -47,10 +51,10 @@ export async function issuePostSignupToken(userId: string): Promise<string> {
     },
   });
 
-  await prisma.user.update({
-    where: { id: userId },
-    data: { investorProfile },
-  });
+  await db
+    .update(users)
+    .set({ investorProfile, updatedAt: new Date() })
+    .where(eq(users.id, userId));
 
   return jwt.sign({ sub: userId, purpose: PURPOSE, jti }, getSecret(), { expiresIn: '5m' });
 }
@@ -68,10 +72,12 @@ export async function consumePostSignupToken(token: string): Promise<string | nu
       return null;
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: payload.sub },
-      select: { investorProfile: true },
-    });
+    const [user] = await db
+      .select({ investorProfile: users.investorProfile })
+      .from(users)
+      .where(eq(users.id, payload.sub))
+      .limit(1);
+
     if (!user) {
       return null;
     }
@@ -84,9 +90,11 @@ export async function consumePostSignupToken(token: string): Promise<string | nu
       return null;
     }
 
-    const accounts = await prisma.userAccount.findMany({
-      where: { userId: payload.sub },
-    });
+    const accounts = await db
+      .select({ id: userAccounts.id })
+      .from(userAccounts)
+      .where(eq(userAccounts.userId, payload.sub));
+
     if (accounts.length < 2) {
       return null;
     }
@@ -98,10 +106,10 @@ export async function consumePostSignupToken(token: string): Promise<string | nu
       },
     });
 
-    await prisma.user.update({
-      where: { id: payload.sub },
-      data: { investorProfile },
-    });
+    await db
+      .update(users)
+      .set({ investorProfile, updatedAt: new Date() })
+      .where(eq(users.id, payload.sub));
 
     return payload.sub;
   } catch {

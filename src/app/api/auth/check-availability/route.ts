@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { and, eq, ne } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { users } from '@/lib/db/schema'
 import { checkRateLimit, getClientIP } from '@/lib/rate-limit'
 
 function normalizeEmail(email: string): string {
@@ -51,12 +53,11 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = normalizeEmail(email)
 
-    const existingEmailUser = await prisma.user.findFirst({
-      where: {
-        email: normalizedEmail,
-        NOT: { id: userId },
-      },
-    })
+    const [existingEmailUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(and(eq(users.email, normalizedEmail), ne(users.id, userId)))
+      .limit(1)
 
     const emailAvailable = !existingEmailUser
 

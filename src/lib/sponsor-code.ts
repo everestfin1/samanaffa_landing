@@ -1,4 +1,6 @@
-import { prisma } from '@/lib/prisma';
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { apeSponsorCodes } from '@/lib/db/schema';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 
 export { normalizeSponsorCode };
@@ -17,9 +19,11 @@ export async function verifySponsorCode(
 
   const normalizedCode = normalizeSponsorCode(rawCode);
 
-  const sponsorCode = await prisma.apeSponsorCode.findUnique({
-    where: { code: normalizedCode },
-  });
+  const [sponsorCode] = await db
+    .select()
+    .from(apeSponsorCodes)
+    .where(eq(apeSponsorCodes.code, normalizedCode))
+    .limit(1);
 
   if (!sponsorCode) {
     return { valid: false, error: 'Code de parrainage non reconnu' };
@@ -36,10 +40,10 @@ export async function verifySponsorCode(
   }
 
   if (sponsorCode.expiresAt && new Date(sponsorCode.expiresAt) < new Date()) {
-    await prisma.apeSponsorCode.update({
-      where: { id: sponsorCode.id },
-      data: { status: 'EXPIRED' },
-    });
+    await db
+      .update(apeSponsorCodes)
+      .set({ status: 'EXPIRED', updatedAt: new Date() })
+      .where(eq(apeSponsorCodes.id, sponsorCode.id));
     return { valid: false, error: 'Ce code de parrainage a expiré' };
   }
 
@@ -57,13 +61,16 @@ export async function verifySponsorCode(
 /** Increments usage when a validated code is saved on a user profile. */
 export async function recordSponsorCodeUsage(code: string): Promise<void> {
   const normalizedCode = normalizeSponsorCode(code);
-  const sponsorCode = await prisma.apeSponsorCode.findUnique({
-    where: { code: normalizedCode },
-  });
+  const [sponsorCode] = await db
+    .select()
+    .from(apeSponsorCodes)
+    .where(eq(apeSponsorCodes.code, normalizedCode))
+    .limit(1);
+
   if (!sponsorCode || sponsorCode.status !== 'ACTIVE') return;
 
-  await prisma.apeSponsorCode.update({
-    where: { id: sponsorCode.id },
-    data: { usageCount: sponsorCode.usageCount + 1 },
-  });
+  await db
+    .update(apeSponsorCodes)
+    .set({ usageCount: sponsorCode.usageCount + 1, updatedAt: new Date() })
+    .where(eq(apeSponsorCodes.id, sponsorCode.id));
 }

@@ -1,153 +1,148 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { and, eq } from 'drizzle-orm'
 import { authOptions } from '@/lib/auth'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { notifications } from '@/lib/db/schema'
 
-// GET /api/notifications/[id] - Get specific notification
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id } = await params
 
-    const notification = await prisma.notification.findFirst({
-      where: {
-        id,
-        userId: session.user.id
-      }
-    })
+    const [notification] = await db
+      .select()
+      .from(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)))
+      .limit(1)
 
     if (!notification) {
       return NextResponse.json(
         { success: false, error: 'Notification not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
     return NextResponse.json({
       success: true,
-      data: notification
+      data: notification,
     })
-
   } catch (error) {
     console.error('Error fetching notification:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to fetch notification' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
-// PATCH /api/notifications/[id] - Update notification (mark as read, etc.)
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id } = await params
     const body = await request.json()
-    const { status, readAt } = body
+    const { readAt } = body
 
-    // Verify notification belongs to user
-    const existingNotification = await prisma.notification.findFirst({
-      where: {
-        id,
-        userId: session.user.id
-      }
-    })
+    const [existingNotification] = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)))
+      .limit(1)
 
     if (!existingNotification) {
       return NextResponse.json(
         { success: false, error: 'Notification not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
-    const updateData: any = {}
-    
-    if (status) {
-      updateData.status = status
-    }
-    
+    const updateData: Partial<typeof notifications.$inferInsert> = {}
+
     if (readAt !== undefined) {
-      updateData.readAt = readAt ? new Date() : null
+      updateData.isRead = Boolean(readAt)
     }
 
-    const notification = await prisma.notification.update({
-      where: { id },
-      data: updateData
-    })
+    if (Object.keys(updateData).length === 0) {
+      const [current] = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.id, id))
+        .limit(1)
+      return NextResponse.json({ success: true, data: current })
+    }
+
+    const [notification] = await db
+      .update(notifications)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(notifications.id, id))
+      .returning()
 
     return NextResponse.json({
       success: true,
-      data: notification
+      data: notification,
     })
-
   } catch (error) {
     console.error('Error updating notification:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to update notification' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
-// DELETE /api/notifications/[id] - Delete notification
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const session = await getServerSession(authOptions)
-    
+
     if (!session?.user?.id) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const { id } = await params
 
-    // Verify notification belongs to user
-    const existingNotification = await prisma.notification.findFirst({
-      where: {
-        id,
-        userId: session.user.id
-      }
-    })
+    const [existingNotification] = await db
+      .select({ id: notifications.id })
+      .from(notifications)
+      .where(and(eq(notifications.id, id), eq(notifications.userId, session.user.id)))
+      .limit(1)
 
     if (!existingNotification) {
       return NextResponse.json(
         { success: false, error: 'Notification not found' },
-        { status: 404 }
+        { status: 404 },
       )
     }
 
-    await prisma.notification.delete({
-      where: { id }
-    })
+    await db.delete(notifications).where(eq(notifications.id, id))
 
     return NextResponse.json({
       success: true,
-      message: 'Notification deleted successfully'
+      message: 'Notification deleted successfully',
     })
-
   } catch (error) {
     console.error('Error deleting notification:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to delete notification' },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
