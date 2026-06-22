@@ -1,6 +1,6 @@
 # Authentication & login — tracked issues
 
-**Branch:** `feat/onboarding-flow-mock`  
+**Branch:** `feat/onboarding-flow-mock` *(archived — merged into `staging`; see [07-git-workflow.md](../03-development/07-git-workflow.md))*  
 **Recorded:** 2026-05-19 (initial), **2026-05-19** (post-OTP-login consolidation review), **2026-05-21** (Didit KYC / signup review)  
 **Source:** Login flow audit; full auth/onboarding orchestration review  
 **Scope:** `src/lib/auth.ts`, `src/app/login/`, `src/app/api/auth/*`, `src/app/api/onboarding/create-account/`, `src/proxy.ts`, `src/lib/otp.ts`, `src/lib/admin-auth.ts`, `src/lib/csrf.ts`

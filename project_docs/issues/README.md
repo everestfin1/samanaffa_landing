@@ -61,9 +61,10 @@ Full history: [auth-issues.md § Suggested fix order](./auth-issues.md#suggested
 | Date | Source |
 |------|--------|
 | 2026-05-18 | Initial onboarding + profile completion implementation |
-| 2026-05-19 | Full flow + login/auth audit (`feat/onboarding-flow-mock`) |
+| 2026-05-19 | Full flow + login/auth audit (`feat/onboarding-flow-mock`, now merged into `staging`) |
 | 2026-05-19 | Post-OTP-login orchestration review; sprint plan + ONB-041, AUTH-020/021/022 |
 | 2026-05-20 | Phases 1–4; ONB-026/029/039/040; review fixes H4/H5/H1/M4; [backlog](./post-review-backlog-2026-05-20.md) |
 | 2026-05-21 | Step-by-step fix sprint: ONB-048–053, ONB-043, AUTH-026 |
 | 2026-06-02 | Admin legacy vs canvas audit; [admin-issues.md](./admin-issues.md) (ADM-001–018) |
 | 2026-06-02 | PM: Sama Naffa–only ops; [07-active-product-scope.md](../01-product/07-active-product-scope.md); APE/PEE ADM items wontfix |
+| 2026-06-22 | Git workflow cleanup: `staging` integration branch; `feat/onboarding-flow-mock` archived ([07-git-workflow.md](../03-development/07-git-workflow.md)) |

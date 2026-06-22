@@ -1,6 +1,6 @@
 # Onboarding & profile completion — tracked issues
 
-**Branch:** `feat/onboarding-flow-mock`  
+**Branch:** `feat/onboarding-flow-mock` *(archived — merged into `staging`; see [07-git-workflow.md](../03-development/07-git-workflow.md))*  
 **Recorded:** 2026-05-18 (initial), **2026-05-19** (reviews), **2026-05-19** (post-OTP-login orchestration review), **2026-05-21** (Didit desktop SDK + signup/comms review)  
 **Source:** T0–T6 implementation; full flow + auth orchestration audit  
 **Scope:** `src/app/onboarding/`, `src/components/onboarding/`, `src/app/api/onboarding/`, `src/app/api/kyc/`, `src/lib/kyc-sync.ts`, portal deposit/profile/notifications  
