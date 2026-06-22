@@ -95,7 +95,7 @@ bun run db:studio
 bun run db:seed
 ```
 
-> **Note :** Le dossier `prisma/` reste présent pour référence historique mais n'est plus utilisé en runtime. L'ORM actif est Drizzle (`drizzle/` + `src/lib/db/`).
+> **Note :** L'ORM actif est Drizzle (`drizzle/` + `src/lib/db/`). Les anciennes migrations Prisma sont archivées dans `project_docs/07-archive/prisma-migrations/`.
 
 ### Migration PEE Leads en attente
 
@@ -152,12 +152,12 @@ src/
 ├── components/           # Composants UI (portail, admin, paiements, KYC...)
 ├── hooks/                # Hooks métiers (accounts, KYC, notifications, transactions)
 ├── lib/                  # Services partagés (auth, OTP, Drizzle, Intouch, rate-limit...)
-│   └── db/               # Schéma Drizzle, client, helpers
+│   └── db/               # Schéma Drizzle + client Neon
 └── types/                # Extensions TypeScript NextAuth
 drizzle/                  # Migrations Drizzle
-prisma/                   # Legacy Prisma (migration vers Drizzle en cours — ne pas étendre)
-scripts/                  # Scripts CLI (normalisation téléphones, tests callbacks...)
+scripts/                  # Scripts CLI (seed, normalisation téléphones, tests callbacks...)
 project_docs/             # Documentation unique du projet (voir 00-index/README.md)
+project_docs/07-archive/prisma-migrations/  # SQL Prisma historique
 ```
 
 ---

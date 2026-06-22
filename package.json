@@ -16,7 +16,7 @@
     "db:migrate:kit": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:seed": "bunx tsx prisma/seed.ts",
+    "db:seed": "tsx scripts/db-seed.ts",
     "db:normalize-phones": "tsx scripts/normalize-phone-numbers.ts",
     "db:check-phones": "tsx scripts/check-phone-numbers.ts",
     "docs:user-flows-pdf": "node scripts/generate-user-flows-pdf.mjs"

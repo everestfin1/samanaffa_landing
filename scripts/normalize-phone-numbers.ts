@@ -2,34 +2,28 @@
 
 /**
  * Script to normalize existing phone numbers in the database
- * This script finds all users with phone numbers and converts them to the standard format (+221XXXXXXXXX)
+ * Converts numbers to standard format (+221XXXXXXXXX)
  */
 
-import { PrismaClient } from '@prisma/client'
+import { and, eq, ne } from 'drizzle-orm'
+import { db } from '../src/lib/db'
+import { users } from '../src/lib/db/schema'
 import { normalizeSenegalPhone } from '../src/lib/utils'
-
-const prisma = new PrismaClient()
 
 async function normalizePhoneNumbers() {
   console.log('🔄 Starting phone number normalization...')
 
   try {
-    // Get all users with phone numbers
-    const usersWithPhones = await prisma.user.findMany({
-      where: {
-        AND: [
-          { phone: { not: undefined } },
-          { phone: { not: '' } }
-        ]
-      },
-      select: {
-        id: true,
-        phone: true,
-        email: true,
-        firstName: true,
-        lastName: true
-      }
-    })
+    const usersWithPhones = await db
+      .select({
+        id: users.id,
+        phone: users.phone,
+        email: users.email,
+        firstName: users.firstName,
+        lastName: users.lastName,
+      })
+      .from(users)
+      .where(and(ne(users.phone, '')))
 
     console.log(`📱 Found ${usersWithPhones.length} users with phone numbers`)
 
@@ -38,7 +32,7 @@ async function normalizePhoneNumbers() {
 
     for (const user of usersWithPhones) {
       try {
-        const normalizedPhone = normalizeSenegalPhone(user.phone!)
+        const normalizedPhone = normalizeSenegalPhone(user.phone)
 
         if (!normalizedPhone) {
           console.warn(`⚠️  Invalid phone format for user ${user.id}: ${user.phone}`)
@@ -46,14 +40,15 @@ async function normalizePhoneNumbers() {
           continue
         }
 
-        // Only update if the phone number is different after normalization
         if (normalizedPhone !== user.phone) {
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { phone: normalizedPhone }
-          })
+          await db
+            .update(users)
+            .set({ phone: normalizedPhone })
+            .where(eq(users.id, user.id))
 
-          console.log(`✅ Updated user ${user.firstName} ${user.lastName} (${user.email}): ${user.phone} → ${normalizedPhone}`)
+          console.log(
+            `✅ Updated user ${user.firstName} ${user.lastName} (${user.email}): ${user.phone} → ${normalizedPhone}`,
+          )
           updatedCount++
         }
       } catch (error) {
@@ -66,16 +61,12 @@ async function normalizePhoneNumbers() {
     console.log(`   ✅ Updated: ${updatedCount} phone numbers`)
     console.log(`   ⚠️  Errors: ${errorCount} phone numbers`)
     console.log(`   📱 Total processed: ${usersWithPhones.length} users`)
-
   } catch (error) {
     console.error('❌ Error during phone number normalization:', error)
     process.exit(1)
-  } finally {
-    await prisma.$disconnect()
   }
 }
 
-// Run the script
 normalizePhoneNumbers()
   .then(() => {
     console.log('🎉 Phone number normalization completed successfully!')

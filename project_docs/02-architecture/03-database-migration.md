@@ -1,5 +1,7 @@
 # Drizzle ORM Migration Guide
 
+> **Update (2026-06-22):** Migration complete. The Prisma compatibility shim (`src/lib/db/helpers.ts`, `src/lib/prisma.ts`) has been removed. This document is retained as a historical decision record.
+
 ## Migration Summary
 
 Successfully migrated from Prisma ORM to Drizzle ORM to resolve deployment issues on Vercel (Prisma Query Engine not found error).

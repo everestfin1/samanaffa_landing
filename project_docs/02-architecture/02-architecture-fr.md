@@ -50,9 +50,8 @@ Sama Naffa est la plateforme digitale d’Everest Finance dédiée à l’éparg
 ├── drizzle/
 │   ├── *.sql               # Migrations Drizzle versionnées
 │   └── meta/               # Métadonnées de migrations
-├── prisma/
-│   └── seed.ts              # Seed historique/réutilisé par les scripts Bun
 ├── project_docs/            # Documentation fonctionnelle et technique (historique)
+│   └── 07-archive/prisma-migrations/  # SQL Prisma historique (référence)
 └── ARCHITECTURE_GLOBALE.md  # Ce document
 ```
 
@@ -112,7 +111,7 @@ Sama Naffa est la plateforme digitale d’Everest Finance dédiée à l’éparg
 | Admin                     | `/api/admin/*`                                          | Connexion admin, suivi des activités internes.        |
 | Intégrations tierces      | `/api/didit` (onboarding mobile), autres modules planifiés | Connecteurs externes et automatisations.            |
 
-Les routes utilisent Drizzle ORM pour les interactions base de données, avec une couche de compatibilité legacy limitée via `src/lib/prisma.ts`/`src/lib/db/helpers.ts` là où nécessaire, et appliquent selon le besoin le rate limiter Redis (`lib/rate-limit.ts`) pour éviter l’abus des endpoints sensibles (OTP, login).
+Les routes utilisent **Drizzle ORM** (`src/lib/db/schema.ts`, `src/lib/db/index.ts`) pour toutes les interactions base de données, et appliquent selon le besoin le rate limiter Redis (`lib/rate-limit.ts`) pour éviter l’abus des endpoints sensibles (OTP, login).
 
 ---
 

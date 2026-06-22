@@ -49,7 +49,7 @@ Admin UI: route-based shell at `/admin/*` (`src/app/admin/(dashboard)`) is the s
 
 ### Engineering direction (data layer)
 
-**Target:** Drizzle-only (`src/lib/db/schema.ts` + `drizzle/` migrations). Prisma (`@prisma/client`, `src/lib/prisma`) remains in some API routes until migrated — do not add new Prisma usage; port callers to Drizzle when touching those files.
+**Data layer:** Drizzle-only (`src/lib/db/schema.ts` + `drizzle/` migrations). The legacy Prisma compatibility shim has been removed (June 2026).
 
 ---
 
@@ -70,6 +70,6 @@ Admin UI: route-based shell at `/admin/*` (`src/app/admin/(dashboard)`) is the s
 
 | Date | Decision |
 |------|----------|
-| 2026-06-22 | Dev: removed admin mock/legacy UI, dead registration steps, stale drizzle snapshots; Drizzle-only migration noted. |
+| 2026-06-22 | Dev: Drizzle-only data layer — Prisma shim removed; historical SQL in `07-archive/prisma-migrations/`. |
 | 2026-06-22 | Dev: public site mono-produit Sama Naffa; APE deprecated by default via env; client copy uses *versement* (admin may still say *dépôt*). |
 | 2026-06-02 | PM: sole focus Sama Naffa ops (accounts, KYC, Naffa, deposit/Intouch transactions). APE & PEE ops inactive. Withdrawals later. |
