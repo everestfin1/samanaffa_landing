@@ -10,6 +10,7 @@ Legacy documents, session summaries, and obsolete documentation.
 | 02-dompurify-removal.md | DOMPurify removal explanation | Archived |
 | 03-session-summary.md | Session summary (2025-10-30) | Reference |
 | 04-project-context-old.md | Old project context document | Superseded |
+| 05-onboarding-replace-register-plan.md | `/register` → `/onboarding` migration plan | **Implemented** |
 
 ## Notes
 

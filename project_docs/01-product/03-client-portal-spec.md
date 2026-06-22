@@ -11,10 +11,10 @@ Scope: Authenticated client experience that bridges Sama Naffa (managed savings)
 - Unify user profile, preferences, notifications, and saved scenarios across both product tabs.
 
 Related docs:
-- Architecture: `project_docs/ARCHITECTURE.md`
-- Platform context: `project_docs/more_info.md`
-- APE context: `project_docs/APE_SENEGAL_PROJECT_CONTEXT.md`
-- Sama Naffa context: `project_docs/SAMA_NAFFA_PROJECT_CONTEXT.md`
+- Architecture: [02-architecture/01-architecture-overview.md](../02-architecture/01-architecture-overview.md)
+- Product scope: [01-product/07-active-product-scope.md](./07-active-product-scope.md)
+- APE context (archive): [01-product/02-ape-senegal-context.md](./02-ape-senegal-context.md)
+- Product models: [01-product/06-product-models.md](./06-product-models.md)
 
 ## 2. Roles & Access
 

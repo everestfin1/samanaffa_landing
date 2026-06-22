@@ -1,5 +1,7 @@
 # Plan: Replace `/register` with the New Onboarding Flow
 
+> **Archive — implemented (2026).** `/register` redirects to `/onboarding`. Legacy registration components removed. See [07-active-product-scope.md](../01-product/07-active-product-scope.md).
+
 ## Objective
 
 Make `/onboarding` the primary account-creation flow and deprecate the legacy `/register` flow.

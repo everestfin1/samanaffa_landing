@@ -178,11 +178,13 @@ Les routes utilisent Drizzle ORM pour les interactions base de données, avec un
 
 ## 11. Références Doc & Ressources Internes
 
-- `project_docs/ARCHITECTURE.md` : Architecture historique du refactoring.
-- `project_docs/PROJECT_SPECIFICATIONS.md` : Spécifications fonctionnelles.
-- `project_docs/*` : Guides KYC, Intouch, plan de performance, directives brand.
-- `src/lib/db/schema.ts` + `drizzle/` : Source de vérité du modèle de données et des migrations.
-- `README.md` : Setup de base Next.js (à compléter avec ce document).
+- [01-architecture-overview.md](./01-architecture-overview.md) — architecture système (EN).
+- [02-architecture-fr.md](./02-architecture-fr.md) — ce document.
+- [../01-product/07-active-product-scope.md](../01-product/07-active-product-scope.md) — périmètre produit actuel.
+- [../03-development/04-setup-guide.md](../03-development/04-setup-guide.md) — setup local.
+- [../04-integrations/](../04-integrations/) — Intouch, Didit.
+- `src/lib/db/schema.ts` + `drizzle/` : source de vérité du modèle de données et des migrations.
+- [README.md](../../README.md) — démarrage rapide et index documentation.
 
 ---
 

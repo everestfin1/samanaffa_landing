@@ -108,7 +108,7 @@ Usage:
 npx tsx scripts/check-pending-transactions.ts
 ```
 
-### 5. Updated Documentation (`project_docs/INTOUCH_CALLBACK_CONFIGURATION.md`)
+### 5. Updated Documentation ([02-callback-configuration.md](./02-callback-configuration.md))
 
 Enhanced with:
 - Clear explanation of Basic Auth requirement

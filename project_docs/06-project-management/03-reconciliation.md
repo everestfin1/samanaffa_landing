@@ -151,7 +151,7 @@ Pour chaque réconciliation, on stocke:
 ### Créés
 - `src/components/admin/IntouchReconciliation.tsx`
 - `src/app/api/admin/ape-subscriptions/reconcile/route.ts`
-- `project_docs/RECONCILIATION_IMPLEMENTATION.md`
+- [03-reconciliation.md](./03-reconciliation.md) (this document)
 
 ### Modifiés
 - `src/app/admin/page.tsx` (fix + intégration)

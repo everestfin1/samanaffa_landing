@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sama Naffa — Everest Finance
 
-## Getting Started
+Next.js client portal and marketing site for **Sama Naffa** (managed savings under mandate). Mono-product on the public site; APE/PEE code remains for admin and historical data.
 
-First, run the development server:
+**Stack:** Next.js 16 · React 19 · Drizzle ORM · PostgreSQL (Neon / on-prem) · Bun
+
+## Documentation
+
+All documentation is in **[`project_docs/`](./project_docs/00-index/README.md)**:
+
+| Start here | Path |
+|------------|------|
+| Index & navigation | [`project_docs/00-index/README.md`](./project_docs/00-index/README.md) |
+| Active product scope | [`project_docs/01-product/07-active-product-scope.md`](./project_docs/01-product/07-active-product-scope.md) |
+| Local setup | [`project_docs/03-development/04-setup-guide.md`](./project_docs/03-development/04-setup-guide.md) |
+| Lexical compliance audit | [`project_docs/Mise a Niveau Lexicale SamaNaffa.docx`](./project_docs/Mise%20a%20Niveau%20Lexicale%20SamaNaffa.docx) |
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+bun install
+cp env.example .env.local   # configure DATABASE_URL, auth, Didit, Intouch, etc.
+bun run db:migrate
+bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Purpose |
+|---------|---------|
+| `bun run dev` | Development server (Turbopack) |
+| `bun run build` | Production build |
+| `bun run type-check` | TypeScript |
+| `bun run test` | Vitest |
+| `bun run db:migrate` | Apply Drizzle migrations |
+| `bun run db:studio` | Drizzle Studio |
 
-## Learn More
+## Environment notes
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **APE deprecated by default** — public APE routes redirect to Sama Naffa. Set `NEXT_PUBLIC_APE_DEPRECATED=false` only for legacy internal testing.
+- **Data layer** — target is Drizzle-only (`src/lib/db/schema.ts`). Some routes still use Prisma during migration; do not add new Prisma usage.

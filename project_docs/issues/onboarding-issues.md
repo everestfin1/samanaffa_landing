@@ -273,7 +273,7 @@ _(Distinct from resolved **ONB-024 — Didit callback localhost on preview** —
 ### ONB-039 — Manual test checklist / docs out of date
 - **Status:** done
 - **Area:** docs
-- **Files:** This file, `onboarding-replace-register-plan.md`, [auth-issues.md](./auth-issues.md)
+- **Files:** This file, [05-onboarding-replace-register-plan.md](../07-archive/05-onboarding-replace-register-plan.md), [auth-issues.md](./auth-issues.md)
 - **Acceptance:** Checklists reflect OTP-only login, manual Intouch deposit, security sprint items.
 - **Resolution (2026-05-20):** Checklists and plan doc updated for Phases 1–4 outcomes.
 

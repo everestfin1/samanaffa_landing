@@ -12,7 +12,7 @@ This document summarizes the changes made to complete the Intouch payment integr
 
 ### 1. Documentation Created
 
-**File**: `project_docs/INTOUCH_INTEGRATION_REQUIREMENTS.md`
+**File**: [01-integration-guide.md](./01-integration-guide.md)
 
 Created comprehensive documentation for the Intouch team covering:
 - Redirect URLs for success and failure scenarios
@@ -241,8 +241,8 @@ Example: `SAMA_NAFFA-DEPOSIT-1728000000000-a1b2c3d4`
 ## Files Modified/Created
 
 ### Created Files
-1. `project_docs/INTOUCH_INTEGRATION_REQUIREMENTS.md` - Documentation for Intouch team
-2. `project_docs/INTOUCH_IMPLEMENTATION_SUMMARY.md` - This file
+1. [01-integration-guide.md](./01-integration-guide.md) — documentation for Intouch team
+2. [04-implementation-summary.md](./04-implementation-summary.md) — this file
 3. `src/app/portal/sama-naffa/payment-success/page.tsx` - Success redirect page
 4. `src/app/portal/sama-naffa/payment-failed/page.tsx` - Failure redirect page
 
@@ -258,7 +258,7 @@ Example: `SAMA_NAFFA-DEPOSIT-1728000000000-a1b2c3d4`
 ## Next Steps
 
 ### For Intouch Team
-1. Review `INTOUCH_INTEGRATION_REQUIREMENTS.md`
+1. Review [01-integration-guide.md](./01-integration-guide.md)
 2. Configure redirect URLs in Intouch dashboard
 3. Configure webhook callback URL
 4. Enable webhook notifications
@@ -267,7 +267,7 @@ Example: `SAMA_NAFFA-DEPOSIT-1728000000000-a1b2c3d4`
 7. Confirm configuration is complete
 
 ### For Everest Team
-1. Share `INTOUCH_INTEGRATION_REQUIREMENTS.md` with Intouch team
+1. Share [01-integration-guide.md](./01-integration-guide.md) with Intouch team
 2. Confirm webhook secret with Intouch
 3. Update `INTOUCH_WEBHOOK_SECRET` environment variable
 4. Test payment flow in staging environment

@@ -153,12 +153,11 @@ src/
 ├── hooks/                # Hooks métiers (accounts, KYC, notifications, transactions)
 ├── lib/                  # Services partagés (auth, OTP, Drizzle, Intouch, rate-limit...)
 │   └── db/               # Schéma Drizzle, client, helpers
-├── content/              # Données statiques (FAQ, personas)
 └── types/                # Extensions TypeScript NextAuth
-drizzle/                  # Migrations Drizzle et schéma SQL
-prisma/                   # Schéma historique Prisma (référence uniquement)
+drizzle/                  # Migrations Drizzle
+prisma/                   # Legacy Prisma (migration vers Drizzle en cours — ne pas étendre)
 scripts/                  # Scripts CLI (normalisation téléphones, tests callbacks...)
-project_docs/             # Documentation (ce dossier)
+project_docs/             # Documentation unique du projet (voir 00-index/README.md)
 ```
 
 ---

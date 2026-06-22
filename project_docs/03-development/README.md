@@ -6,28 +6,22 @@ Developer guides, setup instructions, and technical implementation details.
 
 | File | Description |
 |------|-------------|
-| 01-backend-setup.md | Backend configuration and setup |
-| 02-backend-tracker.md | Development progress tracker |
-| 03-frontend-integration.md | Frontend integration guidelines |
-| 04-setup-guide.md | **Start here** - Complete environment setup |
-| 05-performance-optimization.md | Performance analysis and optimization |
+| [04-setup-guide.md](./04-setup-guide.md) | **Start here** — local environment setup |
+| [01-backend-setup.md](./01-backend-setup.md) | Backend configuration |
+| [02-backend-tracker.md](./02-backend-tracker.md) | Development progress tracker |
+| [03-frontend-integration.md](./03-frontend-integration.md) | Frontend integration guidelines |
+| [05-admin-dashboard.md](./05-admin-dashboard.md) | Configurable `/admin` bento dashboard |
 
 ## Quick Start
 
 ```bash
-# 1. Install dependencies
 bun install
-
-# 2. Configure environment
 cp env.example .env.local
-# Edit .env.local with your values
-
-# 3. Run database migrations
 bun run db:migrate
-
-# 4. Start development server
 bun run dev
 ```
+
+See [04-setup-guide.md](./04-setup-guide.md) for full environment variables and services (Didit, Intouch, email, SMS).
 
 ## Key Scripts
 
@@ -35,5 +29,12 @@ bun run dev
 |--------|---------|
 | `bun run dev` | Start development server |
 | `bun run build` | Production build |
+| `bun run type-check` | TypeScript check |
+| `bun run test` | Vitest unit tests |
 | `bun run db:migrate` | Run database migrations |
 | `bun run db:studio` | Open Drizzle Studio |
+
+## Data layer
+
+- **Source of truth:** `src/lib/db/schema.ts` + `drizzle/*.sql` migrations
+- **Direction:** Drizzle-only — avoid new Prisma usage (see [07-active-product-scope.md](../01-product/07-active-product-scope.md))

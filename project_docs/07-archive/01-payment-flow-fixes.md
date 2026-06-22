@@ -132,7 +132,7 @@ This document summarizes the fixes implemented to address critical payment flow 
    - Relative time calculations
    - Status/type label translations
 
-3. **`project_docs/PAYMENT_FLOW_FIX_IMPLEMENTATION.md`**
+3. **[01-payment-flow-fixes.md](./01-payment-flow-fixes.md)** (this archive)
    - This document
 
 ## Modified Files
