@@ -6,6 +6,7 @@ import { signIn } from 'next-auth/react';
 import PhoneInput from '@/components/ui/PhoneInput';
 import OtpDeliveryHelp from '@/components/auth/OtpDeliveryHelp';
 import { safeCallbackUrl } from '@/lib/safe-callback-url';
+import { normalizeInternationalPhone } from '@/lib/utils';
 import {
   DEV_NO_ACCOUNT_MESSAGE,
   GENERIC_OTP_SEND_MESSAGE,
@@ -119,8 +120,8 @@ function LoginForm() {
         : data.message || GENERIC_OTP_SEND_MESSAGE,
     );
     setMockMode(Boolean(data.mockMode));
-    setMockOtp(null);
-    setOtp('');
+    setMockOtp(data.mockOtp ?? null);
+    setOtp(data.mockOtp ?? '');
     setStep('otp');
     startOtpTimer();
     return true;
@@ -157,7 +158,7 @@ function LoginForm() {
         body: JSON.stringify({ phone, type: 'login' }),
       });
       const data = await response.json();
-      if (applyOtpSendResponse(data) && data.mockMode && phone) {
+      if (applyOtpSendResponse(data) && data.mockMode && phone && !data.mockOtp) {
         await fetchMockOtpHint(phone);
       }
     } catch {
@@ -210,19 +211,29 @@ function LoginForm() {
       return;
     }
 
+    const loginPhone =
+      normalizeInternationalPhone(phone) ?? phone.replace(/[^\d+]/g, '');
+
     setIsLoading(true);
     try {
       const result = await signIn('credentials', {
-        phone,
+        phone: loginPhone,
         otp: normalizedOtp,
         type: 'login',
         redirect: false,
       });
 
       if (result?.error) {
-        setError('Code invalide ou expiré');
+        if (result.error.includes('Trop de tentatives')) {
+          setError('Trop de tentatives. Réessayez plus tard.');
+        } else if (result.error.includes('User not found')) {
+          setError('Compte introuvable pour ce numéro.');
+        } else {
+          setError('Code invalide ou expiré');
+        }
       } else if (result?.ok) {
-        router.push(postLoginPath);
+        // Hard navigation so middleware sees the session cookie immediately.
+        window.location.assign(postLoginPath);
       }
     } catch {
       setError('Erreur de connexion. Veuillez réessayer.');

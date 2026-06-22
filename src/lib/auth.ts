@@ -76,16 +76,21 @@ async function findUserForLogin(email?: string, phone?: string | null): Promise<
     if (byEmail) return byEmail
   }
 
+  const phoneCandidates = new Set<string>()
   if (phone) {
-    const formats = generatePhoneFormats(phone)
-    if (formats.length > 0) {
-      const [byPhone] = await db
-        .select()
-        .from(users)
-        .where(inArray(users.phone, formats))
-        .limit(1)
-      if (byPhone) return byPhone
+    phoneCandidates.add(phone)
+    for (const format of generatePhoneFormats(phone)) {
+      phoneCandidates.add(format)
     }
+  }
+
+  if (phoneCandidates.size > 0) {
+    const [byPhone] = await db
+      .select()
+      .from(users)
+      .where(inArray(users.phone, [...phoneCandidates]))
+      .limit(1)
+    if (byPhone) return byPhone
   }
 
   return null
@@ -133,10 +138,14 @@ export const authOptions: NextAuthOptions = {
         }
 
         const normalizedPhone = credentials.phone
-          ? normalizeInternationalPhone(credentials.phone)
+          ? normalizeInternationalPhone(credentials.phone) ??
+            normalizeInternationalPhone(credentials.phone.replace(/\s/g, ''))
           : null
 
-        const user = await findUserForLogin(credentials.email, normalizedPhone)
+        const user = await findUserForLogin(
+          credentials.email,
+          normalizedPhone ?? credentials.phone ?? null,
+        )
 
         if (!user) {
           throw new Error('User not found')
@@ -147,7 +156,8 @@ export const authOptions: NextAuthOptions = {
         }
 
         if (credentials.type === 'login' && credentials.otp) {
-          const verifyResult = await verifyOTPWithRateLimitByKey(user.id, credentials.otp)
+          const otp = String(credentials.otp).replace(/\D/g, '').slice(0, 6)
+          const verifyResult = await verifyOTPWithRateLimitByKey(user.id, otp)
           if (verifyResult.success === false) {
             if (verifyResult.error === 'rate_limited') {
               throw new Error('Trop de tentatives. Réessayez plus tard.')
@@ -189,10 +199,8 @@ export const authOptions: NextAuthOptions = {
       try {
         if (user?.id) {
           t.id = user.id
-          const snapshot = await loadUserJwtSnapshot(
-            user.id,
-            t.sessionVersion as number | undefined,
-          )
+          // Fresh login: do not compare against a stale sessionVersion from an old cookie.
+          const snapshot = await loadUserJwtSnapshot(user.id, undefined)
           if (snapshot === 'invalidated' || snapshot === null) {
             return {}
           }

@@ -201,6 +201,7 @@ export async function POST(request: NextRequest) {
           .orderBy(desc(otpCodes.createdAt))
           .limit(1)
         if (latestOtp?.code) {
+          loginResponse.mockOtp = latestOtp.code
           logMockOtp('auth/send-otp login', normalizedPhone, latestOtp.code)
         }
       }
