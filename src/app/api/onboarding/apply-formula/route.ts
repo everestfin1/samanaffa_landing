@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { and, eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { userAccounts } from '@/lib/db/schema';
 import { resolveProductForFormula } from '@/lib/onboarding-formula-map';
 
 export async function POST(request: NextRequest) {
@@ -18,26 +20,31 @@ export async function POST(request: NextRequest) {
 
     const product = resolveProductForFormula(formulaName);
 
-    const accounts = await prisma.userAccount.findMany({
-      where: { userId: session.user.id, accountType: 'SAMA_NAFFA' },
-      take: 1,
-    });
-    const account = accounts[0];
+    const [account] = await db
+      .select()
+      .from(userAccounts)
+      .where(
+        and(
+          eq(userAccounts.userId, session.user.id),
+          eq(userAccounts.accountType, 'SAMA_NAFFA'),
+        ),
+      )
+      .limit(1);
 
     if (!account) {
       return NextResponse.json({ error: 'Compte Sama Naffa introuvable' }, { status: 404 });
     }
 
-    await prisma.userAccount.update({
-      where: { id: account.id },
-      data: {
+    await db
+      .update(userAccounts)
+      .set({
         productCode: product.productCode,
         productName: product.name,
         interestRate: product.interestRate.toFixed(2),
         lockPeriodMonths: product.lockPeriodMonths ?? 0,
         allowAdditionalDeposits: product.allowAdditionalDeposits,
-      },
-    });
+      })
+      .where(eq(userAccounts.id, account.id));
 
     return NextResponse.json({ success: true, product: { id: product.id, name: product.name } });
   } catch (error) {

@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { and, desc, eq, gt, inArray } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import { otpCodes, registrationSessions, userAccounts, users } from '@/lib/db/schema';
 import { verifyOTPWithRateLimit, sendOTP } from '@/lib/otp';
 import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint';
-import { normalizeInternationalPhone, generateAccountNumber, generatePhoneFormats } from '@/lib/utils';
+import {
+  normalizeInternationalPhone,
+  generateAccountNumber,
+  generatePhoneFormats,
+} from '@/lib/utils';
 import { getNaffaProductById } from '@/lib/naffa-products';
 import { checkOTPRateLimitAsync } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
@@ -33,9 +39,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Action requise' }, { status: 400 });
     }
 
-    // ---------------------------------------------------------------------
-    // STEP 1: send-otp
-    // ---------------------------------------------------------------------
     if (action === 'send-otp') {
       const normalizedPhone = normalizeInternationalPhone(phone || '');
       if (!normalizedPhone) {
@@ -50,22 +53,28 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Check phone not already taken by a real (non-temporary) user
       const phoneFormats = generatePhoneFormats(normalizedPhone);
-      for (const fmt of phoneFormats) {
-        const existing = await prisma.user.findFirst({ where: { phone: fmt } });
+      if (phoneFormats.length > 0) {
+        const existingRows = await db
+          .select()
+          .from(users)
+          .where(inArray(users.phone, phoneFormats))
+          .limit(1);
+        const existing = existingRows[0];
         if (existing && !(existing.firstName === 'Temporary' && existing.lastName === 'User')) {
           return NextResponse.json(genericOtpSendResponse());
         }
       }
 
-      // Placeholder email (mock flow — email collected later in profile)
       const placeholderEmail = `${normalizedPhone.replace(/\+/g, '')}@onboarding.samanaffa.tmp`;
 
-      await prisma.registrationSession.deleteMany({ where: { phone: normalizedPhone } });
+      await db
+        .delete(registrationSessions)
+        .where(eq(registrationSessions.phone, normalizedPhone));
 
-      const session = await prisma.registrationSession.create({
-        data: {
+      const [session] = await db
+        .insert(registrationSessions)
+        .values({
           email: placeholderEmail,
           phone: normalizedPhone,
           data: JSON.stringify({
@@ -78,9 +87,13 @@ export async function POST(request: NextRequest) {
                 : null,
             flow: 'onboarding-v2',
           }),
-          expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 min
-        },
-      });
+          expiresAt: new Date(Date.now() + 30 * 60 * 1000),
+        })
+        .returning();
+
+      if (!session) {
+        return NextResponse.json({ error: 'Erreur lors de la création de la session' }, { status: 500 });
+      }
 
       const result = await sendOTP(
         placeholderEmail,
@@ -91,7 +104,7 @@ export async function POST(request: NextRequest) {
       );
 
       if (!result.success) {
-        await prisma.registrationSession.delete({ where: { id: session.id } });
+        await db.delete(registrationSessions).where(eq(registrationSessions.id, session.id));
         return NextResponse.json({ error: result.message }, { status: 400 });
       }
 
@@ -104,13 +117,18 @@ export async function POST(request: NextRequest) {
       if (isMockOtpEnabled()) {
         response.mockMode = true;
         recordMockOtpSend(request, `session:${session.id}`);
-        const mockRow = await prisma.otpCode.findFirst({
-          where: {
-            registrationSessionId: session.id,
-            used: false,
-            expiresAt: { gt: new Date() },
-          },
-        });
+        const [mockRow] = await db
+          .select()
+          .from(otpCodes)
+          .where(
+            and(
+              eq(otpCodes.registrationSessionId, session.id),
+              eq(otpCodes.used, false),
+              gt(otpCodes.expiresAt, new Date()),
+            ),
+          )
+          .orderBy(desc(otpCodes.createdAt))
+          .limit(1);
         if (mockRow?.code) {
           logMockOtp('onboarding/create-account', session.id, mockRow.code);
         }
@@ -119,20 +137,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(response);
     }
 
-    // ---------------------------------------------------------------------
-    // STEP 2: verify-otp -> create account
-    // ---------------------------------------------------------------------
     if (action === 'verify-otp') {
       if (!sessionId || !otp) {
         return NextResponse.json({ error: 'Session et code OTP requis' }, { status: 400 });
       }
 
-      const session = await prisma.registrationSession.findUnique({ where: { id: sessionId } });
+      const [session] = await db
+        .select()
+        .from(registrationSessions)
+        .where(eq(registrationSessions.id, sessionId))
+        .limit(1);
+
       if (!session) {
         return NextResponse.json({ error: 'Session invalide ou expirée' }, { status: 404 });
       }
       if (session.expiresAt < new Date()) {
-        await prisma.registrationSession.delete({ where: { id: sessionId } });
+        await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
         return NextResponse.json({ error: 'Session expirée' }, { status: 410 });
       }
 
@@ -156,35 +176,39 @@ export async function POST(request: NextRequest) {
       const phone: string = sessionData.phone;
       const email: string = sessionData.email;
 
-      // Defensive double-check (all phone format variants — ONB-049)
       const phoneFormats = generatePhoneFormats(phone);
       let temporaryUserId: string | null = null;
-      for (const fmt of phoneFormats) {
-        const row = await prisma.user.findFirst({ where: { phone: fmt } });
-        if (!row) continue;
-        if (row.firstName === 'Temporary' && row.lastName === 'User') {
-          temporaryUserId = row.id;
-          break;
+      if (phoneFormats.length > 0) {
+        const rows = await db
+          .select()
+          .from(users)
+          .where(inArray(users.phone, phoneFormats));
+        for (const row of rows) {
+          if (row.firstName === 'Temporary' && row.lastName === 'User') {
+            temporaryUserId = row.id;
+            break;
+          }
+          await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
+          return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
         }
-        await prisma.registrationSession.delete({ where: { id: sessionId } });
-        return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
       }
       if (temporaryUserId) {
-        await prisma.user.delete({ where: { id: temporaryUserId } });
+        await db.delete(users).where(eq(users.id, temporaryUserId));
       }
 
-      const simulation = sessionData.simulation ?? null;
-      const investorProfile = simulation
+      const sessionSimulation = sessionData.simulation ?? null;
+      const investorProfile = sessionSimulation
         ? mergeInvestorProfile(null, {
-            simulation,
-            onboarding: { step: 'T2', simulation },
+            simulation: sessionSimulation,
+            onboarding: { step: 'T2', simulation: sessionSimulation },
           })
         : mergeInvestorProfile(null, { onboarding: { step: 'T2' } });
 
       let newUser;
       try {
-        newUser = await prisma.user.create({
-          data: {
+        [newUser] = await db
+          .insert(users)
+          .values({
             phone,
             email,
             firstName: 'Nouveau',
@@ -193,39 +217,38 @@ export async function POST(request: NextRequest) {
             otpVerifiedAt: new Date(),
             preferredLanguage: 'fr',
             investorProfile,
-          },
-        });
+          })
+          .returning();
       } catch (err) {
         if (isUniqueConstraintError(err)) {
-          await prisma.registrationSession.delete({ where: { id: sessionId } });
+          await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
           return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
         }
         throw err;
       }
 
-      // Auto-create Sama Naffa + APE accounts (mirrors existing register flow)
+      if (!newUser) {
+        return NextResponse.json({ error: 'Erreur lors de la création du compte' }, { status: 500 });
+      }
+
       const defaultProduct = getNaffaProductById('default');
-      await prisma.userAccount.create({
-        data: {
-          userId: newUser.id,
-          accountType: 'SAMA_NAFFA',
-          accountNumber: generateAccountNumber('SN'),
-          productCode: defaultProduct.productCode,
-          productName: defaultProduct.name,
-          interestRate: defaultProduct.interestRate.toFixed(2),
-          lockPeriodMonths: defaultProduct.lockPeriodMonths ?? 0,
-          allowAdditionalDeposits: defaultProduct.allowAdditionalDeposits,
-        },
+      await db.insert(userAccounts).values({
+        userId: newUser.id,
+        accountType: 'SAMA_NAFFA',
+        accountNumber: generateAccountNumber('SN'),
+        productCode: defaultProduct.productCode,
+        productName: defaultProduct.name,
+        interestRate: defaultProduct.interestRate.toFixed(2),
+        lockPeriodMonths: defaultProduct.lockPeriodMonths ?? 0,
+        allowAdditionalDeposits: defaultProduct.allowAdditionalDeposits,
       });
-      await prisma.userAccount.create({
-        data: {
-          userId: newUser.id,
-          accountType: 'APE_INVESTMENT',
-          accountNumber: generateAccountNumber('APE'),
-        },
+      await db.insert(userAccounts).values({
+        userId: newUser.id,
+        accountType: 'APE_INVESTMENT',
+        accountNumber: generateAccountNumber('APE'),
       });
 
-      await prisma.registrationSession.delete({ where: { id: sessionId } });
+      await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
 
       const sessionToken = await issuePostSignupToken(newUser.id);
 

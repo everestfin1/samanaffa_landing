@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import {
   mergeInvestorProfile,
   readOnboardingProgress,
@@ -15,6 +17,13 @@ function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);
 }
 
+const progressSelect = {
+  id: users.id,
+  firstName: users.firstName,
+  investorProfile: users.investorProfile,
+  kycStatus: users.kycStatus,
+};
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -22,10 +31,11 @@ export async function GET() {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { id: true, firstName: true, investorProfile: true, kycStatus: true },
-    });
+    const [user] = await db
+      .select(progressSelect)
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
 
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
@@ -64,10 +74,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Étape invalide' }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { investorProfile: true, firstName: true, kycStatus: true },
-    });
+    const [user] = await db
+      .select({
+        investorProfile: users.investorProfile,
+        firstName: users.firstName,
+        kycStatus: users.kycStatus,
+      })
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
 
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
@@ -100,15 +115,17 @@ export async function PATCH(request: NextRequest) {
       updateData.firstName = body.firstName.trim();
     }
 
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: updateData,
-    });
+    await db.update(users).set(updateData).where(eq(users.id, session.user.id));
 
-    const refreshed = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { firstName: true, investorProfile: true, kycStatus: true },
-    });
+    const [refreshed] = await db
+      .select({
+        firstName: users.firstName,
+        investorProfile: users.investorProfile,
+        kycStatus: users.kycStatus,
+      })
+      .from(users)
+      .where(eq(users.id, session.user.id))
+      .limit(1);
 
     if (!refreshed) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });

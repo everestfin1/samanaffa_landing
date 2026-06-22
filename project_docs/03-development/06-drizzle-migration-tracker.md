@@ -17,32 +17,28 @@
 | `src/lib/audit-logger.ts` | `adminAuditLogs` + admin join |
 | `src/lib/admin-auth.ts` | `adminUsers` |
 | `src/lib/didit-kyc-bypass.ts` | `users`, `kycDocuments` |
+| `src/lib/otp.ts` | `otpCodes`, `users`, registration sessions |
+| `src/lib/auth.ts` | NextAuth + `users` lookups |
+| `src/lib/kyc-sync.ts` | `kycDocuments`, `users` |
 | `src/app/api/auth/check-availability/route.ts` | email uniqueness |
+| `src/app/api/auth/send-otp/route.ts` | registration sessions, OTP |
+| `src/app/api/auth/dev-mock-otp-hint/route.ts` | OTP dev hint |
 | `src/app/api/notifications/route.ts` | list + admin create |
 | `src/app/api/notifications/[id]/route.ts` | CRUD |
+| `src/app/api/onboarding/create-account/route.ts` | T1 phone signup |
+| `src/app/api/onboarding/profile/route.ts` | user profile patch |
+| `src/app/api/onboarding/progress/route.ts` | onboarding step state |
+| `src/app/api/onboarding/apply-formula/route.ts` | Sama Naffa product |
+| `src/app/api/onboarding/deposit-intent/route.ts` | T4 deposit intent |
+| `src/app/api/onboarding/pending-deposit/route.ts` | pending deposit CRUD |
+| `src/app/api/onboarding/release-deposit/route.ts` | post-KYC release |
+| `src/app/api/onboarding/kyc/start/route.ts` | Didit session create |
+| `src/app/api/onboarding/kyc/session-url/route.ts` | Didit URL reuse |
+| `src/app/api/onboarding/kyc/status/route.ts` | Didit status poll |
 
 ---
 
 ## Remaining (still `import { prisma } from '@/lib/prisma'`)
-
-### Core lib (priority — shared by many routes)
-
-- [ ] `src/lib/otp.ts`
-- [ ] `src/lib/auth.ts`
-- [ ] `src/lib/kyc-sync.ts`
-
-### Onboarding
-
-- [ ] `src/app/api/onboarding/create-account/route.ts`
-- [ ] `src/app/api/onboarding/profile/route.ts`
-- [ ] `src/app/api/onboarding/progress/route.ts`
-- [ ] `src/app/api/onboarding/apply-formula/route.ts`
-- [ ] `src/app/api/onboarding/deposit-intent/route.ts`
-- [ ] `src/app/api/onboarding/pending-deposit/route.ts`
-- [ ] `src/app/api/onboarding/release-deposit/route.ts`
-- [ ] `src/app/api/onboarding/kyc/start/route.ts`
-- [ ] `src/app/api/onboarding/kyc/session-url/route.ts`
-- [ ] `src/app/api/onboarding/kyc/status/route.ts`
 
 ### Portal / users
 
@@ -61,11 +57,6 @@
 
 - [ ] `src/app/api/kyc/upload/route.ts`
 - [ ] `src/app/api/webhooks/didit/route.ts`
-
-### Auth
-
-- [ ] `src/app/api/auth/send-otp/route.ts`
-- [ ] `src/app/api/auth/dev-mock-otp-hint/route.ts`
 
 ### Admin API
 

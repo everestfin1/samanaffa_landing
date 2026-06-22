@@ -1,15 +1,15 @@
 import { NextAuthOptions, User } from 'next-auth'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import { eq, inArray } from 'drizzle-orm'
 import { db } from './db'
-import { prisma } from './prisma'
+import { users } from './db/schema'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { verifyOTPWithRateLimitByKey } from './otp'
 import { consumePostSignupToken } from './post-signup-token'
 import { normalizeInternationalPhone, generatePhoneFormats } from './utils'
-import type { User as PrismaUser } from './db/schema'
+import type { User as DbUser } from './db/schema'
 import { bumpSessionVersion, resolveSessionVersion } from './auth-session'
 
-/** Re-check sessionVersion in DB at most once per interval (AUTH-008 perf). */
 const SESSION_VERSION_CHECK_MS = 60_000
 
 type JwtUserSnapshot = {
@@ -25,30 +25,32 @@ async function loadUserJwtSnapshot(
   userId: string,
   tokenSessionVersion: number | undefined,
 ): Promise<JwtUserSnapshot | null | 'invalidated'> {
-  const fullUser = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      phone: true,
-      firstName: true,
-      lastName: true,
-      email: true,
-      sessionVersion: true,
-      investorProfile: true,
-    },
-  })
+  const [fullUser] = await db
+    .select({
+      phone: users.phone,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      email: users.email,
+      sessionVersion: users.sessionVersion,
+      investorProfile: users.investorProfile,
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1)
+
   if (!fullUser) {
     return null
   }
+
   const currentVersion = resolveSessionVersion(
-    fullUser.sessionVersion as number | null | undefined,
+    fullUser.sessionVersion,
     fullUser.investorProfile,
   )
-  if (
-    tokenSessionVersion !== undefined &&
-    tokenSessionVersion !== currentVersion
-  ) {
+
+  if (tokenSessionVersion !== undefined && tokenSessionVersion !== currentVersion) {
     return 'invalidated'
   }
+
   return {
     phone: fullUser.phone,
     firstName: fullUser.firstName,
@@ -59,16 +61,34 @@ async function loadUserJwtSnapshot(
   }
 }
 
-function applyJwtSnapshot(
-  token: Record<string, unknown>,
-  snapshot: JwtUserSnapshot,
-): void {
+function applyJwtSnapshot(token: Record<string, unknown>, snapshot: JwtUserSnapshot): void {
   token.phone = snapshot.phone
   token.firstName = snapshot.firstName
   token.lastName = snapshot.lastName
   token.email = snapshot.email
   token.sessionVersion = snapshot.sessionVersion
   token.sessionCheckedAt = snapshot.sessionCheckedAt
+}
+
+async function findUserForLogin(email?: string, phone?: string | null): Promise<DbUser | null> {
+  if (email) {
+    const [byEmail] = await db.select().from(users).where(eq(users.email, email)).limit(1)
+    if (byEmail) return byEmail
+  }
+
+  if (phone) {
+    const formats = generatePhoneFormats(phone)
+    if (formats.length > 0) {
+      const [byPhone] = await db
+        .select()
+        .from(users)
+        .where(inArray(users.phone, formats))
+        .limit(1)
+      if (byPhone) return byPhone
+    }
+  }
+
+  return null
 }
 
 export const authOptions: NextAuthOptions = {
@@ -82,7 +102,7 @@ export const authOptions: NextAuthOptions = {
         password: { label: 'Password', type: 'password' },
         otp: { label: 'OTP Code', type: 'text' },
         postSignupToken: { label: 'Post-signup token', type: 'text' },
-        type: { label: 'Type', type: 'text' } // 'login' | 'post_signup'
+        type: { label: 'Type', type: 'text' },
       },
       async authorize(credentials) {
         if (credentials?.type === 'post_signup' && credentials.postSignupToken) {
@@ -90,10 +110,17 @@ export const authOptions: NextAuthOptions = {
           if (!userId) {
             throw new Error('Invalid or expired signup session')
           }
-          const signupUser = await prisma.user.findUnique({ where: { id: userId } })
+
+          const [signupUser] = await db
+            .select()
+            .from(users)
+            .where(eq(users.id, userId))
+            .limit(1)
+
           if (!signupUser) {
             throw new Error('User not found')
           }
+
           return {
             id: signupUser.id,
             email: signupUser.email,
@@ -105,33 +132,11 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email or phone is required')
         }
 
-        // Normalize phone number if provided
-        const normalizedPhone = credentials.phone ? normalizeInternationalPhone(credentials.phone) : null
+        const normalizedPhone = credentials.phone
+          ? normalizeInternationalPhone(credentials.phone)
+          : null
 
-        // Find user - try multiple phone formats for better compatibility
-        let user: PrismaUser | null = null
-
-        if (credentials.email) {
-          // First try email lookup
-          user = await prisma.user.findFirst({
-            where: { email: credentials.email }
-          })
-        }
-
-        if (!user && normalizedPhone) {
-          // Try multiple phone number formats for lookup
-          const phoneFormats = generatePhoneFormats(normalizedPhone)
-
-          for (const phoneFormat of phoneFormats) {
-            user = await prisma.user.findFirst({
-              where: { phone: phoneFormat }
-            })
-
-            if (user) {
-              break
-            }
-          }
-        }
+        const user = await findUserForLogin(credentials.email, normalizedPhone)
 
         if (!user) {
           throw new Error('User not found')
@@ -141,7 +146,6 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Password login is disabled; use SMS OTP')
         }
 
-        // Handle OTP-based login
         if (credentials.type === 'login' && credentials.otp) {
           const verifyResult = await verifyOTPWithRateLimitByKey(user.id, credentials.otp)
           if (verifyResult.success === false) {
@@ -163,12 +167,12 @@ export const authOptions: NextAuthOptions = {
         }
 
         throw new Error('Invalid authentication method')
-      }
-    })
+      },
+    }),
   ],
   session: {
     strategy: 'jwt',
-    maxAge: 7 * 24 * 60 * 60, // 7 days (AUTH-008)
+    maxAge: 7 * 24 * 60 * 60,
   },
   events: {
     async signOut(message) {
@@ -236,23 +240,26 @@ export const authOptions: NextAuthOptions = {
         return session
       }
       if (token && session.user) {
-        (session.user as User & { 
-          id: string;
-          phone?: string;
-          firstName?: string;
-          lastName?: string;
-        }).id = token.id as string;
-        (session.user as any).phone = token.phone;
-        (session.user as any).firstName = token.firstName;
-        (session.user as any).lastName = token.lastName;
-        
-        // Update email if available from token
+        ;(
+          session.user as User & {
+            id: string
+            phone?: string
+            firstName?: string
+            lastName?: string
+          }
+        ).id = token.id as string
+        ;(session.user as { phone?: string }).phone = token.phone as string | undefined
+        ;(session.user as { firstName?: string }).firstName = token.firstName as
+          | string
+          | undefined
+        ;(session.user as { lastName?: string }).lastName = token.lastName as string | undefined
+
         if (token.email) {
-          session.user.email = token.email as string;
+          session.user.email = token.email as string
         }
       }
       return session
-    }
+    },
   },
   pages: {
     signIn: '/login',

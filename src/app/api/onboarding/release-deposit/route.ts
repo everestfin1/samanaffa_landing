@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-intents';
 import { findOnboardingDepositIntent } from '@/lib/onboarding-deposit';
 
@@ -17,10 +19,11 @@ export async function POST() {
     }
 
     const userId = session.user.id;
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { kycStatus: true },
-    });
+    const [user] = await db
+      .select({ kycStatus: users.kycStatus })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
 
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });

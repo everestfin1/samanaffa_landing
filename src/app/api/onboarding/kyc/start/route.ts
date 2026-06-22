@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { and, desc, eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
+import { db } from '@/lib/db';
+import { kycDocuments, users } from '@/lib/db/schema';
 import { getAppBaseUrl } from '@/lib/app-url';
 import {
   applyDiditKycBypassApproval,
   isDiditKycBypassEnabled,
 } from '@/lib/didit-kyc-bypass';
-import { prisma } from '@/lib/prisma';
 
 const DIDIT_BASE = 'https://verification.didit.me/v3';
 
@@ -38,21 +40,24 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Service de vérification non configuré' }, { status: 503 });
     }
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const existingDocs = await prisma.kycDocument.findMany({
-      where: {
-        userId,
-        documentType: 'didit_kyc_session',
-        verificationStatus: 'PENDING',
-      },
-      orderBy: { uploadDate: 'desc' },
-      take: 1,
-    });
-    const existingDoc = existingDocs[0];
+    const [existingDoc] = await db
+      .select()
+      .from(kycDocuments)
+      .where(
+        and(
+          eq(kycDocuments.userId, userId),
+          eq(kycDocuments.documentType, 'didit_kyc_session'),
+          eq(kycDocuments.verificationStatus, 'PENDING'),
+        ),
+      )
+      .orderBy(desc(kycDocuments.uploadDate))
+      .limit(1);
+
     if (existingDoc?.fileUrl && !forceFresh) {
       const reuseRes = await fetch(`${DIDIT_BASE}/session/${existingDoc.fileUrl}/`, {
         headers: { 'x-api-key': apiKey },
@@ -72,11 +77,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (existingDoc?.id && forceFresh) {
-      await prisma.kycDocument
-        .update({
-          where: { id: existingDoc.id },
-          data: { verificationStatus: 'REJECTED' },
-        })
+      await db
+        .update(kycDocuments)
+        .set({ verificationStatus: 'REJECTED' })
+        .where(eq(kycDocuments.id, existingDoc.id))
         .catch((err) => console.warn('[kyc/start] could not abandon old doc:', err));
 
       if (existingDoc.fileUrl) {
@@ -126,14 +130,12 @@ export async function POST(request: NextRequest) {
 
     const session = await diditRes.json();
 
-    await prisma.kycDocument.create({
-      data: {
-        userId,
-        documentType: 'didit_kyc_session',
-        fileName: `Didit KYC – ${session.session_id}`,
-        fileUrl: session.session_id,
-        verificationStatus: 'PENDING',
-      },
+    await db.insert(kycDocuments).values({
+      userId,
+      documentType: 'didit_kyc_session',
+      fileName: `Didit KYC – ${session.session_id}`,
+      fileUrl: session.session_id,
+      verificationStatus: 'PENDING',
     });
 
     return NextResponse.json({

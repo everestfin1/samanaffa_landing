@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { users } from '@/lib/db/schema';
 import { mergeInvestorProfile, readOnboardingProgress } from '@/lib/onboarding-progress';
 import { recordSponsorCodeUsage, verifySponsorCode } from '@/lib/sponsor-code';
 
@@ -18,7 +20,7 @@ export async function PATCH(request: NextRequest) {
     const userId = session.user.id;
     const { firstName, lastName, investorProfile, referralCode } = await request.json();
 
-    const user = await prisma.user.findUnique({ where: { id: userId } });
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
@@ -66,10 +68,15 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 });
     }
 
-    const updated = await prisma.user.update({
-      where: { id: userId },
-      data,
-    });
+    const [updated] = await db
+      .update(users)
+      .set(data as Partial<typeof users.$inferInsert>)
+      .where(eq(users.id, userId))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
+    }
 
     if (validatedReferralCode && validatedReferralCode !== prevReferral) {
       await recordSponsorCodeUsage(validatedReferralCode);

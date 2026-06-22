@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { and, eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { kycDocuments } from '@/lib/db/schema';
 import { syncDiditDecision, DIDIT_STATUS_MAP } from '@/lib/kyc-sync';
 import {
   fetchDiditDecision,
@@ -40,16 +42,19 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'sessionId requis' }, { status: 400 });
   }
 
-  const kycDocs = await prisma.kycDocument.findMany({
-    where: {
-      userId,
-      documentType: 'didit_kyc_session',
-      fileUrl: sessionId,
-    },
-    take: 1,
-  });
+  const [kycDoc] = await db
+    .select()
+    .from(kycDocuments)
+    .where(
+      and(
+        eq(kycDocuments.userId, userId),
+        eq(kycDocuments.documentType, 'didit_kyc_session'),
+        eq(kycDocuments.fileUrl, sessionId),
+      ),
+    )
+    .limit(1);
 
-  if (!kycDocs[0]) {
+  if (!kycDoc) {
     return NextResponse.json({ error: 'Session KYC introuvable' }, { status: 403 });
   }
 

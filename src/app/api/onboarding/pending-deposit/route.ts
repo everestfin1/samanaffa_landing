@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { transactionIntents } from '@/lib/db/schema';
 import { generateReferenceNumber } from '@/lib/utils';
 import { createUserNotification } from '@/lib/user-notifications';
 import {
@@ -89,14 +91,19 @@ export async function PATCH(request: NextRequest) {
       new Date(),
     );
 
-    const updated = await prisma.transactionIntent.update({
-      where: { id: intent.id },
-      data: {
+    const [updated] = await db
+      .update(transactionIntents)
+      .set({
         amount: numericAmount.toFixed(2),
         referenceNumber,
         adminNotes: 'Montant modifié par l\'utilisateur (onboarding)',
-      },
-    });
+      })
+      .where(eq(transactionIntents.id, intent.id))
+      .returning();
+
+    if (!updated) {
+      return NextResponse.json({ error: 'Versement introuvable' }, { status: 404 });
+    }
 
     await createUserNotification(session.user.id, {
       title: 'Versement programmé mis à jour',
@@ -135,13 +142,13 @@ export async function DELETE() {
       return NextResponse.json({ error: 'Aucun versement programmé à annuler' }, { status: 404 });
     }
 
-    await prisma.transactionIntent.update({
-      where: { id: intent.id },
-      data: {
+    await db
+      .update(transactionIntents)
+      .set({
         status: 'CANCELLED',
         adminNotes: 'Annulé par l\'utilisateur (onboarding)',
-      },
-    });
+      })
+      .where(eq(transactionIntents.id, intent.id));
 
     await createUserNotification(session.user.id, {
       title: 'Versement programmé annulé',

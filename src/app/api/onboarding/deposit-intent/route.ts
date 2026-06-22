@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { and, eq } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { db } from '@/lib/db';
+import { transactionIntents, userAccounts, users } from '@/lib/db/schema';
 import { generateReferenceNumber } from '@/lib/utils';
 import { createUserNotification } from '@/lib/user-notifications';
 import {
@@ -34,7 +36,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'amount requis' }, { status: 400 });
     }
 
-    // Onboarding deposits are confirmed via Intouch only (ONB-026).
     const wallet = walletRaw === 'intouch' || walletRaw == null ? 'intouch' : walletRaw;
 
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
@@ -52,15 +53,17 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      include: { accounts: true },
-    });
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    const samaNaffaAccount = user.accounts?.find((a: { accountType: string }) => a.accountType === 'SAMA_NAFFA');
+    const accounts = await db
+      .select()
+      .from(userAccounts)
+      .where(and(eq(userAccounts.userId, userId), eq(userAccounts.accountType, 'SAMA_NAFFA')));
+
+    const samaNaffaAccount = accounts[0];
     if (!samaNaffaAccount) {
       return NextResponse.json({ error: 'Compte Sama Naffa introuvable' }, { status: 404 });
     }
@@ -80,8 +83,9 @@ export async function POST(request: NextRequest) {
 
     const referenceNumber = generateReferenceNumber('sama_naffa', 'deposit', userId, new Date());
 
-    const intent = await prisma.transactionIntent.create({
-      data: {
+    const [intent] = await db
+      .insert(transactionIntents)
+      .values({
         userId,
         accountId: samaNaffaAccount.id,
         accountType: 'SAMA_NAFFA',
@@ -92,8 +96,12 @@ export async function POST(request: NextRequest) {
         referenceNumber,
         awaitingKycApproval: true,
         userNotes: formatOnboardingDepositUserNotes(),
-      },
-    });
+      })
+      .returning();
+
+    if (!intent) {
+      return NextResponse.json({ error: 'Erreur lors de la création du versement' }, { status: 500 });
+    }
 
     await createUserNotification(userId, {
       title: 'Premier versement programmé',
