@@ -2,16 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { apeSubscriptions } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
-// Verify admin token
 async function verifyAdminToken(request: NextRequest): Promise<boolean> {
-  const authHeader = request.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return false
-  }
-  const token = authHeader.substring(7)
-  // Simple token validation - in production, verify JWT properly
-  return token.length > 0
+  const { error, user } = await verifyAdminAuth(request)
+  return !error && !!user
 }
 
 // PATCH - Update APE subscription status (for manual reconciliation)

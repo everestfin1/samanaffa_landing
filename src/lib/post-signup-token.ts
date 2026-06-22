@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'crypto';
-import { eq } from 'drizzle-orm';
+import { and, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { userAccounts, users } from '@/lib/db/schema';
 import { mergeInvestorProfile, readOnboardingProgress } from './onboarding-progress';
@@ -72,46 +72,61 @@ export async function consumePostSignupToken(token: string): Promise<string | nu
       return null;
     }
 
-    const [user] = await db
-      .select({ investorProfile: users.investorProfile })
-      .from(users)
-      .where(eq(users.id, payload.sub))
-      .limit(1);
+    const userId = payload.sub;
+    const jti = payload.jti;
 
-    if (!user) {
-      return null;
-    }
+    return await db.transaction(async (tx) => {
+      const [user] = await tx
+        .select({ investorProfile: users.investorProfile })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
 
-    const meta = readPostSignupMeta(user.investorProfile);
-    if (!meta.postSignupJti || meta.postSignupJti !== payload.jti) {
-      return null;
-    }
-    if (!meta.postSignupExpires || new Date(meta.postSignupExpires) < new Date()) {
-      return null;
-    }
+      if (!user) {
+        return null;
+      }
 
-    const accounts = await db
-      .select({ id: userAccounts.id })
-      .from(userAccounts)
-      .where(eq(userAccounts.userId, payload.sub));
+      const meta = readPostSignupMeta(user.investorProfile);
+      if (!meta.postSignupJti || meta.postSignupJti !== jti) {
+        return null;
+      }
+      if (!meta.postSignupExpires || new Date(meta.postSignupExpires) < new Date()) {
+        return null;
+      }
 
-    if (accounts.length < 2) {
-      return null;
-    }
+      const accounts = await tx
+        .select({ id: userAccounts.id })
+        .from(userAccounts)
+        .where(eq(userAccounts.userId, userId));
 
-    const investorProfile = mergeInvestorProfile(user.investorProfile, {
-      onboarding: {
-        postSignupJti: undefined,
-        postSignupExpires: undefined,
-      },
+      if (accounts.length < 2) {
+        return null;
+      }
+
+      const investorProfile = mergeInvestorProfile(user.investorProfile, {
+        onboarding: {
+          postSignupJti: undefined,
+          postSignupExpires: undefined,
+        },
+      });
+
+      const [cleared] = await tx
+        .update(users)
+        .set({ investorProfile, updatedAt: new Date() })
+        .where(
+          and(
+            eq(users.id, userId),
+            sql`${users.investorProfile}->'onboarding'->>'postSignupJti' = ${jti}`,
+          ),
+        )
+        .returning({ id: users.id });
+
+      if (!cleared) {
+        return null;
+      }
+
+      return userId;
     });
-
-    await db
-      .update(users)
-      .set({ investorProfile, updatedAt: new Date() })
-      .where(eq(users.id, payload.sub));
-
-    return payload.sub;
   } catch {
     return null;
   }

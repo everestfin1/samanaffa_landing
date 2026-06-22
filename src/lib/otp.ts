@@ -106,27 +106,23 @@ export async function verifyOTP(identifier: string, code: string): Promise<boole
     gt(otpCodes.expiresAt, now),
   )
 
-  let [otpRecord] = await db
-    .select()
-    .from(otpCodes)
+  const [byUser] = await db
+    .update(otpCodes)
+    .set({ used: true })
     .where(and(eq(otpCodes.userId, identifier), baseConditions))
-    .limit(1)
+    .returning({ id: otpCodes.id })
 
-  if (!otpRecord) {
-    ;[otpRecord] = await db
-      .select()
-      .from(otpCodes)
-      .where(and(eq(otpCodes.registrationSessionId, identifier), baseConditions))
-      .limit(1)
+  if (byUser) {
+    return true
   }
 
-  if (!otpRecord) {
-    return false
-  }
+  const [bySession] = await db
+    .update(otpCodes)
+    .set({ used: true })
+    .where(and(eq(otpCodes.registrationSessionId, identifier), baseConditions))
+    .returning({ id: otpCodes.id })
 
-  await db.update(otpCodes).set({ used: true }).where(eq(otpCodes.id, otpRecord.id))
-
-  return true
+  return !!bySession
 }
 
 export async function sendOTP(

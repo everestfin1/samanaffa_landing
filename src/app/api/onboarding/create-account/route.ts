@@ -206,19 +206,46 @@ export async function POST(request: NextRequest) {
 
       let newUser;
       try {
-        [newUser] = await db
-          .insert(users)
-          .values({
-            phone,
-            email,
-            firstName: 'Nouveau',
-            lastName: 'Membre',
-            phoneVerified: true,
-            otpVerifiedAt: new Date(),
-            preferredLanguage: 'fr',
-            investorProfile,
-          })
-          .returning();
+        newUser = await db.transaction(async (tx) => {
+          const [createdUser] = await tx
+            .insert(users)
+            .values({
+              phone,
+              email,
+              firstName: 'Nouveau',
+              lastName: 'Membre',
+              phoneVerified: true,
+              otpVerifiedAt: new Date(),
+              preferredLanguage: 'fr',
+              investorProfile,
+            })
+            .returning();
+
+          if (!createdUser) {
+            throw new Error('Failed to create user');
+          }
+
+          const defaultProduct = getNaffaProductById('default');
+          await tx.insert(userAccounts).values({
+            userId: createdUser.id,
+            accountType: 'SAMA_NAFFA',
+            accountNumber: generateAccountNumber('SN'),
+            productCode: defaultProduct.productCode,
+            productName: defaultProduct.name,
+            interestRate: defaultProduct.interestRate.toFixed(2),
+            lockPeriodMonths: defaultProduct.lockPeriodMonths ?? 0,
+            allowAdditionalDeposits: defaultProduct.allowAdditionalDeposits,
+          });
+          await tx.insert(userAccounts).values({
+            userId: createdUser.id,
+            accountType: 'APE_INVESTMENT',
+            accountNumber: generateAccountNumber('APE'),
+          });
+
+          await tx.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
+
+          return createdUser;
+        });
       } catch (err) {
         if (isUniqueConstraintError(err)) {
           await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
@@ -226,29 +253,6 @@ export async function POST(request: NextRequest) {
         }
         throw err;
       }
-
-      if (!newUser) {
-        return NextResponse.json({ error: 'Erreur lors de la création du compte' }, { status: 500 });
-      }
-
-      const defaultProduct = getNaffaProductById('default');
-      await db.insert(userAccounts).values({
-        userId: newUser.id,
-        accountType: 'SAMA_NAFFA',
-        accountNumber: generateAccountNumber('SN'),
-        productCode: defaultProduct.productCode,
-        productName: defaultProduct.name,
-        interestRate: defaultProduct.interestRate.toFixed(2),
-        lockPeriodMonths: defaultProduct.lockPeriodMonths ?? 0,
-        allowAdditionalDeposits: defaultProduct.allowAdditionalDeposits,
-      });
-      await db.insert(userAccounts).values({
-        userId: newUser.id,
-        accountType: 'APE_INVESTMENT',
-        accountNumber: generateAccountNumber('APE'),
-      });
-
-      await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
 
       const sessionToken = await issuePostSignupToken(newUser.id);
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 import { and, count, desc, eq, inArray } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { transactionIntents, userAccounts, users } from '@/lib/db/schema'
@@ -20,8 +21,15 @@ function respondError(code: string, message: string, status = 400) {
 
 export async function POST(request: NextRequest) {
   try {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+
+    if (!token?.sub) {
+      return respondError('unauthorized', 'Unauthorized', 401)
+    }
+
+    const userId = token.sub
+
     const {
-      userId,
       accountId: rawAccountId,
       accountType,
       intentType,
@@ -34,8 +42,7 @@ export async function POST(request: NextRequest) {
       providerTransactionId,
     } = await request.json()
 
-    if (userId) {
-      const rateLimit = checkTransactionRateLimit(request, userId)
+    const rateLimit = checkTransactionRateLimit(request, userId)
 
       if (!rateLimit.allowed) {
         return NextResponse.json(
@@ -50,9 +57,8 @@ export async function POST(request: NextRequest) {
               blocked: rateLimit.blocked,
             },
           },
-          { status: 429 },
-        )
-      }
+        { status: 429 },
+      )
     }
 
     const accountId =
@@ -76,10 +82,6 @@ export async function POST(request: NextRequest) {
       normalizedIntentType,
       amount,
     })
-
-    if (!userId || typeof userId !== 'string') {
-      return respondError('invalid_user_id', 'User ID is required and must be a string', 400)
-    }
 
     if (!validateAmount(amount)) {
       return respondError('invalid_amount', 'Invalid amount provided', 400)
@@ -349,16 +351,18 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
+
+    if (!token?.sub) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const userId = token.sub
     const { searchParams } = new URL(request.url)
-    const userId = searchParams.get('userId')
     const accountId = searchParams.get('accountId')
     const accountType = searchParams.get('accountType')
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
-
-    if (!userId) {
-      return NextResponse.json({ error: 'User ID is required' }, { status: 400 })
-    }
 
     const conditions = [eq(transactionIntents.userId, userId)]
     if (accountId) {

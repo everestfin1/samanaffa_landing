@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { apeSubscriptions } from '@/lib/db/schema'
 import { eq, inArray } from 'drizzle-orm'
+import { verifyAdminAuth } from '@/lib/admin-auth'
 
 interface IntouchTransaction {
   id: string
@@ -28,12 +29,8 @@ interface ReconciliationMatch {
 }
 
 async function verifyAdminToken(request: NextRequest): Promise<boolean> {
-  const authHeader = request.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) {
-    return false
-  }
-  const token = authHeader.substring(7)
-  return token.length > 0
+  const { error, user } = await verifyAdminAuth(request)
+  return !error && !!user
 }
 
 // POST - Analyze Intouch CSV and match with APE subscriptions
