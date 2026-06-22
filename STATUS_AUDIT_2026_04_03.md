@@ -83,3 +83,48 @@ No implementation work in the current chat — status review and doc refresh onl
 3. **Push** `cd59247` to `origin/main-2` when ready
 4. **Stabilization** — fix ESLint config; confirm production build
 
+---
+
+## CHECKPOINT — June 8, 2026 (afternoon)
+
+**Branch:** `main-2` — up to date with `origin/main-2`, working tree clean  
+**Latest commit:** `4706fb2` — Intouch redirect URL fix + payment-success param handling
+
+### Work done since morning checkpoint
+- **Intouch local testing** — diagnosed localhost + `dev.samanaffa.com` domain mismatch (redirect + webhook never hit localhost)
+- **Code shipped (`4706fb2`):** `getClientAppBaseUrl()` for InTouch redirects; payment-success reads InTouch param aliases; clearer PENDING feedback
+- **Scripts:** `test-intouch-callback.ts` + `check-pending-transactions.ts` migrated to Drizzle helper (check-pending still errors on `paymentCallbacks` include — minor fix needed)
+- **Env:** InTouch test credentials uncommented in `.env.local` for local sandbox testing
+- **Docs/Q&A:** dual merchant ID env vars explained; Intouch “reactivation” = env vars set (no feature flag)
+
+### Intouch retest status
+| Item | Status |
+|------|--------|
+| Config API (`/api/payments/intouch/config`) | ✅ Works with test creds |
+| Payment tunnel (`sendPaymentInfos`) | ✅ Tested — payment completes on touchpay |
+| Redirect back to app | ⚠️ Fixed in code — retest on `dev.samanaffa.com` (same DB as local) |
+| Webhook → local DB | ❌ Expected failure on localhost — use dev deploy or manual callback |
+| Stuck test tx `SAMA-NAFFA-DEPOSIT-1780920495010-MBW7ZF` | Still PENDING (10 FCFA, Jun 8) |
+
+### Health check
+| Check | Status |
+|-------|--------|
+| `bun run type-check` | ✅ Pass |
+| `bun run test` | ✅ 9 files, 32 tests |
+| `bun run lint` | 🔴 Still broken |
+| `bun run build` | ⚠️ Not re-run |
+
+### Open priorities (unchanged)
+| Priority | ID | Item |
+|----------|-----|------|
+| P0 | ADM-004 | Canvas transactions: PENDING → PROCESSING → COMPLETED |
+| P1 | ADM-005, ADM-006 | Suspend/activate users; recalculate balances |
+| P2 | ADM-007, ADM-017 | Abandoned leads UI; hide inactive APE/PEE nav |
+
+### Suggested next work
+1. **Retest Intouch E2E** on `https://dev.samanaffa.com` (or ngrok) with same Neon DB — confirm redirect + callback complete tx
+2. **Manual-callback** stuck Jun 8 test payment if still PENDING
+3. **ADM-004** — admin ops workflow for deposit confirmation
+4. **Fix** `check-pending-transactions.ts` paymentCallbacks crash
+5. **Optional refactor:** `IntouchPayment` use `config.merchantId` only (drop duplicate `NEXT_PUBLIC_INTOUCH_TEST_MERCHANT_ID`)
+
