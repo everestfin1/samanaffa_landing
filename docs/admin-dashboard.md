@@ -32,7 +32,6 @@ The card editor applies **defaults** (type, icon, link, size) when the data sour
 
 - Source of truth: `src/lib/db/schema.ts` (`dashboardCards` table, includes `rowSpan`).
 - Migrations: `drizzle/0009_add_dashboard_cards.sql`, `drizzle/0010_dashboard_cards_row_span.sql` (ALTER for existing DBs).
-- Regenerated snapshot: `drizzle/schema.ts` — keep in sync after schema changes.
 
 ## Frontend
 

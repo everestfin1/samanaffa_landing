@@ -25,14 +25,13 @@ export default function SectionPlaceholder({ tabId }: { tabId: AdminTabId }) {
           </div>
           <h2 className="text-lg font-bold tracking-tight">Section en cours de migration</h2>
           <p className="mt-2 text-sm leading-relaxed text-slate-500">
-            Cette section adopte progressivement la nouvelle interface. En attendant, elle reste
-            pleinement fonctionnelle dans l&apos;ancienne vue.
+            Cette section sera disponible prochainement dans l&apos;interface admin.
           </p>
           <Link
-            href="/admin/legacy"
+            href="/admin"
             className="mt-6 inline-flex items-center gap-2 rounded-full bg-[#435933] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(67,89,51,0.6)] transition-colors hover:bg-[#36482a]"
           >
-            Ouvrir l&apos;ancienne vue
+            Retour au tableau de bord
             <ArrowUpRight size={16} />
           </Link>
         </div>

@@ -45,7 +45,11 @@ What “basic essence” means for engineering and admin:
 | **APE Sénégal** | Hidden by default (`NEXT_PUBLIC_APE_DEPRECATED` unset or not `false`); public routes redirect to Sama Naffa. Set env to `false` for legacy internal testing only. | `/admin/ape`, `/admin/reconciliation`, `/admin/sponsor-codes` | **No new ops features.** Optional follow-up: hide nav + read-only archive. |
 | **PEE** | `/pee` marketing form may still submit | `/admin/pee-leads` | **No admin fixes or CRM parity.** |
 
-Legacy monolithic admin (`/admin/legacy`) still exposes all tabs — treat as **deprecated** for ops; canvas admin at `/admin/*` is the target shell for **Sama Naffa only**.
+Admin UI: route-based shell at `/admin/*` (`src/app/admin/(dashboard)`) is the sole ops interface for Sama Naffa.
+
+### Engineering direction (data layer)
+
+**Target:** Drizzle-only (`src/lib/db/schema.ts` + `drizzle/` migrations). Prisma (`@prisma/client`, `src/lib/prisma`) remains in some API routes until migrated — do not add new Prisma usage; port callers to Drizzle when touching those files.
 
 ---
 
@@ -66,5 +70,6 @@ Legacy monolithic admin (`/admin/legacy`) still exposes all tabs — treat as **
 
 | Date | Decision |
 |------|----------|
+| 2026-06-22 | Dev: removed admin mock/legacy UI, dead registration steps, stale drizzle snapshots; Drizzle-only migration noted. |
 | 2026-06-22 | Dev: public site mono-produit Sama Naffa; APE deprecated by default via env; client copy uses *versement* (admin may still say *dépôt*). |
 | 2026-06-02 | PM: sole focus Sama Naffa ops (accounts, KYC, Naffa, deposit/Intouch transactions). APE & PEE ops inactive. Withdrawals later. |
