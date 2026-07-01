@@ -24,9 +24,12 @@
 .DS_Store
 *.pem
 
-# Office/PDF documents — kept locally, not versioned (see project_docs/, public/)
+# Office documents — kept locally, not versioned (see project_docs/, public/)
 *.docx
 *.pdf
+*.xlsx
+*.xls
+*.xlsm
 
 # debug
 npm-debug.log*
