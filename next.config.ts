@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { buildContentSecurityPolicy } from "./src/lib/csp";
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -14,6 +15,7 @@ const nextConfig: NextConfig = {
       { source: '/portal/ape', destination: '/portal/sama-naffa', permanent: true },
       { source: '/portal/ape/:path*', destination: '/portal/sama-naffa', permanent: true },
       { source: '/portal/compare', destination: '/portal/sama-naffa', permanent: true },
+      { source: '/politique-confidentialite', destination: '/privacy', permanent: true },
     ];
   },
   experimental: {
@@ -81,7 +83,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: `default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://vercel.live https://touchpay.gutouch.net https://cdnjs.cloudflare.com https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob: https://www.facebook.com https://cdn.jsdelivr.net; media-src 'self' blob:; connect-src 'self' https://touchpay.gutouch.net https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://www.google.com https://connect.facebook.net https://www.facebook.com; frame-src 'self' https://vercel.live https://www.googletagmanager.com https://verify.didit.me; object-src 'none'; base-uri 'self'; form-action 'self' https://touchpay.gutouch.net; frame-ancestors 'none'${isDev ? '' : '; upgrade-insecure-requests'}`,
+            value: buildContentSecurityPolicy(isDev),
           },
           {
             key: 'Permissions-Policy',

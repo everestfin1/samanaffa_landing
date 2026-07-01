@@ -8,7 +8,7 @@ import SessionProvider from "@/components/providers/SessionProvider";
 import { WhatsAppButton } from "@/components/WhatsAppButton";
 import QueryProvider from "@/components/providers/QueryProvider";
 import CookieConsent from "@/components/compliance/CookieConsent";
-import { Analytics } from "@vercel/analytics/next"
+import ConsentGatedAnalytics from "@/components/compliance/ConsentGatedAnalytics";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -81,7 +81,7 @@ export default function RootLayout({
             </SelectionProvider>
           </SessionProvider>
         </QueryProvider>
-        <Analytics />
+        <ConsentGatedAnalytics />
       </body>
     </html>
   );

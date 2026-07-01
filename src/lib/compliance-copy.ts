@@ -7,4 +7,4 @@ export const RISK_DISCLAIMER_SIMULATOR =
   'Simulation indicative à titre d\'objectif de rendement. Résultat non garanti — la valeur peut varier.';
 
 export const CREPMF_AGREMENT_LINE =
-  'Everest Finance, société agréée et régulée par le CREPMF — n° SGI/DA/2016/60';
+  'Everest Finance, société agréée et régulée par l\'AMF-UMOA — n° SGI/2016-01';

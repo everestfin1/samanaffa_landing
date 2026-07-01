@@ -117,7 +117,10 @@ export default function Footer() {
       <div className="border-t border-white/10 mt-16 pt-8">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-6 text-white/40 text-sm font-light">
           <p>&copy; {currentYear} EVEREST FINANCE SA</p>
-          <div className="flex gap-8">
+          <div className="flex gap-8 flex-wrap justify-center sm:justify-end">
+            <Link href="/privacy" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</Link>
+            <Link href="/terms" className="hover:text-sama-accent-gold transition-colors duration-300">CGU</Link>
+            <Link href="/cookies" className="hover:text-sama-accent-gold transition-colors duration-300">Cookies</Link>
             <Link href="/faq" className="hover:text-sama-accent-gold transition-colors duration-300">FAQ</Link>
             <Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Contact</Link>
           </div>

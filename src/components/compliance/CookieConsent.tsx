@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import Script from 'next/script';
 
@@ -62,7 +63,10 @@ export default function CookieConsent() {
             <p className="text-sm text-night/80 leading-relaxed mb-4">
               Nous utilisons des cookies et traceurs (Google Analytics, Meta Pixel) pour
               mesurer l&apos;audience du site. Vous pouvez accepter ou refuser leur
-              utilisation.
+              utilisation.{' '}
+              <Link href="/cookies" className="text-[#435933] underline hover:no-underline">
+                En savoir plus
+              </Link>
             </p>
             <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
               <button

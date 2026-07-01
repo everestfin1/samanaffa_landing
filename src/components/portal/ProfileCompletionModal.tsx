@@ -320,7 +320,7 @@ export default function ProfileCompletionModal({
                 <span className="text-sm text-night">
                   J&apos;accepte la{' '}
                   <a
-                    href="/politique-confidentialite"
+                    href="/privacy"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gold-metallic hover:underline"

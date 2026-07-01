@@ -24,6 +24,10 @@
 .DS_Store
 *.pem
 
+# Office/PDF documents — kept locally, not versioned (see project_docs/, public/)
+*.docx
+*.pdf
+
 # debug
 npm-debug.log*
 yarn-debug.log*

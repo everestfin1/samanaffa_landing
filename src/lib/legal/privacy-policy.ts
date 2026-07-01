@@ -1,0 +1,208 @@
+import type { LegalDocument } from './types';
+
+/** Source: project_docs/Politique de confidentialite et mentions legales.docx */
+export const PRIVACY_POLICY: LegalDocument = {
+  title: 'Politique de confidentialité et de protection des données personnelles',
+  subtitle: 'Application et site Sama Naffa — EVEREST Finance SA',
+  sections: [
+    {
+      type: 'paragraph',
+      text: "La présente politique a pour objet d'informer les utilisateurs de l'application et du site Sama Naffa sur la manière dont EVEREST Finance traite leurs données personnelles, conformément à la loi n° 2008-12 du 25 janvier 2008 relative à la protection des données à caractère personnel et au décret n° 2008-721 du 30 juin 2008.",
+    },
+    { type: 'heading', text: '1. Responsable du traitement' },
+    {
+      type: 'paragraph',
+      text: "Le responsable du traitement est EVEREST Finance SA, société anonyme avec conseil d'administration au capital de 1 000 000 000 FCFA, immatriculée au registre du commerce et du crédit mobilier de Dakar sous le numéro SN DKR 2023 M 5240, NINEA 005660536 2A3, société de gestion et d'intermédiation agréée par l'AMF-UMOA sous le numéro SGI/2016-01, dont le siège est situé à l'Immeuble Platinum, 18 boulevard de la République, Dakar (Sénégal).",
+    },
+    {
+      type: 'paragraph',
+      text: "Toute question relative au traitement des données et tout exercice des droits peuvent être adressés par courriel à samanaffa@everestfin.com ou au siège social, à l'attention du point de contact chargé de la protection des données.",
+    },
+    { type: 'heading', text: '2. Données personnelles traitées' },
+    {
+      type: 'paragraph',
+      text: "Dans le cadre de l'ouverture et de la gestion du compte-titres individuel et de l'exécution du mandat de gestion, EVEREST Finance traite les catégories de données suivantes.",
+    },
+    {
+      type: 'table',
+      headers: ['Catégorie', 'Exemples de données'],
+      rows: [
+        ['Identité', 'Nom, prénom, date et lieu de naissance, nationalité, sexe, situation de famille'],
+        ['Pièce d\'identité', "Nature et numéro de la pièce, copie recto-verso (carte nationale d'identité, passeport ou titre de séjour)"],
+        ['Justificatif de domicile', "Document de moins de trois mois attestant l'adresse de résidence"],
+        ['Vérification d\'identité', 'Capture vidéo en direct, contrôle de vivacité (donnée à caractère biométrique)'],
+        ['Coordonnées', "Numéro de téléphone mobile, adresse électronique, adresse de résidence"],
+        ['Paiement', 'Compte de monnaie électronique, données des versements et des retraits'],
+        ['Données financières', "Origine des fonds, profil d'investisseur, tolérance au risque, opérations et valorisation du compte"],
+        ['Connaissance du client', 'Profession, employeur, qualité de personne politiquement exposée'],
+        ['Connexion et navigation', "Identifiants de connexion, code d'accès, données d'utilisation de l'application et journaux techniques"],
+        ['Tiers déclarés', "Informations relatives aux membres de la famille renseignées lors de l'enrôlement"],
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: "Données sensibles : elles sont traitées aux seules fins de vérification de l'identité et de prévention de la fraude, sur le fondement du consentement exprès du Client et des obligations de connaissance du client.",
+    },
+    {
+      type: 'paragraph',
+      text: "Données relatives à des tiers : lors de l'enrôlement, l'utilisateur peut être amené à renseigner des informations relatives à des tiers, notamment des membres de sa famille. Il s'engage à ne communiquer que des informations exactes et à disposer de l'autorisation nécessaire pour les transmettre.",
+    },
+    { type: 'heading', text: '3. Finalités et fondements juridiques' },
+    {
+      type: 'table',
+      headers: ['Finalité', 'Fondement juridique'],
+      rows: [
+        ['Ouverture, gestion et clôture du compte-titres et exécution du mandat de gestion', 'Exécution du contrat'],
+        ["Vérification de l'identité et connaissance du client", 'Obligation légale'],
+        ['Lutte contre le blanchiment de capitaux et le financement du terrorisme', 'Obligation légale'],
+        ['Exécution et traçabilité des ordres et des versements', 'Exécution du contrat et obligation légale'],
+        ['Prévention et détection de la fraude', 'Intérêt légitime et obligation légale'],
+        ['Déclarations et reporting réglementaires (AMF-UMOA, BCEAO)', 'Obligation légale'],
+        ["Information de l'utilisateur sur son compte et le service", 'Exécution du contrat'],
+        ['Prospection commerciale et personnalisation', 'Consentement'],
+        ["Mesure d'audience et amélioration du site et de l'application", 'Consentement'],
+      ],
+    },
+    { type: 'heading', text: '4. Caractère obligatoire des informations' },
+    {
+      type: 'paragraph',
+      text: "Les informations demandées lors de l'enrôlement et au titre de la connaissance du client présentent un caractère obligatoire. À défaut de communication, EVEREST Finance ne peut ouvrir le compte ni exécuter le mandat de gestion.",
+    },
+    { type: 'heading', text: '5. Destinataires des données' },
+    {
+      type: 'paragraph',
+      text: "Les données sont destinées aux services habilités d'EVEREST Finance. Elles peuvent être communiquées, dans la limite de ce qui est nécessaire, aux destinataires suivants :",
+    },
+    {
+      type: 'list',
+      items: [
+        "L'AMF-UMOA et la BCEAO, au titre des obligations de déclaration et de contrôle.",
+        'Le Dépositaire central et Banque de règlement (DC/BR) et la BRVM, pour la tenue des comptes-titres et le dénouement des opérations.',
+        "Orabank, teneur du compte de règlement Sama Naffa destiné au cantonnement des espèces, en application de l'Instruction n° 62/2020.",
+        'La CENTIF, pour les déclarations prévues par la réglementation relative à la lutte contre le blanchiment de capitaux et le financement du terrorisme.',
+        'Les autorités judiciaires et administratives habilitées.',
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: "Les données ne font l'objet d'aucune vente ni d'aucune cession à des fins commerciales.",
+    },
+    { type: 'heading', text: '6. Prestataires et sous-traitants' },
+    {
+      type: 'paragraph',
+      text: "Pour fournir le service, EVEREST Finance recourt à des prestataires agissant en qualité de sous-traitants. Ceux-ci n'interviennent que sur instruction et pour le compte d'EVEREST Finance, dans le respect des obligations de sécurité et de confidentialité.",
+    },
+    {
+      type: 'table',
+      headers: ['Prestataire', 'Rôle'],
+      rows: [
+        ['InTouch', 'Agrégation et traitement des versements et des retraits par monnaie électronique (Orange Money, Wave, Free Money)'],
+        ['STELLARIX', 'Hébergement des serveurs applicatifs et des bases de données'],
+        ['DiDit', "Vérification de l'identité à distance et contrôle de vivacité"],
+      ],
+    },
+    {
+      type: 'paragraph',
+      text: "EVEREST Finance demeure responsable des traitements réalisés par ses sous-traitants et tient à la disposition de la CDP une liste actualisée de ces derniers.",
+    },
+    { type: 'heading', text: '7. Transferts de données hors du Sénégal' },
+    {
+      type: 'paragraph',
+      text: "Certaines opérations, notamment d'hébergement ou de mesure d'audience, peuvent impliquer un transfert de données vers un pays situé hors du Sénégal. Conformément aux articles 41 à 44 du décret n° 2008-721, ces transferts sont encadrés par des garanties appropriées.",
+    },
+    { type: 'heading', text: '8. Durées de conservation' },
+    {
+      type: 'paragraph',
+      text: "Les données sont conservées pendant la durée de la relation contractuelle, puis archivées pour la durée nécessaire au respect des obligations légales. Les données relatives au compte et aux opérations sont conservées conformément aux obligations comptables et réglementaires applicables aux sociétés de gestion et d'intermédiation.",
+    },
+    { type: 'heading', text: '9. Sécurité et confidentialité' },
+    {
+      type: 'paragraph',
+      text: "EVEREST Finance met en œuvre les mesures techniques et organisationnelles appropriées pour préserver la confidentialité, l'intégrité et la disponibilité des données et les protéger contre toute destruction, perte, altération, divulgation ou accès non autorisés, conformément aux articles 63 à 65 du décret n° 2008-721. L'accès au compte est protégé par un code personnel et, le cas échéant, par l'authentification biométrique du terminal de l'utilisateur.",
+    },
+    { type: 'heading', text: '10. Droits des personnes concernées' },
+    {
+      type: 'paragraph',
+      text: "Conformément à la loi n° 2008-12, l'utilisateur dispose d'un droit d'accès, de rectification, de suppression et d'opposition sur ses données. EVEREST Finance lui reconnaît également la faculté de demander la portabilité des données qu'il a fournies. Le droit d'opposition au traitement à des fins de prospection commerciale s'exerce sans avoir à justifier d'un motif.",
+    },
+    {
+      type: 'paragraph',
+      text: "Les droits s'exercent par demande écrite adressée à samanaffa@everestfin.com ou au siège social. Afin de garantir la sécurité du compte, la demande doit être signée et accompagnée d'un justificatif d'identité, conformément à l'article 49 du décret n° 2008-721. Une réponse est apportée dans un délai de trente jours.",
+    },
+    {
+      type: 'paragraph',
+      text: "L'exercice des droits de suppression et d'opposition s'applique sous réserve des données dont la conservation est imposée par la loi, notamment au titre des obligations comptables, réglementaires et de lutte contre le blanchiment.",
+    },
+    { type: 'heading', text: '11. Cookies et autres traceurs' },
+    {
+      type: 'paragraph',
+      text: "Le site et l'application utilisent des cookies et autres traceurs. Les traceurs strictement nécessaires au fonctionnement du service et à la sécurité sont déposés sans recueil du consentement. Les traceurs de mesure d'audience et de prospection, notamment ceux opérés au moyen de Google Tag Manager et de Meta Pixel, ne sont déposés qu'après recueil du consentement de l'utilisateur au moyen du bandeau prévu à cet effet.",
+    },
+    {
+      type: 'paragraph',
+      text: "L'utilisateur peut à tout moment retirer son consentement et modifier ses choix depuis le bandeau de gestion des traceurs ou les paramètres de son terminal. Pour le détail des traceurs utilisés, consultez la politique relative aux cookies.",
+    },
+    { type: 'heading', text: '12. Réclamation auprès de la CDP' },
+    {
+      type: 'paragraph',
+      text: "Si l'utilisateur estime, après avoir contacté EVEREST Finance, que ses droits ne sont pas respectés, il peut saisir la Commission de protection des données personnelles (CDP), autorité de contrôle instituée par la loi n° 2008-12, dont le siège est situé au Complexe SICAP, Point E, 1er étage, Immeuble A, Avenue Cheikh Anta Diop à l'angle du Canal IV, Dakar.",
+    },
+    { type: 'heading', text: '13. Modification de la politique' },
+    {
+      type: 'paragraph',
+      text: "La présente politique peut être modifiée pour tenir compte des évolutions légales, réglementaires ou techniques. Toute modification substantielle est communiquée à l'utilisateur et, lorsque la modification le requiert, son consentement est à nouveau recueilli. Sauf obligation légale imposant une application immédiate, les modifications substantielles prennent effet à l'issue d'un délai de trente jours suivant leur communication.",
+    },
+    { type: 'heading', text: '14. Contact' },
+    {
+      type: 'paragraph',
+      text: 'Pour toute question relative à la présente politique ou aux données personnelles, l\'utilisateur peut écrire à samanaffa@everestfin.com.',
+    },
+  ],
+};
+
+export const LEGAL_NOTICES: LegalDocument = {
+  title: 'Mentions légales',
+  subtitle: 'Application et site Sama Naffa',
+  sections: [
+    { type: 'heading', text: 'Éditeur' },
+    {
+      type: 'paragraph',
+      text: "Le site et l'application Sama Naffa sont édités par EVEREST Finance SA, société anonyme avec conseil d'administration au capital de 1 000 000 000 FCFA, immatriculée au registre du commerce et du crédit mobilier de Dakar sous le numéro SN DKR 2023 M 5240, NINEA 005660536 2A3, société de gestion et d'intermédiation agréée par l'AMF-UMOA sous le numéro SGI/2016-01, par décision n° PCR/DA/2016/060 du 30 mars 2016, dont le siège est situé à l'Immeuble Platinum, 18 boulevard de la République, Dakar (Sénégal). Téléphone : +221 33 822 87 00. Courriel : samanaffa@everestfin.com.",
+    },
+    { type: 'heading', text: 'Directeur de la publication' },
+    {
+      type: 'paragraph',
+      text: "Le directeur de la publication est Madame Khady Diouf, Directrice Générale d'EVEREST Finance.",
+    },
+    { type: 'heading', text: 'Hébergement' },
+    {
+      type: 'paragraph',
+      text: "L'hébergement des serveurs applicatifs et des bases de données est assuré par STELLARIX.",
+    },
+    { type: 'heading', text: 'Activité et régulation' },
+    {
+      type: 'paragraph',
+      text: "EVEREST Finance exerce l'activité de société de gestion et d'intermédiation sur le marché financier régional de l'UEMOA, sous le contrôle de l'AMF-UMOA. Le service Sama Naffa consiste en une gestion individuelle sous mandat, par laquelle EVEREST Finance gère, pour chaque client et sur la base d'un mandat de gestion écrit, un compte-titres individuel investi en titres publics de l'UEMOA.",
+    },
+    { type: 'heading', text: 'Nature du service et avertissement' },
+    {
+      type: 'paragraph',
+      text: "Le service ne constitue ni un dépôt bancaire ni un placement collectif. Les sommes versées sont investies en titres et demeurent soumises aux aléas du marché. L'objectif de rendement n'est pas garanti et le capital n'est pas garanti.",
+    },
+    { type: 'heading', text: 'Propriété intellectuelle' },
+    {
+      type: 'paragraph',
+      text: "L'ensemble des éléments du site et de l'application, notamment les marques, logos, textes, éléments graphiques et logiciels, est protégé par les droits de propriété intellectuelle et demeure la propriété d'EVEREST Finance ou de ses partenaires. Toute reproduction ou représentation, totale ou partielle, sans autorisation préalable, est interdite.",
+    },
+    { type: 'heading', text: 'Protection des données personnelles' },
+    {
+      type: 'paragraph',
+      text: 'Le traitement des données personnelles des utilisateurs est décrit dans la politique de confidentialité accessible sur le site et l\'application.',
+    },
+    { type: 'heading', text: 'Droit applicable' },
+    {
+      type: 'paragraph',
+      text: "Le site, l'application et les présentes mentions sont régis par le droit sénégalais. Tout litige relève des juridictions compétentes de Dakar, sous réserve des dispositions impératives applicables et des clauses de règlement des différends figurant dans les conditions générales d'utilisation et le mandat de gestion.",
+    },
+  ],
+};
