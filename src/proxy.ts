@@ -60,10 +60,16 @@ export async function proxy(request: NextRequest) {
     process.env.NODE_ENV === 'production' &&
     request.headers.get('x-forwarded-proto') !== 'https'
   ) {
-    return NextResponse.redirect(
-      `https://${request.headers.get('host')}${request.nextUrl.pathname}`,
-      301,
-    );
+    const host = request.headers.get('host') ?? '';
+    const isLoopback =
+      host.startsWith('127.0.0.1') || host.startsWith('localhost');
+    // Next.js image optimizer fetches /public assets over loopback HTTP; do not redirect.
+    if (!isLoopback) {
+      return NextResponse.redirect(
+        `https://${host}${request.nextUrl.pathname}`,
+        301,
+      );
+    }
   }
 
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
