@@ -566,7 +566,7 @@ Si la migration dev échoue :
 | CI GitHub Actions (lint, typecheck, test) | ✅ |
 | Worker BullMQ (`worker/`) + PM2 | ✅ scaffold |
 
-**Toujours bloquant pour recette srvstage :** `DATABASE_URL` → `10.10.111.3:5432/samanaffa_stage`, mot de passe `samanaffa_app`, creds MinIO DSI, `DIDIT_WEBHOOK_SECRET`, puis `scripts/srvstage-deploy.sh`.
+**Toujours bloquant pour recette srvstage :** pg_hba sur db-srv (`scripts/db-srv-allow-srvstage.sh`), puis `DATABASE_URL` → `samanaffa_dev_app@10.10.111.3:5432/samanaffa_dev?sslmode=disable` (réseau privé sans TLS — voir `src/lib/db/pool-config.ts`), creds MinIO DSI, `DIDIT_WEBHOOK_SECRET`, puis `scripts/srvstage-deploy.sh`.
 
 ---
 

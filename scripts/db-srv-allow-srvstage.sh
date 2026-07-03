@@ -18,4 +18,4 @@ done
 
 sudo systemctl reload postgresql
 echo "PostgreSQL reloaded. Test from srvstage:"
-echo '  psql "postgresql://samanaffa_dev_app:%40Devpass1@10.10.111.3:5432/samanaffa_dev?sslmode=prefer" -c "SELECT 1"'
+echo '  psql "postgresql://samanaffa_dev_app:%40Devpass1@10.10.111.3:5432/samanaffa_dev?sslmode=disable" -c "SELECT 1"'
