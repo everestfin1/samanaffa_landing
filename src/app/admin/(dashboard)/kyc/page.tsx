@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useMemo, useCallback, Suspense } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { ShieldCheck, Search, X, Clock, CheckCircle2, AlertCircle, FileText, ExternalLink, Eye } from 'lucide-react'
+import { ShieldCheck, Search, X, Clock, CheckCircle2, AlertCircle, FileText, ExternalLink, Eye, ListChecks } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import { readApiError } from '@/lib/admin/api-errors'
 import { fmtDate } from '@/lib/admin/format'
@@ -38,6 +39,8 @@ function KycPageContent() {
   const [adminNotes, setAdminNotes] = useState('')
   const [openingDocId, setOpeningDocId] = useState<string | null>(null)
   const [previewDoc, setPreviewDoc] = useState<KycDocument | null>(null)
+  const [exceptionsOnly, setExceptionsOnly] = useState(false)
+  const [batchUpdating, setBatchUpdating] = useState(false)
 
   const fetchSignedUrlForDoc = useCallback(
     async (doc: KycDocument) => {
@@ -85,6 +88,7 @@ function KycPageContent() {
     const q = search.trim().toLowerCase()
     return kycDocuments.filter((d) => {
       if (userIdFilter && d.user?.id !== userIdFilter) return false
+      if (exceptionsOnly && !['PENDING', 'UNDER_REVIEW'].includes(d.verificationStatus)) return false
       if (statusFilter && d.verificationStatus !== statusFilter) return false
       if (q) {
         const hay = [d.documentType, d.fileName, d.user?.name, d.user?.email, d.user?.phone].filter(Boolean).join(' ').toLowerCase()
@@ -92,7 +96,51 @@ function KycPageContent() {
       }
       return true
     })
-  }, [kycDocuments, statusFilter, search, userIdFilter])
+  }, [kycDocuments, statusFilter, search, userIdFilter, exceptionsOnly])
+
+  const userDossierDocs = useMemo(() => {
+    if (!userIdFilter) return []
+    return kycDocuments.filter((d) => d.user?.id === userIdFilter)
+  }, [kycDocuments, userIdFilter])
+
+  const userPendingDocs = useMemo(
+    () =>
+      userDossierDocs.filter(
+        (d) =>
+          d.documentType !== 'didit_kyc_session' &&
+          ['PENDING', 'UNDER_REVIEW'].includes(d.verificationStatus),
+      ),
+    [userDossierDocs],
+  )
+
+  const handleBatchApproveUser = async () => {
+    if (!userIdFilter || userPendingDocs.length === 0) return
+    setBatchUpdating(true)
+    try {
+      const res = await authedFetch('/api/admin/kyc/batch', {
+        method: 'PUT',
+        body: JSON.stringify({
+          userId: userIdFilter,
+          updates: userPendingDocs.map((d) => ({
+            documentId: d.id,
+            verificationStatus: 'APPROVED',
+            adminNotes: adminNotes.trim() || undefined,
+          })),
+        }),
+      })
+      if (res.ok) {
+        await refresh()
+        setAdminNotes('')
+        notifySuccess(`${userPendingDocs.length} document(s) approuvé(s)`)
+      } else {
+        notifyError(await readApiError(res, 'Impossible d’approuver le dossier'))
+      }
+    } catch {
+      notifyError('Impossible d’approuver le dossier')
+    } finally {
+      setBatchUpdating(false)
+    }
+  }
 
   const handleDocStatusChange = async (docId: string, status: string) => {
     setUpdating((s) => new Set(s).add(docId))
@@ -128,13 +176,32 @@ function KycPageContent() {
       </header>
 
       {userIdFilter && (
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-3 text-sm text-blue-900">
-          <span>
-            Filtre utilisateur actif — {users.find((u) => u.id === userIdFilter)?.email ?? userIdFilter}
-          </span>
-          <a href="/admin/kyc" className="font-semibold text-[#435933] hover:underline">
-            Afficher tous les documents
-          </a>
+        <div className="mb-6 space-y-4 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-4 text-sm text-blue-900">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span>
+              Dossier client — {users.find((u) => u.id === userIdFilter)?.email ?? userIdFilter}
+            </span>
+            <Link href="/admin/kyc" className="font-semibold text-[#435933] hover:underline">
+              Afficher tous les documents
+            </Link>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-blue-100 pt-4">
+            <p className="text-blue-800">
+              {userDossierDocs.length} document(s)
+              {userPendingDocs.length > 0 ? ` · ${userPendingDocs.length} en attente de validation` : ' · aucun en attente'}
+            </p>
+            {userPendingDocs.length > 0 && (
+              <button
+                type="button"
+                onClick={handleBatchApproveUser}
+                disabled={batchUpdating}
+                className="inline-flex items-center gap-2 rounded-full bg-[#435933] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50"
+              >
+                <ListChecks size={14} />
+                {batchUpdating ? 'Traitement…' : 'Approuver tout le dossier'}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -182,7 +249,18 @@ function KycPageContent() {
             className="w-full rounded-full border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#435933]"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setExceptionsOnly((v) => !v)}
+            className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+              exceptionsOnly
+                ? 'bg-amber-600 text-white'
+                : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            Exceptions manuelles
+          </button>
           {KYC_DOC_STATUS_OPTIONS.map((s) => (
             <button
               key={s}
@@ -200,16 +278,25 @@ function KycPageContent() {
         </div>
       </div>
 
-      {/* Active filter chip */}
-      {statusFilter && (
+      {(statusFilter || exceptionsOnly) && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0f8f0] px-3 py-1 text-xs font-semibold text-[#435933]">
-            {KYC_DOC_STATUS_LABEL[statusFilter]}
-            <button type="button" onClick={() => setStatusFilter('')} className="rounded-full hover:bg-[#e8f5e8] p-0.5">
-              <X size={12} />
-            </button>
-          </span>
-          <button type="button" onClick={() => { setStatusFilter(''); setSearch('') }} className="text-xs font-medium text-slate-400 hover:text-slate-600 underline">
+          {exceptionsOnly && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+              Exceptions manuelles
+              <button type="button" onClick={() => setExceptionsOnly(false)} className="rounded-full p-0.5 hover:bg-amber-100">
+                <X size={12} />
+              </button>
+            </span>
+          )}
+          {statusFilter && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0f8f0] px-3 py-1 text-xs font-semibold text-[#435933]">
+              {KYC_DOC_STATUS_LABEL[statusFilter]}
+              <button type="button" onClick={() => setStatusFilter('')} className="rounded-full hover:bg-[#e8f5e8] p-0.5">
+                <X size={12} />
+              </button>
+            </span>
+          )}
+          <button type="button" onClick={() => { setStatusFilter(''); setExceptionsOnly(false); setSearch('') }} className="text-xs font-medium text-slate-400 hover:text-slate-600 underline">
             Tout effacer
           </button>
         </div>
@@ -301,6 +388,14 @@ function KycPageContent() {
               <div>
                 <p className="text-lg font-bold">{selectedDoc.user?.name || selectedDoc.user?.email || 'Client'}</p>
                 <p className="text-sm text-slate-500">{selectedDoc.user?.phone || ''}</p>
+                {selectedDoc.user?.id && selectedDoc.user.id !== userIdFilter && (
+                  <Link
+                    href={`/admin/kyc?userId=${selectedDoc.user.id}`}
+                    className="mt-1 inline-block text-sm font-semibold text-[#435933] hover:underline"
+                  >
+                    Voir le dossier complet
+                  </Link>
+                )}
               </div>
             </div>
 
