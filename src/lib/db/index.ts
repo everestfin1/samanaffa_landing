@@ -28,8 +28,12 @@ function resolveDatabaseUrl(): string {
 function poolSsl(connectionString: string): pg.PoolConfig['ssl'] {
   try {
     const sslmode = new URL(connectionString).searchParams.get('sslmode');
-    if (sslmode === 'require' || sslmode === 'verify-full') {
-      return { rejectUnauthorized: sslmode === 'verify-full' };
+    if (sslmode === 'verify-full') {
+      return { rejectUnauthorized: true };
+    }
+    if (sslmode === 'require' || sslmode === 'prefer') {
+      // db-srv may use a self-signed cert on the private VLAN (staging/recette).
+      return { rejectUnauthorized: false };
     }
   } catch {
     // Non-URL connection strings fall through to default pg behaviour.

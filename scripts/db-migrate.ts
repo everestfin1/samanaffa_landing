@@ -10,6 +10,21 @@ import pg from 'pg';
 config({ path: '.env.local' });
 config({ path: '.env' });
 
+function poolSsl(connectionString: string): pg.PoolConfig['ssl'] {
+  try {
+    const sslmode = new URL(connectionString).searchParams.get('sslmode');
+    if (sslmode === 'verify-full') {
+      return { rejectUnauthorized: true };
+    }
+    if (sslmode === 'require' || sslmode === 'prefer') {
+      return { rejectUnauthorized: false };
+    }
+  } catch {
+    // ignore
+  }
+  return undefined;
+}
+
 async function main() {
   const url = process.env.DATABASE_URL;
   if (!url) {
@@ -17,7 +32,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new pg.Pool({ connectionString: url });
+  const pool = new pg.Pool({ connectionString: url, ssl: poolSsl(url) });
   const db = drizzle(pool);
 
   console.log('Applying migrations from ./drizzle …');
