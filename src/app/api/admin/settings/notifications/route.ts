@@ -1,9 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { eq } from 'drizzle-orm'
-import { authOptions } from '@/lib/auth'
-import { db } from '@/lib/db'
-import { adminUsers } from '@/lib/db/schema'
+import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 
 declare global {
   var notificationSettings: NotificationSettings | undefined
@@ -26,23 +22,10 @@ interface NotificationSettings {
 
 // GET /api/admin/settings/notifications - Get notification settings
 export async function GET(request: NextRequest) {
+  const { error, user } = await verifyAdminAuth(request)
+  if (error || !user) return createErrorResponse('Unauthorized', 401)
+
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const [adminUser] = await db
-      .select({ id: adminUsers.id })
-      .from(adminUsers)
-      .where(eq(adminUsers.email, session.user.email))
-      .limit(1)
-
-    if (!adminUser) {
-      return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
-    }
-
     const settings: NotificationSettings = {
       enableEmailNotifications: true,
       enableSMSNotifications: false,
@@ -71,23 +54,10 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/settings/notifications - Update notification settings
 export async function POST(request: NextRequest) {
+  const { error, user } = await verifyAdminAuth(request)
+  if (error || !user) return createErrorResponse('Unauthorized', 401)
+
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const [adminUser] = await db
-      .select({ id: adminUsers.id })
-      .from(adminUsers)
-      .where(eq(adminUsers.email, session.user.email))
-      .limit(1)
-
-    if (!adminUser) {
-      return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
-    }
-
     const body = await request.json()
     const {
       enableEmailNotifications = true,

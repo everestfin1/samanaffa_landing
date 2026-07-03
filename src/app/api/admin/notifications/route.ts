@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
 import { and, count, desc, eq, SQL } from 'drizzle-orm'
-import { authOptions } from '@/lib/auth'
+import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { db } from '@/lib/db'
-import { adminUsers, notifications, users } from '@/lib/db/schema'
+import { notifications, users } from '@/lib/db/schema'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import { NotificationPriority, NotificationType, KycStatus } from '@/lib/types'
 
@@ -36,23 +35,10 @@ function buildAdminNotificationFilter(
 
 // GET /api/admin/notifications - Get all notifications (admin)
 export async function GET(request: NextRequest) {
+  const { error, user } = await verifyAdminAuth(request)
+  if (error || !user) return createErrorResponse('Unauthorized', 401)
+
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const [adminUser] = await db
-      .select()
-      .from(adminUsers)
-      .where(eq(adminUsers.email, session.user.email))
-      .limit(1)
-
-    if (!adminUser) {
-      return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
-    }
-
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '20')
@@ -137,23 +123,10 @@ export async function GET(request: NextRequest) {
 
 // POST /api/admin/notifications - Send KYC status notification
 export async function POST(request: NextRequest) {
+  const { error, user: adminUser } = await verifyAdminAuth(request)
+  if (error || !adminUser) return createErrorResponse('Unauthorized', 401)
+
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.user?.email) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const [adminUser] = await db
-      .select()
-      .from(adminUsers)
-      .where(eq(adminUsers.email, session.user.email))
-      .limit(1)
-
-    if (!adminUser) {
-      return NextResponse.json({ success: false, error: 'Admin access required' }, { status: 403 })
-    }
-
     const body = await request.json()
     const { 
       userId, 
