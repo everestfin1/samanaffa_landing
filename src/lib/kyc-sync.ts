@@ -20,6 +20,7 @@ import {
   fetchDiditDecision,
   parseDiditIdentity,
 } from '@/lib/didit-decision'
+import { persistDiditAssets } from '@/lib/storage/didit-assets'
 
 /**
  * Maps a Didit terminal status to our internal kycStatus / docStatus.
@@ -94,6 +95,12 @@ export async function syncDiditDecision(
         .where(eq(kycDocuments.id, doc.id))
     } catch (e) {
       console.error('[kyc-sync] Error storing decision payload:', e)
+    }
+
+    try {
+      await persistDiditAssets(userId, sessionId, mapped.docStatus, decision)
+    } catch (e) {
+      console.error('[kyc-sync] Error persisting Didit assets:', e)
     }
   }
 

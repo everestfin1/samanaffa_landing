@@ -16,6 +16,27 @@ export interface DiditIdVerification {
   expiry_date?: string;
   gender?: string;
   nationality?: string;
+  /** Presigned URL — download promptly, do not persist. */
+  front_image?: string;
+  back_image?: string;
+  portrait_image?: string;
+  full_front_image?: string;
+  full_back_image?: string;
+}
+
+export interface DiditLivenessCheck {
+  status?: string;
+  score?: number;
+  method?: string;
+  reference_image?: string;
+  video_url?: string;
+}
+
+export interface DiditFaceMatch {
+  status?: string;
+  score?: number;
+  source_image?: string;
+  target_image?: string;
 }
 
 export interface DiditWarning {
@@ -31,8 +52,8 @@ export interface DiditDecision {
   status?: string;
   features?: string[];
   id_verifications?: DiditIdVerification[];
-  liveness_checks?: Array<{ status?: string; score?: number }>;
-  face_matches?: Array<{ status?: string; score?: number }>;
+  liveness_checks?: DiditLivenessCheck[];
+  face_matches?: DiditFaceMatch[];
   aml_screenings?: unknown[];
   warnings?: DiditWarning[];
 }
@@ -80,6 +101,26 @@ export async function fetchDiditDecision(sessionId: string): Promise<DiditDecisi
   }
 
   return (await res.json()) as DiditDecision;
+}
+
+/** Fetch verification report PDF (optional — may not exist for all workflows). */
+export async function fetchDiditDecisionPdf(sessionId: string): Promise<Buffer | null> {
+  const apiKey = process.env.DIDIT_API_KEY;
+  if (!apiKey) return null;
+
+  const res = await fetch(`${DIDIT_BASE}/session/${sessionId}/generate-pdf`, {
+    headers: { 'x-api-key': apiKey },
+    cache: 'no-store',
+  });
+
+  if (res.status === 404) return null;
+  if (!res.ok) {
+    console.error('[didit-decision] PDF fetch failed:', res.status);
+    return null;
+  }
+
+  const arrayBuffer = await res.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 function primaryIdVerification(decision: DiditDecision): DiditIdVerification | undefined {

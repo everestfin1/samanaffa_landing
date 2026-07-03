@@ -168,6 +168,14 @@ export const kycDocuments = pgTable('kyc_documents', {
   adminNotes: text('adminNotes'),
   /** Redacted Didit decision snapshot (server-only, set on terminal status). */
   diditDecisionPayload: json('diditDecisionPayload'),
+  /** MinIO/S3 object key when stored in sovereign object storage. */
+  storageKey: text('storageKey'),
+  /** didit | legacy_blob */
+  source: text('source'),
+  /** Didit session UUID for rapatriated assets. */
+  diditSessionId: text('diditSessionId'),
+  /** SHA-256 hex digest of stored object. */
+  contentHash: text('contentHash'),
 });
 
 // Admin Users table

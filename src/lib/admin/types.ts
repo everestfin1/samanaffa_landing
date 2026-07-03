@@ -45,6 +45,9 @@ export interface KycDocument {
   documentType: string
   fileName: string
   fileUrl: string
+  storageKey?: string | null
+  source?: string | null
+  diditSessionId?: string | null
   uploadDate: string
   verificationStatus: string
   adminNotes?: string

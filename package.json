@@ -19,10 +19,15 @@
     "db:seed": "tsx scripts/db-seed.ts",
     "db:normalize-phones": "tsx scripts/normalize-phone-numbers.ts",
     "db:check-phones": "tsx scripts/check-phone-numbers.ts",
+    "minio:up": "docker compose -f docker-compose.minio.yml up -d",
+    "minio:down": "docker compose -f docker-compose.minio.yml down",
+    "minio:smoke": "tsx scripts/minio-smoke-test.ts",
     "docs:user-flows-pdf": "node scripts/generate-user-flows-pdf.mjs"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.0",
+    "@aws-sdk/client-s3": "^3.1079.0",
+    "@aws-sdk/s3-request-presigner": "^3.1079.0",
     "@didit-protocol/sdk-web": "^0.2.0",
     "@heroicons/react": "^2.2.0",
     "@neondatabase/serverless": "^1.0.2",

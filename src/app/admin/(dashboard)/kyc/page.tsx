@@ -23,6 +23,31 @@ export default function KycPage() {
   const [selectedDoc, setSelectedDoc] = useState<KycDocument | null>(null)
   const [updating, setUpdating] = useState<Set<string>>(new Set())
   const [adminNotes, setAdminNotes] = useState('')
+  const [openingDocId, setOpeningDocId] = useState<string | null>(null)
+
+  const openDocument = async (doc: KycDocument) => {
+    if (doc.documentType === 'didit_kyc_session') return
+    setOpeningDocId(doc.id)
+    try {
+      const res = await authedFetch(`/api/admin/kyc/${doc.id}/signed-url`)
+      const data = await res.json()
+      if (res.ok && data.url) {
+        window.open(data.url, '_blank', 'noopener,noreferrer')
+      } else {
+        console.error('Failed to get signed URL:', data.error)
+      }
+    } catch (err) {
+      console.error('Failed to open document:', err)
+    } finally {
+      setOpeningDocId(null)
+    }
+  }
+
+  const isOpenableDocument = (doc: KycDocument) => {
+    if (doc.documentType === 'didit_kyc_session') return false
+    if (doc.storageKey || doc.fileUrl.startsWith('minio://')) return true
+    return doc.fileUrl.startsWith('http')
+  }
 
   const stats = useMemo(() => {
     const total = kycDocuments.length
@@ -261,16 +286,22 @@ export default function KycPage() {
               </div>
             </div>
 
-            {selectedDoc.fileUrl && (
-              <a
-                href={selectedDoc.fileUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5]"
+            {selectedDoc.fileUrl && isOpenableDocument(selectedDoc) && (
+              <button
+                type="button"
+                onClick={() => openDocument(selectedDoc)}
+                disabled={openingDocId === selectedDoc.id}
+                className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5] disabled:opacity-50"
               >
                 <ExternalLink size={16} />
-                Ouvrir le document
-              </a>
+                {openingDocId === selectedDoc.id ? 'Ouverture...' : 'Ouvrir le document'}
+              </button>
+            )}
+
+            {selectedDoc.documentType === 'didit_kyc_session' && (
+              <p className="text-sm text-slate-500">
+                Session Didit — ouvrez les documents rapatriés (recto, selfie, etc.) dans la liste.
+              </p>
             )}
 
             {selectedDoc.adminNotes && (
