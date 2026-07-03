@@ -54,6 +54,6 @@ sudo -u deploy pm2 save
 echo "==> Smoke"
 sleep 3
 curl -sf -o /dev/null http://127.0.0.1:3000/ && echo "OK: app responds on :3000" || echo "WARN: :3000 not responding yet"
-curl -sk -o /dev/null -w "nginx: %{http_code}\n" https://127.0.0.1/ -H "Host: staging.samanaffa.com"
+curl -sk -o /dev/null -w "nginx dev: %{http_code}\n" https://127.0.0.1/ -H "Host: dev.samanaffa.com"
 
-echo "==> Done. Test from Mac (VPN + /etc/hosts): https://staging.samanaffa.com"
+echo "==> Done. Test from Mac (VPN + /etc/hosts): https://dev.samanaffa.com"
