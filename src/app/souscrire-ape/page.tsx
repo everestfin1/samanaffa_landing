@@ -46,17 +46,9 @@ export default function SouscrireAPEPage() {
     }
   }, [session, router]);
 
-  if (isApeDeprecated()) {
-    return (
-      <div className="min-h-screen bg-gray-light flex items-center justify-center p-4">
-        <ApeDeprecatedNotice />
-      </div>
-    );
-  }
-
   // Fetch user's APE account and KYC status
   useEffect(() => {
-    if (!session?.user) return;
+    if (isApeDeprecated() || !session?.user) return;
 
     const fetchAccountData = async () => {
       try {
@@ -158,6 +150,14 @@ export default function SouscrireAPEPage() {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  if (isApeDeprecated()) {
+    return (
+      <div className="min-h-screen bg-gray-light flex items-center justify-center p-4">
+        <ApeDeprecatedNotice />
+      </div>
+    );
+  }
 
   // Show loading state
   if (!session || isLoadingAccount) {
