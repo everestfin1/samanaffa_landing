@@ -95,3 +95,15 @@ export function getClientAppBaseUrl(): string {
 
   return getAppBaseUrl();
 }
+
+/**
+ * Server-to-server Intouch callback URL.
+ * Prefer INTOUCH_CALLBACK_URL on STELLARIX; otherwise derive from the app base URL.
+ */
+export function getIntouchCallbackUrl(request?: NextRequest): string {
+  const fromEnv = process.env.INTOUCH_CALLBACK_URL?.trim();
+  if (fromEnv) {
+    return stripTrailingSlash(fromEnv);
+  }
+  return `${getAppBaseUrl(request)}/api/payments/intouch/callback`;
+}

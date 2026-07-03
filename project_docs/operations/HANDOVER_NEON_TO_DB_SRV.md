@@ -547,4 +547,27 @@ Si la migration dev échoue :
 
 ---
 
+## 19. Backlog applicatif livré (staging, juillet 2026)
+
+| Item | Statut |
+|---|---|
+| Redirect paiement / maintenance (`/portal` autorisé, page `/maintenance`) | ✅ |
+| FAQ contact réel | ✅ |
+| KYC upload legacy → HTTP 410 | ✅ |
+| Admin ADM-004 PROCESSING (transactions) | ✅ |
+| Admin ADM-005 suspendre / réactiver utilisateur | ✅ |
+| Admin ADM-006 recalcul soldes (dashboard) | ✅ |
+| Admin ADM-015 aperçu KYC inline | ✅ |
+| Admin ADM-016 lien utilisateurs → KYC | ✅ |
+| Admin ADM-017 masquer nav APE/PEE/réconciliation | ✅ |
+| Emails échec paiement (Intouch + APE callback) | ✅ |
+| `getIntouchCallbackUrl()` + `INTOUCH_CALLBACK_URL` | ✅ |
+| Script `migrate-kyc-blob-to-minio.ts` | ✅ |
+| CI GitHub Actions (lint, typecheck, test) | ✅ |
+| Worker BullMQ (`worker/`) + PM2 | ✅ scaffold |
+
+**Toujours bloquant pour recette srvstage :** `DATABASE_URL` → `10.10.111.3:5432/samanaffa_stage`, mot de passe `samanaffa_app`, creds MinIO DSI, `DIDIT_WEBHOOK_SECRET`, puis `scripts/srvstage-deploy.sh`.
+
+---
+
 *Document vivant — mettre à jour après chaque migration ou changement d'infra.*

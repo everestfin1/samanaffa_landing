@@ -176,6 +176,60 @@ export async function sendTransactionIntentEmail(
   await emailTransporter.sendMail(mailOptions)
 }
 
+export async function sendPaymentFailureEmail(
+  email: string,
+  userName: string,
+  transactionData: {
+    type: 'deposit' | 'investment' | 'withdrawal'
+    amount: number
+    paymentMethod: string
+    referenceNumber: string
+    accountType: 'sama_naffa' | 'ape_investment' | 'ape_togo_investment'
+    failureReason?: string
+  },
+): Promise<void> {
+  if (email.includes('@onboarding.samanaffa.tmp')) {
+    return
+  }
+
+  const accountTypeLabel =
+    transactionData.accountType === 'sama_naffa'
+      ? 'Sama Naffa'
+      : transactionData.accountType === 'ape_togo_investment'
+        ? 'APE Togo'
+        : 'APE Investment'
+  const typeLabel =
+    transactionData.type === 'deposit'
+      ? 'dépôt'
+      : transactionData.type === 'investment'
+        ? 'investissement'
+        : 'retrait'
+
+  const mailOptions = {
+    from: process.env.EMAIL_SENDER ?? process.env.EMAIL_USER,
+    to: email,
+    subject: `Échec de votre ${typeLabel} — ${accountTypeLabel}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Sama Naffa</h2>
+        <p>Bonjour ${userName},</p>
+        <p>Votre ${typeLabel} n'a pas pu être finalisé.</p>
+        <div style="background-color: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0;">
+          <p style="margin: 8px 0;"><strong>Référence:</strong> ${transactionData.referenceNumber}</p>
+          <p style="margin: 8px 0;"><strong>Montant:</strong> ${transactionData.amount.toLocaleString('fr-FR')} FCFA</p>
+          <p style="margin: 8px 0;"><strong>Méthode:</strong> ${transactionData.paymentMethod}</p>
+          ${transactionData.failureReason ? `<p style="margin: 8px 0;"><strong>Détail:</strong> ${transactionData.failureReason}</p>` : ''}
+        </div>
+        <p>Vous pouvez réessayer depuis votre espace client ou nous contacter si le problème persiste.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">L'équipe Sama Naffa</p>
+      </div>
+    `,
+  }
+
+  await emailTransporter.sendMail(mailOptions)
+}
+
 export async function sendAdminNotificationEmail(
   adminEmail: string,
   transactionData: {

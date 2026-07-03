@@ -9,7 +9,7 @@ import {
   userAccounts,
   users,
 } from '@/lib/db/schema';
-import { sendTransactionIntentEmail } from '@/lib/notifications';
+import { sendTransactionIntentEmail, sendPaymentFailureEmail } from '@/lib/notifications';
 import { isOnboardingDepositUserNotes } from '@/lib/onboarding-deposit';
 
 // Payment request validation middleware
@@ -883,6 +883,9 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
       const statusChangedToCompleted =
         currentIntent.status !== 'COMPLETED' && finalStatus === 'COMPLETED';
 
+      const statusChangedToFailed =
+        currentIntent.status !== 'FAILED' && finalStatus === 'FAILED';
+
       const adminNote = appendAdminNote(
         currentIntent.adminNotes,
         `Intouch callback ${String(statusRaw)} (${providerTransactionId}) at ${callbackTimestamp.toISOString()}`,
@@ -951,10 +954,11 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
         finalStatus,
         failureReason,
         statusChangedToCompleted,
+        statusChangedToFailed,
       };
     });
 
-    const { updatedIntent, finalStatus, failureReason, statusChangedToCompleted } = transactionResult;
+    const { updatedIntent, finalStatus, failureReason, statusChangedToCompleted, statusChangedToFailed } = transactionResult;
 
     console.log('[Intouch Callback] Transaction processing completed:', {
       intentId: updatedIntent.id,
@@ -1001,6 +1005,25 @@ async function processIntouchCallback(parsedBody: Record<string, unknown>) {
           userNotes: updatedIntent.userNotes || undefined,
         },
       );
+    }
+
+    if (statusChangedToFailed) {
+      try {
+        await sendPaymentFailureEmail(
+          updatedIntent.user.email,
+          `${updatedIntent.user.firstName} ${updatedIntent.user.lastName}`,
+          {
+            type: updatedIntent.intentType.toLowerCase() as 'deposit' | 'investment' | 'withdrawal',
+            amount: Number(updatedIntent.amount),
+            paymentMethod: paymentMethod || 'Intouch',
+            referenceNumber: updatedIntent.referenceNumber,
+            accountType: updatedIntent.accountType.toLowerCase() as 'sama_naffa' | 'ape_investment',
+            failureReason: failureReason ?? undefined,
+          },
+        );
+      } catch (emailError) {
+        console.error('[Intouch Callback] Failed to send payment failure email:', emailError);
+      }
     }
 
     const responsePayload: Record<string, unknown> = {
@@ -1177,7 +1200,21 @@ async function processApeSubscriptionCallback(
       }
     } else if (apeStatus === 'PAYMENT_FAILED' && apeSubscription.status !== 'PAYMENT_FAILED') {
       console.log('[Intouch Callback] APE payment failed for:', updatedSubscription.email);
-      // TODO: Send failure notification email
+      try {
+        await sendPaymentFailureEmail(
+          updatedSubscription.email,
+          `${updatedSubscription.prenom} ${updatedSubscription.nom}`,
+          {
+            type: 'investment',
+            amount: Number(updatedSubscription.montantCfa),
+            paymentMethod: paymentMethod || 'Intouch',
+            referenceNumber: updatedSubscription.referenceNumber,
+            accountType: 'ape_investment',
+          },
+        );
+      } catch (emailError) {
+        console.error('[Intouch Callback] Failed to send APE failure email:', emailError);
+      }
     }
 
     const responsePayload: Record<string, unknown> = {

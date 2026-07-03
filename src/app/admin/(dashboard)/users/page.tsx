@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Users, Search, X, ShieldCheck, Clock, CheckCircle2, AlertCircle, FileText, Mail, Phone } from 'lucide-react'
+import Link from 'next/link'
+import { Users, Search, X, ShieldCheck, Clock, CheckCircle2, AlertCircle, FileText, Mail, Phone, Ban, UserCheck } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
@@ -22,6 +23,10 @@ export default function UsersPage() {
   const [kycFilter, setKycFilter] = useState<string>('')
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
   const [updating, setUpdating] = useState<Set<string>>(new Set())
+  const [suspendReason, setSuspendReason] = useState('')
+
+  const isUserSuspended = (user: AdminUser) =>
+    user.accounts?.some((a) => a.status === 'SUSPENDED') ?? false
 
   const stats = useMemo(() => {
     const total = users.length
@@ -60,6 +65,38 @@ export default function UsersPage() {
       }
     } catch (err) {
       console.error('Failed to update KYC status:', err)
+    } finally {
+      setUpdating((s) => {
+        const next = new Set(s)
+        next.delete(userId)
+        return next
+      })
+    }
+  }
+
+  const handleAccountAction = async (userId: string, action: 'suspend' | 'activate') => {
+    if (action === 'suspend' && !suspendReason.trim()) {
+      alert('Veuillez indiquer un motif de suspension')
+      return
+    }
+    setUpdating((s) => new Set(s).add(userId))
+    try {
+      const res = await authedFetch(`/api/admin/users/${userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          action,
+          reason: action === 'suspend' ? suspendReason.trim() : undefined,
+        }),
+      })
+      if (res.ok) {
+        await refresh()
+        setSuspendReason('')
+        if (selectedUser?.id === userId) {
+          setSelectedUser(null)
+        }
+      }
+    } catch (err) {
+      console.error('Failed to update user account status:', err)
     } finally {
       setUpdating((s) => {
         const next = new Set(s)
@@ -254,6 +291,53 @@ export default function UsersPage() {
                 <p className="mt-1 text-sm font-bold">{selectedUser.stats?.totalKycDocuments ?? 0}</p>
               </div>
             </div>
+
+            {/* Account status */}
+            <div className="space-y-3">
+              <p className="text-sm font-semibold text-slate-700">Compte client</p>
+              {isUserSuspended(selectedUser) ? (
+                <div className="space-y-3">
+                  <StatusPill status="SUSPENDED" label="Suspendu" />
+                  <button
+                    type="button"
+                    onClick={() => handleAccountAction(selectedUser.id, 'activate')}
+                    disabled={updating.has(selectedUser.id)}
+                    className="flex items-center gap-2 rounded-xl bg-[#435933] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    <UserCheck size={16} />
+                    {updating.has(selectedUser.id) ? 'Traitement...' : 'Réactiver le compte'}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <StatusPill status="ACTIVE" label="Actif" />
+                  <textarea
+                    value={suspendReason}
+                    onChange={(e) => setSuspendReason(e.target.value)}
+                    placeholder="Motif de suspension (obligatoire)"
+                    rows={2}
+                    className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAccountAction(selectedUser.id, 'suspend')}
+                    disabled={updating.has(selectedUser.id)}
+                    className="flex items-center gap-2 rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                  >
+                    <Ban size={16} />
+                    {updating.has(selectedUser.id) ? 'Traitement...' : 'Suspendre le compte'}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <Link
+              href={`/admin/kyc?userId=${selectedUser.id}`}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5]"
+            >
+              <FileText size={16} />
+              Voir les documents KYC
+            </Link>
 
             {/* KYC status actions */}
             <div className="space-y-3">

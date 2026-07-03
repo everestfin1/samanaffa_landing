@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect } from 'react'
 import {
-  ADMIN_NAV_GROUPS,
+  getVisibleAdminNavGroups,
   type AdminNavItem,
   type AdminTabId,
 } from '@/lib/admin/nav'
@@ -91,7 +91,7 @@ export default function AdminSidebar({
       </div>
 
       <nav className="admin-sidebar-nav" aria-label="Navigation admin">
-        {ADMIN_NAV_GROUPS.map((group) => (
+        {getVisibleAdminNavGroups().map((group) => (
           <div key={group.id} className="admin-sidebar-nav-group">
             {!collapsed && (
               <span className="admin-sidebar-nav-group-label">{group.label}</span>

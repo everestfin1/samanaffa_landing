@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { ShieldCheck, Search, X, Clock, CheckCircle2, AlertCircle, FileText, ExternalLink } from 'lucide-react'
+import { useState, useMemo, useCallback, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { ShieldCheck, Search, X, Clock, CheckCircle2, AlertCircle, FileText, ExternalLink, Eye } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
+import KycDocumentPreview from '@/components/admin/KycDocumentPreview'
 import type { KycDocument } from '@/lib/admin/types'
 
 const KYC_DOC_STATUS_LABEL: Record<string, string> = {
@@ -17,6 +19,16 @@ const KYC_DOC_STATUS_LABEL: Record<string, string> = {
 const KYC_DOC_STATUS_OPTIONS = ['PENDING', 'APPROVED', 'REJECTED', 'UNDER_REVIEW']
 
 export default function KycPage() {
+  return (
+    <Suspense fallback={<div className="p-8 text-sm text-slate-500">Chargement KYC…</div>}>
+      <KycPageContent />
+    </Suspense>
+  )
+}
+
+function KycPageContent() {
+  const searchParams = useSearchParams()
+  const userIdFilter = searchParams.get('userId')?.trim() ?? ''
   const { kycDocuments, users, loading, refresh, authedFetch } = useAdminData()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
@@ -24,6 +36,17 @@ export default function KycPage() {
   const [updating, setUpdating] = useState<Set<string>>(new Set())
   const [adminNotes, setAdminNotes] = useState('')
   const [openingDocId, setOpeningDocId] = useState<string | null>(null)
+  const [previewDoc, setPreviewDoc] = useState<KycDocument | null>(null)
+
+  const fetchSignedUrlForDoc = useCallback(
+    async (doc: KycDocument) => {
+      const res = await authedFetch(`/api/admin/kyc/${doc.id}/signed-url`)
+      const data = await res.json()
+      if (res.ok && data.url) return data.url as string
+      return null
+    },
+    [authedFetch],
+  )
 
   const openDocument = async (doc: KycDocument) => {
     if (doc.documentType === 'didit_kyc_session') return
@@ -60,6 +83,7 @@ export default function KycPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return kycDocuments.filter((d) => {
+      if (userIdFilter && d.user?.id !== userIdFilter) return false
       if (statusFilter && d.verificationStatus !== statusFilter) return false
       if (q) {
         const hay = [d.documentType, d.fileName, d.user?.name, d.user?.email, d.user?.phone].filter(Boolean).join(' ').toLowerCase()
@@ -67,7 +91,7 @@ export default function KycPage() {
       }
       return true
     })
-  }, [kycDocuments, statusFilter, search])
+  }, [kycDocuments, statusFilter, search, userIdFilter])
 
   const handleDocStatusChange = async (docId: string, status: string) => {
     setUpdating((s) => new Set(s).add(docId))
@@ -98,6 +122,17 @@ export default function KycPage() {
         <h1 className="text-[2.25rem] font-bold leading-none tracking-tight">Vérification KYC</h1>
         <p className="mt-2 text-[15px] text-slate-500">Documents et décisions de conformité client.</p>
       </header>
+
+      {userIdFilter && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-blue-100 bg-blue-50 px-5 py-3 text-sm text-blue-900">
+          <span>
+            Filtre utilisateur actif — {users.find((u) => u.id === userIdFilter)?.email ?? userIdFilter}
+          </span>
+          <a href="/admin/kyc" className="font-semibold text-[#435933] hover:underline">
+            Afficher tous les documents
+          </a>
+        </div>
+      )}
 
       {/* Stat bento */}
       <div className="mb-7 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -287,15 +322,25 @@ export default function KycPage() {
             </div>
 
             {selectedDoc.fileUrl && isOpenableDocument(selectedDoc) && (
-              <button
-                type="button"
-                onClick={() => openDocument(selectedDoc)}
-                disabled={openingDocId === selectedDoc.id}
-                className="flex w-full items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5] disabled:opacity-50"
-              >
-                <ExternalLink size={16} />
-                {openingDocId === selectedDoc.id ? 'Ouverture...' : 'Ouvrir le document'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewDoc(selectedDoc)}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5]"
+                >
+                  <Eye size={16} />
+                  Aperçu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openDocument(selectedDoc)}
+                  disabled={openingDocId === selectedDoc.id}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <ExternalLink size={16} />
+                  {openingDocId === selectedDoc.id ? 'Ouverture...' : 'Nouvel onglet'}
+                </button>
+              </div>
             )}
 
             {selectedDoc.documentType === 'didit_kyc_session' && (
@@ -354,6 +399,15 @@ export default function KycPage() {
           </div>
         )}
       </DetailDrawer>
+
+      {previewDoc && (
+        <KycDocumentPreview
+          docId={previewDoc.id}
+          fileName={previewDoc.fileName}
+          fetchSignedUrl={() => fetchSignedUrlForDoc(previewDoc)}
+          onClose={() => setPreviewDoc(null)}
+        />
+      )}
     </div>
   )
 }

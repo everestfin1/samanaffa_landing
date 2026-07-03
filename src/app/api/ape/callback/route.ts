@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { sendTransactionIntentEmail, sendPaymentFailureEmail } from '@/lib/notifications';
 import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
@@ -112,13 +113,40 @@ export async function POST(request: NextRequest) {
       providerTransactionId,
     });
 
-    // TODO: Send email notification based on status
+    // Email notification based on status
     if (normalizedStatus === 'PAYMENT_SUCCESS') {
-      console.log('[APE Callback] Payment successful - should send confirmation email to:', subscription.email);
-      // await sendConfirmationEmail(subscription);
+      try {
+        await sendTransactionIntentEmail(
+          subscription.email,
+          `${subscription.prenom} ${subscription.nom}`,
+          {
+            type: 'investment',
+            amount: Number(subscription.montantCfa),
+            paymentMethod: 'Intouch',
+            referenceNumber: subscription.referenceNumber,
+            accountType: 'ape_investment',
+            investmentTranche: subscription.trancheInteresse as 'A' | 'B' | 'C' | 'D' | undefined,
+          },
+        );
+      } catch (emailError) {
+        console.error('[APE Callback] Failed to send confirmation email:', emailError);
+      }
     } else if (normalizedStatus === 'PAYMENT_FAILED') {
-      console.log('[APE Callback] Payment failed - should send failure notification to:', subscription.email);
-      // await sendFailureEmail(subscription);
+      try {
+        await sendPaymentFailureEmail(
+          subscription.email,
+          `${subscription.prenom} ${subscription.nom}`,
+          {
+            type: 'investment',
+            amount: Number(subscription.montantCfa),
+            paymentMethod: 'Intouch',
+            referenceNumber: subscription.referenceNumber,
+            accountType: 'ape_investment',
+          },
+        );
+      } catch (emailError) {
+        console.error('[APE Callback] Failed to send failure email:', emailError);
+      }
     }
 
     return NextResponse.json({

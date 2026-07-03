@@ -20,6 +20,13 @@ export interface AdminUser {
   lastName: string
   kycStatus: string
   createdAt: string
+  accounts?: Array<{
+    id: string
+    accountType: string
+    accountNumber: string
+    balance: string
+    status: string
+  }>
   stats: {
     totalTransactions: number
     totalKycDocuments: number

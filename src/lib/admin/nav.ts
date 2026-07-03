@@ -1,4 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
+import { isLegacyAdminNavHidden } from '@/lib/product-flags'
 import {
   LayoutDashboard,
   Users,
@@ -97,6 +98,27 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
     ],
   },
 ]
+
+const LEGACY_ADMIN_TABS: AdminTabId[] = [
+  'apeSubscriptions',
+  'reconciliation',
+  'sponsorCodes',
+  'peeLeads',
+]
+
+export function isAdminNavItemVisible(id: AdminTabId): boolean {
+  if (isLegacyAdminNavHidden() && LEGACY_ADMIN_TABS.includes(id)) {
+    return false
+  }
+  return true
+}
+
+export function getVisibleAdminNavGroups(): AdminNavGroup[] {
+  return ADMIN_NAV_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => isAdminNavItemVisible(item.id)),
+  })).filter((group) => group.items.length > 0)
+}
 
 const ALL_NAV_ITEMS: AdminNavItem[] = ADMIN_NAV_GROUPS.flatMap((g) => g.items)
 

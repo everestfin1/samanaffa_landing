@@ -19,17 +19,19 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/_next/') ||
       request.nextUrl.pathname.startsWith('/static/') ||
       request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|json|webmanifest)$/);
+    const pathname = request.nextUrl.pathname;
     const isAllowedRoute =
-      request.nextUrl.pathname.startsWith('/admin') ||
-      request.nextUrl.pathname.startsWith('/pee') ||
-      request.nextUrl.pathname.startsWith('/apesenegal') ||
-      request.nextUrl.pathname.startsWith('/login') ||
-      request.nextUrl.pathname.startsWith('/onboarding') ||
-      request.nextUrl.pathname.startsWith('/souscrire-ape') ||
-      request.nextUrl.pathname === '/manifest.json';
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/portal') ||
+      pathname.startsWith('/api/payments') ||
+      pathname.startsWith('/api/webhooks') ||
+      pathname.startsWith('/login') ||
+      pathname.startsWith('/onboarding') ||
+      pathname === '/maintenance' ||
+      pathname === '/manifest.json';
 
     if (!isStaticAsset && !isAllowedRoute) {
-      return NextResponse.redirect(new URL('/pee', request.url));
+      return NextResponse.redirect(new URL('/maintenance', request.url));
     }
   }
 

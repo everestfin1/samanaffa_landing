@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react'
 import {
-  Pencil, Trash2, Plus, Save, ChevronUp, ChevronDown, LayoutDashboard, X, Eye, EyeOff,
+  Pencil, Trash2, Plus, Save, ChevronUp, ChevronDown, LayoutDashboard, X, Eye, EyeOff, RefreshCw,
 } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import type { DashboardCardConfig } from '@/lib/admin/types'
@@ -23,6 +23,7 @@ export default function EditableDashboard() {
     loading,
     dashboardCards,
     refreshDashboardCards,
+    refresh,
     authedFetch,
   } = useAdminData()
 
@@ -31,6 +32,8 @@ export default function EditableDashboard() {
   const [showAdd, setShowAdd] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [recalculating, setRecalculating] = useState(false)
+  const [recalculateMessage, setRecalculateMessage] = useState<string | null>(null)
 
   const visibleCards = useMemo(
     () => [...dashboardCards].filter((c) => c.visible).sort((a, b) => a.order - b.order),
@@ -210,6 +213,30 @@ export default function EditableDashboard() {
     [authedFetch, refreshDashboardCards],
   )
 
+  const handleRecalculateBalances = useCallback(async () => {
+    if (!confirm('Recalculer tous les soldes à partir des transactions complétées ?')) return
+    setRecalculating(true)
+    setRecalculateMessage(null)
+    try {
+      const res = await authedFetch('/api/admin/accounts/recalculate-balances', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Échec du recalcul')
+      const changed = Array.isArray(data.results)
+        ? data.results.filter((r: { difference: number }) => r.difference !== 0).length
+        : 0
+      setRecalculateMessage(
+        changed > 0
+          ? `${changed} compte(s) mis à jour.`
+          : 'Recalcul terminé — aucun écart détecté.',
+      )
+      await refresh()
+    } catch (e: unknown) {
+      setRecalculateMessage(e instanceof Error ? e.message : 'Erreur lors du recalcul')
+    } finally {
+      setRecalculating(false)
+    }
+  }, [authedFetch, refresh])
+
   const renderCardShell = (card: DashboardCardConfig, idx: number, opts: { dimmed?: boolean }) => {
     const rowSpan = card.rowSpan ?? 1
     const rowLayout = dashboardGridRowStyle(rowSpan)
@@ -293,6 +320,16 @@ export default function EditableDashboard() {
         <div className="flex items-center gap-2">
           <button
             type="button"
+            onClick={handleRecalculateBalances}
+            disabled={recalculating || saving}
+            className="flex items-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-[0_8px_30px_-12px_rgba(1,8,27,0.18)] transition-all hover:shadow-[0_12px_36px_-12px_rgba(1,8,27,0.28)] disabled:opacity-50"
+            title="Recalculer les soldes"
+          >
+            <RefreshCw size={16} className={recalculating ? 'animate-spin' : ''} />
+            {recalculating ? 'Recalcul…' : 'Soldes'}
+          </button>
+          <button
+            type="button"
             onClick={() => setEditMode((v) => !v)}
             disabled={saving}
             className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold shadow-[0_8px_30px_-12px_rgba(1,8,27,0.18)] transition-all disabled:opacity-50 ${
@@ -324,6 +361,12 @@ export default function EditableDashboard() {
           {hiddenCards.length > 0 && (
             <> Les cartes masquées apparaissent en bas — utilisez <Eye size={14} className="inline mx-1" /> pour les réafficher.</>
           )}
+        </div>
+      )}
+
+      {recalculateMessage && (
+        <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm text-emerald-800">
+          {recalculateMessage}
         </div>
       )}
 

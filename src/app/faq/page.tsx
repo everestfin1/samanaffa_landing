@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
 import { 
   ChevronDownIcon,
   QuestionMarkCircleIcon,
@@ -154,7 +155,7 @@ const faqData: FAQItem[] = [
   {
     id: 22,
     question: "Comment contacter le service client?",
-    answer: "Téléphone: 77 XXX XX XX, E-mail : xxxxxx@xxxxx.com, Via votre espace client.",
+    answer: `Téléphone : ${SAMA_NAFFA_CONTACT.phone}, E-mail : ${SAMA_NAFFA_CONTACT.email}, via votre espace client.`,
     category: 'utilisation'
   },
   {

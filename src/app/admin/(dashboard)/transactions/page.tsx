@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { CreditCard, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight, Wallet, Search, X, FileText } from 'lucide-react'
+import { CreditCard, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight, Wallet, Search, X, FileText, Loader2 } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import { fmtFCFA, fmtDate, fmtDateTime } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
@@ -345,7 +345,16 @@ export default function TransactionsPage() {
                   rows={3}
                   className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#435933]"
                 />
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange(selectedTx.id, 'PROCESSING')}
+                    disabled={updating.has(selectedTx.id)}
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-50"
+                  >
+                    <Loader2 size={16} />
+                    {updating.has(selectedTx.id) ? 'Traitement...' : 'Marquer en cours'}
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleStatusChange(selectedTx.id, 'COMPLETED')}
@@ -363,6 +372,39 @@ export default function TransactionsPage() {
                   >
                     <XCircle size={16} />
                     {updating.has(selectedTx.id) ? 'Traitement...' : 'Rejeter'}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {selectedTx.status === 'PROCESSING' && (
+              <div className="space-y-3">
+                <p className="text-sm font-semibold text-slate-700">Finaliser le traitement</p>
+                <textarea
+                  value={adminNotes}
+                  onChange={(e) => setAdminNotes(e.target.value)}
+                  placeholder="Notes admin (optionnel)"
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#435933]"
+                />
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange(selectedTx.id, 'COMPLETED')}
+                    disabled={updating.has(selectedTx.id)}
+                    className="flex items-center gap-2 rounded-xl bg-[#435933] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_-10px_rgba(67,89,51,0.6)] transition-colors hover:bg-[#36482a] disabled:opacity-50"
+                  >
+                    <CheckCircle2 size={16} />
+                    {updating.has(selectedTx.id) ? 'Traitement...' : 'Compléter'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange(selectedTx.id, 'FAILED')}
+                    disabled={updating.has(selectedTx.id)}
+                    className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-50"
+                  >
+                    <XCircle size={16} />
+                    {updating.has(selectedTx.id) ? 'Traitement...' : 'Échouer'}
                   </button>
                 </div>
               </div>
