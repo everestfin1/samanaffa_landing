@@ -12,13 +12,18 @@ export function pgPoolConfig(
   const sslmode = parsed.searchParams.get('sslmode');
   parsed.searchParams.delete('sslmode');
 
+  const host = parsed.hostname;
+  const isPrivateVlan = host.startsWith('10.10.111.');
+
   let ssl: pg.PoolConfig['ssl'];
   if (!sslmode || sslmode === 'disable') {
     ssl = undefined;
   } else if (sslmode === 'verify-full') {
     ssl = { rejectUnauthorized: true };
+  } else if (isPrivateVlan) {
+    // db-srv pg_hba uses `host` (non-SSL) for app VMs on the private VLAN.
+    ssl = undefined;
   } else {
-    // prefer, require, verify-ca — db-srv internal cert on private VLAN
     ssl = { rejectUnauthorized: false };
   }
 
