@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { FileSpreadsheet, Search, X, Clock, CheckCircle2, AlertCircle, FileText, Wallet } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import { readApiError } from '@/lib/admin/api-errors'
 import { fmtFCFA, fmtDate } from '@/lib/admin/format'
 import { StatusPill } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
@@ -18,7 +19,7 @@ const APE_STATUS_LABEL: Record<string, string> = {
 const APE_STATUS_OPTIONS = ['PENDING', 'PAYMENT_INITIATED', 'PAYMENT_SUCCESS', 'PAYMENT_FAILED', 'CANCELLED']
 
 export default function ApePage() {
-  const { apeSubscriptions, apeStats, loading, refresh, authedFetch } = useAdminData()
+  const { apeSubscriptions, apeStats, loading, refresh, authedFetch, notifyError, notifySuccess } = useAdminData()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [selectedSub, setSelectedSub] = useState<ApeSubscription | null>(null)
@@ -40,15 +41,18 @@ export default function ApePage() {
     setUpdating((s) => new Set(s).add(subId))
     try {
       const res = await authedFetch(`/api/admin/ape-subscriptions/${subId}`, {
-        method: 'PUT',
+        method: 'PATCH',
         body: JSON.stringify({ status: newStatus }),
       })
       if (res.ok) {
         await refresh()
         setSelectedSub(null)
+        notifySuccess('Statut APE mis à jour')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de mettre à jour la souscription'))
       }
-    } catch (err) {
-      console.error('Failed to update APE status:', err)
+    } catch {
+      notifyError('Impossible de mettre à jour la souscription')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)

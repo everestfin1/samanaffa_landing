@@ -3,21 +3,34 @@
 import { useState, useMemo } from 'react'
 import { GraduationCap, Search, X, Clock, CheckCircle2, FileText, Phone } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import { readApiError } from '@/lib/admin/api-errors'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
 import type { PeeLead } from '@/lib/admin/types'
 
-const PEE_STATUS_LABEL: Record<string, string> = {
+const PEE_CRM_LABEL: Record<string, string> = {
   NEW: 'Nouveau',
   CONTACTED: 'Contacté',
   CONVERTED: 'Converti',
-  LOST: 'Perdu',
+  DISMISSED: 'Écarté',
 }
-const PEE_STATUS_OPTIONS = ['NEW', 'CONTACTED', 'CONVERTED', 'LOST']
+const PEE_CRM_OPTIONS = ['NEW', 'CONTACTED', 'CONVERTED', 'DISMISSED'] as const
+
+const PEE_PAYMENT_LABEL: Record<string, string> = {
+  PENDING: 'Paiement en attente',
+  PAYMENT_INITIATED: 'Paiement initié',
+  PAYMENT_SUCCESS: 'Paiement réussi',
+  PAYMENT_FAILED: 'Paiement échoué',
+  CANCELLED: 'Annulé',
+}
+
+function leadCrmStatus(lead: PeeLead): string {
+  return lead.crmStatus ?? 'NEW'
+}
 
 export default function PeeLeadsPage() {
-  const { peeLeads, peeLeadStats, loading, refresh, authedFetch } = useAdminData()
+  const { peeLeads, peeLeadStats, loading, refresh, authedFetch, notifyError, notifySuccess } = useAdminData()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [selectedLead, setSelectedLead] = useState<PeeLead | null>(null)
@@ -26,28 +39,32 @@ export default function PeeLeadsPage() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return peeLeads.filter((l) => {
-      if (statusFilter && l.status !== statusFilter) return false
+      const crm = leadCrmStatus(l)
+      if (statusFilter && crm !== statusFilter) return false
       if (q) {
-        const hay = [l.prenom, l.nom, l.email, l.telephone, l.categorie, l.pays, l.ville, l.status].filter(Boolean).join(' ').toLowerCase()
+        const hay = [l.prenom, l.nom, l.email, l.telephone, l.categorie, l.pays, l.ville, crm, l.status].filter(Boolean).join(' ').toLowerCase()
         if (!hay.includes(q)) return false
       }
       return true
     })
   }, [peeLeads, statusFilter, search])
 
-  const handleStatusChange = async (leadId: string, newStatus: string) => {
+  const handleCrmStatusChange = async (leadId: string, newCrmStatus: string) => {
     setUpdating((s) => new Set(s).add(leadId))
     try {
-      const res = await authedFetch(`/api/admin/pee-leads/${leadId}`, {
-        method: 'PUT',
-        body: JSON.stringify({ status: newStatus }),
+      const res = await authedFetch('/api/admin/pee-leads', {
+        method: 'PATCH',
+        body: JSON.stringify({ id: leadId, crmStatus: newCrmStatus }),
       })
       if (res.ok) {
         await refresh()
         setSelectedLead(null)
+        notifySuccess('Statut CRM mis à jour')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de mettre à jour le lead'))
       }
-    } catch (err) {
-      console.error('Failed to update PEE lead status:', err)
+    } catch {
+      notifyError('Impossible de mettre à jour le lead')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)
@@ -109,7 +126,7 @@ export default function PeeLeadsPage() {
           />
         </div>
         <div className="flex items-center gap-2">
-          {PEE_STATUS_OPTIONS.map((s) => (
+          {PEE_CRM_OPTIONS.map((s) => (
             <button
               key={s}
               type="button"
@@ -120,7 +137,7 @@ export default function PeeLeadsPage() {
                   : 'bg-white text-slate-500 hover:bg-slate-100 border border-slate-200'
               }`}
             >
-              {PEE_STATUS_LABEL[s]}
+              {PEE_CRM_LABEL[s]}
             </button>
           ))}
         </div>
@@ -130,7 +147,7 @@ export default function PeeLeadsPage() {
       {statusFilter && (
         <div className="mb-5 flex flex-wrap items-center gap-2">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-[#f0f8f0] px-3 py-1 text-xs font-semibold text-[#435933]">
-            {PEE_STATUS_LABEL[statusFilter]}
+            {PEE_CRM_LABEL[statusFilter]}
             <button type="button" onClick={() => setStatusFilter('')} className="rounded-full hover:bg-[#e8f5e8] p-0.5">
               <X size={12} />
             </button>
@@ -194,7 +211,7 @@ export default function PeeLeadsPage() {
                     <td className="px-6 py-4 text-sm text-slate-600">{lead.categorie}</td>
                     <td className="px-6 py-4 text-sm text-slate-500">{lead.ville}, {lead.pays}</td>
                     <td className="px-6 py-4">
-                      <StatusPill status={lead.status} label={PEE_STATUS_LABEL[lead.status] ?? lead.status} />
+                      <StatusPill status={leadCrmStatus(lead)} label={PEE_CRM_LABEL[leadCrmStatus(lead)] ?? leadCrmStatus(lead)} />
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-500">{fmtDate(lead.createdAt)}</td>
                     <td className="px-6 py-4 text-right">
@@ -234,6 +251,16 @@ export default function PeeLeadsPage() {
                 <p className="mt-1 text-sm">{selectedLead.categorie}</p>
               </div>
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">Statut CRM</p>
+                <p className="mt-1">
+                  <StatusPill status={leadCrmStatus(selectedLead)} label={PEE_CRM_LABEL[leadCrmStatus(selectedLead)] ?? leadCrmStatus(selectedLead)} />
+                </p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+                <p className="text-xs font-medium text-slate-500">Paiement</p>
+                <p className="mt-1 text-sm">{PEE_PAYMENT_LABEL[selectedLead.status] ?? selectedLead.status}</p>
+              </div>
+              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 col-span-2">
                 <p className="text-xs font-medium text-slate-500">Localisation</p>
                 <p className="mt-1 text-sm">{selectedLead.ville}, {selectedLead.pays}</p>
               </div>
@@ -246,23 +273,23 @@ export default function PeeLeadsPage() {
               </div>
             )}
 
-            {/* Status actions */}
+            {/* CRM status actions */}
             <div className="space-y-3">
-              <p className="text-sm font-semibold text-slate-700">Changer le statut</p>
+              <p className="text-sm font-semibold text-slate-700">Changer le statut CRM</p>
               <div className="flex flex-wrap gap-2">
-                {PEE_STATUS_OPTIONS.map((s) => (
+                {PEE_CRM_OPTIONS.map((s) => (
                   <button
                     key={s}
                     type="button"
-                    onClick={() => handleStatusChange(selectedLead.id, s)}
-                    disabled={updating.has(selectedLead.id) || selectedLead.status === s}
+                    onClick={() => handleCrmStatusChange(selectedLead.id, s)}
+                    disabled={updating.has(selectedLead.id) || leadCrmStatus(selectedLead) === s}
                     className={`rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-                      selectedLead.status === s
+                      leadCrmStatus(selectedLead) === s
                         ? 'bg-[#01081b] text-white'
                         : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
                     } disabled:opacity-50`}
                   >
-                    {updating.has(selectedLead.id) && selectedLead.status !== s ? '...' : PEE_STATUS_LABEL[s]}
+                    {updating.has(selectedLead.id) && leadCrmStatus(selectedLead) !== s ? '...' : PEE_CRM_LABEL[s]}
                   </button>
                 ))}
               </div>
