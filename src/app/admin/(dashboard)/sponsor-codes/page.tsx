@@ -1,7 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Gift, Search, Plus, X, Clock, CheckCircle2, AlertCircle, Copy, Power } from 'lucide-react'
+import { Gift, Search, Plus, X, Clock, CheckCircle2, AlertCircle, Copy, Power, Pencil, Trash2 } from 'lucide-react'
+import { useAdminData } from '@/lib/admin/AdminDataProvider'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
@@ -26,6 +27,7 @@ const emptyForm = {
 }
 
 export default function SponsorCodesPage() {
+  const { authedFetch, notifyError, notifySuccess } = useAdminData()
   const [codes, setCodes] = useState<SponsorCode[]>([])
   const [stats, setStats] = useState({ total: 0, active: 0, inactive: 0, expired: 0 })
   const [loading, setLoading] = useState(true)
@@ -36,28 +38,28 @@ export default function SponsorCodesPage() {
   const [form, setForm] = useState(emptyForm)
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
-
-  const authHeaders = useCallback((): HeadersInit => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null
-    return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-  }, [])
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState(emptyForm)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
       const qs = statusFilter ? `?status=${statusFilter}` : ''
-      const res = await fetch(`/api/admin/sponsor-codes${qs}`, { headers: authHeaders() })
+      const res = await authedFetch(`/api/admin/sponsor-codes${qs}`)
       const data = await res.json()
       if (data.success) {
         setCodes(data.codes)
         setStats(data.stats)
+      } else {
+        notifyError(data.error ?? 'Impossible de charger les codes')
       }
-    } catch (err) {
-      console.error('Error loading referral codes:', err)
+    } catch {
+      notifyError('Impossible de charger les codes')
     } finally {
       setLoading(false)
     }
-  }, [authHeaders, statusFilter])
+  }, [authedFetch, statusFilter, notifyError])
 
   useEffect(() => {
     void load()
@@ -83,9 +85,8 @@ export default function SponsorCodesPage() {
     }
     setSaving(true)
     try {
-      const res = await fetch('/api/admin/sponsor-codes', {
+      const res = await authedFetch('/api/admin/sponsor-codes', {
         method: 'POST',
-        headers: authHeaders(),
         body: JSON.stringify({
           ...form,
           maxUsage: form.maxUsage ? parseInt(form.maxUsage, 10) : null,
@@ -93,35 +94,110 @@ export default function SponsorCodesPage() {
         }),
       })
       const data = await res.json()
-      if (!data.success) {
-        setFormError(data.error ?? 'Erreur')
+      if (!res.ok || !data.success) {
+        setFormError(data.error ?? 'Erreur lors de la création')
         return
       }
       setShowModal(false)
       setForm(emptyForm)
+      notifySuccess('Code de parrainage créé')
       await load()
-    } catch (err) {
-      console.error('Error creating code:', err)
+    } catch {
       setFormError('Erreur lors de la création')
     } finally {
       setSaving(false)
     }
   }
 
+  const openEdit = (code: SponsorCode) => {
+    setEditForm({
+      code: code.code,
+      name: code.name ?? '',
+      description: code.description ?? '',
+      phone: code.phone ?? '',
+      email: code.email ?? '',
+      region: code.region ?? '',
+      maxUsage: code.maxUsage != null ? String(code.maxUsage) : '',
+      expiresAt: code.expiresAt ? code.expiresAt.slice(0, 10) : '',
+    })
+    setEditing(true)
+  }
+
+  const handleUpdate = async () => {
+    if (!selected) return
+    setSaving(true)
+    try {
+      const res = await authedFetch('/api/admin/sponsor-codes', {
+        method: 'PATCH',
+        body: JSON.stringify({
+          id: selected.id,
+          name: editForm.name.trim(),
+          description: editForm.description.trim() || null,
+          phone: editForm.phone.trim() || null,
+          email: editForm.email.trim() || null,
+          region: editForm.region.trim() || null,
+          maxUsage: editForm.maxUsage ? parseInt(editForm.maxUsage, 10) : null,
+          expiresAt: editForm.expiresAt || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        notifyError(data.error ?? 'Impossible de mettre à jour le code')
+        return
+      }
+      setEditing(false)
+      notifySuccess('Code mis à jour')
+      await load()
+      if (data.sponsorCode) {
+        setSelected((prev) => (prev ? { ...prev, ...data.sponsorCode } : null))
+      }
+    } catch {
+      notifyError('Impossible de mettre à jour le code')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selected) return
+    if (!window.confirm(`Supprimer le code « ${selected.code} » ? Cette action est irréversible.`)) return
+    setDeleting(true)
+    try {
+      const res = await authedFetch(`/api/admin/sponsor-codes?id=${selected.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        notifyError(data.error ?? 'Impossible de supprimer le code')
+        return
+      }
+      setSelected(null)
+      notifySuccess('Code supprimé')
+      await load()
+    } catch {
+      notifyError('Impossible de supprimer le code')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   const toggleStatus = async (code: SponsorCode) => {
     const next = code.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
     try {
-      await fetch('/api/admin/sponsor-codes', {
+      const res = await authedFetch('/api/admin/sponsor-codes', {
         method: 'PATCH',
-        headers: authHeaders(),
         body: JSON.stringify({ id: code.id, status: next }),
       })
+      const data = await res.json()
+      if (!res.ok || !data.success) {
+        notifyError(data.error ?? 'Impossible de modifier le statut')
+        return
+      }
+      notifySuccess(next === 'ACTIVE' ? 'Code activé' : 'Code désactivé')
       await load()
       if (selected?.id === code.id) {
         setSelected((prev) => (prev ? { ...prev, status: next } : null))
       }
-    } catch (err) {
-      console.error('Error updating code status:', err)
+    } catch {
+      notifyError('Impossible de modifier le statut')
     }
   }
 
@@ -277,8 +353,8 @@ export default function SponsorCodesPage() {
         </div>
       </div>
 
-      <DetailDrawer open={!!selected} onClose={() => setSelected(null)} title="Détails du code">
-        {selected && (
+      <DetailDrawer open={!!selected} onClose={() => { setSelected(null); setEditing(false) }} title="Détails du code">
+        {selected && !editing && (
           <div className="space-y-6">
             <div>
               <p className="text-lg font-bold font-mono">{selected.code}</p>
@@ -326,12 +402,91 @@ export default function SponsorCodesPage() {
 
             <button
               type="button"
-              onClick={() => { navigator.clipboard.writeText(selected.code) }}
+              onClick={() => { navigator.clipboard.writeText(selected.code); notifySuccess('Code copié') }}
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-[#435933] transition-colors hover:bg-[#f5faf5]"
             >
               <Copy size={16} />
               Copier le code
             </button>
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => openEdit(selected)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <Pencil size={16} />
+                Modifier
+              </button>
+              <button
+                type="button"
+                onClick={() => toggleStatus(selected)}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50"
+              >
+                <Power size={16} />
+                {selected.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-200 px-4 py-3 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-50 disabled:opacity-50"
+            >
+              <Trash2 size={16} />
+              {deleting ? 'Suppression…' : 'Supprimer le code'}
+            </button>
+          </div>
+        )}
+
+        {selected && editing && (
+          <div className="space-y-4">
+            <p className="text-sm font-mono font-semibold text-slate-500">{selected.code}</p>
+            {([
+              { key: 'name', label: 'Nom de l’agent *' },
+              { key: 'description', label: 'Description' },
+              { key: 'phone', label: 'Téléphone' },
+              { key: 'email', label: 'Email' },
+              { key: 'region', label: 'Région / zone' },
+              { key: 'maxUsage', label: 'Limite d’utilisations (vide = illimité)' },
+            ] as const).map((f) => (
+              <label key={f.key} className="block text-sm">
+                <span className="mb-1 block font-medium text-slate-600">{f.label}</span>
+                <input
+                  type="text"
+                  value={editForm[f.key]}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#435933]"
+                />
+              </label>
+            ))}
+            <label className="block text-sm">
+              <span className="mb-1 block font-medium text-slate-600">Date d’expiration</span>
+              <input
+                type="date"
+                value={editForm.expiresAt}
+                onChange={(e) => setEditForm((prev) => ({ ...prev, expiresAt: e.target.value }))}
+                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#435933]"
+              />
+            </label>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setEditing(false)}
+                className="flex-1 rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleUpdate}
+                disabled={saving || !editForm.name.trim()}
+                className="flex-1 rounded-xl bg-[#435933] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
           </div>
         )}
       </DetailDrawer>
