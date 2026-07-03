@@ -26,7 +26,18 @@ else
 fi
 
 echo "==> Install dependencies"
-sudo -u deploy bash -c "cd '$APP_DIR' && npm ci"
+if sudo -u deploy test -f "$APP_DIR/bun.lock"; then
+  if command -v bun >/dev/null 2>&1; then
+    sudo -u deploy bash -c "cd '$APP_DIR' && bun install --frozen-lockfile"
+  else
+    echo "WARN: bun.lock present but bun not installed — falling back to npm install"
+    sudo -u deploy bash -c "cd '$APP_DIR' && npm install"
+  fi
+elif sudo -u deploy test -f "$APP_DIR/package-lock.json"; then
+  sudo -u deploy bash -c "cd '$APP_DIR' && npm ci"
+else
+  sudo -u deploy bash -c "cd '$APP_DIR' && npm install"
+fi
 
 echo "==> Run migrations"
 sudo -u deploy bash -c "cd '$APP_DIR' && npm run db:migrate"
