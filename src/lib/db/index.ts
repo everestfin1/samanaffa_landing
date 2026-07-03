@@ -1,5 +1,5 @@
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import { Pool } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import pg from 'pg';
 import * as dotenv from 'dotenv';
 import * as schema from './schema';
 
@@ -25,7 +25,25 @@ function resolveDatabaseUrl(): string {
   throw new Error('DATABASE_URL is not defined');
 }
 
-const pool = new Pool({ connectionString: resolveDatabaseUrl() });
+function poolSsl(connectionString: string): pg.PoolConfig['ssl'] {
+  try {
+    const sslmode = new URL(connectionString).searchParams.get('sslmode');
+    if (sslmode === 'require' || sslmode === 'verify-full') {
+      return { rejectUnauthorized: sslmode === 'verify-full' };
+    }
+  } catch {
+    // Non-URL connection strings fall through to default pg behaviour.
+  }
+  return undefined;
+}
+
+const connectionString = resolveDatabaseUrl();
+const pool = new pg.Pool({
+  connectionString,
+  ssl: poolSsl(connectionString),
+  max: 10,
+});
+
 export const db = drizzle(pool, { schema });
 
 export * from './schema';
