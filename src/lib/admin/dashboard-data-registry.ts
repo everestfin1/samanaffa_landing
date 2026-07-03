@@ -389,6 +389,36 @@ export function getDataSourceMeta(id: string): DataSourceMeta | undefined {
   return DASHBOARD_DATA_SOURCE_REGISTRY[id as DashboardDataSourceId]
 }
 
+const LEGACY_CAMPAIGN_CATEGORIES: DataSourceCategory[] = ['ape', 'pee']
+
+export function isLegacyCampaignDataSource(dataSource: string): boolean {
+  const meta = getDataSourceMeta(dataSource)
+  return meta ? LEGACY_CAMPAIGN_CATEGORIES.includes(meta.category) : false
+}
+
+export function filterLegacyCampaignDashboardCards<
+  T extends { dataSource: string | null; link?: string | null },
+>(cards: T[], hideLegacy: boolean): T[] {
+  if (!hideLegacy) return cards
+  return cards.filter((card) => {
+    if (card.dataSource && isLegacyCampaignDataSource(card.dataSource)) return false
+    const link = card.link
+    if (
+      typeof link === 'string' &&
+      (link.startsWith('/admin/ape') ||
+        link.startsWith('/admin/pee-leads'))
+    ) {
+      return false
+    }
+    return true
+  })
+}
+
+export function getVisibleDataSourceCategories(hideLegacy: boolean) {
+  if (!hideLegacy) return DATA_SOURCE_CATEGORIES
+  return DATA_SOURCE_CATEGORIES.filter((c) => !LEGACY_CAMPAIGN_CATEGORIES.includes(c.id))
+}
+
 export function resolveDashboardCardVariant(card: {
   type: string
   dataSource: string

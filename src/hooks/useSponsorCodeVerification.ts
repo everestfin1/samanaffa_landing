@@ -23,7 +23,12 @@ export function useSponsorCodeVerification(initialCode = '') {
     setMessage('');
 
     try {
-      const response = await fetch('/api/ape/verify-sponsor-code', {
+      const verifyUrl =
+        process.env.NEXT_PUBLIC_APE_DEPRECATED !== 'false'
+          ? '/api/referral/verify-code'
+          : '/api/ape/verify-sponsor-code';
+
+      const response = await fetch(verifyUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: normalized }),

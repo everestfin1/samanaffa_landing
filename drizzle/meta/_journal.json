@@ -71,6 +71,20 @@
       "when": 1779360000000,
       "tag": "0011_kyc_documents_storage",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1783080000000,
+      "tag": "0012_field_agents",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1783083600000,
+      "tag": "0013_field_agents_referral_fields",
+      "breakpoints": true
     }
   ]
 }

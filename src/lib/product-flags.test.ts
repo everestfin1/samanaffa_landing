@@ -1,5 +1,5 @@
 import { describe, expect, it, afterEach } from 'vitest';
-import { isApeDeprecated } from '@/lib/product-flags';
+import { isApeDeprecated, isPeeDeprecated } from '@/lib/product-flags';
 
 describe('product-flags', () => {
   const original = process.env.NEXT_PUBLIC_APE_DEPRECATED;
@@ -25,5 +25,12 @@ describe('product-flags', () => {
   it('isApeDeprecated stays true for any other env value', () => {
     process.env.NEXT_PUBLIC_APE_DEPRECATED = 'true';
     expect(isApeDeprecated()).toBe(true);
+  });
+
+  it('isPeeDeprecated follows the same flag as APE', () => {
+    delete process.env.NEXT_PUBLIC_APE_DEPRECATED;
+    expect(isPeeDeprecated()).toBe(true);
+    process.env.NEXT_PUBLIC_APE_DEPRECATED = 'false';
+    expect(isPeeDeprecated()).toBe(false);
   });
 });

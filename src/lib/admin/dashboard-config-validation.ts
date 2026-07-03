@@ -1,8 +1,10 @@
 import type { DashboardCardConfig } from '@/lib/admin/types'
 import {
   DASHBOARD_DATA_SOURCES,
+  isLegacyCampaignDataSource,
   resolveDashboardCardVariant,
 } from '@/lib/admin/dashboard-data-registry'
+import { isLegacyCampaignDeprecated } from '@/lib/legacy-campaign-deprecation'
 
 export { DASHBOARD_DATA_SOURCES, resolveDashboardCardVariant }
 
@@ -26,6 +28,13 @@ export const DASHBOARD_ICONS = [
 const CARD_TYPE_SET = new Set<string>(DASHBOARD_CARD_TYPES)
 const DATA_SOURCE_SET = new Set<string>(DASHBOARD_DATA_SOURCES)
 const ICON_SET = new Set<string>(DASHBOARD_ICONS)
+
+function rejectLegacyCampaignDataSource(dataSource: string | null): string | null {
+  if (dataSource && isLegacyCampaignDeprecated() && isLegacyCampaignDataSource(dataSource)) {
+    return null
+  }
+  return dataSource
+}
 
 export function clampColSpan(value: unknown): number {
   const n = typeof value === 'number' ? value : Number(value)
@@ -94,7 +103,7 @@ export function buildDashboardCardPatch(
     data.type = type
   }
   if (body.dataSource !== undefined) {
-    const dataSource = parseDashboardDataSource(body.dataSource)
+    const dataSource = rejectLegacyCampaignDataSource(parseDashboardDataSource(body.dataSource))
     if (!dataSource) return { ok: false, error: 'Invalid dataSource' }
     data.dataSource = dataSource
   }
@@ -124,7 +133,7 @@ export function validateDashboardCardWrite(
   }
 
   const type = parseDashboardCardType(body.type)
-  const dataSource = parseDashboardDataSource(body.dataSource)
+  const dataSource = rejectLegacyCampaignDataSource(parseDashboardDataSource(body.dataSource))
   if (!type || !dataSource) {
     return { ok: false, error: 'Invalid type or dataSource' }
   }

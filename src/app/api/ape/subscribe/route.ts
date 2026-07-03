@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { guardLegacyCampaignApi } from '@/lib/legacy-campaign-deprecation';
 
 const MIN_APE_INVESTMENT_CFA = Number(process.env.APE_MIN_INVESTMENT_CFA ?? '10000');
 
@@ -30,6 +31,9 @@ function parseAmount(amountStr: string): number {
 }
 
 export async function POST(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
 
@@ -153,6 +157,9 @@ export async function POST(request: NextRequest) {
 
 // Update subscription status after payment
 export async function PATCH(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { referenceNumber, status, providerTransactionId, providerStatus, callbackPayload } = body;
@@ -233,6 +240,9 @@ export async function PATCH(request: NextRequest) {
 
 // Get subscription by reference number
 export async function GET(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const referenceNumber = searchParams.get('referenceNumber');

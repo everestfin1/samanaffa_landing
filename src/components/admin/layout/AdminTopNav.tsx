@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { ChevronDown, RefreshCw, LogOut } from 'lucide-react'
 import {
-  ADMIN_NAV_GROUPS,
+  getVisibleAdminNavGroups,
   tabIdFromPath,
   type AdminNavGroup,
   type AdminNavItem,
@@ -18,6 +18,7 @@ export default function AdminTopNav() {
   const router = useRouter()
   const { stats, apeStats, loading, refresh } = useAdminData()
   const activeTab = tabIdFromPath(pathname)
+  const navGroups = getVisibleAdminNavGroups()
 
   const [openGroup, setOpenGroup] = useState<string | null>(null)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
@@ -109,7 +110,7 @@ export default function AdminTopNav() {
 
       {/* Center nav pill with group dropdowns */}
       <nav className="admin-topnav" aria-label="Navigation admin">
-        {ADMIN_NAV_GROUPS.map((group) => {
+        {navGroups.map((group) => {
           const single = group.items.length === 1
           const groupActive = group.items.some((i) => i.id === activeTab)
           const badgeTotal = groupBadgeTotal(group)

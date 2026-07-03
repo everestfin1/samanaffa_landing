@@ -9,6 +9,8 @@ import type { DashboardCardConfig } from '@/lib/admin/types'
 import { renderCard, type RenderContext } from './CardRenderers'
 import CardEditorModal from './CardEditorModal'
 import { colSpanClass, dashboardGridRowStyle, rowSpanClass } from './gridUtils'
+import { filterLegacyCampaignDashboardCards } from '@/lib/admin/dashboard-data-registry'
+import { isLegacyAdminNavHidden } from '@/lib/product-flags'
 
 export default function EditableDashboard() {
   const {
@@ -36,12 +38,20 @@ export default function EditableDashboard() {
   const [recalculateMessage, setRecalculateMessage] = useState<string | null>(null)
 
   const visibleCards = useMemo(
-    () => [...dashboardCards].filter((c) => c.visible).sort((a, b) => a.order - b.order),
+    () =>
+      filterLegacyCampaignDashboardCards(
+        [...dashboardCards].filter((c) => c.visible).sort((a, b) => a.order - b.order),
+        isLegacyAdminNavHidden(),
+      ),
     [dashboardCards],
   )
 
   const hiddenCards = useMemo(
-    () => [...dashboardCards].filter((c) => !c.visible).sort((a, b) => a.order - b.order),
+    () =>
+      filterLegacyCampaignDashboardCards(
+        [...dashboardCards].filter((c) => !c.visible).sort((a, b) => a.order - b.order),
+        isLegacyAdminNavHidden(),
+      ),
     [dashboardCards],
   )
 

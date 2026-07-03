@@ -10,6 +10,8 @@ import {
   serializeDashboardCard,
   validateDashboardCardWrite,
 } from '@/lib/admin/dashboard-config-validation';
+import { filterLegacyCampaignDashboardCards } from '@/lib/admin/dashboard-data-registry';
+import { isLegacyAdminNavHidden } from '@/lib/product-flags';
 
 const DEFAULT_CARDS = [
   { title: 'Flux confirmés', type: 'chart', dataSource: 'aum', color: 'default', colSpan: 8, rowSpan: 2, order: 0, icon: 'Wallet', visible: true },
@@ -54,9 +56,14 @@ export async function GET(request: NextRequest) {
       cards = await seedDefaultCardsIfEmpty();
     }
 
+    const visibleCards = filterLegacyCampaignDashboardCards(
+      cards,
+      isLegacyAdminNavHidden(),
+    );
+
     return NextResponse.json({
       success: true,
-      cards: cards.map((card) => serializeDashboardCard(card)),
+      cards: visibleCards.map((card) => serializeDashboardCard(card)),
     });
   } catch (err) {
     console.error('Error fetching dashboard cards:', err);

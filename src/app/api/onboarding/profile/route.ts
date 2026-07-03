@@ -6,6 +6,8 @@ import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { mergeInvestorProfile, readOnboardingProgress } from '@/lib/onboarding-progress';
 import { recordSponsorCodeUsage, verifySponsorCode } from '@/lib/sponsor-code';
+import { recordAgentCodeUsage, verifyAgentCode } from '@/lib/field-agent';
+import { isLegacyCampaignDeprecated } from '@/lib/legacy-campaign-deprecation';
 
 /**
  * Onboarding T2/T3 — progressively enrich the authenticated user's record.
@@ -29,21 +31,32 @@ export async function PATCH(request: NextRequest) {
     if (typeof firstName === 'string' && firstName.trim()) data.firstName = firstName.trim();
     if (typeof lastName === 'string' && lastName.trim()) data.lastName = lastName.trim();
 
+    // Mono-produit Sama Naffa: the referral field is a field-agent code (attribution only).
+    const monoProduit = isLegacyCampaignDeprecated();
     let validatedReferralCode: string | null | undefined;
 
     if (referralCode !== undefined) {
       if (referralCode === null || referralCode === '') {
         validatedReferralCode = null;
+        if (monoProduit) data.referredByAgentId = null;
       } else if (typeof referralCode === 'string') {
         const trimmed = referralCode.trim();
-        if (trimmed) {
+        if (!trimmed) {
+          validatedReferralCode = null;
+          if (monoProduit) data.referredByAgentId = null;
+        } else if (monoProduit) {
+          const verification = await verifyAgentCode(trimmed);
+          if (!verification.valid) {
+            return NextResponse.json({ error: verification.error }, { status: 400 });
+          }
+          validatedReferralCode = verification.code;
+          data.referredByAgentId = verification.agentId;
+        } else {
           const verification = await verifySponsorCode(trimmed);
           if (!verification.valid) {
             return NextResponse.json({ error: verification.error }, { status: 400 });
           }
           validatedReferralCode = verification.code;
-        } else {
-          validatedReferralCode = null;
         }
       }
     }
@@ -78,8 +91,11 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    if (validatedReferralCode && validatedReferralCode !== prevReferral) {
+    if (!monoProduit && validatedReferralCode && validatedReferralCode !== prevReferral) {
       await recordSponsorCodeUsage(validatedReferralCode);
+    }
+    if (monoProduit && validatedReferralCode && validatedReferralCode !== prevReferral) {
+      await recordAgentCodeUsage(validatedReferralCode);
     }
 
     const savedReferral = readOnboardingProgress(updated.investorProfile).referralCode ?? null;

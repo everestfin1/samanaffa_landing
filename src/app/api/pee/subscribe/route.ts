@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { peeLeads } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { guardLegacyCampaignApi } from '@/lib/legacy-campaign-deprecation';
 
 const MIN_PEE_INVESTMENT_CFA = Number(process.env.PEE_MIN_INVESTMENT_CFA ?? '30000');
 const PEE_INVESTMENT_INCREMENT_CFA = Number(process.env.PEE_INVESTMENT_INCREMENT_CFA ?? '5000');
@@ -37,6 +38,9 @@ function isValidIncrement(amount: number): boolean {
 }
 
 export async function POST(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
 
@@ -162,6 +166,9 @@ export async function POST(request: NextRequest) {
 
 // Update subscription status after payment
 export async function PATCH(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { referenceNumber, status, providerTransactionId, providerStatus, callbackPayload } = body;
@@ -242,6 +249,9 @@ export async function PATCH(request: NextRequest) {
 
 // Get subscription by reference number
 export async function GET(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const { searchParams } = new URL(request.url);
     const referenceNumber = searchParams.get('referenceNumber');

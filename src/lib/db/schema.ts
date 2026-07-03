@@ -20,7 +20,23 @@ export const formDraftStatusEnum = pgEnum('FormDraftStatus', ['ABANDONED', 'CONT
 // Sponsor code status enum
 export const sponsorCodeStatusEnum = pgEnum('SponsorCodeStatus', ['ACTIVE', 'INACTIVE', 'EXPIRED']);
 
-// Users table
+// Field Agents table — Sama Naffa referral codes (field-agent attribution, no rewards)
+export const fieldAgents = pgTable('field_agents', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  code: text('code').notNull().unique(),
+  name: text('name').notNull(),
+  description: text('description'),
+  phone: text('phone'),
+  email: text('email'),
+  region: text('region'),
+  status: sponsorCodeStatusEnum('status').notNull().default('ACTIVE'),
+  usageCount: integer('usageCount').notNull().default(0),
+  maxUsage: integer('maxUsage'),
+  expiresAt: timestamp('expiresAt', { mode: 'date' }),
+  createdBy: text('createdBy').references(() => adminUsers.id, { onDelete: 'set null' }),
+  createdAt: timestamp('createdAt', { mode: 'date' }).notNull().defaultNow(),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
 export const users = pgTable('users', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: text('email').notNull().unique(),
@@ -70,9 +86,12 @@ export const users = pgTable('users', {
   privacyAcceptedAt: timestamp('privacyAcceptedAt', { mode: 'date' }),
   /** JWT invalidation counter (AUTH-023) — bumped on logout / sensitive change. */
   sessionVersion: integer('sessionVersion').notNull().default(0),
-});
+  /** Sama Naffa field-agent attribution — which agent's code brought this signup. */
+  referredByAgentId: text('referredByAgentId').references(() => fieldAgents.id, { onDelete: 'set null' }),
+}, (table) => [
+  index('users_referred_by_agent_idx').on(table.referredByAgentId),
+]);
 
-// Sessions table
 export const sessions = pgTable('sessions', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   sessionToken: text('sessionToken').notNull().unique(),
@@ -349,13 +368,25 @@ export const formEvents = pgTable('form_events', {
 ]);
 
 // Relations
-export const usersRelations = relations(users, ({ many }) => ({
+export const usersRelations = relations(users, ({ one, many }) => ({
   sessions: many(sessions),
   kycDocuments: many(kycDocuments),
   otpCodes: many(otpCodes),
   accounts: many(userAccounts),
   transactionIntents: many(transactionIntents),
   notifications: many(notifications),
+  referredByAgent: one(fieldAgents, {
+    fields: [users.referredByAgentId],
+    references: [fieldAgents.id],
+  }),
+}));
+
+export const fieldAgentsRelations = relations(fieldAgents, ({ one, many }) => ({
+  createdByAdmin: one(adminUsers, {
+    fields: [fieldAgents.createdBy],
+    references: [adminUsers.id],
+  }),
+  referredUsers: many(users),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -446,6 +477,8 @@ export type ApeSubscription = typeof apeSubscriptions.$inferSelect;
 export type NewApeSubscription = typeof apeSubscriptions.$inferInsert;
 export type ApeSponsorCode = typeof apeSponsorCodes.$inferSelect;
 export type NewApeSponsorCode = typeof apeSponsorCodes.$inferInsert;
+export type FieldAgent = typeof fieldAgents.$inferSelect;
+export type NewFieldAgent = typeof fieldAgents.$inferInsert;
 export type PeeLead = typeof peeLeads.$inferSelect;
 export type NewPeeLead = typeof peeLeads.$inferInsert;
 export type FormDraft = typeof formDrafts.$inferSelect;

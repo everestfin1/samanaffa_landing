@@ -19,6 +19,7 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
+import { isApeDeprecated } from '@/lib/product-flags';
 
 interface OnboardingState {
   simulation: T0Result | null;
@@ -62,12 +63,16 @@ function OnboardingPageContent() {
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
   const kycResumeFromUrl = searchParams.get('verificationSessionId');
-  const referralFromUrl = normalizeSponsorCode(
-    searchParams.get('ref') ||
-      searchParams.get('parrain') ||
-      searchParams.get('code_parrainage') ||
-      '',
-  );
+  // Mono-produit (APE off): ?ref / ?agent carries a Sama Naffa field-agent code.
+  // Legacy mode: sponsor code from ?ref / ?parrain / ?code_parrainage.
+  const referralFromUrl = isApeDeprecated()
+    ? normalizeSponsorCode(searchParams.get('ref') || searchParams.get('agent') || '')
+    : normalizeSponsorCode(
+        searchParams.get('ref') ||
+          searchParams.get('parrain') ||
+          searchParams.get('code_parrainage') ||
+          '',
+      );
   const [kycResumeSessionId, setKycResumeSessionId] = useState<string | null>(null);
   const [step, setStep] = useState<OnboardingStep>('T0');
   const [state, setState] = useState<OnboardingState>({

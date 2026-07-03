@@ -103,18 +103,28 @@ export interface ApeStats {
 export interface SponsorCode {
   id: string
   code: string
+  name?: string
   description?: string
+  phone?: string
+  email?: string
+  region?: string
   status: string
   usageCount: number
-  maxUsage?: number
-  expiresAt?: string
+  maxUsage?: number | null
+  expiresAt?: string | null
   createdAt: string
   updatedAt: string
-  createdBy: string
+  createdBy: string | null
   createdByAdmin?: {
     id: string
     name: string
     email: string
+  } | null
+  stats?: {
+    signups: number
+    kycApproved: number
+    depositsConfirmed: number
+    depositsAmount: number
   }
 }
 

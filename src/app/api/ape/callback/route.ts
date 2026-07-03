@@ -3,6 +3,7 @@ import { sendTransactionIntentEmail, sendPaymentFailureEmail } from '@/lib/notif
 import { db } from '@/lib/db';
 import { apeSubscriptions } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
+import { guardLegacyCampaignApi } from '@/lib/legacy-campaign-deprecation';
 
 // Normalize payment status from various providers
 function normalizeStatus(status: string): 'PAYMENT_SUCCESS' | 'PAYMENT_FAILED' | 'PENDING' {
@@ -23,6 +24,9 @@ function normalizeStatus(status: string): 'PAYMENT_SUCCESS' | 'PAYMENT_FAILED' |
 }
 
 export async function POST(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     // Parse the callback payload
     let payload: Record<string, unknown>;
@@ -165,6 +169,9 @@ export async function POST(request: NextRequest) {
 
 // GET endpoint for verification (some providers ping this to verify the endpoint)
 export async function GET(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   const { searchParams } = new URL(request.url);
   const referenceNumber = searchParams.get('referenceNumber');
 

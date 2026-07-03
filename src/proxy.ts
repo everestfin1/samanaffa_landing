@@ -4,11 +4,33 @@ import { getToken } from 'next-auth/jwt';
 import { checkCSRFToken } from '@/lib/csrf';
 import { getAdminTokenFromRequest, verifyAdminToken } from '@/lib/admin-auth';
 import { buildContentSecurityPolicy } from '@/lib/csp';
+import {
+  isLegacyCampaignDeprecated,
+  legacyAdminRedirect,
+  legacyCampaignGoneResponse,
+  legacyCampaignRedirect,
+  LEGACY_ADMIN_PATH_PREFIXES,
+  LEGACY_API_PATH_PREFIXES,
+  LEGACY_PUBLIC_PATH_PREFIXES,
+  matchesPathPrefix,
+} from '@/lib/legacy-campaign-deprecation';
 
 export async function proxy(request: NextRequest) {
-  // ==================== DISCONTINUED PRODUCTS ====================
-  if (request.nextUrl.pathname.startsWith('/pee')) {
-    return NextResponse.redirect(new URL('/', request.url), 301);
+  const pathname = request.nextUrl.pathname;
+
+  // ==================== DISCONTINUED CAMPAIGNS (APE / PEE) ====================
+  if (isLegacyCampaignDeprecated()) {
+    if (matchesPathPrefix(pathname, LEGACY_API_PATH_PREFIXES)) {
+      return legacyCampaignGoneResponse();
+    }
+
+    if (matchesPathPrefix(pathname, LEGACY_ADMIN_PATH_PREFIXES)) {
+      return legacyAdminRedirect(request.url);
+    }
+
+    if (matchesPathPrefix(pathname, LEGACY_PUBLIC_PATH_PREFIXES)) {
+      return legacyCampaignRedirect(request.url);
+    }
   }
 
   // ==================== MAINTENANCE MODE ====================
@@ -19,7 +41,6 @@ export async function proxy(request: NextRequest) {
       request.nextUrl.pathname.startsWith('/_next/') ||
       request.nextUrl.pathname.startsWith('/static/') ||
       request.nextUrl.pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|css|js|json|webmanifest)$/);
-    const pathname = request.nextUrl.pathname;
     const isAllowedRoute =
       pathname.startsWith('/admin') ||
       pathname.startsWith('/portal') ||
@@ -44,8 +65,6 @@ export async function proxy(request: NextRequest) {
       301,
     );
   }
-
-  const pathname = request.nextUrl.pathname;
 
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const adminToken = getAdminTokenFromRequest(request);

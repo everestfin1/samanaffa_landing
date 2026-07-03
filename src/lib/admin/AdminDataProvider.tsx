@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react'
 import { useRouter } from 'next/navigation'
+import { isLegacyAdminNavHidden } from '@/lib/product-flags'
 import {
   EMPTY_APE_STATS,
   EMPTY_DASHBOARD_STATS,
@@ -116,13 +117,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setError(null)
 
+      const skipLegacy = isLegacyAdminNavHidden()
       const [usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes, cardsRes] = await Promise.all([
         fetch('/api/admin/users', { headers }),
         fetch('/api/admin/transactions', { headers }),
         fetch('/api/admin/kyc', { headers }),
-        fetch('/api/admin/ape-subscriptions', { headers }),
+        skipLegacy
+          ? Promise.resolve(new Response(JSON.stringify({ success: true, subscriptions: [], stats: EMPTY_APE_STATS }), { status: 200 }))
+          : fetch('/api/admin/ape-subscriptions', { headers }),
         fetch('/api/admin/sponsor-codes', { headers }),
-        fetch('/api/admin/pee-leads', { headers }),
+        skipLegacy
+          ? Promise.resolve(new Response(JSON.stringify({ success: true, leads: [], stats: EMPTY_PEE_STATS }), { status: 200 }))
+          : fetch('/api/admin/pee-leads', { headers }),
         fetch('/api/admin/dashboard-config', { headers }),
       ])
 

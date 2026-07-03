@@ -99,10 +99,9 @@ export const ADMIN_NAV_GROUPS: AdminNavGroup[] = [
   },
 ]
 
+// APE Sénégal / PEE hidden in mono-produit. Réconciliation + codes parrainage stay visible.
 const LEGACY_ADMIN_TABS: AdminTabId[] = [
   'apeSubscriptions',
-  'reconciliation',
-  'sponsorCodes',
   'peeLeads',
 ]
 
@@ -157,11 +156,11 @@ export const ADMIN_TAB_META: Record<
   },
   reconciliation: {
     title: 'Réconciliation',
-    description: 'Rapprochement des flux Intouch et du ledger.',
+    description: 'Rapprochement des paiements Intouch et des dépôts Sama Naffa.',
   },
   sponsorCodes: {
     title: 'Codes parrainage',
-    description: 'Codes promotionnels pour les souscriptions APE Sénégal.',
+    description: 'Codes agents Sama Naffa, validité, utilisations et performance d’acquisition.',
   },
   peeLeads: {
     title: 'PEE Leads',

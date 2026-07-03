@@ -7,10 +7,12 @@ import { DASHBOARD_CARD_TYPES, DASHBOARD_ICONS } from '@/lib/admin/dashboard-con
 import {
   DASHBOARD_CARD_TEMPLATES,
   DASHBOARD_DATA_SOURCE_REGISTRY,
-  DATA_SOURCE_CATEGORIES,
+  getVisibleDataSourceCategories,
   defaultsFromDataSource,
+  isLegacyCampaignDataSource,
   type DashboardDataSourceId,
 } from '@/lib/admin/dashboard-data-registry'
+import { isLegacyAdminNavHidden } from '@/lib/product-flags'
 
 const CARD_TYPE_LABELS: Record<(typeof DASHBOARD_CARD_TYPES)[number], string> = {
   stat: 'Statistique',
@@ -75,6 +77,11 @@ export default function CardEditorModal({
   const [icon, setIcon] = useState(card?.icon ?? 'LayoutDashboard')
   const [link, setLink] = useState(card?.link ?? '')
   const [visible, setVisible] = useState(card?.visible ?? true)
+  const hideLegacy = isLegacyAdminNavHidden()
+  const visibleCategories = getVisibleDataSourceCategories(hideLegacy)
+  const visibleTemplates = DASHBOARD_CARD_TEMPLATES.filter(
+    (tpl) => !hideLegacy || !isLegacyCampaignDataSource(tpl.dataSource),
+  )
 
   const handleDataSourceChange = (next: string) => {
     setDataSource(next)
@@ -135,7 +142,7 @@ export default function CardEditorModal({
           <div className="mb-5">
             <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Modèles rapides</p>
             <div className="flex flex-wrap gap-2">
-              {DASHBOARD_CARD_TEMPLATES.map((tpl) => (
+              {visibleTemplates.map((tpl) => (
                 <button
                   key={tpl.id}
                   type="button"
@@ -168,7 +175,7 @@ export default function CardEditorModal({
               onChange={(e) => handleDataSourceChange(e.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#435933]"
             >
-              {DATA_SOURCE_CATEGORIES.map((cat) => (
+              {visibleCategories.map((cat) => (
                 <optgroup key={cat.id} label={cat.label}>
                   {Object.values(DASHBOARD_DATA_SOURCE_REGISTRY)
                     .filter((m) => m.category === cat.id)

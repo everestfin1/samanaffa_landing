@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 import SponsorCodeField from '@/components/onboarding/SponsorCodeField';
 import { useSponsorCodeVerification } from '@/hooks/useSponsorCodeVerification';
+import { isApeDeprecated } from '@/lib/product-flags';
 
 interface T2FirstNameProps {
   initialValue?: string;
@@ -18,9 +19,10 @@ export default function T2FirstName({
   onSuccess,
   onBack,
 }: T2FirstNameProps) {
+  const monoProduit = isApeDeprecated();
   const [firstName, setFirstName] = useState(initialValue ?? '');
   const [hasReferralCode, setHasReferralCode] = useState<boolean | null>(
-    initialReferralCode ? true : null,
+    initialReferralCode ? true : monoProduit ? false : null,
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -39,15 +41,23 @@ export default function T2FirstName({
 
   const handleSubmit = async () => {
     if (!firstName.trim()) return;
-    if (hasReferralCode === null) {
+    if (!monoProduit && hasReferralCode === null) {
       setError('Indiquez si vous avez un code de parrainage.');
       return;
     }
-    if (hasReferralCode && sponsor.code.trim() && !sponsor.canProceedWithCode) {
+    if (
+      hasReferralCode &&
+      sponsor.code.trim() &&
+      !sponsor.canProceedWithCode
+    ) {
       setError('Corrigez ou supprimez le code de parrainage avant de continuer.');
       return;
     }
-    if (hasReferralCode && sponsor.code.trim() && sponsor.status !== 'valid') {
+    if (
+      hasReferralCode &&
+      sponsor.code.trim() &&
+      sponsor.status !== 'valid'
+    ) {
       setError('Veuillez attendre la validation du code ou corriger le code saisi.');
       return;
     }
@@ -78,8 +88,12 @@ export default function T2FirstName({
 
   const canSubmit =
     firstName.trim() &&
-    hasReferralCode !== null &&
-    (hasReferralCode === false ||
+    (monoProduit ||
+      (hasReferralCode !== null &&
+        (hasReferralCode === false ||
+          !sponsor.code.trim() ||
+          (sponsor.status === 'valid' && sponsor.canProceedWithCode)))) &&
+    (!hasReferralCode ||
       !sponsor.code.trim() ||
       (sponsor.status === 'valid' && sponsor.canProceedWithCode));
 

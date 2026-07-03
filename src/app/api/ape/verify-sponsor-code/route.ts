@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifySponsorCode } from '@/lib/sponsor-code';
+import { guardLegacyCampaignApi } from '@/lib/legacy-campaign-deprecation';
 
-// POST - Verify a sponsor code (public endpoint for subscription + onboarding)
+/** @deprecated APE sponsor codes inactive — route kept for explicit 410 responses. */
 export async function POST(request: NextRequest) {
+  const blocked = guardLegacyCampaignApi();
+  if (blocked) return blocked;
+
   try {
     const body = await request.json();
     const { code } = body;

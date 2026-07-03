@@ -14,7 +14,8 @@ const nextConfig: NextConfig = {
       { source: '/souscrire-ape/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/portal/ape', destination: '/portal/sama-naffa', permanent: true },
       { source: '/portal/ape/:path*', destination: '/portal/sama-naffa', permanent: true },
-      { source: '/portal/compare', destination: '/portal/sama-naffa', permanent: true },
+      { source: '/pee', destination: '/sama-naffa', permanent: true },
+      { source: '/pee/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/politique-confidentialite', destination: '/privacy', permanent: true },
     ];
   },
