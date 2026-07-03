@@ -13,7 +13,7 @@ if ! sudo -u deploy test -f "$APP_DIR/.env"; then
   exit 1
 fi
 
-if ! sudo -u deploy ssh -o BatchMode=yes -T git@github.com 2>&1 | grep -q 'successfully authenticated'; then
+if ! sudo -u deploy ssh -o BatchMode=yes -T git@github.com 2>&1 | grep -qi 'successfully authenticated'; then
   echo "ERROR: deploy user cannot access GitHub — add deploy public key to repo deploy keys."
   exit 1
 fi
