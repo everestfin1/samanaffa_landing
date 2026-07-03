@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Upload, CheckCircle, AlertCircle, XCircle, FileSpreadsheet, Clock, CalendarSearch } from 'lucide-react'
+import { useAdminData } from '@/lib/admin/AdminDataProvider'
 
 interface IntouchTransaction {
   id: string
@@ -64,6 +65,7 @@ interface IntouchReconciliationProps {
 }
 
 export default function IntouchReconciliation({ onReconcileSuccess }: IntouchReconciliationProps) {
+  const { notifyError, notifySuccess } = useAdminData()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [reconciling, setReconciling] = useState(false)
@@ -112,7 +114,7 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
       )
       setSelected(preselect)
     } else {
-      alert('Erreur: ' + (data.error ?? 'inconnue'))
+      notifyError(data.error ?? 'Erreur lors de la réconciliation')
     }
   }
 
@@ -134,9 +136,8 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
         body: JSON.stringify({ intouchTransactions }),
       })
       applyResult(await response.json())
-    } catch (error) {
-      console.error('Error parsing CSV:', error)
-      alert("Erreur lors de l'analyse du fichier CSV")
+    } catch {
+      notifyError("Erreur lors de l'analyse du fichier CSV")
     } finally {
       setLoading(false)
     }
@@ -144,7 +145,7 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
 
   const handleDateScan = async () => {
     if (!dateFrom && !dateTo) {
-      alert('Sélectionnez au moins une date')
+      notifyError('Sélectionnez au moins une date')
       return
     }
     setFile(null)
@@ -159,9 +160,8 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
         body: JSON.stringify({ dateFrom: dateFrom || undefined, dateTo: dateTo || undefined }),
       })
       applyResult(await response.json())
-    } catch (error) {
-      console.error('Error scanning date range:', error)
-      alert('Erreur lors de l’analyse par période')
+    } catch {
+      notifyError('Erreur lors de l’analyse par période')
     } finally {
       setLoading(false)
     }
@@ -171,7 +171,7 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
     if (!result) return
     const toReconcile = result.matches.filter((m) => selected.has(m.intentId))
     if (toReconcile.length === 0) {
-      alert('Veuillez sélectionner au moins une transaction à confirmer')
+      notifyError('Veuillez sélectionner au moins une transaction à confirmer')
       return
     }
     setReconciling(true)
@@ -185,13 +185,12 @@ export default function IntouchReconciliation({ onReconcileSuccess }: IntouchRec
       const data = await response.json()
       if (!data.success) throw new Error(data.error)
       await onReconcileSuccess?.()
-      alert(`✅ ${data.updated} dépôt(s) confirmé(s) avec succès`)
+      notifySuccess(`${data.updated} dépôt(s) confirmé(s) avec succès`)
       setFile(null)
       setResult(null)
       setSelected(new Set())
-    } catch (error) {
-      console.error('Reconciliation error:', error)
-      alert('❌ Erreur lors de la réconciliation')
+    } catch {
+      notifyError('Erreur lors de la réconciliation')
     } finally {
       setReconciling(false)
     }

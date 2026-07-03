@@ -5,6 +5,7 @@ import { Archive, Edit, Mail, Phone, X } from 'lucide-react';
 import AdminMetricStrip from '@/components/admin/layout/AdminMetricStrip';
 import AdminPanel from '@/components/admin/layout/AdminPanel';
 import AdminEmptyState from '@/components/admin/layout/AdminEmptyState';
+import { useAdminData } from '@/lib/admin/AdminDataProvider';
 
 interface AbandonedLead {
   id: string;
@@ -31,6 +32,7 @@ interface AbandonedLeadStats {
 }
 
 export default function AbandonedLeadsTab() {
+  const { notifyError, notifySuccess } = useAdminData();
   const [leads, setLeads] = useState<AbandonedLead[]>([]);
   const [stats, setStats] = useState<AbandonedLeadStats>({
     total: 0,
@@ -56,13 +58,15 @@ export default function AbandonedLeadsTab() {
       if (data.success) {
         setLeads(data.drafts);
         setStats(data.stats);
+      } else {
+        notifyError(data.error ?? 'Impossible de charger les leads abandonnés');
       }
-    } catch (error) {
-      console.error('Error fetching abandoned leads:', error);
+    } catch {
+      notifyError('Impossible de charger les leads abandonnés');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [notifyError]);
 
   useEffect(() => {
     fetchLeads();
@@ -112,12 +116,12 @@ export default function AbandonedLeadsTab() {
         setShowModal(false);
         setSelectedLead(null);
         setNotes('');
+        notifySuccess('Lead mis à jour');
       } else {
-        alert(data.error || 'Erreur lors de la mise à jour');
+        notifyError(data.error ?? 'Erreur lors de la mise à jour');
       }
-    } catch (error) {
-      console.error('Error updating abandoned lead:', error);
-      alert('Erreur lors de la mise à jour du lead abandonné');
+    } catch {
+      notifyError('Erreur lors de la mise à jour du lead abandonné');
     } finally {
       setUpdating(false);
     }

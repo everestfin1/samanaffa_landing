@@ -31,10 +31,16 @@ import {
   type SponsorCodeStats,
 } from './types'
 
+export type AdminFeedback = {
+  type: 'success' | 'error'
+  message: string
+}
+
 interface AdminDataContextValue {
   authenticated: boolean
   loading: boolean
   error: string | null
+  feedback: AdminFeedback | null
   stats: DashboardStats
   users: AdminUser[]
   transactions: AdminTransaction[]
@@ -51,6 +57,10 @@ interface AdminDataContextValue {
   refreshDashboardCards: () => Promise<void>
   /** fetch wrapper that injects the admin bearer token; redirects to login on 401 */
   authedFetch: (input: string, init?: RequestInit) => Promise<Response>
+  notifySuccess: (message: string) => void
+  notifyError: (message: string) => void
+  clearFeedback: () => void
+  dismissError: () => void
 }
 
 const AdminDataContext = createContext<AdminDataContextValue | null>(null)
@@ -71,6 +81,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [authenticated, setAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [feedback, setFeedback] = useState<AdminFeedback | null>(null)
 
   const [stats, setStats] = useState<DashboardStats>(EMPTY_DASHBOARD_STATS)
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -106,6 +117,18 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
     },
     [router],
   )
+
+  const notifySuccess = useCallback((message: string) => {
+    setError(null)
+    setFeedback({ type: 'success', message })
+  }, [])
+
+  const notifyError = useCallback((message: string) => {
+    setFeedback({ type: 'error', message })
+  }, [])
+
+  const clearFeedback = useCallback(() => setFeedback(null), [])
+  const dismissError = useCallback(() => setError(null), [])
 
   const refresh = useCallback(async () => {
     const token = getToken()
@@ -245,6 +268,7 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       authenticated,
       loading,
       error,
+      feedback,
       stats,
       users,
       transactions,
@@ -259,11 +283,16 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       refreshDashboardCards,
       authedFetch,
+      notifySuccess,
+      notifyError,
+      clearFeedback,
+      dismissError,
     }),
     [
       authenticated,
       loading,
       error,
+      feedback,
       stats,
       users,
       transactions,
@@ -278,6 +307,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       refresh,
       refreshDashboardCards,
       authedFetch,
+      notifySuccess,
+      notifyError,
+      clearFeedback,
+      dismissError,
     ],
   )
 

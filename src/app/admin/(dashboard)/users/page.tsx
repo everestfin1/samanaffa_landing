@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { Users, Search, X, ShieldCheck, Clock, CheckCircle2, AlertCircle, FileText, Mail, Phone, Ban, UserCheck } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import { readApiError } from '@/lib/admin/api-errors'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
@@ -18,7 +19,7 @@ const KYC_LABEL: Record<string, string> = {
 const KYC_OPTIONS = ['APPROVED', 'PENDING', 'UNDER_REVIEW', 'REJECTED']
 
 export default function UsersPage() {
-  const { users, kycDocuments, loading, refresh, authedFetch } = useAdminData()
+  const { users, kycDocuments, loading, refresh, authedFetch, notifyError, notifySuccess } = useAdminData()
   const [search, setSearch] = useState('')
   const [kycFilter, setKycFilter] = useState<string>('')
   const [selectedUser, setSelectedUser] = useState<AdminUser | null>(null)
@@ -62,9 +63,12 @@ export default function UsersPage() {
       })
       if (res.ok) {
         await refresh()
+        notifySuccess('Statut KYC mis à jour')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de mettre à jour le statut KYC'))
       }
-    } catch (err) {
-      console.error('Failed to update KYC status:', err)
+    } catch {
+      notifyError('Impossible de mettre à jour le statut KYC')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)
@@ -76,7 +80,7 @@ export default function UsersPage() {
 
   const handleAccountAction = async (userId: string, action: 'suspend' | 'activate') => {
     if (action === 'suspend' && !suspendReason.trim()) {
-      alert('Veuillez indiquer un motif de suspension')
+      notifyError('Veuillez indiquer un motif de suspension')
       return
     }
     setUpdating((s) => new Set(s).add(userId))
@@ -94,9 +98,12 @@ export default function UsersPage() {
         if (selectedUser?.id === userId) {
           setSelectedUser(null)
         }
+        notifySuccess(action === 'suspend' ? 'Compte suspendu' : 'Compte réactivé')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de modifier le compte'))
       }
-    } catch (err) {
-      console.error('Failed to update user account status:', err)
+    } catch {
+      notifyError('Impossible de modifier le compte')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)

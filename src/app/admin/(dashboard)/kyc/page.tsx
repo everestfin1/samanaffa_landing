@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { ShieldCheck, Search, X, Clock, CheckCircle2, AlertCircle, FileText, ExternalLink, Eye } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import { readApiError } from '@/lib/admin/api-errors'
 import { fmtDate } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
@@ -29,7 +30,7 @@ export default function KycPage() {
 function KycPageContent() {
   const searchParams = useSearchParams()
   const userIdFilter = searchParams.get('userId')?.trim() ?? ''
-  const { kycDocuments, users, loading, refresh, authedFetch } = useAdminData()
+  const { kycDocuments, users, loading, refresh, authedFetch, notifyError, notifySuccess } = useAdminData()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [selectedDoc, setSelectedDoc] = useState<KycDocument | null>(null)
@@ -57,10 +58,10 @@ function KycPageContent() {
       if (res.ok && data.url) {
         window.open(data.url, '_blank', 'noopener,noreferrer')
       } else {
-        console.error('Failed to get signed URL:', data.error)
+        notifyError(data.error ?? 'Impossible d’ouvrir le document')
       }
-    } catch (err) {
-      console.error('Failed to open document:', err)
+    } catch {
+      notifyError('Impossible d’ouvrir le document')
     } finally {
       setOpeningDocId(null)
     }
@@ -104,9 +105,12 @@ function KycPageContent() {
         await refresh()
         setSelectedDoc(null)
         setAdminNotes('')
+        notifySuccess('Document KYC mis à jour')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de mettre à jour le document'))
       }
-    } catch (err) {
-      console.error('Failed to update KYC document status:', err)
+    } catch {
+      notifyError('Impossible de mettre à jour le document')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)

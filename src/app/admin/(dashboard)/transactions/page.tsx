@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { CreditCard, CheckCircle2, XCircle, Clock, ArrowUpRight, ArrowDownRight, Wallet, Search, X, FileText, Loader2 } from 'lucide-react'
 import { useAdminData } from '@/lib/admin/AdminDataProvider'
+import { readApiError } from '@/lib/admin/api-errors'
 import { fmtFCFA, fmtDate, fmtDateTime } from '@/lib/admin/format'
 import { StatusPill, Avatar } from '@/components/admin/layout/visuals'
 import DetailDrawer from '@/components/admin/layout/DetailDrawer'
@@ -40,7 +41,7 @@ function SkeletonRow({ cols = 7 }: { cols?: number }) {
 }
 
 export default function TransactionsPage() {
-  const { transactions, loading, refresh, authedFetch } = useAdminData()
+  const { transactions, loading, refresh, authedFetch, notifyError, notifySuccess } = useAdminData()
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [typeFilter, setTypeFilter] = useState<string>('')
   const [search, setSearch] = useState('')
@@ -93,9 +94,12 @@ export default function TransactionsPage() {
         await refresh()
         setSelectedTx(null)
         setAdminNotes('')
+        notifySuccess('Statut de la transaction mis à jour')
+      } else {
+        notifyError(await readApiError(res, 'Impossible de mettre à jour la transaction'))
       }
-    } catch (err) {
-      console.error('Failed to update transaction status:', err)
+    } catch {
+      notifyError('Impossible de mettre à jour la transaction')
     } finally {
       setUpdating((s) => {
         const next = new Set(s)
