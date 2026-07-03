@@ -2,6 +2,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 import * as dotenv from 'dotenv';
 import * as schema from './schema';
+import { pgPoolConfig } from './pool-config';
 
 // Next.js does not override existing shell env vars with .env.local.
 // In local branch-based Neon work, a stale exported DATABASE_URL can point the
@@ -25,28 +26,8 @@ function resolveDatabaseUrl(): string {
   throw new Error('DATABASE_URL is not defined');
 }
 
-function poolSsl(connectionString: string): pg.PoolConfig['ssl'] {
-  try {
-    const sslmode = new URL(connectionString).searchParams.get('sslmode');
-    if (sslmode === 'verify-full') {
-      return { rejectUnauthorized: true };
-    }
-    if (sslmode === 'require' || sslmode === 'prefer') {
-      // db-srv may use a self-signed cert on the private VLAN (staging/recette).
-      return { rejectUnauthorized: false };
-    }
-  } catch {
-    // Non-URL connection strings fall through to default pg behaviour.
-  }
-  return undefined;
-}
-
 const connectionString = resolveDatabaseUrl();
-const pool = new pg.Pool({
-  connectionString,
-  ssl: poolSsl(connectionString),
-  max: 10,
-});
+const pool = new pg.Pool(pgPoolConfig(connectionString));
 
 export const db = drizzle(pool, { schema });
 

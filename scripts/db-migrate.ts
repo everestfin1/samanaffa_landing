@@ -6,24 +6,10 @@ import { config } from 'dotenv';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
+import { pgPoolConfig } from '../src/lib/db/pool-config';
 
 config({ path: '.env.local' });
 config({ path: '.env' });
-
-function poolSsl(connectionString: string): pg.PoolConfig['ssl'] {
-  try {
-    const sslmode = new URL(connectionString).searchParams.get('sslmode');
-    if (sslmode === 'verify-full') {
-      return { rejectUnauthorized: true };
-    }
-    if (sslmode === 'require' || sslmode === 'prefer') {
-      return { rejectUnauthorized: false };
-    }
-  } catch {
-    // ignore
-  }
-  return undefined;
-}
 
 async function main() {
   const url = process.env.DATABASE_URL;
@@ -32,7 +18,7 @@ async function main() {
     process.exit(1);
   }
 
-  const pool = new pg.Pool({ connectionString: url, ssl: poolSsl(url) });
+  const pool = new pg.Pool(pgPoolConfig(url));
   const db = drizzle(pool);
 
   console.log('Applying migrations from ./drizzle …');
