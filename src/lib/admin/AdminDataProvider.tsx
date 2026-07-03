@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { isLegacyAdminNavHidden } from '@/lib/product-flags'
+import { fetchAllAdminPages } from '@/lib/admin/fetch-paginated'
 import {
   EMPTY_APE_STATS,
   EMPTY_DASHBOARD_STATS,
@@ -118,54 +119,54 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
       setError(null)
 
       const skipLegacy = isLegacyAdminNavHidden()
-      const [usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes, cardsRes] = await Promise.all([
-        fetch('/api/admin/users', { headers }),
-        fetch('/api/admin/transactions', { headers }),
-        fetch('/api/admin/kyc', { headers }),
+
+      const [
+        usersList,
+        txList,
+        kycList,
+        apeRes,
+        sponsorCodesList,
+        peeRes,
+        cardsRes,
+      ] = await Promise.all([
+        fetchAllAdminPages<AdminUser>('/api/admin/users', 'users', headers),
+        fetchAllAdminPages<AdminTransaction>('/api/admin/transactions', 'transactionIntents', headers),
+        fetchAllAdminPages<KycDocument>('/api/admin/kyc', 'kycDocuments', headers),
         skipLegacy
           ? Promise.resolve(new Response(JSON.stringify({ success: true, subscriptions: [], stats: EMPTY_APE_STATS }), { status: 200 }))
           : fetch('/api/admin/ape-subscriptions', { headers }),
-        fetch('/api/admin/sponsor-codes', { headers }),
+        fetchAllAdminPages<SponsorCode>('/api/admin/sponsor-codes', 'codes', headers),
         skipLegacy
           ? Promise.resolve(new Response(JSON.stringify({ success: true, leads: [], stats: EMPTY_PEE_STATS }), { status: 200 }))
           : fetch('/api/admin/pee-leads', { headers }),
         fetch('/api/admin/dashboard-config', { headers }),
       ])
 
-      if ([usersRes, txRes, kycRes, apeRes, sponsorRes, peeRes, cardsRes].some((r) => r.status === 401)) {
+      if ([apeRes, peeRes, cardsRes].some((r) => r.status === 401)) {
         router.push('/admin/login')
         return
       }
 
       const nextStats: DashboardStats = { ...EMPTY_DASHBOARD_STATS }
 
-      const usersData = await usersRes.json()
-      if (usersData.success) {
-        const list: AdminUser[] = usersData.users
-        setUsers(list)
-        nextStats.totalUsers = list.length
-        nextStats.pendingKyc = list.filter((u) => u.kycStatus === 'PENDING').length
-        nextStats.underReviewKyc = list.filter((u) => u.kycStatus === 'UNDER_REVIEW').length
-      }
+      setUsers(usersList)
+      nextStats.totalUsers = usersList.length
+      nextStats.pendingKyc = usersList.filter((u) => u.kycStatus === 'PENDING').length
+      nextStats.underReviewKyc = usersList.filter((u) => u.kycStatus === 'UNDER_REVIEW').length
 
-      const txData = await txRes.json()
-      if (txData.success) {
-        const list: AdminTransaction[] = txData.transactionIntents
-        setTransactions(list)
-        nextStats.pendingTransactions = list.filter((t) => t.status === 'PENDING').length
-        nextStats.processingTransactions = list.filter((t) => t.status === 'PROCESSING').length
-        nextStats.completedTransactions = list.filter((t) => t.status === 'COMPLETED').length
-        nextStats.failedTransactions = list.filter((t) => t.status === 'FAILED').length
-        nextStats.totalDeposits = list
-          .filter((t) => t.intentType === 'DEPOSIT' && t.status === 'COMPLETED')
-          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
-        nextStats.totalInvestments = list
-          .filter((t) => t.intentType === 'INVESTMENT' && t.status === 'COMPLETED')
-          .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
-      }
+      setTransactions(txList)
+      nextStats.pendingTransactions = txList.filter((t) => t.status === 'PENDING').length
+      nextStats.processingTransactions = txList.filter((t) => t.status === 'PROCESSING').length
+      nextStats.completedTransactions = txList.filter((t) => t.status === 'COMPLETED').length
+      nextStats.failedTransactions = txList.filter((t) => t.status === 'FAILED').length
+      nextStats.totalDeposits = txList
+        .filter((t) => t.intentType === 'DEPOSIT' && t.status === 'COMPLETED')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+      nextStats.totalInvestments = txList
+        .filter((t) => t.intentType === 'INVESTMENT' && t.status === 'COMPLETED')
+        .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
 
-      const kycData = await kycRes.json()
-      if (kycData.success) setKycDocuments(kycData.kycDocuments)
+      setKycDocuments(kycList)
 
       const apeData = await apeRes.json()
       if (apeData.success) {
@@ -173,11 +174,13 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
         setApeStats(apeData.stats)
       }
 
-      const sponsorData = await sponsorRes.json()
-      if (sponsorData.success) {
-        setSponsorCodes(sponsorData.codes)
-        setSponsorCodeStats(sponsorData.stats)
-      }
+      setSponsorCodes(sponsorCodesList)
+      setSponsorCodeStats({
+        total: sponsorCodesList.length,
+        active: sponsorCodesList.filter((c) => c.status === 'ACTIVE').length,
+        inactive: sponsorCodesList.filter((c) => c.status === 'INACTIVE').length,
+        expired: sponsorCodesList.filter((c) => c.status === 'EXPIRED').length,
+      })
 
       const peeData = await peeRes.json()
       if (peeData.success) {
@@ -192,6 +195,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
 
       setStats(nextStats)
     } catch (err) {
+      if (err instanceof Error && err.message === 'Unauthorized') {
+        router.push('/admin/login')
+        return
+      }
       console.error('Error fetching admin data:', err)
       setError('Impossible de charger les données. Réessayez.')
     } finally {
