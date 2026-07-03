@@ -27,6 +27,8 @@ export default function EditableDashboard() {
     refreshDashboardCards,
     refresh,
     authedFetch,
+    notifySuccess,
+    notifyError,
   } = useAdminData()
 
   const [editMode, setEditMode] = useState(false)
@@ -35,7 +37,6 @@ export default function EditableDashboard() {
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
   const [recalculating, setRecalculating] = useState(false)
-  const [recalculateMessage, setRecalculateMessage] = useState<string | null>(null)
 
   const visibleCards = useMemo(
     () =>
@@ -224,9 +225,7 @@ export default function EditableDashboard() {
   )
 
   const handleRecalculateBalances = useCallback(async () => {
-    if (!confirm('Recalculer tous les soldes à partir des transactions complétées ?')) return
     setRecalculating(true)
-    setRecalculateMessage(null)
     try {
       const res = await authedFetch('/api/admin/accounts/recalculate-balances', { method: 'POST' })
       const data = await res.json()
@@ -234,18 +233,18 @@ export default function EditableDashboard() {
       const changed = Array.isArray(data.results)
         ? data.results.filter((r: { difference: number }) => r.difference !== 0).length
         : 0
-      setRecalculateMessage(
+      notifySuccess(
         changed > 0
-          ? `${changed} compte(s) mis à jour.`
+          ? `${changed} compte(s) mis à jour après recalcul des soldes.`
           : 'Recalcul terminé — aucun écart détecté.',
       )
       await refresh()
     } catch (e: unknown) {
-      setRecalculateMessage(e instanceof Error ? e.message : 'Erreur lors du recalcul')
+      notifyError(e instanceof Error ? e.message : 'Erreur lors du recalcul')
     } finally {
       setRecalculating(false)
     }
-  }, [authedFetch, refresh])
+  }, [authedFetch, refresh, notifySuccess, notifyError])
 
   const renderCardShell = (card: DashboardCardConfig, idx: number, opts: { dimmed?: boolean }) => {
     const rowSpan = card.rowSpan ?? 1
@@ -371,12 +370,6 @@ export default function EditableDashboard() {
           {hiddenCards.length > 0 && (
             <> Les cartes masquées apparaissent en bas — utilisez <Eye size={14} className="inline mx-1" /> pour les réafficher.</>
           )}
-        </div>
-      )}
-
-      {recalculateMessage && (
-        <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm text-emerald-800">
-          {recalculateMessage}
         </div>
       )}
 
