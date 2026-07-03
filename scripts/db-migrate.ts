@@ -8,6 +8,7 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import pg from 'pg';
 
 config({ path: '.env.local' });
+config({ path: '.env' });
 
 async function main() {
   const url = process.env.DATABASE_URL;
