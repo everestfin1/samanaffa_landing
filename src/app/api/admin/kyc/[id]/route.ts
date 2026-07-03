@@ -5,7 +5,7 @@ import { kycDocuments, users } from '@/lib/db/schema'
 import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-intents'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
-import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
+import { loadNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
 import { KycStatus, NotificationPriority, NotificationType, VerificationStatus } from '@/lib/types'
 import { logKYCApproval, logKYCRejection } from '@/lib/audit-logger'
 import { createUserNotification } from '@/lib/user-notifications'
@@ -182,7 +182,7 @@ export async function PUT(
       }
 
       // Get notification settings
-      const notificationSettings = getServerSideNotificationSettings()
+      const notificationSettings = await loadNotificationSettings()
 
       // Send email notification if enabled
       if (shouldSendKYCEmail(newKycStatus, notificationSettings)) {

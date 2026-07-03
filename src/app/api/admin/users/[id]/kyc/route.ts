@@ -5,7 +5,7 @@ import { kycDocuments, transactionIntents, userAccounts, users } from '@/lib/db/
 import { NotificationType, NotificationPriority, KycStatus } from '@/lib/types'
 import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
-import { getServerSideNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
+import { loadNotificationSettings, shouldSendKYCSMS, shouldSendKYCEmail } from '@/lib/notification-settings'
 import { createUserNotification } from '@/lib/user-notifications'
 
 export async function PUT(
@@ -120,7 +120,7 @@ export async function PUT(
     }
 
     // Get notification settings
-    const notificationSettings = getServerSideNotificationSettings()
+    const notificationSettings = await loadNotificationSettings()
 
     // Send email notification if enabled
     if (

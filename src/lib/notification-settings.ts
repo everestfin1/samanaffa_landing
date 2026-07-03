@@ -1,86 +1,111 @@
+import { eq } from 'drizzle-orm';
+import { db } from '@/lib/db';
+import {
+  ADMIN_NOTIFICATION_SETTINGS_ID,
+  adminNotificationSettings,
+  type AdminNotificationSettings,
+} from '@/lib/db/schema';
+
 export interface NotificationSettings {
-  enableEmailNotifications: boolean
-  enableSMSNotifications: boolean
-  enableKYCApprovalSMS: boolean
-  enableKYCRejectionSMS: boolean
-  enableKYCUnderReviewSMS: boolean
-  enableTransactionSMS: boolean
-  smsOnlyForCritical: boolean
-  emailTemplate: string
-  smsTemplate: string
+  enableEmailNotifications: boolean;
+  enableSMSNotifications: boolean;
+  enableKYCApprovalSMS: boolean;
+  enableKYCRejectionSMS: boolean;
+  enableKYCUnderReviewSMS: boolean;
+  enableTransactionSMS: boolean;
+  smsOnlyForCritical: boolean;
+  emailTemplate: string;
+  smsTemplate: string;
 }
 
-// Default notification settings
-const DEFAULT_SETTINGS: NotificationSettings = {
+export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   enableEmailNotifications: true,
   enableSMSNotifications: false,
   enableKYCApprovalSMS: false,
-  enableKYCRejectionSMS: true, // Only critical rejections by default
+  enableKYCRejectionSMS: true,
   enableKYCUnderReviewSMS: false,
   enableTransactionSMS: false,
   smsOnlyForCritical: true,
   emailTemplate: 'default',
-  smsTemplate: 'default'
+  smsTemplate: 'default',
+};
+
+function rowToSettings(row: AdminNotificationSettings): NotificationSettings {
+  return {
+    enableEmailNotifications: row.enableEmailNotifications,
+    enableSMSNotifications: row.enableSMSNotifications,
+    enableKYCApprovalSMS: row.enableKYCApprovalSMS,
+    enableKYCRejectionSMS: row.enableKYCRejectionSMS,
+    enableKYCUnderReviewSMS: row.enableKYCUnderReviewSMS,
+    enableTransactionSMS: row.enableTransactionSMS,
+    smsOnlyForCritical: row.smsOnlyForCritical,
+    emailTemplate: row.emailTemplate,
+    smsTemplate: row.smsTemplate,
+  };
 }
 
-// Get current notification settings
-export async function getNotificationSettings(): Promise<NotificationSettings> {
-  try {
-    // Try to fetch from API
-    const response = await fetch('/api/admin/settings/notifications', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-    
-    if (response.ok) {
-      const data = await response.json()
-      return data.settings || DEFAULT_SETTINGS
-    }
-  } catch (error) {
-    console.log('Using default notification settings due to error:', error)
-  }
-  
-  return DEFAULT_SETTINGS
+/** Load notification settings from Postgres (singleton row). */
+export async function loadNotificationSettings(): Promise<NotificationSettings> {
+  const [row] = await db
+    .select()
+    .from(adminNotificationSettings)
+    .where(eq(adminNotificationSettings.id, ADMIN_NOTIFICATION_SETTINGS_ID))
+    .limit(1);
+
+  return row ? rowToSettings(row) : DEFAULT_NOTIFICATION_SETTINGS;
 }
 
-// Server-side function to get settings
-export function getServerSideNotificationSettings(): NotificationSettings {
-  // Return stored settings or defaults
-  return (global as any).notificationSettings || DEFAULT_SETTINGS
+/** Upsert notification settings to Postgres. */
+export async function saveNotificationSettings(
+  settings: NotificationSettings,
+): Promise<NotificationSettings> {
+  const [existing] = await db
+    .select({ id: adminNotificationSettings.id })
+    .from(adminNotificationSettings)
+    .where(eq(adminNotificationSettings.id, ADMIN_NOTIFICATION_SETTINGS_ID))
+    .limit(1);
+
+  const payload = { ...settings, updatedAt: new Date() };
+
+  const [row] = existing
+    ? await db
+        .update(adminNotificationSettings)
+        .set(payload)
+        .where(eq(adminNotificationSettings.id, ADMIN_NOTIFICATION_SETTINGS_ID))
+        .returning()
+    : await db
+        .insert(adminNotificationSettings)
+        .values({ id: ADMIN_NOTIFICATION_SETTINGS_ID, ...payload })
+        .returning();
+
+  return rowToSettings(row);
 }
 
 // Check if SMS should be sent for a specific KYC status
 export function shouldSendKYCSMS(
   kycStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW',
-  settings: NotificationSettings
+  settings: NotificationSettings,
 ): boolean {
-  // Individual KYC SMS settings are now independent of the master SMS switch
-  // This allows admins to configure specific KYC SMS settings even when general SMS is off
-  
   switch (kycStatus) {
     case 'APPROVED':
-      return settings.enableKYCApprovalSMS
+      return settings.enableKYCApprovalSMS;
     case 'REJECTED':
-      return settings.enableKYCRejectionSMS
+      return settings.enableKYCRejectionSMS;
     case 'UNDER_REVIEW':
-      return settings.enableKYCUnderReviewSMS
+      return settings.enableKYCUnderReviewSMS;
     default:
-      return false
+      return false;
   }
 }
 
-// Check if email should be sent (usually always true for KYC)
 export function shouldSendKYCEmail(
   kycStatus: 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW',
-  settings: NotificationSettings
+  settings: NotificationSettings,
 ): boolean {
-  return settings.enableEmailNotifications
+  void kycStatus;
+  return settings.enableEmailNotifications;
 }
 
-// Check if SMS should be sent for transactions
 export function shouldSendTransactionSMS(settings: NotificationSettings): boolean {
-  // Transaction SMS is now independent of the master SMS switch
-  return settings.enableTransactionSMS
+  return settings.enableTransactionSMS;
 }

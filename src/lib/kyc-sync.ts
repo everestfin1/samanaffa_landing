@@ -5,7 +5,7 @@ import { updateOnboardingDepositIntentsForKycStatus } from '@/lib/kyc-deposit-in
 import { KycStatus, NotificationPriority, NotificationType } from '@/lib/types'
 import { sendKYCStatusEmail, sendKYCStatusSMS } from '@/lib/notifications'
 import {
-  getServerSideNotificationSettings,
+  loadNotificationSettings,
   shouldSendKYCSMS,
   shouldSendKYCEmail,
 } from '@/lib/notification-settings'
@@ -187,7 +187,7 @@ export async function syncDiditDecision(
     })
   }
 
-  const notifSettings = getServerSideNotificationSettings()
+  const notifSettings = await loadNotificationSettings()
   const emailKycStatus = mapped.kycStatus as 'APPROVED' | 'REJECTED' | 'UNDER_REVIEW'
   if (!alreadySynced && shouldSendKYCEmail(emailKycStatus, notifSettings)) {
     try {

@@ -1,117 +1,65 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth'
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyAdminAuth, createErrorResponse } from '@/lib/admin-auth';
+import {
+  DEFAULT_NOTIFICATION_SETTINGS,
+  loadNotificationSettings,
+  saveNotificationSettings,
+  type NotificationSettings,
+} from '@/lib/notification-settings';
 
-declare global {
-  var notificationSettings: NotificationSettings | undefined
-}
-
-interface NotificationSettings {
-  id?: string
-  enableEmailNotifications: boolean
-  enableSMSNotifications: boolean
-  enableKYCApprovalSMS: boolean
-  enableKYCRejectionSMS: boolean
-  enableKYCUnderReviewSMS: boolean
-  enableTransactionSMS: boolean
-  smsOnlyForCritical: boolean
-  emailTemplate: string
-  smsTemplate: string
-  createdAt?: Date
-  updatedAt?: Date
-}
-
-// GET /api/admin/settings/notifications - Get notification settings
 export async function GET(request: NextRequest) {
-  const { error, user } = await verifyAdminAuth(request)
-  if (error || !user) return createErrorResponse('Unauthorized', 401)
+  const { error, user } = await verifyAdminAuth(request);
+  if (error || !user) return createErrorResponse('Unauthorized', 401);
 
   try {
-    const settings: NotificationSettings = {
-      enableEmailNotifications: true,
-      enableSMSNotifications: false,
-      enableKYCApprovalSMS: false,
-      enableKYCRejectionSMS: true,
-      enableKYCUnderReviewSMS: false,
-      enableTransactionSMS: false,
-      smsOnlyForCritical: true,
-      emailTemplate: 'default',
-      smsTemplate: 'default',
-    }
-
-    return NextResponse.json({
-      success: true,
-      settings,
-    })
-
-  } catch (error) {
-    console.error('Error fetching notification settings:', error)
+    const settings = await loadNotificationSettings();
+    return NextResponse.json({ success: true, settings });
+  } catch (err) {
+    console.error('Error fetching notification settings:', err);
     return NextResponse.json(
       { success: false, error: 'Failed to fetch notification settings' },
-      { status: 500 }
-    )
+      { status: 500 },
+    );
   }
 }
 
-// POST /api/admin/settings/notifications - Update notification settings
 export async function POST(request: NextRequest) {
-  const { error, user } = await verifyAdminAuth(request)
-  if (error || !user) return createErrorResponse('Unauthorized', 401)
+  const { error, user } = await verifyAdminAuth(request);
+  if (error || !user) return createErrorResponse('Unauthorized', 401);
 
   try {
-    const body = await request.json()
-    const {
-      enableEmailNotifications = true,
-      enableSMSNotifications = false,
-      enableKYCApprovalSMS = false,
-      enableKYCRejectionSMS = true,
-      enableKYCUnderReviewSMS = false,
-      enableTransactionSMS = false,
-      smsOnlyForCritical = true,
-      emailTemplate = 'default',
-      smsTemplate = 'default',
-    } = body
-
+    const body = await request.json();
     const settings: NotificationSettings = {
-      enableEmailNotifications,
-      enableSMSNotifications,
-      enableKYCApprovalSMS,
-      enableKYCRejectionSMS,
-      enableKYCUnderReviewSMS,
-      enableTransactionSMS,
-      smsOnlyForCritical,
-      emailTemplate,
-      smsTemplate,
-      updatedAt: new Date(),
-    }
+      enableEmailNotifications:
+        body.enableEmailNotifications ?? DEFAULT_NOTIFICATION_SETTINGS.enableEmailNotifications,
+      enableSMSNotifications:
+        body.enableSMSNotifications ?? DEFAULT_NOTIFICATION_SETTINGS.enableSMSNotifications,
+      enableKYCApprovalSMS:
+        body.enableKYCApprovalSMS ?? DEFAULT_NOTIFICATION_SETTINGS.enableKYCApprovalSMS,
+      enableKYCRejectionSMS:
+        body.enableKYCRejectionSMS ?? DEFAULT_NOTIFICATION_SETTINGS.enableKYCRejectionSMS,
+      enableKYCUnderReviewSMS:
+        body.enableKYCUnderReviewSMS ?? DEFAULT_NOTIFICATION_SETTINGS.enableKYCUnderReviewSMS,
+      enableTransactionSMS:
+        body.enableTransactionSMS ?? DEFAULT_NOTIFICATION_SETTINGS.enableTransactionSMS,
+      smsOnlyForCritical:
+        body.smsOnlyForCritical ?? DEFAULT_NOTIFICATION_SETTINGS.smsOnlyForCritical,
+      emailTemplate: body.emailTemplate ?? DEFAULT_NOTIFICATION_SETTINGS.emailTemplate,
+      smsTemplate: body.smsTemplate ?? DEFAULT_NOTIFICATION_SETTINGS.smsTemplate,
+    };
 
-    global.notificationSettings = settings
+    const saved = await saveNotificationSettings(settings);
 
     return NextResponse.json({
       success: true,
       message: 'Notification settings updated successfully',
-      settings,
-    })
-
-  } catch (error) {
-    console.error('Error updating notification settings:', error)
+      settings: saved,
+    });
+  } catch (err) {
+    console.error('Error updating notification settings:', err);
     return NextResponse.json(
       { success: false, error: 'Failed to update notification settings' },
-      { status: 500 }
-    )
-  }
-}
-
-// Helper function to get current notification settings
-export async function getNotificationSettings(): Promise<NotificationSettings> {
-  return global.notificationSettings || {
-    enableEmailNotifications: true,
-    enableSMSNotifications: false,
-    enableKYCApprovalSMS: false,
-    enableKYCRejectionSMS: true,
-    enableKYCUnderReviewSMS: false,
-    enableTransactionSMS: false,
-    smsOnlyForCritical: true,
-    emailTemplate: 'default',
-    smsTemplate: 'default',
+      { status: 500 },
+    );
   }
 }

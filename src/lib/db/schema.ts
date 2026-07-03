@@ -483,6 +483,27 @@ export type PeeLead = typeof peeLeads.$inferSelect;
 export type NewPeeLead = typeof peeLeads.$inferInsert;
 export type FormDraft = typeof formDrafts.$inferSelect;
 export type NewFormDraft = typeof formDrafts.$inferInsert;
+
+/** Singleton admin notification toggles (id = 'default'). */
+export const ADMIN_NOTIFICATION_SETTINGS_ID = 'default';
+
+export const adminNotificationSettings = pgTable('admin_notification_settings', {
+  id: text('id').primaryKey().notNull().default('default'),
+  enableEmailNotifications: boolean('enableEmailNotifications').notNull().default(true),
+  enableSMSNotifications: boolean('enableSMSNotifications').notNull().default(false),
+  enableKYCApprovalSMS: boolean('enableKYCApprovalSMS').notNull().default(false),
+  enableKYCRejectionSMS: boolean('enableKYCRejectionSMS').notNull().default(true),
+  enableKYCUnderReviewSMS: boolean('enableKYCUnderReviewSMS').notNull().default(false),
+  enableTransactionSMS: boolean('enableTransactionSMS').notNull().default(false),
+  smsOnlyForCritical: boolean('smsOnlyForCritical').notNull().default(true),
+  emailTemplate: text('emailTemplate').notNull().default('default'),
+  smsTemplate: text('smsTemplate').notNull().default('default'),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export type AdminNotificationSettings = typeof adminNotificationSettings.$inferSelect;
+export type NewAdminNotificationSettings = typeof adminNotificationSettings.$inferInsert;
+
 // Dashboard Cards — admin-configurable overview widgets
 export const dashboardCards = pgTable('dashboard_cards', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
