@@ -15,7 +15,7 @@ export function usePendingOnboardingDeposit(enabled = true) {
     try {
       const res = await fetch('/api/onboarding/pending-deposit', { cache: 'no-store' });
       if (!res.ok) {
-        throw new Error('Impossible de charger le dépôt programmé');
+        throw new Error('Impossible de charger le versement programmé');
       }
       const data = await res.json();
       setPendingDeposit(data.intent ?? null);

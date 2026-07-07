@@ -19,7 +19,7 @@ export const NAFFA_PRODUCTS: NaffaProduct[] = [
     lockPeriodMonths: 12,
     allowAdditionalDeposits: true,
     metadata: {
-      description: 'Compte d’épargne Sama Naffa classique',
+      description: 'Naffa géré Sama Naffa — compte-titres individuel',
     },
   },
   {

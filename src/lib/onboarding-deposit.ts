@@ -7,7 +7,7 @@ import { isLegacyWalletPaymentMethod } from '@/lib/payment-method-label';
 export const ONBOARDING_DEPOSIT_SOURCE = 'ONBOARDING_V2';
 
 export function formatOnboardingDepositUserNotes(): string {
-  return `${ONBOARDING_DEPOSIT_SOURCE}|Dépôt programmé via nouveau flux onboarding (T4)`;
+  return `${ONBOARDING_DEPOSIT_SOURCE}|Versement programmé via nouveau flux onboarding (T4)`;
 }
 
 export function isOnboardingDepositUserNotes(userNotes: string | null | undefined): boolean {

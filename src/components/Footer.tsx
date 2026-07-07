@@ -69,6 +69,12 @@ export default function Footer() {
                 >
                   <span>Contact</span>
                 </Link>
+                <Link 
+                  href="/contact"
+                  className="flex items-center space-x-3 text-white/60 hover:text-sama-accent-gold transition-all duration-300 font-light hover:translate-x-1"
+                >
+                  <span>Réclamations</span>
+                </Link>
               </div>
             </div>
           </div>
@@ -123,6 +129,7 @@ export default function Footer() {
             <Link href="/cookies" className="hover:text-sama-accent-gold transition-colors duration-300">Cookies</Link>
             <Link href="/faq" className="hover:text-sama-accent-gold transition-colors duration-300">FAQ</Link>
             <Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Contact</Link>
+            <Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Réclamations</Link>
           </div>
         </div>
       </div>

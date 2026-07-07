@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
+import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
 
 interface T3QuizProps {
   firstName: string;
@@ -58,7 +59,7 @@ const recommendFormula = (answers: Record<string, QuizAnswer>): { name: string; 
       name: 'Formule Croissance', 
       rate: 8.5, 
       description: 'épargne régulière long-terme',
-      highlights: ['Idéal pour un horizon de 5+ ans', 'Rendement maximisé', 'Versements programmés flexibles']
+      highlights: ['Idéal pour un horizon de 5+ ans', 'Objectif de rendement majoré (non garanti)', 'Versements programmés flexibles']
     };
   }
   if (answers.savingsCapacity === '<10k' || answers.experience === 'debutant') {
@@ -66,14 +67,14 @@ const recommendFormula = (answers: Record<string, QuizAnswer>): { name: string; 
       name: 'Formule Libre', 
       rate: 6.0, 
       description: 'flexibilité maximale, sans engagement',
-      highlights: ['Aucun engagement de durée', 'Retraits possibles à tout moment', 'Parfait pour commencer']
+      highlights: ['Horizon court (12 mois)', 'Retrait anticipé possible selon conditions', 'Parfait pour commencer']
     };
   }
   return { 
     name: 'Formule Équilibre', 
     rate: 7.0, 
     description: 'équilibre entre rendement et souplesse',
-    highlights: ['Engagement modéré (12-36 mois)', 'Bon compromis rendement/liquidité', 'Protection contre l\'inflation']
+    highlights: ['Horizon modéré (12-36 mois)', 'Équilibre objectif de rendement / liquidité', 'Performance non garantie']
   };
 };
 
@@ -151,8 +152,12 @@ export default function T3Quiz({ firstName, onSuccess, onBack, onProgressChange 
         />
         <div className="bg-gradient-to-br from-[#F2F8F4] to-white border border-[#435933]/20 rounded-2xl p-6 my-6 shadow-sm">
           <p className="text-xl font-bold text-[#435933]">{result.name}</p>
-          <p className="text-4xl font-bold text-[#435933] my-3">{result.rate}% <span className="text-lg text-[#435933]/70">/ an</span></p>
-          <p className="text-sm text-night/70 mb-6">{result.description}</p>
+          <p className="text-4xl font-bold text-[#435933] my-3">
+            ~{result.rate}%{' '}
+            <span className="text-lg text-[#435933]/70">/ an (objectif indicatif)</span>
+          </p>
+          <p className="text-sm text-night/70 mb-4">{result.description}</p>
+          <RiskDisclaimer variant="simulator" className="text-center text-xs mb-4" />
           
           <div className="space-y-2 text-left bg-white/70 rounded-xl p-4">
             {result.highlights.map((highlight, idx) => (

@@ -23,6 +23,8 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 import { buildNaffaAccountPayload, NaffaPlanInput } from '@/lib/naffa-plan';
 import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
+import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
+import { CREPMF_AGREMENT_LINE } from '@/lib/compliance-copy';
 
 type IntentKind = 'DEPOSIT' | 'WITHDRAWAL' | 'INVESTMENT';
 
@@ -90,8 +92,11 @@ function AccountCard({
   const balanceSize = isLarge ? 'text-4xl' : 'text-3xl';
   const eyeIconSize = isLarge ? 'w-6 h-6' : 'w-5 h-5';
   const accountLabel = isLarge ? "N° d'association" : 'N° Compte';
-  const rateLabel = isLarge ? "Taux d'intérêt" : 'Taux';
-  const rateValue = isLarge ? `${account.interestRate ?? 4.5}% annuel` : `${account.interestRate ?? 4.5}%`;
+  const rateLabel = isLarge ? 'Objectif de rendement' : 'Objectif';
+  const indicativeRate = account.interestRate ?? 4.5;
+  const rateValue = isLarge
+    ? `~${indicativeRate}% / an (indicatif)`
+    : `~${indicativeRate}%*`;
   const noiseOpacity = isLarge ? 'opacity-80' : 'opacity-30';
 
   return (
@@ -128,7 +133,7 @@ function AccountCard({
             {/* Top Section */}
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm text-white/70 mb-1">Compte d'épargne</p>
+                <p className="text-sm text-white/70 mb-1">Naffa géré</p>
                 <h4 className="text-2xl font-bold">{account.productName || 'Naffa personnalisé'}</h4>
               </div>
             </div>
@@ -580,14 +585,19 @@ export default function SamaNaffaPortal({
         </div>
       )}
 
+      <div className="rounded-xl border border-timberwolf/25 bg-timberwolf/10 px-4 py-3 space-y-2">
+        <p className="text-xs text-night/65 text-center">{CREPMF_AGREMENT_LINE}</p>
+        <RiskDisclaimer className="text-center text-xs" />
+      </div>
+
       <div className="bg-white rounded-2xl border border-timberwolf/20 p-8 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h3 className="text-xl font-bold text-night">Mes Naffa</h3>
             <p className="text-night/60 text-sm">
               {accounts.length > 1
-                ? `${accounts.length} comptes d'épargne actifs`
-                : 'Votre compte d’épargne Sama Naffa'}
+                ? `${accounts.length} Naffa actifs`
+                : 'Votre compte géré Sama Naffa'}
             </p>
           </div>
           <div className="flex items-center gap-3">

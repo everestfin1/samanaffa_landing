@@ -100,7 +100,7 @@ export function getStatusLabelFrench(status: string): string {
  */
 export function getTransactionTypeLabelFrench(type: string): string {
   const typeMap: Record<string, string> = {
-    'DEPOSIT': 'Dépôt',
+    'DEPOSIT': 'Versement',
     'WITHDRAWAL': 'Retrait',
     'INVESTMENT': 'Investissement',
   };

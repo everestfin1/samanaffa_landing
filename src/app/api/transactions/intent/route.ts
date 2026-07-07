@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       if (numericAmount < 1000) {
         return respondError(
           'invalid_amount',
-          `Le montant minimum pour un ${normalizedIntentType === 'deposit' ? 'dépôt' : 'retrait'} est de 1000 FCFA`,
+          `Le montant minimum pour un ${normalizedIntentType === 'deposit' ? 'versement' : 'retrait'} est de 1000 FCFA`,
           400,
         )
       }
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
       if (numericAmount % 1000 !== 0) {
         return respondError(
           'invalid_amount',
-          `Les ${normalizedIntentType === 'deposit' ? 'dépôts' : 'retraits'} doivent être des multiples de 1000 FCFA`,
+          `Les ${normalizedIntentType === 'deposit' ? 'versements' : 'retraits'} doivent être des multiples de 1000 FCFA`,
           400,
         )
       }

@@ -51,7 +51,7 @@ const faqData: FAQItem[] = [
   {
     id: 5,
     question: "Quel est le montant minimum d'épargne avec Sama Naffa?",
-    answer: "Le montant minimum d'épargne est fixé à 1 000 FCFA. Ce seuil volontairement accessible permet à chacun de commencer à constituer une épargne et de bénéficier d'un rendement, sans contrainte de revenu élevé.",
+    answer: "Le montant minimum d'épargne est fixé à 1 000 FCFA. Ce seuil volontairement accessible permet à chacun de commencer à constituer une épargne gérée, avec un objectif de rendement non garanti.",
     category: 'decouvrir'
   },
   {
@@ -63,7 +63,7 @@ const faqData: FAQItem[] = [
   {
     id: 7,
     question: "Quelle est la durée minimale de placement avec Sama Naffa?",
-    answer: "La durée minimale de placement est fixée à un (1) an. À l'échéance, le Naffa peut être renouvelé si l'épargnant souhaite prolonger son investissement et continuer à bénéficier d'un rendement.",
+    answer: "La durée minimale de placement est fixée à un (1) an. À la fin de votre horizon, vous pouvez demander la mise à disposition de votre épargne ou reconduire votre Naffa. L'objectif de rendement communiqué n'est pas garanti.",
     category: 'decouvrir'
   },
   {
@@ -98,8 +98,8 @@ const faqData: FAQItem[] = [
   },
   {
     id: 13,
-    question: "Comment retirer son investissement à l'échéance?",
-    answer: "Le retrait de votre investissement se fait directement depuis votre espace client: 1. Rendez-vous dans le menu « Demande de retrait ». 2. Sélectionnez le Naffa concerné et indiquez le montant à retirer. 3. Confirmez la demande et choisissez le mode de retrait disponible (ex. via un partenaire comme Wave ou un point de retrait agréé). 4. Votre demande est traitée sous 24 heures maximum.",
+    question: "Comment retirer mon investissement en fin d'horizon?",
+    answer: "Le retrait de votre investissement se fait directement depuis votre espace client : 1. Rendez-vous dans le menu « Demande de retrait ». 2. Sélectionnez le Naffa concerné et indiquez le montant à retirer. 3. Confirmez la demande et choisissez le mode de retrait disponible (ex. via un partenaire comme Wave ou un point de retrait agréé). 4. Votre demande est traitée dans les délais indiqués dans votre convention de gestion.",
     category: 'decouvrir'
   },
   {
@@ -161,7 +161,7 @@ const faqData: FAQItem[] = [
   {
     id: 23,
     question: "Quels sont les frais liés à l'utilisation de Sama Naffa ?",
-    answer: "L'ouverture d'un compte Sama Naffa est gratuite. Des frais de gestion peuvent s'appliquer selon la formule choisie ; ils sont intégrés dans le calcul de performance affiché. Le détail sera publié prochainement sur cette page.",
+    answer: "L'ouverture d'un compte Sama Naffa est gratuite. Des frais de gestion (0,45 % trimestriel) et de valorisation (0,25 % trimestriel) s'appliquent selon la grille tarifaire homologuée AMF-UMOA. Le détail figure dans nos conditions générales d'utilisation (page CGU).",
     category: 'utilisation'
   },
 ];

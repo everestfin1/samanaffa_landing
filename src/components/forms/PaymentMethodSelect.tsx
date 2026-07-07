@@ -18,7 +18,7 @@ export default function PaymentMethodSelect({
   const getLabel = () => {
     switch (type) {
       case 'deposit':
-        return 'Méthode de dépôt';
+        return 'Méthode de versement';
       case 'withdraw':
         return 'Méthode de retrait';
       case 'payment':

@@ -502,7 +502,7 @@ export const SavingsPlanner: React.FC<SavingsPlannerProps> = ({
                                     {formatCurrency(Math.round(animatedCapitalFinal))}
                                 </div>
                                 <div className="font-normal text-gray-500 text-sm">
-                                    Dont <span className="font-bold text-[#435933]">+{formatCurrency(Math.round(animatedInterests))}</span> d'intérêts gagnés
+                                    Dont <span className="font-bold text-[#435933]">+{formatCurrency(Math.round(animatedInterests))}</span> de gain estimé
                                 </div>
                             </div>
                         </div>
