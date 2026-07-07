@@ -30,6 +30,7 @@
 *.xlsx
 *.xls
 *.xlsm
+project_docs/*.extracted.txt
 
 # debug
 npm-debug.log*
