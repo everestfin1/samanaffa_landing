@@ -407,6 +407,17 @@ export default function T1Phone({
       <p className="text-center text-xs text-night/40 mt-4">
         30 secondes · Compte créé immédiatement
       </p>
+      <p className="text-center text-xs text-night/45 mt-2 leading-relaxed px-2">
+        En poursuivant l&apos;inscription, vous serez invité à accepter les{' '}
+        <Link href="/terms" className="text-gold-metallic hover:underline">
+          conditions générales d&apos;utilisation
+        </Link>{' '}
+        et la{' '}
+        <Link href="/privacy" className="text-gold-metallic hover:underline">
+          politique de confidentialité
+        </Link>{' '}
+        après vérification de votre identité.
+      </p>
     </div>
   );
 }

@@ -34,7 +34,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "Vous devez accepter les conditions d'utilisation et la politique de confidentialité.",
+            "Vous devez accepter les conditions générales d'utilisation (CGU) et la politique de confidentialité.",
         },
         { status: 400 },
       );

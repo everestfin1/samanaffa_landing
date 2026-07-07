@@ -3,9 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCommunicationsCompletionProgress } from '@/lib/portal-profile-completion';
 import {
-  MANDATE_TERMS_SECTIONS,
-  MANDATE_TERMS_TITLE,
-} from '@/lib/mandate-terms-content';
+  CGU_ACCEPTANCE_SUMMARY,
+  CGU_TITLE,
+  CGU_VERSION,
+} from '@/lib/legal/cgu';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -98,7 +99,7 @@ export default function ProfileCompletionModal({
     }
     if (step === 'terms') {
       if (!formData.termsAccepted) {
-        setError('Veuillez accepter les termes et conditions.');
+        setError('Veuillez accepter les conditions générales d\'utilisation (CGU).');
         return;
       }
       if (!formData.privacyAccepted) {
@@ -167,12 +168,13 @@ export default function ProfileCompletionModal({
         'Votre identité est vérifiée via Didit. Indiquez votre email pour recevoir vos relevés et alertes.',
     },
     terms: {
-      title: 'Termes & conditions',
-      subtitle: MANDATE_TERMS_TITLE,
+      title: 'Conditions générales',
+      subtitle: CGU_TITLE,
     },
     signature: {
-      title: 'Termes & conditions',
-      subtitle: 'Signez pour confirmer votre acceptation du mandat de gestion.',
+      title: 'Signature électronique',
+      subtitle:
+        'Signez pour confirmer votre acceptation des CGU et du mandat de gestion (article 5.1).',
     },
   };
 
@@ -287,14 +289,26 @@ export default function ProfileCompletionModal({
 
           {step === 'terms' && (
             <div className="space-y-4">
-              <div className="bg-white border border-timberwolf/25 rounded-lg p-4 max-h-52 overflow-y-auto text-sm text-night/80 leading-relaxed">
-                {MANDATE_TERMS_SECTIONS.map((section) => (
+              <p className="text-xs text-night/55">{CGU_VERSION}</p>
+              <div className="bg-white border border-timberwolf/25 rounded-lg p-4 max-h-52 overflow-y-auto text-sm text-night/80 leading-relaxed text-justify">
+                {CGU_ACCEPTANCE_SUMMARY.map((section) => (
                   <div key={section.heading} className="mb-4 last:mb-0">
                     <p className="font-semibold text-night mb-1">{section.heading}</p>
-                    <p>{section.body}</p>
+                    <p className="text-justify">{section.body}</p>
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-night/60">
+                Extrait des CGU.{' '}
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gold-metallic hover:underline font-medium"
+                >
+                  Lire l&apos;intégralité des conditions générales
+                </a>
+              </p>
 
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
@@ -305,7 +319,18 @@ export default function ProfileCompletionModal({
                   }
                   className="mt-0.5 w-5 h-5 accent-gold-metallic border-timberwolf rounded focus:ring-gold"
                 />
-                <span className="text-sm text-night">J&apos;accepte les termes et conditions.</span>
+                <span className="text-sm text-night">
+                  J&apos;accepte les{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gold-metallic hover:underline"
+                  >
+                    conditions générales d&apos;utilisation
+                  </a>{' '}
+                  *
+                </span>
               </label>
 
               <label className="flex items-start gap-3 cursor-pointer">

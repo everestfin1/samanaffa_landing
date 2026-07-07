@@ -11,13 +11,13 @@ function SectionContent({ section }: { section: LegalSection }) {
       );
     case 'paragraph':
       return (
-        <p className="text-night/80 leading-relaxed mb-4">{section.text}</p>
+        <p className="text-night/80 leading-relaxed mb-4 text-justify">{section.text}</p>
       );
     case 'list':
       return (
-        <ul className="list-disc pl-6 mb-4 space-y-2 text-night/80">
+        <ul className="list-disc pl-6 mb-4 space-y-2 text-night/80 text-justify">
           {section.items.map((item) => (
-            <li key={item} className="leading-relaxed">
+            <li key={item} className="leading-relaxed text-justify">
               {item}
             </li>
           ))}
@@ -43,7 +43,7 @@ function SectionContent({ section }: { section: LegalSection }) {
               {section.rows.map((row) => (
                 <tr key={row.join('|')} className="border-b border-timberwolf/20 last:border-0">
                   {row.map((cell, i) => (
-                    <td key={`${row[0]}-${i}`} className="p-3 text-night/80 align-top">
+                    <td key={`${row[0]}-${i}`} className="p-3 text-night/80 align-top text-justify">
                       {cell}
                     </td>
                   ))}
@@ -76,7 +76,7 @@ export default function LegalDocumentPage({
           {document.title}
         </h1>
         {document.subtitle && (
-          <p className="text-night/60 mb-10">{document.subtitle}</p>
+          <p className="text-night/60 mb-10 text-justify">{document.subtitle}</p>
         )}
 
         {document.sections.map((section, index) => (
@@ -87,7 +87,7 @@ export default function LegalDocumentPage({
           <section key={id} id={id} className="mt-16 pt-10 border-t border-timberwolf/30">
             <h2 className="text-2xl font-light text-night mb-3">{extra.title}</h2>
             {extra.subtitle && (
-              <p className="text-night/60 mb-8">{extra.subtitle}</p>
+              <p className="text-night/60 mb-8 text-justify">{extra.subtitle}</p>
             )}
             {extra.sections.map((section, index) => (
               <SectionContent key={`${id}-${section.type}-${index}`} section={section} />

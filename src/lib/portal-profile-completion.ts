@@ -81,7 +81,7 @@ export function getCommunicationsCompletionProgress(u: {
 }): { percent: number; checks: ProfileFieldCheck[] } {
   const checks: ProfileFieldCheck[] = [
     { id: 'email', label: 'Email', ok: hasRealPortalEmail(u.email) },
-    { id: 'termsAccepted', label: "Conditions d'utilisation", ok: u.termsAccepted === true },
+    { id: 'termsAccepted', label: "Conditions générales d'utilisation (CGU)", ok: u.termsAccepted === true },
     { id: 'privacyAccepted', label: 'Politique de confidentialité', ok: u.privacyAccepted === true },
     {
       id: 'marketingAccepted',
