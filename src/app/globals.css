@@ -538,3 +538,304 @@ video {
   }
 }
 
+/* ─── E0 Entrée (Momar Figma 12:302) ───
+   Explicit classes so section paints don't depend on Tailwind
+   regenerating new @theme utilities after a token rename. */
+.e0-page {
+  position: relative;
+  color: var(--sama-cod-gray);
+  font-family: var(--font-sans);
+}
+
+/* Landing sheet lifts on scroll; brand splash is fixed underneath (below sheet). */
+.e0-sheet {
+  position: relative;
+  z-index: 1;
+  overflow-x: clip;
+  background: var(--sama-white);
+  box-shadow: 0 28px 64px rgb(24 45 9 / 18%);
+}
+
+.e0-after-footer {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 0;
+  display: flex;
+  height: 100dvh;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1.5rem;
+  background: var(--sama-white);
+  text-align: center;
+  pointer-events: none;
+}
+
+.e0-after-footer a {
+  pointer-events: auto;
+}
+
+.e0-after-footer-spacer {
+  height: 100dvh;
+  width: 100%;
+  pointer-events: none;
+}
+
+.e0-page a.e0-cta-marigold {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 55px;
+  padding: 17px 34px;
+  border-radius: 999px;
+  background: var(--sama-marigold);
+  color: var(--sama-white) !important;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgb(196 151 47 / 30%);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.e0-page a.e0-cta-marigold:hover {
+  background: var(--sama-marigold-dark);
+  color: var(--sama-white) !important;
+  transform: translateY(-2px);
+}
+
+.e0-page a.e0-cta-forest {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--sama-forest-deep);
+  color: var(--sama-white) !important;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.e0-page a.e0-cta-forest:hover {
+  background: var(--sama-forest);
+  color: var(--sama-white) !important;
+}
+
+.e0-top {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  max-height: 100vh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.e0-header {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--sama-pearl-bush);
+  background: var(--sama-white);
+  box-shadow: 0 2px 5px rgb(0 0 0 / 3%);
+}
+
+.e0-hero {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--sama-cream);
+}
+
+.e0-hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 1.5rem 3.5rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.e0-hero-content > * {
+  pointer-events: auto;
+}
+
+.e0-hero-content > :is(h1, p, a) {
+  max-width: 36rem;
+}
+
+.e0-hero-title {
+  margin: 0;
+  max-width: 28rem;
+  font-size: clamp(2.5rem, 4.1vw, 2.875rem);
+  font-weight: 800;
+  line-height: 0.975;
+  letter-spacing: -0.02em;
+  color: var(--sama-forest);
+  text-wrap: balance;
+  text-shadow: 0 2px 24px rgb(255 255 255 / 70%);
+}
+
+.e0-hero-title-accent {
+  display: block;
+  color: var(--sama-marigold);
+}
+
+.e0-benefits {
+  background: var(--sama-forest);
+  color: var(--sama-white);
+  padding: 5rem 1.5rem;
+}
+
+.e0-benefits-title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.75rem, 3.2vw, 2.375rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--sama-white);
+}
+
+.e0-benefit-title {
+  margin: 1.25rem 0 0;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 700;
+  color: var(--sama-marigold);
+}
+
+.e0-steps {
+  background: var(--sama-white);
+  padding: 5rem 1.5rem;
+}
+
+.e0-steps-title {
+  margin: 0;
+  text-align: center;
+  font-size: clamp(1.8rem, 3.2vw, 2.375rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--sama-forest);
+}
+
+.e0-step-dot {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 999px;
+  background: var(--sama-forest);
+  color: var(--sama-white);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.e0-step-line {
+  position: absolute;
+  left: 1.1875rem;
+  top: 2.75rem;
+  width: 1px;
+  height: calc(100% - 2.5rem);
+  background: color-mix(in srgb, var(--sama-forest) 35%, transparent);
+}
+
+.e0-first-step {
+  overflow: hidden;
+  background: linear-gradient(97deg, var(--sama-cream), var(--sama-white));
+}
+
+.e0-first-step-title {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.375rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--sama-forest);
+}
+
+.e0-legal {
+  background: var(--sama-forest);
+  color: var(--sama-white);
+  padding: 3rem 1.5rem;
+}
+
+.e0-legal-muted {
+  color: var(--sama-norway);
+}
+
+.e0-legal-soft {
+  color: var(--sama-forest-soft);
+}
+
+
+.e0-brand-tagline {
+  margin: 1.5rem 0 0;
+  font-size: clamp(2rem, 4vw, 2.875rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--sama-marigold);
+}
+
+.e0-social-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem 1rem;
+  margin-top: 3rem;
+}
+
+.e0-social-label {
+  margin: 0;
+  font-size: 1.125rem;
+  line-height: 1;
+  color: var(--sama-forest);
+}
+
+.e0-social-icons {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.e0-social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: #182d09;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.e0-social-link:hover {
+  opacity: 0.75;
+  transform: translateY(-1px);
+}
+
+.e0-social-icon {
+  display: block;
+  width: 30px;
+  height: 30px;
+}
+
