@@ -7,7 +7,7 @@ export const WhatsAppButton: React.FC = () => {
   const pathname = usePathname();
   
   // Check if user is in admin portal
-  const isInAdminorClientPortal = pathname.startsWith('/admin') || pathname.startsWith('/portal');
+  const isInAdminorClientPortal = pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/portal');
   
   // Hide WhatsApp button if in admin portal
   if (isInAdminorClientPortal) {

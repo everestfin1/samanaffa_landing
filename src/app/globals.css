@@ -1,73 +1,60 @@
 @import "tailwindcss";
 
 :root {
-  /* Sama Naffa Brand Colors - Official Brand System */
-  
-  /* Primary Brand Colors */
-  --sama-primary-green: #435933;
-  --sama-primary-green-light: #5a7344;
-  --sama-primary-green-dark: #364529;
-  
-  /* Secondary Brand Colors */
-  --sama-secondary-green: #30461f;
-  --sama-secondary-green-dark: #243318;
-  
-  /* Accent Colors */
-  --sama-accent-gold: #C38D1C; 
-  --sama-accent-gold-dark: #BF8C35;
-  
-  /* Base Colors */
-  --sama-black: #000000;
+  --sama-forest: #263a18;
+  --sama-forest-deep: #2e4620;
+  --sama-forest-soft: #8b9880;
+  --sama-norway: #aebba0;
+  --sama-periglacial: #dce3d2;
+  --sama-marigold: #c4972f;
+  --sama-marigold-dark: #a77d20;
+  --sama-cod-gray: #1a1a1a;
+  --sama-pearl-bush: #eeeae0;
+  --sama-moon-mist: #e0dccf;
+  --sama-cream: #edf0e6;
   --sama-white: #ffffff;
-  
-  /* Text Colors */
-  --sama-text-primary: #01081b;
-  --sama-text-secondary: #4d525f;
-  --sama-text-muted: #969696;
-  
-  /* Background Colors */
-  --sama-bg-light: #f7f6f6;
-  --sama-bg-card: #ffffff;
-  --sama-bg-overlay: rgba(255, 255, 255, 0.9);
-  
-  /* Light Green Backgrounds */
-  --sama-bg-light-green: #e8f5e8;
-  --sama-bg-light-green-alt: #f0f8f0;
-  --sama-bg-light-green-card: #F2F8F4;
-  
-  /* Semantic Colors */
-  --sama-success: #377e36;
-  --sama-warning: #fcbe1d;
-  
-  /* Border Colors */
-  --sama-border-light: rgba(67, 89, 51, 0.1);
-  --sama-border-medium: rgba(67, 89, 51, 0.2);
-  --sama-border-dark: rgba(67, 89, 51, 0.3);
-  
-  /* Shadow Colors */
-  --sama-shadow-light: rgba(67, 89, 51, 0.08);
-  --sama-shadow-medium: rgba(67, 89, 51, 0.12);
-  --sama-shadow-dark: rgba(67, 89, 51, 0.15);
-  
-  /* Gradient Definitions */
-  --sama-gradient-primary: linear-gradient(135deg, #30461f, #435933);
-  --sama-gradient-primary-hover: linear-gradient(135deg, #243318, #364529);
-  --sama-gradient-accent: linear-gradient(135deg, #C38D1C, #b3830f);
-  --sama-gradient-bg-light: linear-gradient(135deg, #F2F8F4, white);
-  --sama-gradient-bg-card: linear-gradient(135deg, #e8f5e8, #f0f8f0);
-  
-  /* Legacy support - mapping old variables to new ones */
+
+  --sama-primary-green: var(--sama-forest);
+  --sama-primary-green-light: var(--sama-forest-soft);
+  --sama-primary-green-dark: var(--sama-forest-deep);
+  --sama-secondary-green: var(--sama-forest-deep);
+  --sama-secondary-green-dark: var(--sama-forest);
+  --sama-accent-gold: var(--sama-marigold);
+  --sama-accent-gold-dark: var(--sama-marigold-dark);
+  --sama-black: var(--sama-cod-gray);
+  --sama-text-primary: var(--sama-cod-gray);
+  --sama-text-secondary: #526049;
+  --sama-text-muted: var(--sama-forest-soft);
+  --sama-bg-light: var(--sama-cream);
+  --sama-bg-card: var(--sama-white);
+  --sama-bg-overlay: rgb(255 255 255 / 90%);
+  --sama-bg-light-green: var(--sama-periglacial);
+  --sama-bg-light-green-alt: var(--sama-cream);
+  --sama-bg-light-green-card: var(--sama-cream);
+  --sama-success: #45643a;
+  --sama-warning: var(--sama-marigold);
+  --sama-border-light: rgb(38 58 24 / 10%);
+  --sama-border-medium: rgb(38 58 24 / 20%);
+  --sama-border-dark: rgb(38 58 24 / 30%);
+  --sama-shadow-light: rgb(38 58 24 / 8%);
+  --sama-shadow-medium: rgb(38 58 24 / 12%);
+  --sama-shadow-dark: rgb(38 58 24 / 16%);
+  --sama-gradient-primary: linear-gradient(135deg, var(--sama-forest), var(--sama-forest-deep));
+  --sama-gradient-primary-hover: linear-gradient(135deg, var(--sama-forest-deep), #203214);
+  --sama-gradient-accent: linear-gradient(135deg, var(--sama-marigold), var(--sama-marigold-dark));
+  --sama-gradient-bg-light: linear-gradient(97deg, var(--sama-cream), var(--sama-white));
+  --sama-gradient-bg-card: linear-gradient(135deg, var(--sama-periglacial), var(--sama-cream));
+
   --white-smoke: var(--sama-bg-light);
-  --timberwolf: #e5e5e5;
+  --timberwolf: var(--sama-moon-mist);
   --gold-metallic: var(--sama-accent-gold);
-  --gold-light: #f4e9c9;
+  --gold-light: #f2e8c9;
   --gold-dark: var(--sama-accent-gold-dark);
   --night: var(--sama-text-primary);
   --gray-light: var(--sama-bg-light);
   --gray-medium: var(--sama-text-secondary);
   --gray-dark: var(--sama-text-primary);
-  
-  /* Theme Variables */
+
   --background: var(--sama-white);
   --foreground: var(--sama-text-primary);
   --primary: var(--sama-primary-green);
@@ -97,6 +84,16 @@
   --color-sama-bg-light-green: var(--sama-bg-light-green);
   --color-sama-bg-light-green-alt: var(--sama-bg-light-green-alt);
   --color-sama-bg-light-green-card: var(--sama-bg-light-green-card);
+  --color-sama-forest: var(--sama-forest);
+  --color-sama-forest-deep: var(--sama-forest-deep);
+  --color-sama-forest-soft: var(--sama-forest-soft);
+  --color-sama-norway: var(--sama-norway);
+  --color-sama-periglacial: var(--sama-periglacial);
+  --color-sama-marigold: var(--sama-marigold);
+  --color-sama-cod-gray: var(--sama-cod-gray);
+  --color-sama-pearl-bush: var(--sama-pearl-bush);
+  --color-sama-moon-mist: var(--sama-moon-mist);
+  --color-sama-cream: var(--sama-cream);
   
   /* Legacy color support */
   --color-white-smoke: var(--white-smoke);
@@ -109,8 +106,8 @@
   --color-gray-medium: var(--gray-medium);
   --color-gray-dark: var(--gray-dark);
   
-  /* --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; */
-  /* --font-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace; */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
 }
 
 /* Typography System */
