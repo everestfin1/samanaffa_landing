@@ -17,6 +17,8 @@ export default function Footer() {
         pathname === '/' ||
         pathname === '/sama-naffa' ||
         pathname.startsWith('/sama-naffa/') ||
+        pathname === '/onboarding' ||
+        pathname.startsWith('/onboarding/') ||
         pathname.startsWith('/portal') ||
         isAdminPage ||
         isApePage ||

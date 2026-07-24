@@ -4,7 +4,10 @@ import { Suspense, useState, useEffect, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
-import T0Simulator, { T0Result } from '@/components/onboarding/T0Simulator';
+import { objectives } from '@/components/data/objectives';
+import E0LegalFooter from '@/components/landing/E0LegalFooter';
+import E0MarketingHeader from '@/components/landing/E0MarketingHeader';
+import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2FirstName from '@/components/onboarding/T2FirstName';
 import T3Quiz from '@/components/onboarding/T3Quiz';
@@ -20,6 +23,7 @@ import {
 } from '@/lib/onboarding-progress';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 import { isApeDeprecated } from '@/lib/product-flags';
+import { useSelection, type SamaNaffaSelection } from '@/lib/selection-context';
 
 interface OnboardingState {
   simulation: T0Result | null;
@@ -34,6 +38,7 @@ interface OnboardingState {
   wallet: string | null;
 }
 
+/** Momar flow: Nattukaay (E0) is outside /onboarding; E1 phone is step 1. */
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
@@ -44,11 +49,32 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T6: 6,
 };
 
+const DEFAULT_SIMULATION: T0Result = {
+  project: 'autres',
+  monthlyAmount: 50_000,
+  durationMonths: 120,
+};
+
+function simulationFromSelection(selection: SamaNaffaSelection | null): T0Result {
+  if (!selection) return DEFAULT_SIMULATION;
+  const objective = objectives.find((o) => o.id === selection.selectedObjective);
+  const project = (objective?.slug ?? 'autres') as ProjectId;
+  const durationMonths = Math.max(
+    6,
+    Math.round((selection.duration || 0) * 12) || DEFAULT_SIMULATION.durationMonths,
+  );
+  return {
+    project,
+    monthlyAmount: selection.monthlyAmount || DEFAULT_SIMULATION.monthlyAmount,
+    durationMonths,
+  };
+}
+
 export default function OnboardingPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-[calc(100dvh-4rem)] flex items-center justify-center">
+        <div className="min-h-dvh flex items-center justify-center">
           <p className="text-night/60 text-sm">Chargement de votre inscription…</p>
         </div>
       }
@@ -62,6 +88,7 @@ function OnboardingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status: sessionStatus } = useSession();
+  const { selectionData } = useSelection();
   const kycResumeFromUrl = searchParams.get('verificationSessionId');
   // Mono-produit (APE off): ?ref / ?agent carries a Sama Naffa field-agent code.
   // Legacy mode: sponsor code from ?ref / ?parrain / ?code_parrainage.
@@ -74,7 +101,8 @@ function OnboardingPageContent() {
           '',
       );
   const [kycResumeSessionId, setKycResumeSessionId] = useState<string | null>(null);
-  const [step, setStep] = useState<OnboardingStep>('T0');
+  // Momar: E1 (phone) is the first /onboarding step. Project sim lives on /sama-naffa.
+  const [step, setStep] = useState<OnboardingStep>('T1');
   const [state, setState] = useState<OnboardingState>({
     simulation: null,
     userId: null,
@@ -98,6 +126,18 @@ function OnboardingPageContent() {
   } | null>(null);
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const activeUserId = state.userId ?? sessionUserId;
+
+  // Prefer Nattukaay selection; fall back to a sensible default for direct /onboarding entry.
+  useEffect(() => {
+    const fromNattukaay =
+      selectionData?.type === 'sama-naffa'
+        ? simulationFromSelection(selectionData)
+        : null;
+    setState((s) => {
+      if (s.simulation) return s;
+      return { ...s, simulation: fromNattukaay ?? DEFAULT_SIMULATION };
+    });
+  }, [selectionData]);
 
   useEffect(() => {
     if (sessionStatus === 'loading') return;
@@ -129,10 +169,11 @@ function OnboardingPageContent() {
         const resumeStep = p.step as OnboardingStep;
         if (p.kycApproved && p.depositAmount != null && p.formula) {
           setStep('T6');
-        } else if (resumeStep && resumeStep !== 'T0' && resumeStep !== 'T1') {
+        } else if (resumeStep === 'T0' || resumeStep === 'T1') {
+          // Authenticated users never re-do phone; continue identity or quiz.
+          setStep(p.firstName ? 'T3' : 'T2');
+        } else if (resumeStep) {
           setStep(resumeStep);
-        } else if (resumeStep === 'T1') {
-          setStep('T2');
         }
       } finally {
         if (!cancelled) setResumeChecked(true);
@@ -142,7 +183,7 @@ function OnboardingPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [sessionStatus]);
+  }, [sessionStatus, sessionUserId]);
 
   useEffect(() => {
     if (!kycResumeFromUrl || !resumeChecked) return;
@@ -194,7 +235,8 @@ function OnboardingPageContent() {
   );
 
   const currentVisible = visibleStepIndex[step];
-  const showProgress = step !== 'T0' && step !== 'T6';
+  // Progress starts at E1 (T1); T0 simulator is no longer in this route.
+  const showProgress = step !== 'T6';
   const progressPercent = getOnboardingProgressPercent(
     currentVisible,
     step === 'T3'
@@ -292,14 +334,15 @@ function OnboardingPageContent() {
 
   if (sessionStatus === 'loading' || (sessionStatus === 'authenticated' && !resumeChecked)) {
     return (
-      <div className="min-h-[calc(100dvh-4rem)] flex items-center justify-center">
+      <div className="min-h-dvh flex items-center justify-center">
         <p className="text-night/60 text-sm">Chargement de votre inscription…</p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-4rem)] md:min-h-[calc(100dvh-8rem)] bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
+    <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
+      <E0MarketingHeader />
       <AnimatePresence>
         {showProgress && (
           <motion.div
@@ -345,25 +388,6 @@ function OnboardingPageContent() {
       <div className="flex flex-1 flex-col">
         <OnboardingStepContainer step={step}>
           <AnimatePresence mode="wait">
-            {step === 'T0' && (
-              <motion.div
-                key="T0"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                <T0Simulator
-                  initial={state.simulation}
-                  onContinue={(result) => {
-                    setState((s) => ({ ...s, simulation: result }));
-                    setStep('T1');
-                  }}
-                />
-              </motion.div>
-            )}
-
             {step === 'T1' && (
               <motion.div
                 key="T1"
@@ -374,11 +398,11 @@ function OnboardingPageContent() {
                 className="w-full"
               >
                 <T1Phone
-                  simulation={state.simulation}
+                  simulation={state.simulation ?? DEFAULT_SIMULATION}
                   referralCode={state.referralCode}
                   initialPhone={state.phone ?? undefined}
                   initialCountry={state.countryCode ?? undefined}
-                  onBack={() => setStep('T0')}
+                  onBack={() => router.push('/sama-naffa')}
                   onSuccess={handleT1Success}
                 />
                 {authPending && (
@@ -519,6 +543,7 @@ function OnboardingPageContent() {
           </AnimatePresence>
         </OnboardingStepContainer>
       </div>
+      <E0LegalFooter />
     </div>
   );
 }
@@ -530,9 +555,14 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
+  const wide = step === 'T1';
   return (
     <div
-      className={`my-auto w-full mx-auto px-4 py-6 md:py-8 transition-all ${step === 'T0' ? 'max-w-xl' : 'max-w-md'}`}
+      className={
+        wide
+          ? 'flex w-full max-w-none flex-1 flex-col px-0 py-0'
+          : 'my-auto mx-auto w-full max-w-md px-4 py-6 md:py-8'
+      }
     >
       {children}
     </div>

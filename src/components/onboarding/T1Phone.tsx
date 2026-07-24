@@ -224,16 +224,20 @@ export default function T1Phone({
       setSessionId(data.sessionId);
       setMockOtp(null);
       if (data.mockMode && data.sessionId) {
-        try {
-          const hintRes = await fetch('/api/auth/dev-mock-otp-hint', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ sessionId: data.sessionId }),
-          });
-          const hint = await hintRes.json();
-          if (hintRes.ok && hint.mockOtp) setMockOtp(hint.mockOtp);
-        } catch {
-          // dev-only
+        if (typeof data.mockOtp === 'string' && data.mockOtp) {
+          setMockOtp(data.mockOtp);
+        } else {
+          try {
+            const hintRes = await fetch('/api/auth/dev-mock-otp-hint', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId: data.sessionId }),
+            });
+            const hint = await hintRes.json();
+            if (hintRes.ok && hint.mockOtp) setMockOtp(hint.mockOtp);
+          } catch {
+            // dev-only
+          }
         }
       }
       setCountdown(60);
@@ -271,6 +275,16 @@ export default function T1Phone({
     const greetingName = firstName.trim() || 'toi';
     return (
       <div className="e1-shell">
+        <div className="e1-art" aria-hidden>
+          <Image
+            src="/figma/e1/kondanne-chests.png"
+            alt=""
+            width={1102}
+            height={830}
+            className="e1-art-img"
+            priority
+          />
+        </div>
         <div className="e1-otp">
           <h1 className="e1-title">
             {greetingName}, sécurise ton Kondanné
@@ -354,6 +368,17 @@ export default function T1Phone({
 
   return (
     <div className="e1-shell">
+      <div className="e1-art" aria-hidden>
+        <Image
+          src="/figma/e1/kondanne-chests.png"
+          alt=""
+          width={1102}
+          height={830}
+          className="e1-art-img"
+          priority
+        />
+      </div>
+
       <div className="e1-layout">
         <div className="e1-form-col">
           {onBack && (
@@ -565,17 +590,6 @@ export default function T1Phone({
               vous désinscrire à tout moment.
             </span>
           </label>
-        </div>
-
-        <div className="e1-art" aria-hidden>
-          <Image
-            src="/figma/e1/kondanne-chests.png"
-            alt=""
-            width={551}
-            height={415}
-            className="e1-art-img"
-            priority
-          />
         </div>
       </div>
     </div>

@@ -11,6 +11,8 @@ export const WhatsAppButton: React.FC = () => {
     pathname === '/' ||
     pathname === '/sama-naffa' ||
     pathname.startsWith('/sama-naffa/') ||
+    pathname === '/onboarding' ||
+    pathname.startsWith('/onboarding/') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/portal')
   ) {

@@ -30,8 +30,8 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | Badge | Frame | Node | App target | Status |
 |---|---|---|---|---|
 | E0 | Entrée | `12:302` | `/` landing page and marketing shell | Implement first |
-| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` simulator page | Aligned via Figma MCP Bridge (Desktop plugin) |
-| E1 | Numéro de téléphone | `10:1904` | `T1Phone` phone step | Aligned via Figma MCP Bridge |
+| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` (replaces old T0 simulator) | First product step before `/onboarding` |
+| E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Aligned via Figma MCP Bridge |
 | E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Aligned via Figma MCP Bridge |
 | E2 | Informations personnelles | `10:2048` | Profile fields | Existing Figma frame |
 | E3 | Project simulator | shared | `19:463`, reused by C4 | No dedicated E3 frame |

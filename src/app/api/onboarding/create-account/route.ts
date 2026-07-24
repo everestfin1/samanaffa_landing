@@ -130,6 +130,7 @@ export async function POST(request: NextRequest) {
           .orderBy(desc(otpCodes.createdAt))
           .limit(1);
         if (mockRow?.code) {
+          response.mockOtp = mockRow.code;
           logMockOtp('onboarding/create-account', session.id, mockRow.code);
         }
       }
