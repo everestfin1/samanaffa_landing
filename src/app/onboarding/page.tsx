@@ -14,6 +14,7 @@ import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
 import E6Payment from '@/components/onboarding/E6Payment';
+import E8Mandate from '@/components/onboarding/E8Mandate';
 import T6Dashboard from '@/components/onboarding/T6Dashboard';
 import { ensureOnboardingDepositReleased } from '@/lib/onboarding-deposit-release';
 import {
@@ -39,7 +40,7 @@ interface OnboardingState {
   wallet: string | null;
 }
 
-/** Momar flow: Nattukaay outside /onboarding; E1…E6 then dashboard. T3 = legacy quiz. */
+/** Momar flow: Nattukaay outside /onboarding; E1…E6 → E8 mandat → T6. T3 = legacy quiz. */
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
@@ -49,7 +50,8 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T4: 4,
   T5: 5,
   E6: 6,
-  T6: 7,
+  E8: 7,
+  T6: 8,
 };
 
 const DEFAULT_SIMULATION: T0Result = {
@@ -167,8 +169,10 @@ function OnboardingPageContent() {
         const resumeStep = p.step as OnboardingStep;
         if (resumeStep === 'T6' && p.kycApproved && p.depositAmount != null && p.formula) {
           setStep('T6');
+        } else if (resumeStep === 'E8' && p.kycApproved && p.depositAmount != null) {
+          setStep('E8');
         } else if (p.kycApproved && (resumeStep === 'T5' || resumeStep === 'E6')) {
-          // Post-KYC → payment picker (Momar 166:185) before dashboard.
+          // Post-KYC → payment picker (Momar 166:185) before mandat.
           setStep('E6');
         } else if (resumeStep === 'T0' || resumeStep === 'T1') {
           // Authenticated users never re-do phone; continue E2 personal info.
@@ -554,21 +558,45 @@ function OnboardingPageContent() {
                   initialAmount={state.depositAmount}
                   onBack={() => setStep('T5')}
                   onSkip={async () => {
-                    const saved = await saveProgress('T6', {
+                    const saved = await saveProgress('E8', {
                       depositAmount: state.depositAmount,
                       wallet: state.wallet,
                     });
                     if (!saved) return;
-                    setStep('T6');
+                    setStep('E8');
                   }}
                   onSuccess={async (amount, wallet) => {
                     setDepositReady(true);
-                    const saved = await saveProgress('T6', {
+                    const saved = await saveProgress('E8', {
                       depositAmount: amount,
                       wallet,
                     });
                     if (!saved) return;
                     setState((s) => ({ ...s, depositAmount: amount, wallet }));
+                    setStep('E8');
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {step === 'E8' && activeUserId && state.firstName && (
+              <motion.div
+                key="E8"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <E8Mandate
+                  firstName={state.firstName}
+                  onBack={() => setStep('E6')}
+                  onSuccess={async () => {
+                    const saved = await saveProgress('T6', {
+                      depositAmount: state.depositAmount,
+                      wallet: state.wallet,
+                    });
+                    if (!saved) return;
                     setStep('T6');
                   }}
                 />
@@ -612,7 +640,8 @@ function OnboardingStepContainer({
     step === 'E3' ||
     step === 'T4' ||
     step === 'T5' ||
-    step === 'E6';
+    step === 'E6' ||
+    step === 'E8';
   return (
     <div
       className={

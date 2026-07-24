@@ -39,7 +39,7 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | E5 | Vérification identité | `10:2317` | `T5KYC` — « protège ton Naffa » + Didit CTA | Progress card sibling `10:2344` during verifying |
 | E6 | Paiement | `166:185` | `E6Payment` — amount + moyens de paiement | Post-KYC; all methods via Intouch for now; Wave direct stub kept behind flag. Figma badge wrongly says E5 |
 | E7 | Not present | none | Infer only if required | Missing from Figma |
-| E8 | Mandat + signature | `10:2560` | Mandate/signature step | Existing Figma frame |
+| E8 | Mandat + signature | `10:2560` | `E8Mandate` — pad + CGSM checkbox → T6 | After E6; persists `users.signature` + `termsAccepted` via `/api/onboarding/mandate` |
 | E9 | Not present | none | Infer only if required | Missing from Figma |
 
 ## Portal frames

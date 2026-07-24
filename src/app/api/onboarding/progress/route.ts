@@ -11,7 +11,7 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 
-const STEPS: OnboardingStep[] = ['T0', 'T1', 'T2', 'E3', 'T3', 'T4', 'T5', 'E6', 'T6'];
+const STEPS: OnboardingStep[] = ['T0', 'T1', 'T2', 'E3', 'T3', 'T4', 'T5', 'E6', 'E8', 'T6'];
 
 function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);
@@ -88,7 +88,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
-    if (body.step === 'T6' && user.kycStatus !== 'APPROVED') {
+    if ((body.step === 'E8' || body.step === 'T6') && user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
         { error: 'La vérification d\'identité doit être approuvée avant de continuer' },
         { status: 403 },

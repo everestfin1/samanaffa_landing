@@ -7,10 +7,11 @@ export type OnboardingStep =
   | 'T4'
   | 'T5'
   | 'E6'
+  | 'E8'
   | 'T6';
 
-/** Momar visible steps: E1 → E2 → E3 → E4 → E5 → E6 pay → T6 (T3 quiz removed). */
-export const ONBOARDING_VISIBLE_STEPS = 7;
+/** Momar visible steps: E1 → E2 → E3 → E4 → E5 → E6 pay → E8 mandat → T6. */
+export const ONBOARDING_VISIBLE_STEPS = 8;
 
 /** @deprecated Quiz removed from Momar flow — kept for older imports. */
 export const ONBOARDING_QUIZ_QUESTIONS = 0;

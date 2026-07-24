@@ -8,6 +8,8 @@ interface SignaturePadProps {
   onChange: (dataUrl: string) => void;
   onClear?: () => void;
   className?: string;
+  /** Momar E8: hide heading, use Figma placeholder. */
+  variant?: 'default' | 'mandate';
 }
 
 export default function SignaturePad({
@@ -15,6 +17,7 @@ export default function SignaturePad({
   onChange,
   onClear,
   className = '',
+  variant = 'default',
 }: SignaturePadProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const isDrawingRef = useRef(false);
@@ -105,13 +108,27 @@ export default function SignaturePad({
     onClear?.();
   };
 
+  const isMandate = variant === 'mandate';
+
   return (
     <div className={className}>
-      <p className="text-base font-semibold text-night mb-3">Signez ci-dessous</p>
-      <div className="rounded-xl bg-timberwolf/25 p-3 relative">
+      {!isMandate && (
+        <p className="text-base font-semibold text-night mb-3">Signez ci-dessous</p>
+      )}
+      <div
+        className={
+          isMandate
+            ? 'e8-pad relative'
+            : 'rounded-xl bg-timberwolf/25 p-3 relative'
+        }
+      >
         <canvas
           ref={canvasRef}
-          className="w-full h-36 cursor-crosshair rounded-lg bg-white border border-timberwolf/25 relative z-10"
+          className={
+            isMandate
+              ? 'e8-pad-canvas relative z-10'
+              : 'w-full h-36 cursor-crosshair rounded-lg bg-white border border-timberwolf/25 relative z-10'
+          }
           onMouseDown={startDrawing}
           onMouseMove={draw}
           onMouseUp={stopDrawing}
@@ -123,19 +140,33 @@ export default function SignaturePad({
           aria-label="Zone de signature"
         />
         {!value && (
-          <div className="absolute inset-3 flex items-center justify-center pointer-events-none z-0">
-            <div className="text-center text-night/40">
-              <PencilIcon className="w-7 h-7 mx-auto mb-1" />
-              <p className="text-xs">Utilisez votre souris ou votre doigt pour signer</p>
-            </div>
+          <div
+            className={
+              isMandate
+                ? 'e8-pad-placeholder'
+                : 'absolute inset-3 flex items-center justify-center pointer-events-none z-0'
+            }
+          >
+            {isMandate ? (
+              <p className="e8-pad-placeholder-text">Signez ici</p>
+            ) : (
+              <div className="text-center text-night/40">
+                <PencilIcon className="w-7 h-7 mx-auto mb-1" />
+                <p className="text-xs">Utilisez votre souris ou votre doigt pour signer</p>
+              </div>
+            )}
           </div>
         )}
       </div>
-      <div className="flex justify-end mt-2">
+      <div className={isMandate ? 'e8-pad-clear' : 'flex justify-end mt-2'}>
         <button
           type="button"
           onClick={clear}
-          className="flex items-center gap-1 px-3 py-1.5 text-xs text-night/70 hover:text-night hover:bg-timberwolf/20 rounded-lg transition-colors"
+          className={
+            isMandate
+              ? 'e8-clear'
+              : 'flex items-center gap-1 px-3 py-1.5 text-xs text-night/70 hover:text-night hover:bg-timberwolf/20 rounded-lg transition-colors'
+          }
         >
           <TrashIcon className="w-4 h-4" />
           Effacer
