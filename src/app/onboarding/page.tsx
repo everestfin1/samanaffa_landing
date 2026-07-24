@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import T0Simulator, { T0Result } from '@/components/onboarding/T0Simulator';
-import T1Phone from '@/components/onboarding/T1Phone';
+import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2FirstName from '@/components/onboarding/T2FirstName';
 import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
@@ -232,8 +232,16 @@ function OnboardingPageContent() {
     displayPhone: string,
     countryCode: string,
     sessionToken: string,
+    profile: T1ProfileDraft,
   ) => {
-    const next: Partial<OnboardingState> = { userId, phone, displayPhone, countryCode };
+    const next: Partial<OnboardingState> = {
+      userId,
+      phone,
+      displayPhone,
+      countryCode,
+      firstName: profile.firstName || null,
+      referralCode: profile.referralCode,
+    };
     setState((s) => ({ ...s, ...next }));
     setAuthPending(true);
     try {
@@ -246,8 +254,35 @@ function OnboardingPageContent() {
         router.push(`/login?callbackUrl=${encodeURIComponent('/onboarding')}&message=auto_login_failed`);
         return;
       }
-      const saved = await saveProgress('T2', next);
-      if (saved) setStep('T2');
+
+      // Momar E1 collects identity before OTP — persist after session is live.
+      if (profile.firstName) {
+        try {
+          await fetch('/api/onboarding/profile', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              firstName: profile.firstName,
+              lastName: profile.lastName || undefined,
+              referralCode: profile.referralCode,
+            }),
+          });
+        } catch {
+          // Non-blocking — T2 can still collect the name if needed
+        }
+      }
+
+      if (profile.firstName) {
+        const saved = await saveProgress('T3', {
+          ...next,
+          firstName: profile.firstName,
+          referralCode: profile.referralCode,
+        });
+        if (saved) setStep('T3');
+      } else {
+        const saved = await saveProgress('T2', next);
+        if (saved) setStep('T2');
+      }
     } catch {
       router.push('/login?message=auto_login_failed');
     } finally {
@@ -264,7 +299,7 @@ function OnboardingPageContent() {
   }
 
   return (
-    <div className="flex flex-col min-h-[calc(100dvh-4rem)] md:min-h-[calc(100dvh-8rem)] bg-linear-to-br from-timberwolf/10 to-white overflow-x-hidden">
+    <div className="flex flex-col min-h-[calc(100dvh-4rem)] md:min-h-[calc(100dvh-8rem)] bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
       <AnimatePresence>
         {showProgress && (
           <motion.div
