@@ -41,12 +41,13 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | E7 | Not present | none | Infer only if required | Missing from Figma |
 | E8 | Mandat + signature | `10:2560` | `E8Mandate` — pad + CGSM checkbox → T6 | After E6; persists `users.signature` + `termsAccepted` via `/api/onboarding/mandate` |
 | E9 | Not present | none | Infer only if required | Missing from Figma |
+| T6 | Success handoff | none (→ C1 `10:2754`) | `T6Dashboard` — « ton Naffa est prêt » → portal | No Momar celebration frame; branded bridge into C1 |
 
 ## Portal frames
 
 | Badge | Frame | Node | App target | Notes |
 |---|---|---|---|---|
-| C1 | Tableau de bord | `10:2754` | `/portal/dashboard` | KYC status banner |
+| C1 | Tableau de bord | `10:2754` | `C1Dashboard` + Momar `PortalHeader` | Full-bleed `dashboard-bg.jpg` via `C1PageBackground` (`object-fit: cover`); cards over left |
 | C2 | Liste Kondanne | `124:43007` | `/portal/sama-naffa` | Empty design shell; infer from detail |
 | C2 | Détail Kondanne | `10:2878` | Kondanné detail | Balance, stats, actions, history |
 | C3 | Alimenter | `10:2977` | Deposit subflow | Amount and payment |

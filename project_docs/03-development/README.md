@@ -13,6 +13,8 @@ Developer guides, setup instructions, and technical implementation details.
 | [05-admin-dashboard.md](./05-admin-dashboard.md) | Configurable `/admin` bento dashboard |
 | [06-drizzle-migration-tracker.md](./06-drizzle-migration-tracker.md) | Prisma shim → native Drizzle progress |
 | [07-git-workflow.md](./07-git-workflow.md) | Branches, remotes, commits, archives |
+| [momar-figma-map.md](./momar-figma-map.md) | Momar Figma → app screen map (E0–C8) |
+| [momar-agent-handover.md](./momar-agent-handover.md) | Agent handover for Momar redesign (T6/C1 done; C2+ next) |
 
 ## Quick Start
 

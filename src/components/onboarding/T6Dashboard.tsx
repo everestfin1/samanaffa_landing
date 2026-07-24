@@ -4,27 +4,32 @@ import { formatCurrency } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { motion } from 'framer-motion';
-import Confetti from 'react-confetti';
-import { useState, useEffect } from 'react';
-import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
 
 interface T6DashboardProps {
   firstName: string;
   depositAmount: number;
   formula: string;
+  kondanneName?: string | null;
   /** When false, KYC is approved but deposit intent release may still be syncing (ONB-047). */
   depositReady?: boolean;
 }
 
+/**
+ * Momar has no dedicated T6 frame — after E8 the Figma flow lands on C1.
+ * This step is a branded handoff into `/portal/dashboard`.
+ */
 export default function T6Dashboard({
   firstName,
   depositAmount,
   formula,
+  kondanneName,
   depositReady = true,
 }: T6DashboardProps) {
   const router = useRouter();
   const { status: sessionStatus } = useSession();
-  const [showConfetti, setShowConfetti] = useState(true);
+
+  const greetingName = firstName.trim() || 'toi';
+  const projectLabel = kondanneName?.trim() || formula;
 
   const goToPortal = () => {
     if (sessionStatus === 'authenticated') {
@@ -33,102 +38,83 @@ export default function T6Dashboard({
     }
     router.push(`/login?callbackUrl=${encodeURIComponent('/portal/dashboard')}`);
   };
-  const [windowSize, setWindowSize] = useState({ width: 0, height: 0 });
-
-  useEffect(() => {
-    setWindowSize({ width: window.innerWidth, height: window.innerHeight });
-    const timer = setTimeout(() => setShowConfetti(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
 
   const shareViaWhatsApp = () => {
     const text = encodeURIComponent(
-      `Salut ! Je viens de rejoindre Sama Naffa pour épargner intelligemment. Rejoins-moi : https://samanaffa.com`
+      `Salut ! Je viens de rejoindre Sama Naffa pour épargner intelligemment. Rejoins-moi : https://samanaffa.com`,
     );
     window.open(`https://wa.me/?text=${text}`, '_blank');
   };
 
   return (
-    <div className="max-w-md mx-auto px-4 py-12">
-      {showConfetti && <Confetti width={windowSize.width} height={windowSize.height} recycle={false} numberOfPieces={200} colors={['#FFD700', '#1CB5E0', '#FF7900']} />}
-      
-      <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: 'spring', stiffness: 260, damping: 20 }}
-      >
-        <OnboardingStepHeader
-          title={`Bienvenue chez Sama Naffa, ${firstName} !`}
-          description="Votre compte est créé. Voici où vous en êtes."
-        />
-      </motion.div>
+    <div className="e1-shell t6-shell">
+      <div className="e1-layout t6-layout">
+        <div className="t6-col">
+          <motion.h1
+            className="e1-title t6-title"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35 }}
+          >
+            {greetingName}, ton Naffa est prêt
+          </motion.h1>
 
-      <div className="space-y-4">
-        {/* Deposit Status Card */}
-        <motion.div 
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-          className="bg-white border border-timberwolf/30 rounded-2xl p-5 flex items-start gap-4 shadow-sm"
-        >
-          <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-            <span className="text-xl">⏳</span>
-          </div>
-          <div className="flex-1">
-            <div className="flex justify-between items-start mb-1">
-              <h3 className="font-bold text-night">Versement programmé</h3>
+          <motion.p
+            className="t6-lead"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.35, delay: 0.05 }}
+          >
+            Compte ouvert, mandat signé. Voici où tu en es.
+          </motion.p>
+
+          <motion.div
+            className="t6-card"
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 }}
+          >
+            <div className="t6-row">
+              <span className="t6-label">Kondanné</span>
+              <span className="t6-value">{projectLabel}</span>
+            </div>
+            <div className="t6-row">
+              <span className="t6-label">Versement</span>
+              <span className="t6-value">{formatCurrency(depositAmount)} FCFA</span>
+            </div>
+            <div className="t6-row t6-row--last">
+              <span className="t6-label">Statut</span>
               <span
-                className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
-                  depositReady
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-amber-100 text-amber-800'
-                }`}
+                className={
+                  depositReady ? 't6-status t6-status--ready' : 't6-status t6-status--pending'
+                }
               >
-                {depositReady ? 'Prêt' : 'En préparation'}
+                {depositReady ? 'Prêt à confirmer' : 'En préparation'}
               </span>
             </div>
-            <p className="text-sm text-night/60 mb-2">
-              {formatCurrency(depositAmount)} FCFA vers {formula}
-            </p>
-            <p className="text-xs text-night/40 italic">
+            <p className="t6-hint">
               {depositReady
-                ? 'Identité validée. Confirmez ce versement via Intouch depuis votre tableau de bord Sama Naffa.'
-                : 'Identité validée. Votre versement programmé est en cours de finalisation — ouvrez Sama Naffa dans quelques instants pour le confirmer via Intouch.'}
+                ? 'Confirme ton versement via Intouch depuis ton tableau de bord.'
+                : 'Ton versement programmé finalise — ouvre le tableau de bord dans un instant.'}
             </p>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        {/* Referral CTA */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="mt-8 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-6 text-center shadow-sm"
-        >
-          <span className="text-4xl mb-3 block">🎁</span>
-          <h3 className="font-bold text-green-900 mb-2">Invitez vos proches</h3>
-          <p className="text-sm text-green-800/80 mb-4">
-            Partagez Sama Naffa avec vos amis et votre famille.
-          </p>
-          <button 
-            onClick={shareViaWhatsApp}
-            className="w-full bg-[#25D366] hover:bg-[#25D366]/90 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm"
+          <motion.button
+            type="button"
+            className="e1-cta t6-cta"
+            onClick={goToPortal}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.2 }}
           >
-            <span>Partager sur WhatsApp</span>
-          </button>
-        </motion.div>
-      </div>
+            Voir mon tableau de bord
+          </motion.button>
 
-      <motion.button
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        onClick={goToPortal}
-        className="group relative w-full mt-8 px-8 py-4 bg-gradient-to-r from-[#344925] to-[#435933] hover:from-[#2a3a1e] hover:to-[#364529] text-white font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.98] flex items-center justify-center gap-3 overflow-hidden"
-      >
-        <span className="relative z-10">Aller au tableau de bord complet</span>
-        <span className="relative z-10 group-hover:translate-x-1 transition-transform duration-300">→</span>
-      </motion.button>
+          <button type="button" className="t6-share" onClick={shareViaWhatsApp}>
+            Partager avec un proche
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

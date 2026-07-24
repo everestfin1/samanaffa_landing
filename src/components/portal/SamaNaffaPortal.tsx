@@ -17,10 +17,8 @@ import TransferModal from '../modals/TransferModal';
 import CreateNaffaModal from '../modals/CreateNaffaModal';
 import NaffaCardStack from '@/components/portal/NaffaCardStack';
 import PendingOnboardingDepositCard from '@/components/portal/PendingOnboardingDepositCard';
-import ProfileCompletionModal from '@/components/portal/ProfileCompletionModal';
 import { usePendingOnboardingDeposit } from '@/hooks/usePendingOnboardingDeposit';
 import { useUserProfile } from '@/hooks/useUserProfile';
-import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 import { buildNaffaAccountPayload, NaffaPlanInput } from '@/lib/naffa-plan';
 import { formatDateShortFrench, getRelativeTimeFrench, getStatusLabelFrench, getTransactionTypeLabelFrench } from '@/lib/dateUtils';
 import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
@@ -196,28 +194,9 @@ export default function SamaNaffaPortal({
   const { data: session } = useSession();
   const userId = useMemo(() => (session?.user as any)?.id ?? null, [session]);
   const { data: profileData } = useUserProfile();
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [isProfileIncomplete, setIsProfileIncomplete] = useState(false);
 
-  useEffect(() => {
-    if (!profileData) return;
-    const done =
-      profileData.profileCompletionStatus === 'COMPLETE' ||
-      meetsPortalCommunicationsRequirements(profileData);
-    if (done) {
-      setIsProfileIncomplete(false);
-      setShowProfileModal(false);
-      return;
-    }
-    setIsProfileIncomplete(true);
-    if (autoConfirmDeposit) {
-      setShowProfileModal(true);
-    }
-  }, [profileData, autoConfirmDeposit]);
-
-  const profileReady = profileData != null;
-  const canAutoConfirmDeposit =
-    autoConfirmDeposit && profileReady && !isProfileIncomplete;
+  // Momar onboarding already collected mandate/terms; no profile-completion gate.
+  const canAutoConfirmDeposit = autoConfirmDeposit && profileData != null;
 
   const {
     pendingDeposit,
@@ -554,13 +533,7 @@ export default function SamaNaffaPortal({
         <PendingOnboardingDepositCard
           intent={pendingDeposit}
           autoOpenConfirm={canAutoConfirmDeposit}
-          onBeforeConfirm={() => {
-            if (isProfileIncomplete) {
-              setShowProfileModal(true);
-              return false;
-            }
-            return true;
-          }}
+          onBeforeConfirm={() => true}
           onUpdated={refreshPendingDeposit}
           onCancelled={clearPending}
           onPaymentComplete={async () => {
@@ -827,21 +800,6 @@ export default function SamaNaffaPortal({
         errorMessage={creationFeedback?.type === 'error' ? creationFeedback.message : null}
       />
 
-      <ProfileCompletionModal
-        isOpen={showProfileModal}
-        onClose={() => setShowProfileModal(false)}
-        dismissible={!isProfileIncomplete}
-        initialData={
-          profileData
-            ? {
-                email: profileData.email,
-                termsAccepted: profileData.termsAccepted,
-                privacyAccepted: profileData.privacyAccepted,
-                marketingAccepted: profileData.marketingAccepted,
-              }
-            : undefined
-        }
-      />
     </div>
   );
 }

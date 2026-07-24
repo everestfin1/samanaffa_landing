@@ -36,6 +36,8 @@ interface PortalHeaderProps {
   activeTab: ActiveTab;
   setActiveTab?: (tab: ActiveTab) => void; // Made optional since we'll use navigation
   onLogout: () => void;
+  /** Momar C1 chrome: flatter white bar, compact height. */
+  variant?: 'default' | 'momar';
 }
 
 export default function PortalHeader({
@@ -43,7 +45,8 @@ export default function PortalHeader({
   kycStatus,
   activeTab,
   setActiveTab,
-  onLogout
+  onLogout,
+  variant = 'default',
 }: PortalHeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -156,12 +159,26 @@ export default function PortalHeader({
     closeUserDropdown();
   };
 
+  const isMomar = variant === 'momar';
+
   return (
     <>
-    <header className="bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg sticky top-0 z-50 transition-all duration-300">
+    <header
+      className={
+        isMomar
+          ? 'portal-header-momar sticky top-0 z-50 transition-all duration-300'
+          : 'bg-white/80 backdrop-blur-md border-b border-white/20 shadow-lg sticky top-0 z-50 transition-all duration-300'
+      }
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Desktop Layout */}
-        <div className="hidden md:flex md:items-center md:justify-between h-32 relative">
+        <div
+          className={
+            isMomar
+              ? 'hidden md:flex md:items-center md:justify-between h-[4.25rem] relative'
+              : 'hidden md:flex md:items-center md:justify-between h-32 relative'
+          }
+        >
           {/* Desktop Navigation - Left Side */}
           <div className="flex items-center flex-1 min-w-0 mr-4">
             {/* Hamburger Menu Button */}
@@ -231,8 +248,8 @@ export default function PortalHeader({
               <Image
                 src="/sama_naffa_logo.png"
                 alt="Sama Naffa"
-                width={180}
-                height={72}
+                width={isMomar ? 96 : 180}
+                height={isMomar ? 48 : 72}
                 priority
               />
             </button>
@@ -252,7 +269,13 @@ export default function PortalHeader({
                 aria-expanded={isUserDropdownOpen}
                 aria-haspopup="true"
               >
-                <div className="w-8 h-8 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0">
+                <div
+                  className={
+                    isMomar
+                      ? 'w-[34px] h-[34px] bg-[#2e4620] rounded-full flex items-center justify-center flex-shrink-0'
+                      : 'w-8 h-8 bg-sama-primary-green rounded-full flex items-center justify-center flex-shrink-0'
+                  }
+                >
                   <span className="text-white font-semibold text-sm">
                     {userData.firstName.charAt(0)}{userData.lastName.charAt(0)}
                   </span>
@@ -261,7 +284,7 @@ export default function PortalHeader({
                   <span className="text-sm font-medium text-night truncate">
                     {userData.firstName}
                   </span>
-                  <span className="text-xs text-night/50 truncate">Mon compte</span>
+                  <span className="text-xs text-[#9aa091] truncate">Mon compte</span>
                 </div>
                 <svg 
                   className={`w-4 h-4 transition-transform hidden lg:block ${isUserDropdownOpen ? 'rotate-180' : ''}`} 

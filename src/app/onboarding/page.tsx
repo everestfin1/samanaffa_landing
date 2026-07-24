@@ -606,15 +606,17 @@ function OnboardingPageContent() {
             {step === 'T6' && state.firstName && state.depositAmount && state.formula && (
               <motion.div
                 key="T6"
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: 'easeOut' }}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
                 className="w-full"
               >
                 <T6Dashboard
                   firstName={state.firstName}
                   depositAmount={state.depositAmount}
                   formula={state.formula}
+                  kondanneName={state.simulation?.kondanneName}
                   depositReady={depositReady}
                 />
               </motion.div>
@@ -641,7 +643,8 @@ function OnboardingStepContainer({
     step === 'T4' ||
     step === 'T5' ||
     step === 'E6' ||
-    step === 'E8';
+    step === 'E8' ||
+    step === 'T6';
   return (
     <div
       className={
