@@ -71,8 +71,12 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Non authentifié' }, { status: 401 });
     }
 
-    const { amount } = await request.json();
-    const numericAmount = typeof amount === 'string' ? parseFloat(amount) : Number(amount);
+    const body = (await request.json()) as {
+      amount?: number | string;
+      paymentMethod?: string;
+    };
+    const numericAmount =
+      typeof body.amount === 'string' ? parseFloat(body.amount) : Number(body.amount);
     if (!Number.isFinite(numericAmount) || numericAmount < 1000) {
       return NextResponse.json({ error: 'Montant invalide (minimum 1 000 FCFA)' }, { status: 400 });
     }
@@ -91,12 +95,20 @@ export async function PATCH(request: NextRequest) {
       new Date(),
     );
 
+    const paymentMethod =
+      typeof body.paymentMethod === 'string' && body.paymentMethod.trim()
+        ? body.paymentMethod.trim().toLowerCase()
+        : undefined;
+
     const [updated] = await db
       .update(transactionIntents)
       .set({
         amount: numericAmount.toFixed(2),
         referenceNumber,
-        adminNotes: 'Montant modifié par l\'utilisateur (onboarding)',
+        ...(paymentMethod ? { paymentMethod } : {}),
+        adminNotes: paymentMethod
+          ? `Moyen de paiement choisi (onboarding E6): ${paymentMethod}`
+          : "Montant modifié par l'utilisateur (onboarding)",
       })
       .where(eq(transactionIntents.id, intent.id))
       .returning();

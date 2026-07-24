@@ -11,7 +11,7 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 
-const STEPS: OnboardingStep[] = ['T0', 'T1', 'T2', 'E3', 'T3', 'T4', 'T5', 'T6'];
+const STEPS: OnboardingStep[] = ['T0', 'T1', 'T2', 'E3', 'T3', 'T4', 'T5', 'E6', 'T6'];
 
 function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);

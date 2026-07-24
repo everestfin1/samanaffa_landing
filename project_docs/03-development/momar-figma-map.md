@@ -37,11 +37,10 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | E3 | Créer un Kondanné | `10:3058` (C4 reprend E3) | `E3CreateKondanne` — name + project + CTA | After E2 → E4 (no quiz; default Formule Équilibre) |
 | E4 | Premier versement | `10:2230` | `T4Deposit` — amount + Je continue | Aligned via Figma MCP Bridge |
 | E5 | Vérification identité | `10:2317` | `T5KYC` — « protège ton Naffa » + Didit CTA | Progress card sibling `10:2344` during verifying |
-| E6 | Not present | none | Infer only if required | Missing from Figma |
+| E6 | Paiement | `166:185` | `E6Payment` — amount + moyens de paiement | Post-KYC; all methods via Intouch for now; Wave direct stub kept behind flag. Figma badge wrongly says E5 |
 | E7 | Not present | none | Infer only if required | Missing from Figma |
 | E8 | Mandat + signature | `10:2560` | Mandate/signature step | Existing Figma frame |
 | E9 | Not present | none | Infer only if required | Missing from Figma |
-| E5 label collision | Paiement Intouch | `166:185` | Payment step | Content indicates payment; badge is likely wrong |
 
 ## Portal frames
 

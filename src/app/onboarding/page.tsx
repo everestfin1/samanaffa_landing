@@ -13,6 +13,7 @@ import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
 import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E3CreateKondanne';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
+import E6Payment from '@/components/onboarding/E6Payment';
 import T6Dashboard from '@/components/onboarding/T6Dashboard';
 import { ensureOnboardingDepositReleased } from '@/lib/onboarding-deposit-release';
 import {
@@ -38,7 +39,7 @@ interface OnboardingState {
   wallet: string | null;
 }
 
-/** Momar flow: Nattukaay outside /onboarding; E1…E5 then dashboard. T3 = legacy quiz. */
+/** Momar flow: Nattukaay outside /onboarding; E1…E6 then dashboard. T3 = legacy quiz. */
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
@@ -47,7 +48,8 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T3: 4, // remapped to T4 on resume
   T4: 4,
   T5: 5,
-  T6: 6,
+  E6: 6,
+  T6: 7,
 };
 
 const DEFAULT_SIMULATION: T0Result = {
@@ -163,8 +165,11 @@ function OnboardingPageContent() {
         }));
 
         const resumeStep = p.step as OnboardingStep;
-        if (p.kycApproved && p.depositAmount != null && p.formula) {
+        if (resumeStep === 'T6' && p.kycApproved && p.depositAmount != null && p.formula) {
           setStep('T6');
+        } else if (p.kycApproved && (resumeStep === 'T5' || resumeStep === 'E6')) {
+          // Post-KYC → payment picker (Momar 166:185) before dashboard.
+          setStep('E6');
         } else if (resumeStep === 'T0' || resumeStep === 'T1') {
           // Authenticated users never re-do phone; continue E2 personal info.
           setStep('T2');
@@ -522,24 +527,48 @@ function OnboardingPageContent() {
                     const { ready } = await ensureOnboardingDepositReleased();
                     setDepositReady(ready);
 
-                    const res = await fetch('/api/onboarding/progress', {
-                      method: 'PATCH',
-                      headers: { 'Content-Type': 'application/json' },
-                      body: JSON.stringify({
-                        step: 'T6',
-                        firstName: state.firstName,
-                        formula: state.formula,
-                        depositAmount: state.depositAmount,
-                        wallet: state.wallet,
-                      }),
+                    const saved = await saveProgress('E6', {
+                      depositAmount: state.depositAmount,
+                      wallet: state.wallet,
                     });
-                    if (!res.ok) {
-                      const data = await res.json().catch(() => ({}));
-                      throw new Error(
-                        (data as { error?: string }).error ||
-                          'Impossible de passer à l\'étape finale',
-                      );
+                    if (!saved) {
+                      throw new Error('Impossible de passer au paiement');
                     }
+                    setStep('E6');
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {step === 'E6' && activeUserId && state.firstName && state.depositAmount && (
+              <motion.div
+                key="E6"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <E6Payment
+                  firstName={state.firstName}
+                  initialAmount={state.depositAmount}
+                  onBack={() => setStep('T5')}
+                  onSkip={async () => {
+                    const saved = await saveProgress('T6', {
+                      depositAmount: state.depositAmount,
+                      wallet: state.wallet,
+                    });
+                    if (!saved) return;
+                    setStep('T6');
+                  }}
+                  onSuccess={async (amount, wallet) => {
+                    setDepositReady(true);
+                    const saved = await saveProgress('T6', {
+                      depositAmount: amount,
+                      wallet,
+                    });
+                    if (!saved) return;
+                    setState((s) => ({ ...s, depositAmount: amount, wallet }));
                     setStep('T6');
                   }}
                 />
@@ -577,7 +606,13 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
-  const wide = step === 'T1' || step === 'T2' || step === 'E3' || step === 'T4' || step === 'T5';
+  const wide =
+    step === 'T1' ||
+    step === 'T2' ||
+    step === 'E3' ||
+    step === 'T4' ||
+    step === 'T5' ||
+    step === 'E6';
   return (
     <div
       className={

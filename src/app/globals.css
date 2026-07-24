@@ -1188,6 +1188,150 @@ video {
   margin-top: 0.25rem;
 }
 
+/* —— E6 Paiement (Momar 166:185) —— */
+.e6-shell {
+  min-height: min(40rem, calc(100dvh - 11rem));
+  align-items: flex-start;
+  padding-top: clamp(2.5rem, 6vw, 3.75rem);
+}
+
+.e6-layout {
+  width: 100%;
+}
+
+.e6-col {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.e6-back {
+  align-self: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.e6-title {
+  margin: 0 0 1.5rem;
+  max-width: 28rem;
+  font-size: clamp(1.75rem, 3.8vw, 2.375rem);
+  letter-spacing: -0.92px;
+  color: var(--sama-forest);
+}
+
+.e6-card {
+  width: 100%;
+  max-width: 578px;
+  padding: 2rem 2.125rem 1.5rem;
+  text-align: left;
+}
+
+.e6-field {
+  margin-bottom: 0.55rem;
+}
+
+.e6-input {
+  min-height: 54px;
+}
+
+.e6-hint {
+  margin: 0;
+  font-size: 0.78125rem;
+  color: #9aa091;
+}
+
+.e6-methods-title {
+  margin: 2.25rem 0 1.15rem;
+  font-size: 1.25rem;
+  font-weight: 400;
+  color: #1a1a1a;
+}
+
+.e6-methods {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+}
+
+.e6-method {
+  display: inline-flex;
+  width: 62px;
+  height: 62px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 14px;
+  background: transparent;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.e6-method:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgb(30 40 20 / 12%);
+}
+
+.e6-method.is-selected {
+  border-color: var(--sama-forest);
+}
+
+.e6-method:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.e6-method-icon {
+  display: block;
+  width: 62px;
+  height: 62px;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
+.e6-error {
+  margin-top: 1.25rem;
+}
+
+.e6-status {
+  margin: 1rem 0 0;
+  font-size: 0.875rem;
+  color: #8a8f80;
+}
+
+.e6-skip {
+  margin-top: 1.75rem;
+  border: 0;
+  background: transparent;
+  color: #6b7164;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.e6-skip:hover:not(:disabled) {
+  color: var(--sama-forest);
+}
+
+.e6-intouch {
+  width: 100%;
+  max-width: 32rem;
+  padding: 1.5rem;
+  border-radius: 22px;
+  background: var(--sama-white);
+  box-shadow: 0 20px 50px rgb(30 40 20 / 8%);
+  text-align: left;
+}
+
 /* —— E5 Vérification identité (Momar 10:2317 / 10:2344) —— */
 .e5-shell {
   min-height: min(40rem, calc(100dvh - 11rem));
