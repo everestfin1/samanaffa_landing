@@ -151,7 +151,7 @@ export default function C1Dashboard({
         {pendingDepositAmount != null && pendingDepositAmount > 0 && (
           <div className="c1-deposit-banner">
             <p>
-              Premier versement à confirmer · {formatCurrency(pendingDepositAmount)} FCFA
+              Premier versement à confirmer · {formatCurrency(pendingDepositAmount)}
             </p>
             <button type="button" className="c1-deposit-action" onClick={onConfirmDeposit}>
               Confirmer

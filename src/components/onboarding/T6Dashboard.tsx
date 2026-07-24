@@ -80,7 +80,7 @@ export default function T6Dashboard({
             </div>
             <div className="t6-row">
               <span className="t6-label">Versement</span>
-              <span className="t6-value">{formatCurrency(depositAmount)} FCFA</span>
+              <span className="t6-value">{formatCurrency(depositAmount)}</span>
             </div>
             <div className="t6-row t6-row--last">
               <span className="t6-label">Statut</span>

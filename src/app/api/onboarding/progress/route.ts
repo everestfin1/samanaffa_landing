@@ -17,11 +17,83 @@ function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);
 }
 
+const STEP_ORDER: Record<OnboardingStep, number> = {
+  T0: 0,
+  T1: 1,
+  T2: 2,
+  E3: 3,
+  T3: 4,
+  T4: 4,
+  T5: 5,
+  E6: 6,
+  E8: 7,
+  T6: 8,
+};
+
+const ALLOWED_TRANSITIONS: Partial<Record<OnboardingStep, OnboardingStep[]>> = {
+  T1: ['T2'],
+  T2: ['E3'],
+  E3: ['T4'],
+  T3: ['T4'],
+  T4: ['T5'],
+  T5: ['E6'],
+  E6: ['E8'],
+  E8: ['T6'],
+};
+
+const MAX_STRING_LEN = 500;
+const MIN_DEPOSIT = 1_000;
+
+function isValidTransition(
+  from: OnboardingStep | null,
+  to: OnboardingStep,
+): boolean {
+  if (!from) return true;
+  if (from === to) return true;
+  const allowed = ALLOWED_TRANSITIONS[from];
+  if (allowed && allowed.includes(to)) return true;
+  if (STEP_ORDER[to] > STEP_ORDER[from]) return true;
+  return false;
+}
+
+function validatePatchBody(body: Partial<OnboardingProgressPayload>): string | null {
+  if (body.depositAmount !== undefined && body.depositAmount !== null) {
+    if (typeof body.depositAmount !== 'number' || !Number.isFinite(body.depositAmount)) {
+      return 'Montant de versement invalide';
+    }
+    if (body.depositAmount < MIN_DEPOSIT) {
+      return `Le versement minimum est de ${MIN_DEPOSIT.toLocaleString('fr-FR')} FCFA`;
+    }
+  }
+  if (body.wallet !== undefined && body.wallet !== null) {
+    if (typeof body.wallet !== 'string' || body.wallet.length > MAX_STRING_LEN) {
+      return 'Portefeuille invalide';
+    }
+  }
+  if (body.formula !== undefined && body.formula !== null) {
+    if (typeof body.formula !== 'string' || body.formula.length > MAX_STRING_LEN) {
+      return 'Formule invalide';
+    }
+  }
+  if (body.referralCode !== undefined && body.referralCode !== null) {
+    if (typeof body.referralCode !== 'string' || body.referralCode.length > 100) {
+      return 'Code de parrainage invalide';
+    }
+  }
+  if (body.firstName !== undefined && body.firstName !== null) {
+    if (typeof body.firstName !== 'string' || body.firstName.length > 200) {
+      return 'Prénom invalide';
+    }
+  }
+  return null;
+}
+
 const progressSelect = {
   id: users.id,
   firstName: users.firstName,
   investorProfile: users.investorProfile,
   kycStatus: users.kycStatus,
+  termsAccepted: users.termsAccepted,
 };
 
 export async function GET() {
@@ -74,11 +146,17 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Étape invalide' }, { status: 400 });
     }
 
+    const validationError = validatePatchBody(body);
+    if (validationError) {
+      return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
     const [user] = await db
       .select({
         investorProfile: users.investorProfile,
         firstName: users.firstName,
         kycStatus: users.kycStatus,
+        termsAccepted: users.termsAccepted,
       })
       .from(users)
       .where(eq(users.id, session.user.id))
@@ -88,11 +166,54 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Utilisateur introuvable' }, { status: 404 });
     }
 
+    const currentProgress = readOnboardingProgress(user.investorProfile);
+    const currentStep = currentProgress.step ?? null;
+
+    if (!isValidTransition(currentStep, body.step)) {
+      return NextResponse.json(
+        { error: `Transition invalide: ${currentStep ?? '—'} → ${body.step}` },
+        { status: 403 },
+      );
+    }
+
     if ((body.step === 'E8' || body.step === 'T6') && user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
         { error: 'La vérification d\'identité doit être approuvée avant de continuer' },
         { status: 403 },
       );
+    }
+
+    if (body.step === 'T6') {
+      if (!user.termsAccepted) {
+        return NextResponse.json(
+          { error: 'Le mandat (CGSM) doit être accepté avant de finaliser' },
+          { status: 403 },
+        );
+      }
+      const effectiveDeposit = body.depositAmount ?? currentProgress.depositAmount;
+      const effectiveFormula = body.formula ?? currentProgress.formula;
+      if (effectiveDeposit == null || effectiveDeposit < MIN_DEPOSIT) {
+        return NextResponse.json(
+          { error: 'Un versement valide est requis pour finaliser' },
+          { status: 403 },
+        );
+      }
+      if (!effectiveFormula) {
+        return NextResponse.json(
+          { error: 'Une formule est requise pour finaliser' },
+          { status: 403 },
+        );
+      }
+    }
+
+    if (body.step === 'E6' || body.step === 'E8') {
+      const effectiveDeposit = body.depositAmount ?? currentProgress.depositAmount;
+      if (effectiveDeposit == null || effectiveDeposit < MIN_DEPOSIT) {
+        return NextResponse.json(
+          { error: 'Un versement valide est requis à cette étape' },
+          { status: 403 },
+        );
+      }
     }
 
     const onboardingPatch: Partial<OnboardingProgressPayload> = { step: body.step };

@@ -97,6 +97,31 @@ export const useAllUserAccounts = () => {
   });
 };
 
+// Hook for getting all Sama Naffa accounts (server-filtered)
+export const useSamaNaffaAccounts = () => {
+  return useQuery({
+    queryKey: ['samaNaffaAccounts'],
+    queryFn: async (): Promise<UserAccount[]> => {
+      const response = await fetch('/api/accounts?accountType=SAMA_NAFFA&limit=100');
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch Sama Naffa accounts');
+      }
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.error || 'Failed to fetch Sama Naffa accounts');
+      }
+
+      return data.accounts || [];
+    },
+    staleTime: 2 * 60 * 1000,
+    gcTime: 5 * 60 * 1000,
+    retry: 3,
+  });
+};
+
 // Mutation hook for creating a new account
 export const useCreateAccount = () => {
   const queryClient = useQueryClient();

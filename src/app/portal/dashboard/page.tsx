@@ -3,14 +3,16 @@
 import { useSession, signOut } from 'next-auth/react';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useRecentTransactions } from '../../../hooks/useTransactions';
-import { useAllUserAccounts } from '../../../hooks/useAccounts';
+import { useSamaNaffaAccounts } from '../../../hooks/useAccounts';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import C1Dashboard from '../../../components/portal/C1Dashboard';
 import C1PageBackground from '../../../components/portal/C1PageBackground';
 import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
+import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
+import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -20,6 +22,7 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [showKycModal, setShowKycModal] = useState(false);
   const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
+  const [profileDismissed, setProfileDismissed] = useState(false);
 
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const {
@@ -28,10 +31,10 @@ export default function DashboardPage() {
     error: transactionsError,
   } = useRecentTransactions(userData?.id || '', 5);
   const {
-    data: accounts = [],
+    data: samaAccounts = [],
     isLoading: isLoadingAccounts,
     error: accountsError,
-  } = useAllUserAccounts();
+  } = useSamaNaffaAccounts();
 
   useEffect(() => {
     document.documentElement.classList.add('c1-dashboard');
@@ -65,17 +68,16 @@ export default function DashboardPage() {
     };
   }, [userData]);
 
-  const samaAccounts = useMemo(
-    () =>
-      accounts.filter(
-        (a) => a.accountType === 'SAMA_NAFFA' || a.accountType === 'sama_naffa',
-      ),
-    [accounts],
-  );
-
   const isLoading = isLoadingProfile || isLoadingTransactions || isLoadingAccounts;
   const error =
     profileError?.message || transactionsError?.message || accountsError?.message || '';
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) {
+      router.push('/login');
+    }
+  }, [status, session, router]);
 
   if (status === 'loading') {
     return (
@@ -87,7 +89,6 @@ export default function DashboardPage() {
   }
 
   if (!session) {
-    router.push('/login');
     return null;
   }
 
@@ -127,6 +128,15 @@ export default function DashboardPage() {
 
   const kycStatus = (userData.kycStatus as KYCStatus) || 'PENDING';
 
+  const needsProfileCompletion =
+    !profileDismissed &&
+    kycStatus === 'APPROVED' &&
+    !meetsPortalCommunicationsRequirements({
+      email: userData.email,
+      termsAccepted: userData.termsAccepted,
+      privacyAccepted: userData.privacyAccepted,
+    });
+
   return (
     <div className="c1-page">
       <C1PageBackground />
@@ -160,6 +170,18 @@ export default function DashboardPage() {
         isOpen={showKycModal}
         onClose={() => setShowKycModal(false)}
         onComplete={() => window.location.reload()}
+      />
+
+      <ProfileCompletionModal
+        isOpen={needsProfileCompletion}
+        onClose={() => setProfileDismissed(true)}
+        dismissible
+        initialData={{
+          email: userData.email,
+          termsAccepted: userData.termsAccepted,
+          privacyAccepted: userData.privacyAccepted,
+          marketingAccepted: userData.marketingAccepted,
+        }}
       />
     </div>
   );
