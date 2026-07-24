@@ -124,7 +124,8 @@ export default function Navigation() {
 
   // Hide navigation on portal page, admin pages (including during auth flow), or maintenance page
   // For admin pages, hide immediately if it's not the login page, or if loading
-  const shouldHideNavigation = isHomePage || isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading)) || isMaintenancePage;
+  const isNattukaayPage = pathname === '/sama-naffa' || pathname.startsWith('/sama-naffa/');
+  const shouldHideNavigation = isHomePage || isNattukaayPage || isPortalPage || (isAdminPage && (!pathname.includes('/login') || isAdminLoading)) || isMaintenancePage;
 
   if (shouldHideNavigation) {
     return null;

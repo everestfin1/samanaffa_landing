@@ -606,12 +606,14 @@ video {
   transform: translateY(-2px);
 }
 
-.e0-page a.e0-cta-forest {
+.e0-page a.e0-cta-forest,
+.e0-page button.e0-cta-forest {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   min-height: 40px;
   padding: 11px 22px;
+  border: 0;
   border-radius: 999px;
   background: var(--sama-forest-deep);
   color: var(--sama-white) !important;
@@ -619,10 +621,12 @@ video {
   font-weight: 600;
   line-height: 1;
   text-decoration: none;
+  cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
-.e0-page a.e0-cta-forest:hover {
+.e0-page a.e0-cta-forest:hover,
+.e0-page button.e0-cta-forest:hover {
   background: var(--sama-forest);
   color: var(--sama-white) !important;
 }
@@ -837,5 +841,289 @@ video {
   display: block;
   width: 30px;
   height: 30px;
+}
+
+/* ─── E0 Nattukaay Yéené (/sama-naffa) ─── */
+.e0-nattukaay-main {
+  background: #f7f6f2;
+  padding: 2.5rem 1.25rem 4rem;
+}
+
+.e0-nattukaay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.75rem;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.e0-nattukaay-card {
+  width: 100%;
+  padding: 2.25rem 1.75rem 2rem;
+  border-radius: 35px;
+  background: var(--sama-white);
+  box-shadow: 0 18px 48px rgb(24 45 9 / 10%);
+}
+
+@media (min-width: 768px) {
+  .e0-nattukaay-card {
+    padding: 2.75rem 3rem 2.5rem;
+  }
+}
+
+.e0-nattukaay-title {
+  margin: 0 0 2rem;
+  text-align: center;
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--sama-forest);
+}
+
+.e0-nattukaay-projects {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 1.75rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.e0-nattukaay-project {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: #000;
+}
+
+.e0-nattukaay-project-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 4.75rem;
+  height: 4.75rem;
+  border-radius: 999px;
+  background: transparent;
+  z-index: 0;
+}
+
+.e0-nattukaay-project-icon::before {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 999px;
+  background: transparent;
+  transform: translate(-50%, -50%);
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  z-index: -1;
+}
+
+.e0-nattukaay-project.is-active .e0-nattukaay-project-icon::before {
+  /* Momar: amber selection discs (#d58500) sit behind oversized icons */
+  background: #d58500;
+  box-shadow: 0 8px 20px rgb(213 133 0 / 28%);
+}
+
+.e0-nattukaay-project-label {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.e0-nattukaay-field {
+  margin-bottom: 1.25rem;
+}
+
+.e0-nattukaay-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.e0-nattukaay-input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0.85rem 1.35rem;
+  border: 1px solid #d9d6cf;
+  border-radius: 999px;
+  background: var(--sama-white);
+  font-size: 1rem;
+  font-weight: 500;
+  color: #6b6b6b;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.e0-nattukaay-input::placeholder {
+  color: #a8a8a8;
+  font-weight: 400;
+}
+
+.e0-nattukaay-input:focus {
+  border-color: #d58500;
+  box-shadow: 0 0 0 3px rgb(213 133 0 / 22%);
+}
+
+.e0-nattukaay-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.78125rem;
+  color: #8a8a8a;
+}
+
+.e0-nattukaay-controls {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .e0-nattukaay-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.e0-nattukaay-slider {
+  width: 100%;
+  height: 6px;
+  margin-top: 0.95rem;
+  border-radius: 999px;
+  appearance: none;
+  cursor: pointer;
+  background: #eae7dc;
+}
+
+.e0-nattukaay-slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--sama-forest);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 18%);
+}
+
+.e0-nattukaay-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--sama-forest);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgb(0 0 0 / 18%);
+}
+
+.e0-nattukaay-slider-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #9aa091;
+}
+
+.e0-nattukaay-rate {
+  margin: 0.5rem 0 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  background: #f1f0ea;
+  text-align: left;
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--sama-cod-gray);
+}
+
+.e0-nattukaay-rate strong {
+  font-weight: 700;
+}
+
+.e0-nattukaay-results {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .e0-nattukaay-results {
+    grid-template-columns: 1.6fr 0.85fr 0.85fr;
+  }
+}
+
+.e0-nattukaay-result {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-height: 79px;
+  padding: 1rem 1.15rem;
+  border: 0;
+  border-radius: 16px;
+  background: var(--sama-white);
+  box-shadow: 0 8px 24px rgb(24 45 9 / 8%);
+  text-align: left;
+}
+
+.e0-nattukaay-result--primary {
+  border-radius: 18px;
+  background: #f7f6f2;
+  box-shadow: none;
+}
+
+.e0-nattukaay-result-label {
+  margin: 0;
+  font-size: 0.78125rem;
+  font-weight: 500;
+  color: #9aa091;
+}
+
+.e0-nattukaay-result--primary .e0-nattukaay-result-label {
+  font-size: 0.875rem;
+  color: #8a7328;
+}
+
+.e0-nattukaay-result-value {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.8vw, 1.875rem);
+  font-weight: 800;
+  color: #1a1a1a;
+  line-height: 1.15;
+}
+
+.e0-nattukaay-result-value--sm {
+  font-size: clamp(1rem, 2vw, 1.125rem);
+  font-weight: 700;
+}
+
+.e0-nattukaay-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 304px);
+  min-height: 60px;
+  padding: 1rem 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: #304720;
+  color: var(--sama-white);
+  font-size: 1.125rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgb(48 71 32 / 22%);
+  transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.e0-nattukaay-cta:hover {
+  background: var(--sama-forest);
+  transform: translateY(-1px);
 }
 

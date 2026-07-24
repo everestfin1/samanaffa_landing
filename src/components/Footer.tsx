@@ -13,7 +13,15 @@ export default function Footer() {
     const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
     const isPeePage = pathname.startsWith('/pee');
     // Hide footer on portal pages, admin pages, and APE Senegal pages (APE has its own footer)
-    if (pathname === '/' || pathname.startsWith('/portal') || isAdminPage || isApePage || isPeePage) {
+    if (
+        pathname === '/' ||
+        pathname === '/sama-naffa' ||
+        pathname.startsWith('/sama-naffa/') ||
+        pathname.startsWith('/portal') ||
+        isAdminPage ||
+        isApePage ||
+        isPeePage
+    ) {
         return null;
     }
     const currentYear = new Date().getFullYear();

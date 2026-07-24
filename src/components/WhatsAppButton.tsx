@@ -6,11 +6,14 @@ import { usePathname } from 'next/navigation';
 export const WhatsAppButton: React.FC = () => {
   const pathname = usePathname();
   
-  // Check if user is in admin portal
-  const isInAdminorClientPortal = pathname === '/' || pathname.startsWith('/admin') || pathname.startsWith('/portal');
-  
-  // Hide WhatsApp button if in admin portal
-  if (isInAdminorClientPortal) {
+  // Hide WhatsApp button on marketing E0 pages and portals
+  if (
+    pathname === '/' ||
+    pathname === '/sama-naffa' ||
+    pathname.startsWith('/sama-naffa/') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/portal')
+  ) {
     return null;
   }
 
