@@ -1188,6 +1188,205 @@ video {
   margin-top: 0.25rem;
 }
 
+/* —— E5 Vérification identité (Momar 10:2317 / 10:2344) —— */
+.e5-shell {
+  min-height: min(40rem, calc(100dvh - 11rem));
+  align-items: flex-start;
+  padding-top: clamp(2.5rem, 6vw, 3.75rem);
+}
+
+.e5-layout {
+  width: 100%;
+}
+
+.e5-col {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.e5-back {
+  align-self: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.e5-title {
+  margin: 0 0 1.15rem;
+  max-width: 26rem;
+  font-size: clamp(1.75rem, 3.8vw, 2.375rem);
+  letter-spacing: -0.92px;
+  color: var(--sama-forest);
+}
+
+.e5-body {
+  margin: 0 0 2.25rem;
+  max-width: 40rem;
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  line-height: 1.45;
+  color: #000000;
+}
+
+.e5-cta {
+  display: flex;
+  width: min(100%, 265px);
+  min-height: 54px;
+  margin: 0 auto;
+  padding: 1rem;
+  background: var(--sama-forest);
+  font-size: 1rem;
+  box-shadow: none;
+}
+
+.e5-cta:hover:not(:disabled) {
+  background: var(--sama-forest-deep);
+}
+
+.e5-legal {
+  margin: 1.75rem 0 0;
+  max-width: 46rem;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: #8a8f80;
+}
+
+.e5-legal-label {
+  font-weight: 600;
+}
+
+.e5-legal-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.e5-legal-link:hover {
+  color: var(--sama-forest);
+}
+
+.e5-progress {
+  width: 100%;
+  max-width: 620px;
+  margin-top: 0.5rem;
+  padding: 1.25rem;
+  border-radius: 22px;
+  background: var(--sama-white);
+  box-shadow: 0 20px 50px rgb(30 40 20 / 8%);
+  text-align: left;
+}
+
+.e5-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-height: 78px;
+  padding: 1.125rem 1rem;
+  border-bottom: 1px solid #f0ede4;
+}
+
+.e5-progress-row:last-of-type {
+  border-bottom: 0;
+}
+
+.e5-progress-row--active {
+  border: 1px solid #f0ede4;
+  border-radius: 12px;
+  background: #fbf6e2;
+}
+
+.e5-progress-icon {
+  display: inline-flex;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: #f2f1ec;
+  font-size: 1.0625rem;
+  line-height: 1;
+}
+
+.e5-progress-row--done .e5-progress-icon {
+  background: #eaf3e6;
+  color: #3b6b2e;
+  font-weight: 600;
+}
+
+.e5-progress-row--active .e5-progress-icon {
+  border: 1px solid #eedfa6;
+  background: var(--sama-white);
+}
+
+.e5-progress-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.e5-progress-label {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.e5-progress-row--upcoming .e5-progress-label {
+  color: #6b7280;
+}
+
+.e5-progress-status {
+  margin: 0.1rem 0 0;
+  font-size: 0.78125rem;
+  color: #9aa091;
+}
+
+.e5-progress-row--done .e5-progress-status {
+  color: #3b6b2e;
+}
+
+.e5-progress-row--active .e5-progress-status {
+  color: #9a7a1c;
+}
+
+.e5-progress-chevron {
+  color: #9a7a1c;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.e5-progress-hint {
+  margin: 0.85rem 0 0;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: #8a8f80;
+  text-align: center;
+}
+
+.e5-resume {
+  display: flex;
+  width: 100%;
+  min-height: 48px;
+  margin-top: 0.85rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(196 151 47 / 35%);
+  border-radius: 999px;
+  background: rgb(196 151 47 / 10%);
+  color: var(--sama-marigold-dark);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.e5-resume:hover {
+  background: rgb(196 151 47 / 18%);
+}
+
 /* —— E4 Premier versement (Momar 10:2230) —— */
 .e4-shell {
   min-height: min(40rem, calc(100dvh - 11rem));

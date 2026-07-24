@@ -577,7 +577,7 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
-  const wide = step === 'T1' || step === 'T2' || step === 'E3' || step === 'T4';
+  const wide = step === 'T1' || step === 'T2' || step === 'E3' || step === 'T4' || step === 'T5';
   return (
     <div
       className={
