@@ -33,7 +33,7 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` (replaces old T0 simulator) | First product step before `/onboarding` |
 | E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Aligned via Figma MCP Bridge |
 | E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Aligned via Figma MCP Bridge |
-| E2 | Informations personnelles | `10:2048` | Profile fields | Existing Figma frame |
+| E2 | Informations personnelles | `10:2048` | `T2PersonalInfo` — profession, pays, région | Aligned via Figma MCP Bridge |
 | E3 | Project simulator | shared | `19:463`, reused by C4 | No dedicated E3 frame |
 | E4 | Premier versement | `10:2230` | Deposit step | Existing Figma frame |
 | E5 | Vérification identité | `10:2317` | Didit KYC step | Include sibling `10:2344` |

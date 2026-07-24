@@ -20,7 +20,8 @@ export async function PATCH(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { firstName, lastName, investorProfile, referralCode } = await request.json();
+    const { firstName, lastName, investorProfile, referralCode, metiers, country, region } =
+      await request.json();
 
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) {
@@ -30,6 +31,9 @@ export async function PATCH(request: NextRequest) {
     const data: Record<string, unknown> = {};
     if (typeof firstName === 'string' && firstName.trim()) data.firstName = firstName.trim();
     if (typeof lastName === 'string' && lastName.trim()) data.lastName = lastName.trim();
+    if (typeof metiers === 'string' && metiers.trim()) data.metiers = metiers.trim();
+    if (typeof country === 'string' && country.trim()) data.country = country.trim().toUpperCase();
+    if (typeof region === 'string' && region.trim()) data.region = region.trim();
 
     // Mono-produit Sama Naffa: the referral field is a field-agent code (attribution only).
     const monoProduit = isLegacyCampaignDeprecated();
@@ -107,6 +111,9 @@ export async function PATCH(request: NextRequest) {
         firstName: updated.firstName,
         lastName: updated.lastName,
         referralCode: savedReferral,
+        metiers: updated.metiers,
+        country: updated.country,
+        region: updated.region,
       },
     });
   } catch (error) {

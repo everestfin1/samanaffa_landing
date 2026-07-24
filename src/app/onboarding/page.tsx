@@ -9,7 +9,7 @@ import E0LegalFooter from '@/components/landing/E0LegalFooter';
 import E0MarketingHeader from '@/components/landing/E0MarketingHeader';
 import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
-import T2FirstName from '@/components/onboarding/T2FirstName';
+import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
 import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
@@ -170,8 +170,8 @@ function OnboardingPageContent() {
         if (p.kycApproved && p.depositAmount != null && p.formula) {
           setStep('T6');
         } else if (resumeStep === 'T0' || resumeStep === 'T1') {
-          // Authenticated users never re-do phone; continue identity or quiz.
-          setStep(p.firstName ? 'T3' : 'T2');
+          // Authenticated users never re-do phone; continue E2 personal info.
+          setStep('T2');
         } else if (resumeStep) {
           setStep(resumeStep);
         }
@@ -310,21 +310,17 @@ function OnboardingPageContent() {
             }),
           });
         } catch {
-          // Non-blocking — T2 can still collect the name if needed
+          // Non-blocking — profile can still be completed on later steps
         }
       }
 
-      if (profile.firstName) {
-        const saved = await saveProgress('T3', {
-          ...next,
-          firstName: profile.firstName,
-          referralCode: profile.referralCode,
-        });
-        if (saved) setStep('T3');
-      } else {
-        const saved = await saveProgress('T2', next);
-        if (saved) setStep('T2');
-      }
+      // Next Momar step is E2 (profession / residence), not the quiz.
+      const saved = await saveProgress('T2', {
+        ...next,
+        firstName: profile.firstName || next.firstName,
+        referralCode: profile.referralCode,
+      });
+      if (saved) setStep('T2');
     } catch {
       router.push('/login?message=auto_login_failed');
     } finally {
@@ -422,13 +418,11 @@ function OnboardingPageContent() {
                 transition={{ duration: 0.3 }}
                 className="w-full"
               >
-                <T2FirstName
-                  initialValue={state.firstName ?? undefined}
-                  initialReferralCode={state.referralCode}
-                  onSuccess={async (firstName, referralCode) => {
-                    const saved = await saveProgress('T3', { firstName, referralCode });
+                <T2PersonalInfo
+                  firstName={state.firstName ?? 'toi'}
+                  onSuccess={async () => {
+                    const saved = await saveProgress('T3', { firstName: state.firstName });
                     if (!saved) return;
-                    setState((s) => ({ ...s, firstName, referralCode }));
                     setStep('T3');
                   }}
                 />
@@ -555,7 +549,7 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
-  const wide = step === 'T1';
+  const wide = step === 'T1' || step === 'T2';
   return (
     <div
       className={
