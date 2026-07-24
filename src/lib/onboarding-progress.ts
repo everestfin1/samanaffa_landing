@@ -1,25 +1,17 @@
 export type OnboardingStep = 'T0' | 'T1' | 'T2' | 'E3' | 'T3' | 'T4' | 'T5' | 'T6';
 
-export const ONBOARDING_VISIBLE_STEPS = 7;
-export const ONBOARDING_QUIZ_QUESTIONS = 3;
+/** Momar visible steps: E1 → E2 → E3 → E4 → E5 → T6 (T3 quiz removed). */
+export const ONBOARDING_VISIBLE_STEPS = 6;
+
+/** @deprecated Quiz removed from Momar flow — kept for older imports. */
+export const ONBOARDING_QUIZ_QUESTIONS = 0;
+
+/** Default product label when quiz is skipped (maps to Naffa « sérénité »). */
+export const DEFAULT_ONBOARDING_FORMULA = 'Formule Équilibre';
 
 /** Fill width (0–100) for the top onboarding progress bar. */
-export function getOnboardingProgressPercent(
-  visibleStep: number,
-  quiz?: { questionIndex: number; totalQuestions: number; complete?: boolean },
-): number {
+export function getOnboardingProgressPercent(visibleStep: number): number {
   if (visibleStep <= 0) return 0;
-
-  // Quiz is visible step 4 after E3 (create Kondanné).
-  if (visibleStep === 4 && quiz) {
-    const completedSteps = visibleStep - 1;
-    const inStep =
-      quiz.complete === true
-        ? 1
-        : (quiz.questionIndex + 1) / Math.max(quiz.totalQuestions, 1);
-    return ((completedSteps + inStep) / ONBOARDING_VISIBLE_STEPS) * 100;
-  }
-
   return (visibleStep / ONBOARDING_VISIBLE_STEPS) * 100;
 }
 

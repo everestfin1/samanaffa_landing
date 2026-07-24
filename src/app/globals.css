@@ -1188,6 +1188,99 @@ video {
   margin-top: 0.25rem;
 }
 
+/* —— E4 Premier versement (Momar 10:2230) —— */
+.e4-shell {
+  min-height: min(40rem, calc(100dvh - 11rem));
+  align-items: flex-start;
+  padding-top: clamp(2.5rem, 6vw, 3.75rem);
+}
+
+.e4-layout {
+  width: 100%;
+}
+
+.e4-form-col {
+  position: relative;
+  max-width: 458px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.e4-back {
+  align-self: flex-start;
+  margin-bottom: 0.35rem;
+}
+
+.e4-title {
+  margin: 0 0 1.35rem;
+  font-size: clamp(1.75rem, 3.8vw, 2.375rem);
+  letter-spacing: -0.88px;
+  color: var(--sama-forest);
+}
+
+.e4-card {
+  padding: 2.375rem 2.5rem 2rem;
+  border-radius: 22px;
+  box-shadow: 0 20px 50px rgb(30 40 20 / 8%);
+}
+
+.e4-field {
+  margin-bottom: 0.55rem;
+}
+
+.e4-input {
+  min-height: 54px;
+}
+
+.e4-hint {
+  margin: 0 0 1.65rem;
+  font-size: 0.78125rem;
+  line-height: 1.2;
+  color: #9aa091;
+}
+
+.e4-cta {
+  display: flex;
+  width: min(100%, 305px);
+  min-height: 52px;
+  margin: 0 auto;
+  padding: 1rem 0.95rem;
+  background: var(--sama-forest);
+  font-size: 0.9375rem;
+  box-shadow: none;
+}
+
+.e4-cta:hover:not(:disabled) {
+  background: var(--sama-forest-deep);
+}
+
+.e4-pending {
+  width: 100%;
+  margin-top: 1.125rem;
+  padding: 1rem 1.125rem;
+  border: 1px solid var(--sama-marigold);
+  border-radius: 14px;
+  background: #ede7c9;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--sama-marigold);
+}
+
+@media (min-width: 960px) {
+  .e4-art {
+    top: 38%;
+    right: 0;
+    width: min(34vw, 406px);
+    transform: translate(18%, -20%);
+  }
+
+  .e4-art-img {
+    width: 100%;
+    height: auto;
+  }
+}
+
 /* —— E1 onboarding (phone + OTP) —— */
 .e1-shell {
   position: relative;

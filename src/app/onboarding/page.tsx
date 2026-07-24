@@ -11,14 +11,13 @@ import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulat
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
 import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E3CreateKondanne';
-import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
 import T6Dashboard from '@/components/onboarding/T6Dashboard';
 import { ensureOnboardingDepositReleased } from '@/lib/onboarding-deposit-release';
 import {
+  DEFAULT_ONBOARDING_FORMULA,
   getOnboardingProgressPercent,
-  ONBOARDING_QUIZ_QUESTIONS,
   ONBOARDING_VISIBLE_STEPS,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
@@ -39,16 +38,16 @@ interface OnboardingState {
   wallet: string | null;
 }
 
-/** Momar flow: Nattukaay (E0) is outside /onboarding; E1 phone is step 1. */
+/** Momar flow: Nattukaay outside /onboarding; E1…E5 then dashboard. T3 = legacy quiz. */
 const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
   T2: 2,
   E3: 3,
-  T3: 4,
-  T4: 5,
-  T5: 6,
-  T6: 7,
+  T3: 4, // remapped to T4 on resume
+  T4: 4,
+  T5: 5,
+  T6: 6,
 };
 
 const DEFAULT_SIMULATION: T0Result = {
@@ -121,11 +120,6 @@ function OnboardingPageContent() {
   const [resumeChecked, setResumeChecked] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
   const [depositReady, setDepositReady] = useState(true);
-  const [quizProgress, setQuizProgress] = useState<{
-    questionIndex: number;
-    totalQuestions: number;
-    complete: boolean;
-  } | null>(null);
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const activeUserId = state.userId ?? sessionUserId;
 
@@ -174,6 +168,36 @@ function OnboardingPageContent() {
         } else if (resumeStep === 'T0' || resumeStep === 'T1') {
           // Authenticated users never re-do phone; continue E2 personal info.
           setStep('T2');
+        } else if (resumeStep === 'T3') {
+          // Legacy quiz step — Momar skips quiz → first deposit.
+          if (!p.formula) {
+            try {
+              await fetch('/api/onboarding/apply-formula', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ formulaName: DEFAULT_ONBOARDING_FORMULA }),
+              });
+              await fetch('/api/onboarding/progress', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  step: 'T4',
+                  simulation: p.simulation,
+                  firstName: p.firstName,
+                  referralCode: p.referralCode,
+                  formula: DEFAULT_ONBOARDING_FORMULA,
+                  depositAmount: p.depositAmount,
+                  wallet: p.wallet,
+                }),
+              });
+              if (!cancelled) {
+                setState((s) => ({ ...s, formula: DEFAULT_ONBOARDING_FORMULA }));
+              }
+            } catch {
+              // Non-blocking — user can still deposit; formula retry on next E3 complete
+            }
+          }
+          setStep('T4');
         } else if (resumeStep) {
           setStep(resumeStep);
         }
@@ -239,36 +263,7 @@ function OnboardingPageContent() {
   const currentVisible = visibleStepIndex[step];
   // Progress starts at E1 (T1); T0 simulator is no longer in this route.
   const showProgress = step !== 'T6';
-  const progressPercent = getOnboardingProgressPercent(
-    currentVisible,
-    step === 'T3'
-      ? {
-          questionIndex: quizProgress?.questionIndex ?? 0,
-          totalQuestions: quizProgress?.totalQuestions ?? ONBOARDING_QUIZ_QUESTIONS,
-          complete: quizProgress?.complete ?? false,
-        }
-      : undefined,
-  );
-
-  const handleQuizProgressChange = useCallback(
-    (questionIndex: number, totalQuestions: number, complete: boolean) => {
-      setQuizProgress((prev) => {
-        if (
-          prev?.questionIndex === questionIndex &&
-          prev?.totalQuestions === totalQuestions &&
-          prev?.complete === complete
-        ) {
-          return prev;
-        }
-        return { questionIndex, totalQuestions, complete };
-      });
-    },
-    [],
-  );
-
-  useEffect(() => {
-    if (step !== 'T3') setQuizProgress(null);
-  }, [step]);
+  const progressPercent = getOnboardingProgressPercent(currentVisible);
 
   const handleT1Success = async (
     userId: string,
@@ -459,32 +454,26 @@ function OnboardingPageContent() {
                       durationMonths: result.durationMonths,
                       kondanneName: result.kondanneName,
                     };
-                    const saved = await saveProgress('T3', { simulation });
+                    const formula = DEFAULT_ONBOARDING_FORMULA;
+                    try {
+                      const formulaRes = await fetch('/api/onboarding/apply-formula', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ formulaName: formula }),
+                      });
+                      if (!formulaRes.ok) {
+                        const data = (await formulaRes.json().catch(() => ({}))) as {
+                          error?: string;
+                        };
+                        throw new Error(data.error || "Impossible d'appliquer la formule");
+                      }
+                    } catch (e) {
+                      console.error('[onboarding E3→T4 apply-formula]', e);
+                      return;
+                    }
+                    const saved = await saveProgress('T4', { simulation, formula });
                     if (!saved) return;
-                    setState((s) => ({ ...s, simulation }));
-                    setStep('T3');
-                  }}
-                />
-              </motion.div>
-            )}
-
-            {step === 'T3' && activeUserId && state.firstName && (
-              <motion.div
-                key="T3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                <T3Quiz
-                  firstName={state.firstName}
-                  onProgressChange={handleQuizProgressChange}
-                  onBack={() => setStep('E3')}
-                  onSuccess={async (formula) => {
-                    const saved = await saveProgress('T4', { formula });
-                    if (!saved) return;
-                    setState((s) => ({ ...s, formula }));
+                    setState((s) => ({ ...s, simulation, formula }));
                     setStep('T4');
                   }}
                 />
@@ -504,7 +493,7 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   initialAmount={state.depositAmount ?? undefined}
                   initialWallet={state.wallet}
-                  onBack={() => setStep('T3')}
+                  onBack={() => setStep('E3')}
                   onSuccess={async (amount, wallet) => {
                     const saved = await saveProgress('T5', { depositAmount: amount, wallet });
                     if (!saved) return;
@@ -588,7 +577,7 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
-  const wide = step === 'T1' || step === 'T2' || step === 'E3';
+  const wide = step === 'T1' || step === 'T2' || step === 'E3' || step === 'T4';
   return (
     <div
       className={

@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import TransferModal from '@/components/modals/TransferModal';
-import OnboardingStepHeader from '@/components/onboarding/OnboardingStepHeader';
+import Image from 'next/image';
+import { useMemo, useState } from 'react';
 
 interface T4DepositProps {
   firstName: string;
@@ -12,16 +11,46 @@ interface T4DepositProps {
   onBack?: () => void;
 }
 
+const MIN_AMOUNT = 1_000;
+const AMOUNT_STEP = 1_000;
+
+function formatAmountInput(value: number): string {
+  if (!value) return '';
+  return Math.round(value)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+}
+
+function parseAmountInput(raw: string): number {
+  const digits = raw.replace(/\s/g, '').replace(/[^\d]/g, '');
+  return digits ? Number(digits) : 0;
+}
+
 export default function T4Deposit({
   firstName,
   initialAmount,
   onSuccess,
   onBack,
 }: T4DepositProps) {
+  const [amountDraft, setAmountDraft] = useState(
+    initialAmount ? formatAmountInput(initialAmount) : '',
+  );
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const handleConfirm = async ({ amount, method }: { amount: number; method: string }) => {
+  const amount = useMemo(() => parseAmountInput(amountDraft), [amountDraft]);
+
+  const amountError = useMemo(() => {
+    if (!amountDraft.trim()) return null;
+    if (amount < MIN_AMOUNT) return `Montant minimum : ${formatAmountInput(MIN_AMOUNT)} FCFA`;
+    if (amount % AMOUNT_STEP !== 0) return 'Le montant doit être un multiple de 1 000 FCFA';
+    return null;
+  }, [amount, amountDraft]);
+
+  const canSubmit = amount >= MIN_AMOUNT && amount % AMOUNT_STEP === 0 && !loading;
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
     setLoading(true);
     setError(null);
     try {
@@ -32,7 +61,7 @@ export default function T4Deposit({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
-      onSuccess(amount, method);
+      onSuccess(amount, 'intouch');
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {
@@ -40,46 +69,75 @@ export default function T4Deposit({
     }
   };
 
+  const greetingName = firstName.trim() || 'toi';
+
   return (
-    <div className="max-w-md mx-auto px-4 py-10">
-      {onBack && (
-        <button
-          type="button"
-          onClick={onBack}
-          className="text-sm text-night/60 hover:text-night mb-4 inline-flex items-center gap-1"
-        >
-          ← Retour
-        </button>
-      )}
-      <OnboardingStepHeader
-        title={`${firstName}, préparez votre premier versement`}
-        description="Aucun prélèvement maintenant. Après validation de votre identité, vous confirmerez le paiement via Intouch depuis votre espace client."
-        className="mb-6"
-      />
+    <div className="e1-shell e4-shell">
+      <div className="e1-art e4-art" aria-hidden>
+        <Image
+          src="/figma/e4/premier-versement-art.png"
+          alt=""
+          width={406}
+          height={358}
+          className="e1-art-img e4-art-img"
+          priority
+          unoptimized
+        />
+      </div>
 
-      <TransferModal
-        isOpen
-        variant="embedded"
-        type="deposit"
-        accountName="Sama Naffa"
-        accountType="sama_naffa"
-        scheduleIntentOnly
-        initialAmount={initialAmount}
-        submitLabel={loading ? 'Programmation...' : 'Programmer le versement'}
-        cancelLabel="Retour"
-        submitDisabled={loading}
-        onClose={() => onBack?.()}
-        onConfirm={handleConfirm}
-      />
+      <div className="e1-layout e4-layout">
+        <div className="e1-form-col e4-form-col">
+          {onBack && (
+            <button type="button" onClick={onBack} className="e1-back e4-back">
+              ← Retour
+            </button>
+          )}
 
-      {error && <p className="mt-3 text-sm text-red-600 text-center">{error}</p>}
+          <h1 className="e1-title e4-title">
+            {greetingName}, fais le premier pas&nbsp;!
+          </h1>
 
-      <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900">
-        <p className="font-semibold mb-1">⏳ Versement programmé</p>
-        <p>
-          Aucun montant n&apos;est prélevé maintenant. Vous finaliserez le paiement via Intouch une
-          fois votre identité validée (généralement moins de 24 h).
-        </p>
+          <div className="e1-card e4-card">
+            <label className="e1-field e4-field">
+              <span className="e1-label">Montant</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={amountDraft}
+                onChange={(e) => {
+                  const next = parseAmountInput(e.target.value);
+                  setAmountDraft(next ? formatAmountInput(next) : '');
+                  setError(null);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && canSubmit) void handleSubmit();
+                }}
+                placeholder="Entrer un montant"
+                className="e1-input e4-input"
+                autoComplete="off"
+                autoFocus
+              />
+            </label>
+            <p className="e4-hint">Multiple de 1 000 FCFA</p>
+
+            {(amountError || error) && (
+              <p className="e1-error">{amountError || error}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={() => void handleSubmit()}
+              disabled={!canSubmit}
+              className="e1-cta e4-cta"
+            >
+              {loading ? 'Programmation…' : 'Je continue'}
+            </button>
+          </div>
+
+          <div className="e4-pending" role="status">
+            Versement en attente de réception de la pièce et photo d&apos;identité.
+          </div>
+        </div>
       </div>
     </div>
   );

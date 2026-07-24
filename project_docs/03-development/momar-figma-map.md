@@ -34,8 +34,8 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Aligned via Figma MCP Bridge |
 | E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Aligned via Figma MCP Bridge |
 | E2 | Informations personnelles | `10:2048` | `T2PersonalInfo` — profession, pays, région | Aligned via Figma MCP Bridge |
-| E3 | Créer un Kondanné | `10:3058` (C4 reprend E3) | `E3CreateKondanne` — name + project + CTA | Onboarding step after E2 |
-| E4 | Premier versement | `10:2230` | Deposit step | Existing Figma frame |
+| E3 | Créer un Kondanné | `10:3058` (C4 reprend E3) | `E3CreateKondanne` — name + project + CTA | After E2 → E4 (no quiz; default Formule Équilibre) |
+| E4 | Premier versement | `10:2230` | `T4Deposit` — amount + Je continue | Aligned via Figma MCP Bridge |
 | E5 | Vérification identité | `10:2317` | Didit KYC step | Include sibling `10:2344` |
 | E6 | Not present | none | Infer only if required | Missing from Figma |
 | E7 | Not present | none | Infer only if required | Missing from Figma |
