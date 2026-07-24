@@ -1,6 +1,6 @@
-export type OnboardingStep = 'T0' | 'T1' | 'T2' | 'T3' | 'T4' | 'T5' | 'T6';
+export type OnboardingStep = 'T0' | 'T1' | 'T2' | 'E3' | 'T3' | 'T4' | 'T5' | 'T6';
 
-export const ONBOARDING_VISIBLE_STEPS = 6;
+export const ONBOARDING_VISIBLE_STEPS = 7;
 export const ONBOARDING_QUIZ_QUESTIONS = 3;
 
 /** Fill width (0–100) for the top onboarding progress bar. */
@@ -10,7 +10,8 @@ export function getOnboardingProgressPercent(
 ): number {
   if (visibleStep <= 0) return 0;
 
-  if (visibleStep === 3 && quiz) {
+  // Quiz is visible step 4 after E3 (create Kondanné).
+  if (visibleStep === 4 && quiz) {
     const completedSteps = visibleStep - 1;
     const inStep =
       quiz.complete === true

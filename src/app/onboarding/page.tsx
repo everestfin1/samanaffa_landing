@@ -10,6 +10,7 @@ import E0MarketingHeader from '@/components/landing/E0MarketingHeader';
 import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
+import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E3CreateKondanne';
 import T3Quiz from '@/components/onboarding/T3Quiz';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
@@ -26,7 +27,7 @@ import { isApeDeprecated } from '@/lib/product-flags';
 import { useSelection, type SamaNaffaSelection } from '@/lib/selection-context';
 
 interface OnboardingState {
-  simulation: T0Result | null;
+  simulation: (T0Result & { kondanneName?: string }) | null;
   userId: string | null;
   phone: string | null;
   displayPhone: string | null;
@@ -43,10 +44,11 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
   T2: 2,
-  T3: 3,
-  T4: 4,
-  T5: 5,
-  T6: 6,
+  E3: 3,
+  T3: 4,
+  T4: 5,
+  T5: 6,
+  T6: 7,
 };
 
 const DEFAULT_SIMULATION: T0Result = {
@@ -421,8 +423,45 @@ function OnboardingPageContent() {
                 <T2PersonalInfo
                   firstName={state.firstName ?? 'toi'}
                   onSuccess={async () => {
-                    const saved = await saveProgress('T3', { firstName: state.firstName });
+                    const saved = await saveProgress('E3', { firstName: state.firstName });
                     if (!saved) return;
+                    setStep('E3');
+                  }}
+                />
+              </motion.div>
+            )}
+
+            {step === 'E3' && activeUserId && (
+              <motion.div
+                key="E3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                className="w-full"
+              >
+                <E3CreateKondanne
+                  firstName={state.firstName}
+                  initial={{
+                    ...(state.simulation ?? DEFAULT_SIMULATION),
+                    kondanneName:
+                      state.simulation && 'kondanneName' in state.simulation
+                        ? state.simulation.kondanneName
+                        : selectionData?.type === 'sama-naffa'
+                          ? selectionData.objective
+                          : undefined,
+                  }}
+                  onBack={() => setStep('T2')}
+                  onSuccess={async (result: E3CreateResult) => {
+                    const simulation = {
+                      project: result.project,
+                      monthlyAmount: result.monthlyAmount,
+                      durationMonths: result.durationMonths,
+                      kondanneName: result.kondanneName,
+                    };
+                    const saved = await saveProgress('T3', { simulation });
+                    if (!saved) return;
+                    setState((s) => ({ ...s, simulation }));
                     setStep('T3');
                   }}
                 />
@@ -441,7 +480,7 @@ function OnboardingPageContent() {
                 <T3Quiz
                   firstName={state.firstName}
                   onProgressChange={handleQuizProgressChange}
-                  onBack={() => setStep('T2')}
+                  onBack={() => setStep('E3')}
                   onSuccess={async (formula) => {
                     const saved = await saveProgress('T4', { formula });
                     if (!saved) return;
@@ -549,7 +588,7 @@ function OnboardingStepContainer({
   children: React.ReactNode;
   step: OnboardingStep;
 }) {
-  const wide = step === 'T1' || step === 'T2';
+  const wide = step === 'T1' || step === 'T2' || step === 'E3';
   return (
     <div
       className={

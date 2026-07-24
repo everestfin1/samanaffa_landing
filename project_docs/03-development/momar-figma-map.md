@@ -30,11 +30,11 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | Badge | Frame | Node | App target | Status |
 |---|---|---|---|---|
 | E0 | Entrée | `12:302` | `/` landing page and marketing shell | Implement first |
-| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` (replaces old T0 simulator) | First product step before `/onboarding` |
+| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` simulation (no Kondanné name) | First product step before `/onboarding` |
 | E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Aligned via Figma MCP Bridge |
 | E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Aligned via Figma MCP Bridge |
 | E2 | Informations personnelles | `10:2048` | `T2PersonalInfo` — profession, pays, région | Aligned via Figma MCP Bridge |
-| E3 | Project simulator | shared | `19:463`, reused by C4 | No dedicated E3 frame |
+| E3 | Créer un Kondanné | `10:3058` (C4 reprend E3) | `E3CreateKondanne` — name + project + CTA | Onboarding step after E2 |
 | E4 | Premier versement | `10:2230` | Deposit step | Existing Figma frame |
 | E5 | Vérification identité | `10:2317` | Didit KYC step | Include sibling `10:2344` |
 | E6 | Not present | none | Infer only if required | Missing from Figma |
@@ -51,7 +51,7 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 | C2 | Liste Kondanne | `124:43007` | `/portal/sama-naffa` | Empty design shell; infer from detail |
 | C2 | Détail Kondanne | `10:2878` | Kondanné detail | Balance, stats, actions, history |
 | C3 | Alimenter | `10:2977` | Deposit subflow | Amount and payment |
-| C4 | Créer un Kondanne | `10:3058` | Create subflow | Reuses E3 simulator |
+| C4 | Créer un Kondanne | `10:3058` | Portal create + onboarding `E3CreateKondanne` | Reprend E3; CTA « Je crée mon Kondanné » |
 | C5 | Retrait | `10:3131` | Withdrawal subflow | Estimation and OTP confirmation |
 | C6 | Relevés & documents | `10:3223` | Statements | Document downloads |
 | C7 | Profil & sécurité | `10:3293` | Profile/settings | Account and security settings |

@@ -1,33 +1,44 @@
-"use client";
+'use client';
 
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import RiskDisclaimer from "@/components/compliance/RiskDisclaimer";
-import { objectives } from "@/components/data/objectives";
+import Image from 'next/image';
+import { useEffect, useMemo, useState } from 'react';
+import RiskDisclaimer from '@/components/compliance/RiskDisclaimer';
+import { objectives } from '@/components/data/objectives';
 import {
   NATTUKAAY_AMOUNT_MAX,
   NATTUKAAY_AMOUNT_MIN,
   NATTUKAAY_AMOUNT_STEP,
   NATTUKAAY_DUREE_MAX,
   NATTUKAAY_DUREE_MIN,
+  NATTUKAAY_NAME_MAX,
   NATTUKAAY_PROJECTS,
   type NattukaaySlug,
-} from "@/components/data/nattukaay-projects";
-import { useSelection } from "@/lib/selection-context";
+} from '@/components/data/nattukaay-projects';
+import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import {
   calculerCapitalFinal,
   tauxParDuree,
-} from "@/lib/savings-simulation";
+} from '@/lib/savings-simulation';
+
+export type E3CreateResult = T0Result & {
+  kondanneName: string;
+};
+
+interface E3CreateKondanneProps {
+  firstName?: string | null;
+  initial?: Partial<E3CreateResult> | null;
+  onSuccess: (result: E3CreateResult) => void | Promise<void>;
+  onBack?: () => void;
+}
 
 function formatAmountInput(value: number): string {
   return Math.round(value)
     .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 }
 
 function parseAmountInput(raw: string): number {
-  const digits = raw.replace(/\s/g, "").replace(/[^\d]/g, "");
+  const digits = raw.replace(/\s/g, '').replace(/[^\d]/g, '');
   return digits ? Number(digits) : 0;
 }
 
@@ -35,23 +46,38 @@ function formatResultAmount(amount: number): string {
   return `${formatAmountInput(Math.round(amount))} FCFA`;
 }
 
-export default function NattukaaySimulator() {
-  const router = useRouter();
-  const { setSelectionData } = useSelection();
+function slugFromProject(project: ProjectId | string | undefined): NattukaaySlug {
+  const match = NATTUKAAY_PROJECTS.find((p) => p.slug === project);
+  return match?.slug ?? 'business';
+}
 
-  const [selectedSlug, setSelectedSlug] = useState<NattukaaySlug>("business");
-  const [mensualite, setMensualite] = useState(50_000);
-  const [duree, setDuree] = useState(120);
-  const [amountDraft, setAmountDraft] = useState(formatAmountInput(50_000));
+export default function E3CreateKondanne({
+  firstName,
+  initial,
+  onSuccess,
+  onBack,
+}: E3CreateKondanneProps) {
+  const [selectedSlug, setSelectedSlug] = useState<NattukaaySlug>(
+    slugFromProject(initial?.project),
+  );
+  const [kondanneName, setKondanneName] = useState(initial?.kondanneName ?? '');
+  const [mensualite, setMensualite] = useState(
+    initial?.monthlyAmount && initial.monthlyAmount >= NATTUKAAY_AMOUNT_MIN
+      ? initial.monthlyAmount
+      : 50_000,
+  );
+  const [duree, setDuree] = useState(
+    initial?.durationMonths && initial.durationMonths >= NATTUKAAY_DUREE_MIN
+      ? initial.durationMonths
+      : 120,
+  );
+  const [amountDraft, setAmountDraft] = useState(formatAmountInput(mensualite));
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selected = useMemo(
     () => NATTUKAAY_PROJECTS.find((p) => p.slug === selectedSlug) ?? NATTUKAAY_PROJECTS[2],
     [selectedSlug],
-  );
-
-  const selectedObjective = useMemo(
-    () => objectives.find((o) => o.id === selected.objectiveId),
-    [selected],
   );
 
   useEffect(() => {
@@ -63,8 +89,7 @@ export default function NattukaaySimulator() {
   const totalVerse = mensualite * duree;
 
   const amountFill =
-    ((mensualite - NATTUKAAY_AMOUNT_MIN) / (NATTUKAAY_AMOUNT_MAX - NATTUKAAY_AMOUNT_MIN)) *
-    100;
+    ((mensualite - NATTUKAAY_AMOUNT_MIN) / (NATTUKAAY_AMOUNT_MAX - NATTUKAAY_AMOUNT_MIN)) * 100;
   const dureeFill =
     ((duree - NATTUKAAY_DUREE_MIN) / (NATTUKAAY_DUREE_MAX - NATTUKAAY_DUREE_MIN)) * 100;
 
@@ -73,33 +98,49 @@ export default function NattukaaySimulator() {
     if (!project) return;
     const objective = objectives.find((o) => o.id === project.objectiveId);
     setSelectedSlug(slug);
+    if (!kondanneName.trim()) {
+      setKondanneName(project.label);
+    }
     if (objective) {
       setMensualite(Math.min(NATTUKAAY_AMOUNT_MAX, objective.mensualite));
       setDuree(Math.min(NATTUKAAY_DUREE_MAX, objective.duree));
     }
   };
 
-  const handleStart = () => {
-    const name =
-      selected.label || selectedObjective?.name || "Plan personnalisé";
+  const canSubmit = kondanneName.trim().length > 0 && mensualite >= NATTUKAAY_AMOUNT_MIN;
 
-    setSelectionData({
-      type: "sama-naffa",
-      objective: name,
-      monthlyAmount: mensualite,
-      duration: Math.round((duree / 12) * 10) / 10,
-      projectedAmount: Math.round(capitalFinal),
-      simulationMode: "objective",
-      selectedObjective: selected.objectiveId,
-    });
-
-    router.push("/onboarding");
+  const handleCreate = async () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    setError(null);
+    try {
+      await onSuccess({
+        project: selected.slug as ProjectId,
+        monthlyAmount: mensualite,
+        durationMonths: duree,
+        kondanneName: kondanneName.trim(),
+      });
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Erreur');
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const titleName = firstName?.trim() || 'toi';
+
   return (
-    <div className="e0-nattukaay">
+    <div className="e0-nattukaay e3-create">
+      {onBack && (
+        <button type="button" onClick={onBack} className="e1-back e3-create-back">
+          ← Retour
+        </button>
+      )}
+
       <div className="e0-nattukaay-card">
-        <h1 className="e0-nattukaay-title">Mesure ton projet, à ton rythme</h1>
+        <h1 className="e0-nattukaay-title">
+          {titleName}, crée ton Kondanné
+        </h1>
 
         <ul className="e0-nattukaay-projects" role="list">
           {NATTUKAAY_PROJECTS.map((project) => {
@@ -108,7 +149,7 @@ export default function NattukaaySimulator() {
               <li key={project.slug}>
                 <button
                   type="button"
-                  className={`e0-nattukaay-project ${isActive ? "is-active" : ""}`}
+                  className={`e0-nattukaay-project ${isActive ? 'is-active' : ''}`}
                   onClick={() => handleSelectProject(project.slug)}
                   aria-pressed={isActive}
                 >
@@ -131,13 +172,32 @@ export default function NattukaaySimulator() {
           })}
         </ul>
 
+        <div className="e0-nattukaay-field">
+          <label htmlFor="e3-kondanne-name" className="e0-nattukaay-label">
+            Nom du Kondanné
+          </label>
+          <input
+            id="e3-kondanne-name"
+            type="text"
+            maxLength={NATTUKAAY_NAME_MAX}
+            value={kondanneName}
+            onChange={(e) => setKondanneName(e.target.value.slice(0, NATTUKAAY_NAME_MAX))}
+            placeholder="Ex. Voyage, Voiture..."
+            className="e0-nattukaay-input"
+            autoComplete="off"
+          />
+          <p className="e0-nattukaay-hint">
+            {kondanneName.length} / {NATTUKAAY_NAME_MAX} caractères
+          </p>
+        </div>
+
         <div className="e0-nattukaay-controls">
           <div className="e0-nattukaay-field">
-            <label htmlFor="mensualite" className="e0-nattukaay-label">
+            <label htmlFor="e3-mensualite" className="e0-nattukaay-label">
               Montant mensuel
             </label>
             <input
-              id="mensualite"
+              id="e3-mensualite"
               type="text"
               inputMode="numeric"
               value={amountDraft}
@@ -161,10 +221,10 @@ export default function NattukaaySimulator() {
                 setAmountDraft(formatAmountInput(stepped));
               }}
               className="e0-nattukaay-input"
-              aria-describedby="mensualite-range"
+              aria-describedby="e3-mensualite-range"
             />
             <input
-              id="mensualite-range"
+              id="e3-mensualite-range"
               type="range"
               min={NATTUKAAY_AMOUNT_MIN}
               max={NATTUKAAY_AMOUNT_MAX}
@@ -183,11 +243,11 @@ export default function NattukaaySimulator() {
           </div>
 
           <div className="e0-nattukaay-field">
-            <label htmlFor="duree" className="e0-nattukaay-label">
+            <label htmlFor="e3-duree" className="e0-nattukaay-label">
               Durée d&apos;épargne
             </label>
             <input
-              id="duree"
+              id="e3-duree"
               type="number"
               min={NATTUKAAY_DUREE_MIN}
               max={NATTUKAAY_DUREE_MAX}
@@ -202,10 +262,10 @@ export default function NattukaaySimulator() {
                 }
               }}
               className="e0-nattukaay-input"
-              aria-describedby="duree-range"
+              aria-describedby="e3-duree-range"
             />
             <input
-              id="duree-range"
+              id="e3-duree-range"
               type="range"
               min={NATTUKAAY_DUREE_MIN}
               max={NATTUKAAY_DUREE_MAX}
@@ -226,8 +286,8 @@ export default function NattukaaySimulator() {
 
         <div className="e0-nattukaay-rate" role="status">
           <span>
-            Rendement escompté* :{" "}
-            <strong>{taux.toFixed(1).replace(".", ",")}% / an</strong>
+            Rendement escompté* :{' '}
+            <strong>{taux.toFixed(1).replace('.', ',')}% / an</strong>
           </span>
         </div>
 
@@ -252,11 +312,18 @@ export default function NattukaaySimulator() {
           </div>
         </div>
 
-        <RiskDisclaimer variant="simulator" className="mt-4 text-center text-xs" />
+        <RiskDisclaimer variant="simulator" className="mt-6 text-center text-xs" />
+
+        {error && <p className="e1-error mt-3">{error}</p>}
       </div>
 
-      <button type="button" className="e0-nattukaay-cta" onClick={handleStart}>
-        Je fais mon premier pas
+      <button
+        type="button"
+        className="e0-nattukaay-cta"
+        onClick={() => void handleCreate()}
+        disabled={loading || !canSubmit}
+      >
+        {loading ? 'Création…' : 'Je crée mon Kondanné'}
       </button>
     </div>
   );
