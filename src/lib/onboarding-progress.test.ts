@@ -17,12 +17,13 @@ describe('readOnboardingProgress', () => {
 });
 
 describe('isOnboardingInProgress', () => {
-  it('is true before T6', () => {
+  it('is true before portal handoff', () => {
     expect(isOnboardingInProgress({ onboarding: { step: 'T5' } })).toBe(true);
     expect(isOnboardingInProgress(null)).toBe(true);
   });
 
-  it('is false at T6', () => {
+  it('is false at C1 (and legacy T6)', () => {
+    expect(isOnboardingInProgress({ onboarding: { step: 'C1' } })).toBe(false);
     expect(isOnboardingInProgress({ onboarding: { step: 'T6' } })).toBe(false);
   });
 });

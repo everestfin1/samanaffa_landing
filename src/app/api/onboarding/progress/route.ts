@@ -11,34 +11,52 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 
-const STEPS: OnboardingStep[] = ['T0', 'T1', 'T2', 'E3', 'T3', 'T4', 'T5', 'E6', 'E8', 'T6'];
+const STEPS: OnboardingStep[] = [
+  'T0',
+  'T1',
+  'T2',
+  'T2B',
+  'E8',
+  'E3',
+  'T3',
+  'T4',
+  'T5',
+  'E6',
+  'T6',
+  'C1',
+];
 
 function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);
 }
 
+/** Corrected Momar order: E1→E2→E8→E3→E4→E5(KYC)→E5(pay)→C1 */
 const STEP_ORDER: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
   T2: 2,
-  E3: 3,
-  T3: 4,
-  T4: 4,
-  T5: 5,
-  E6: 6,
-  E8: 7,
+  T2B: 2,
+  E8: 3,
+  E3: 4,
+  T3: 5,
+  T4: 5,
+  T5: 6,
+  E6: 7,
   T6: 8,
+  C1: 8,
 };
 
 const ALLOWED_TRANSITIONS: Partial<Record<OnboardingStep, OnboardingStep[]>> = {
   T1: ['T2'],
-  T2: ['E3'],
+  T2: ['E8'],
+  T2B: ['E8'],
+  E8: ['E3'],
   E3: ['T4'],
   T3: ['T4'],
   T4: ['T5'],
   T5: ['E6'],
-  E6: ['E8'],
-  E8: ['T6'],
+  E6: ['C1'],
+  T6: ['C1'],
 };
 
 const MAX_STRING_LEN = 500;
@@ -176,14 +194,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    if ((body.step === 'E8' || body.step === 'T6') && user.kycStatus !== 'APPROVED') {
+    // Mandat (E8) is early in the corrected flow — KYC is only required before payment / C1.
+    if ((body.step === 'E6' || body.step === 'C1' || body.step === 'T6') && user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
         { error: 'La vérification d\'identité doit être approuvée avant de continuer' },
         { status: 403 },
       );
     }
 
-    if (body.step === 'T6') {
+    if (body.step === 'C1' || body.step === 'T6') {
       if (!user.termsAccepted) {
         return NextResponse.json(
           { error: 'Le mandat (CGSM) doit être accepté avant de finaliser' },
@@ -206,7 +225,8 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (body.step === 'E6' || body.step === 'E8') {
+    // Payment step needs a programmed deposit; mandat (E8) does not.
+    if (body.step === 'E6' || body.step === 'T5') {
       const effectiveDeposit = body.depositAmount ?? currentProgress.depositAmount;
       if (effectiveDeposit == null || effectiveDeposit < MIN_DEPOSIT) {
         return NextResponse.json(

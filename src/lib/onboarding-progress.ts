@@ -3,16 +3,21 @@ export type OnboardingStep =
   | 'T1'
   | 'T2'
   | 'T2B'
+  | 'E8'
   | 'E3'
   | 'T3'
   | 'T4'
   | 'T5'
   | 'E6'
-  | 'E8'
-  | 'T6';
+  | 'T6'
+  | 'C1';
 
-/** Momar visible steps: E1 → E2 → E2B (contact/consents) → E3 → E4 → E5 → E6 pay → E8 mandat → T6. */
-export const ONBOARDING_VISIBLE_STEPS = 9;
+/**
+ * Momar corrected sequence (PM 2026-07-27):
+ * E1 → E2 → E8 mandat → E3 Kondanné → E4 versement → E5 (KYC + Intouch) → C1
+ * Internal ids: T1, T2, E8, E3, T4, T5, E6, C1
+ */
+export const ONBOARDING_VISIBLE_STEPS = 7;
 
 /** @deprecated Quiz removed from Momar flow — kept for older imports. */
 export const ONBOARDING_QUIZ_QUESTIONS = 0;
@@ -58,10 +63,10 @@ export function readOnboardingProgress(raw: unknown): Partial<OnboardingProgress
   return {};
 }
 
-/** True while the user has not finished onboarding T6 (used to defer portal-only comms). */
+/** True while the user has not finished onboarding (C1). Legacy T6 counts as finished. */
 export function isOnboardingInProgress(raw: unknown): boolean {
   const step = readOnboardingProgress(raw).step;
-  return step == null || step !== 'T6';
+  return step == null || (step !== 'C1' && step !== 'T6');
 }
 
 export function mergeInvestorProfile(

@@ -27,24 +27,25 @@ Typography uses Geist through `next/font`. Buttons are full pills, cards use 14-
 
 ## Onboarding frames
 
+Corrected product sequence (PM, 2026-07-27): **E1 → E2 → E8 → E3 → E4 → E5 (KYC then Intouch) → C1**.
+
 | Badge | Frame | Node | App target | Status |
 |---|---|---|---|---|
-| E0 | Entrée | `12:302` | `/` landing page and marketing shell | Implement first |
-| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` simulation (no Kondanné name) | First product step before `/onboarding` |
-| E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Aligned via Figma MCP Bridge |
-| E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Aligned via Figma MCP Bridge |
-| E2 | Informations personnelles | `10:2048` | `T2PersonalInfo` — profession, pays, région | Aligned via Figma MCP Bridge |
-| E2B | Contact / consents (email + privacy) | *app step `T2B` — confirm Figma node* | `T2bContactConsents` | **WIP staged** — component + types; step machine + progress API not wired yet |
-| E3 | Créer un Kondanné | `10:3058` (C4 reprend E3) | `E3CreateKondanne` — name + project + CTA | After E2 (→ T2B when finished) → E4 (no quiz; default Formule Équilibre) |
-| E4 | Premier versement | `10:2230` | `T4Deposit` — amount + Je continue | Aligned via Figma MCP Bridge |
-| E5 | Vérification identité | `10:2317` | `T5KYC` — « protège ton Naffa » + Didit CTA | Progress card sibling `10:2344` during verifying |
-| E6 | Paiement | `166:185` | `E6Payment` — amount + moyens de paiement | Post-KYC; all methods via Intouch for now; Wave direct stub kept behind flag. Figma badge wrongly says E5 |
-| E7 | Not present | none | Infer only if required | Missing from Figma |
-| E8 | Mandat + signature | `10:2560` | `E8Mandate` — pad + CGSM checkbox → T6 | After E6; persists `users.signature` + `termsAccepted` via `/api/onboarding/mandate` |
-| E9 | Not present | none | Infer only if required | Missing from Figma |
-| T6 | Success handoff | none (→ C1 `10:2754`) | `T6Dashboard` — « ton Naffa est prêt » → portal | No Momar celebration frame; branded bridge into C1 |
+| E0 | Entrée | `12:302` | `/` landing page and marketing shell | Done |
+| E0 | Nattukaay Yéené | `19:463` | `/sama-naffa` simulation (no Kondanné name) | Done |
+| E1 | Numéro de téléphone | `10:1904` | `T1Phone` — **first `/onboarding` step** | Done |
+| E1· | Vérification OTP | `10:1977` | `T1Phone` OTP step | Done |
+| E2 | Informations personnelles | `10:2048` | `T2PersonalInfo` | Done |
+| E8 | Mandat + signature | `10:2560` | `E8Mandate` — **after E2** (before Kondanné) | Reordered |
+| E3 | Créer un Kondanné | `10:3058` | `E3CreateKondanne` | After E8 |
+| E4 | Premier versement | `10:2230` | `T4Deposit` | After E3 |
+| E5 | Vérification identité | `10:2317` | `T5KYC` then `E6Payment` (Intouch) | Combined “E5” in product language |
+| E5· | Paiement Intouch | `166:185` | `E6Payment` — still frame E6 in Figma | After KYC → then C1 |
+| E6 / E7 / E9 | — | — | Not used as separate product steps | — |
+| T6 | Success handoff | none | Legacy only; happy path goes **C1** | Deprecated for new users |
+| C1 | Tableau de bord | `10:2754` | Portal after payment / skip | Terminal onboarding step |
 
-**Visible step count:** `ONBOARDING_VISIBLE_STEPS = 9` once T2B is live (E1→E2→T2B→E3→E4→E5→E6→E8→T6).
+Internal step ids remain `T1`…`E8`…`E3`…`T4`…`T5`…`E6`…`C1`. Visible progress bar has **7** steps.
 
 ## Portal frames
 
