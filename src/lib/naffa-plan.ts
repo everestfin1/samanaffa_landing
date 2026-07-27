@@ -54,7 +54,8 @@ export function getObjectiveBySlug(slug: string) {
 }
 
 function resolveNaffaDisplayName(plan: NaffaPlanInput): string {
-  if (plan.objectiveSlug === 'autres' && plan.customName?.trim()) {
+  // Prefer the user-chosen Kondanné name whenever present (E3 + portal “autres”).
+  if (plan.customName?.trim()) {
     return plan.customName.trim();
   }
   return plan.objectiveName;
@@ -64,14 +65,11 @@ function resolveNaffaDisplayName(plan: NaffaPlanInput): string {
 export function buildNaffaAccountPayload(plan: NaffaPlanInput): NaffaAccountCreatePayload {
   const interestRate = tauxParDuree(plan.durationMonths);
   const displayName = resolveNaffaDisplayName(plan);
-  const customName =
-    plan.objectiveSlug === 'autres' && plan.customName?.trim()
-      ? plan.customName.trim()
-      : undefined;
+  const customName = plan.customName?.trim() || undefined;
 
   return {
     productId: 'default',
-    productName: `Naffa · ${displayName}`,
+    productName: displayName,
     productCode: 'SN-DEFAULT',
     interestRate,
     lockPeriodMonths: plan.durationMonths,

@@ -443,26 +443,39 @@ function OnboardingPageContent() {
                       durationMonths: result.durationMonths,
                       kondanneName: result.kondanneName,
                     };
-                    const formula = DEFAULT_ONBOARDING_FORMULA;
                     try {
-                      const formulaRes = await fetch('/api/onboarding/apply-formula', {
+                      const planRes = await fetch('/api/onboarding/apply-kondanne', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ formulaName: formula }),
+                        body: JSON.stringify({
+                          kondanneName: result.kondanneName,
+                          monthlyAmount: result.monthlyAmount,
+                          durationMonths: result.durationMonths,
+                          project: result.project,
+                        }),
                       });
-                      if (!formulaRes.ok) {
-                        const data = (await formulaRes.json().catch(() => ({}))) as {
+                      if (!planRes.ok) {
+                        const data = (await planRes.json().catch(() => ({}))) as {
                           error?: string;
                         };
-                        throw new Error(data.error || "Impossible d'appliquer la formule");
+                        throw new Error(
+                          data.error || "Impossible d'enregistrer le Kondanné",
+                        );
                       }
                     } catch (e) {
-                      console.error('[onboarding E3→T4 apply-formula]', e);
+                      console.error('[onboarding E3→T4 apply-kondanne]', e);
                       return;
                     }
-                    const saved = await saveProgress('T4', { simulation, formula });
+                    const saved = await saveProgress('T4', {
+                      simulation,
+                      formula: result.kondanneName,
+                    });
                     if (!saved) return;
-                    setState((s) => ({ ...s, simulation, formula }));
+                    setState((s) => ({
+                      ...s,
+                      simulation,
+                      formula: result.kondanneName,
+                    }));
                     setStep('T4');
                   }}
                 />

@@ -129,6 +129,9 @@ export default function C1Dashboard({
   const greetingName = firstName.trim() || 'toi';
   const totalBalance = accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
   const showKycBanner = kycStatus !== 'APPROVED';
+  const primaryAccount = accounts.length === 1 ? accounts[0] : null;
+  const balanceLabel = primaryAccount?.productName?.trim() || 'Sama Naffa';
+  const showKondanneList = accounts.length > 1;
 
   return (
     <div className="c1-shell">
@@ -170,9 +173,9 @@ export default function C1Dashboard({
           </button>
         </div>
 
-        <section className="c1-balance" aria-label="Solde Sama Naffa">
+        <section className="c1-balance" aria-label={`Solde ${balanceLabel}`}>
           <div className="c1-balance-top">
-            <p className="c1-balance-label">Sama Naffa</p>
+            <p className="c1-balance-label">{balanceLabel}</p>
             <Image
               src="/sama_naffa_logo.png"
               alt=""
@@ -209,20 +212,9 @@ export default function C1Dashboard({
           </div>
         </section>
 
-        <section className="c1-section">
-          <h2 className="c1-section-title">Mes Kondannés</h2>
-          {accounts.length === 0 ? (
-            <div className="c1-empty">
-              <p>Aucun Kondanné pour le moment.</p>
-              <button
-                type="button"
-                className="c1-create c1-create--ghost"
-                onClick={() => router.push('/portal/sama-naffa')}
-              >
-                + Créer un Kondanné
-              </button>
-            </div>
-          ) : (
+        {showKondanneList && (
+          <section className="c1-section">
+            <h2 className="c1-section-title">Mes Kondannés</h2>
             <ul className="c1-kondanne-list">
               {accounts.map((account) => {
                 const months =
@@ -266,8 +258,8 @@ export default function C1Dashboard({
                 );
               })}
             </ul>
-          )}
-        </section>
+          </section>
+        )}
 
         <section className="c1-section">
           <h2 className="c1-section-title">Activité récente</h2>

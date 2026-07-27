@@ -1,12 +1,13 @@
 'use client';
 
 import { useSession, signOut } from 'next-auth/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useUserProfile } from '../../../hooks/useUserProfile';
 import { useRecentTransactions } from '../../../hooks/useTransactions';
 import { useSamaNaffaAccounts } from '../../../hooks/useAccounts';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PortalHeader from '../../../components/portal/PortalHeader';
 import C1Dashboard from '../../../components/portal/C1Dashboard';
 import C1PageBackground from '../../../components/portal/C1PageBackground';
@@ -15,11 +16,23 @@ import type { PendingOnboardingDeposit } from '../../../components/portal/Onboar
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
+function hasKondanneMeta(metadata: unknown): boolean {
+  if (!metadata || typeof metadata !== 'object' || Array.isArray(metadata)) return false;
+  const m = metadata as Record<string, unknown>;
+  return (
+    (typeof m.kondanneName === 'string' && m.kondanneName.trim().length > 0) ||
+    (typeof m.customName === 'string' && m.customName.trim().length > 0) ||
+    (typeof m.monthlyAmount === 'number' && m.monthlyAmount > 0)
+  );
+}
+
 export default function DashboardPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session, status } = useSession();
   const [showKycModal, setShowKycModal] = useState(false);
   const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
+  const kondanneSyncAttempted = useRef(false);
 
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const {
@@ -41,6 +54,63 @@ export default function DashboardPage() {
       document.body.classList.remove('c1-dashboard');
     };
   }, []);
+
+  // Heal accounts stamped by legacy apply-formula (“Naffa Sérénité”) when E3
+  // simulation still holds the real Kondanné name / plan.
+  useEffect(() => {
+    if (kondanneSyncAttempted.current) return;
+    if (!userData || isLoadingAccounts) return;
+    if (samaAccounts.length !== 1) return;
+    const account = samaAccounts[0];
+    if (!account || hasKondanneMeta(account.metadata)) return;
+
+    kondanneSyncAttempted.current = true;
+    let cancelled = false;
+    (async () => {
+      try {
+        const progressRes = await fetch('/api/onboarding/progress');
+        if (!progressRes.ok || cancelled) return;
+        const progressData = (await progressRes.json()) as {
+          progress?: {
+            simulation?: {
+              kondanneName?: string;
+              monthlyAmount?: number;
+              durationMonths?: number;
+              project?: string;
+            } | null;
+          };
+        };
+        const sim = progressData.progress?.simulation;
+        if (
+          !sim?.kondanneName?.trim() ||
+          !sim.monthlyAmount ||
+          !sim.durationMonths ||
+          !sim.project
+        ) {
+          return;
+        }
+        const applyRes = await fetch('/api/onboarding/apply-kondanne', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            kondanneName: sim.kondanneName,
+            monthlyAmount: sim.monthlyAmount,
+            durationMonths: sim.durationMonths,
+            project: sim.project,
+          }),
+        });
+        if (applyRes.ok && !cancelled) {
+          await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+        }
+      } catch {
+        // Non-fatal — user still sees dashboard with catalog name.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [userData, samaAccounts, isLoadingAccounts, queryClient]);
 
   useEffect(() => {
     if (!userData) return;

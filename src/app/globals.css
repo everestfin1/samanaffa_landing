@@ -1313,8 +1313,10 @@ body.c1-dashboard {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 1rem 1.35rem;
   margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .c1-hello {
@@ -1324,6 +1326,7 @@ body.c1-dashboard {
   letter-spacing: -0.76px;
   color: #1a1a1a;
   line-height: 1.15;
+  min-width: 0;
 }
 
 .c1-create {
@@ -1333,6 +1336,7 @@ body.c1-dashboard {
   min-height: 52px;
   padding: 0 2.125rem;
   border: 0;
+  margin-left: auto;
   border-radius: 62px;
   background: #c4972f;
   color: #f1f3ee;
