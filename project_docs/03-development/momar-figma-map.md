@@ -52,8 +52,8 @@ Internal step ids remain `T1`…`E8`…`E3`…`T4`…`T5`…`E6`…`C1`. Visible
 | Badge | Frame | Node | App target | Notes |
 |---|---|---|---|---|
 | C1 | Tableau de bord | `10:2754` | `C1Dashboard` + Momar `PortalHeader` | Full-bleed `dashboard-bg.jpg` via `C1PageBackground` (`object-fit: cover`); cards over left |
-| C2 | Liste Kondanne | `124:43007` | `/portal/sama-naffa` | Empty design shell; infer from detail |
-| C2 | Détail Kondanne | `10:2878` | Kondanné detail | Balance, stats, actions, history |
+| C2 | Liste Kondanne | `124:43007` | `/portal/sama-naffa` → `C2KondanneList` | Done (Momar cards) |
+| C2 | Détail Kondanne | `10:2878` | `/portal/sama-naffa/[accountId]` | Stub only — next |
 | C3 | Alimenter | `10:2977` | Deposit subflow | Amount and payment |
 | C4 | Créer un Kondanne | `10:3058` | Portal create + onboarding `E3CreateKondanne` | Reprend E3; CTA « Je crée mon Kondanné » |
 | C5 | Retrait | `10:3131` | Withdrawal subflow | Estimation and OTP confirmation |

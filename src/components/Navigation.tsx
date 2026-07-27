@@ -183,7 +183,7 @@ export default function Navigation() {
                       : 'sama-nav-text-secondary hover:sama-text-green hover:drop-shadow-md'
                 }`}
               >
-                Sama Naffa
+                Nattukaay Yéené
               </Link>
             </div>
           </div>
@@ -342,7 +342,7 @@ export default function Navigation() {
                     className="flex items-center space-x-3 w-full text-left px-4 py-3 rounded-lg text-base font-medium text-night/80 hover:bg-sama-primary-green/10 hover:text-sama-primary-green transition-all duration-200"
                   >
                     <DevicePhoneMobileIcon className="w-5 h-5 flex-shrink-0 text-night/70" />
-                    <span>Sama Naffa</span>
+                    <span>Nattukaay Yéené</span>
                   </Link>
                 </div>
               </div>

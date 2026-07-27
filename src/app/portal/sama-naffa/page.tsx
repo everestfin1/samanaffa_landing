@@ -1,30 +1,55 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { useUserProfile } from '../../../hooks/useUserProfile';
-import SamaNaffaPortal from '../../../components/portal/SamaNaffaPortal';
+import { useSamaNaffaAccounts } from '../../../hooks/useAccounts';
+import { usePendingOnboardingDeposit } from '../../../hooks/usePendingOnboardingDeposit';
 import PortalHeader from '../../../components/portal/PortalHeader';
+import C1PageBackground from '../../../components/portal/C1PageBackground';
+import C2KondanneList from '../../../components/portal/C2KondanneList';
+import PendingOnboardingDepositCard from '../../../components/portal/PendingOnboardingDepositCard';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
 function SamaNaffaPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { data: session, status } = useSession();
   const autoConfirmDeposit =
     searchParams.get('confirmDeposit') === '1' || searchParams.get('kycReturn') === '1';
 
   const { data: userData, isLoading, error } = useUserProfile();
+  const {
+    data: samaAccounts = [],
+    isLoading: isLoadingAccounts,
+    error: accountsError,
+  } = useSamaNaffaAccounts();
+  const kycStatus = (userData?.kycStatus as KYCStatus) || 'PENDING';
+  const {
+    pendingDeposit,
+    refresh: refreshPendingDeposit,
+    clearPending,
+  } = usePendingOnboardingDeposit(kycStatus === 'APPROVED');
+
+  useEffect(() => {
+    document.documentElement.classList.add('c1-dashboard');
+    document.body.classList.add('c1-dashboard');
+    return () => {
+      document.documentElement.classList.remove('c1-dashboard');
+      document.body.classList.remove('c1-dashboard');
+    };
+  }, []);
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen bg-gray-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-night/70">Vérification de l&apos;authentification...</p>
-        </div>
+      <div className="c1-page c1-page--center">
+        <C1PageBackground />
+        <p className="text-night/70">Vérification de l&apos;authentification...</p>
       </div>
     );
   }
@@ -38,25 +63,26 @@ function SamaNaffaPageContent() {
     await signOut({ callbackUrl: '/login' });
   };
 
-  if (isLoading) {
+  if (isLoading || isLoadingAccounts) {
     return (
-      <div className="min-h-screen bg-gray-light flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-4 border-gold-metallic border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-night/70">Chargement...</p>
-        </div>
+      <div className="c1-page c1-page--center">
+        <C1PageBackground />
+        <p className="text-night/70">Chargement...</p>
       </div>
     );
   }
 
-  if (error || (!isLoading && !userData)) {
+  if (error || accountsError || !userData) {
     return (
-      <div className="min-h-screen bg-gray-light flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-night/70">Erreur lors du chargement des données</p>
+      <div className="c1-page c1-page--center">
+        <C1PageBackground />
+        <div className="text-center px-4">
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-night/70 mb-4">Erreur lors du chargement des Kondannés</p>
           <button
+            type="button"
+            className="c1-create"
             onClick={() => window.location.reload()}
-            className="bg-gold-metallic text-white px-6 py-2 rounded-lg font-medium hover:bg-gold-dark transition-colors mt-4"
           >
             Réessayer
           </button>
@@ -66,29 +92,41 @@ function SamaNaffaPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-light">
+    <div className="c1-page">
+      <C1PageBackground />
       <PortalHeader
+        variant="momar"
         userData={{
-          firstName: userData?.firstName || '',
-          lastName: userData?.lastName || '',
-          email: userData?.email || '',
-          phone: userData?.phone || '',
-          userId: userData?.id || '',
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          userId: userData.id || '',
           isNewUser: false,
-          kycStatus: (userData?.kycStatus as KYCStatus) || 'PENDING',
+          kycStatus,
         }}
-        kycStatus={userData?.kycStatus as KYCStatus}
+        kycStatus={kycStatus}
         activeTab="sama-naffa"
-        setActiveTab={() => {}}
         onLogout={handleLogout}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <SamaNaffaPortal
-          kycStatus={(userData?.kycStatus as KYCStatus) || 'PENDING'}
-          autoConfirmDeposit={autoConfirmDeposit}
-        />
-      </main>
+      {pendingDeposit && (
+        <div className="c2-pending">
+          <PendingOnboardingDepositCard
+            intent={pendingDeposit}
+            autoOpenConfirm={autoConfirmDeposit}
+            onBeforeConfirm={() => true}
+            onUpdated={refreshPendingDeposit}
+            onCancelled={clearPending}
+            onPaymentComplete={async () => {
+              clearPending();
+              await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+            }}
+          />
+        </div>
+      )}
+
+      <C2KondanneList accounts={samaAccounts} />
     </div>
   );
 }
@@ -97,7 +135,8 @@ export default function SamaNaffaPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-light flex items-center justify-center">
+        <div className="c1-page c1-page--center">
+          <C1PageBackground />
           <p className="text-night/70">Chargement…</p>
         </div>
       }

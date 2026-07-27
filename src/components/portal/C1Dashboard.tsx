@@ -173,7 +173,19 @@ export default function C1Dashboard({
           </button>
         </div>
 
-        <section className="c1-balance" aria-label={`Solde ${balanceLabel}`}>
+        <section
+          className="c1-balance c1-balance--link"
+          aria-label={`Solde ${balanceLabel}`}
+          role="link"
+          tabIndex={0}
+          onClick={() => router.push('/portal/sama-naffa')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              router.push('/portal/sama-naffa');
+            }
+          }}
+        >
           <div className="c1-balance-top">
             <p className="c1-balance-label">{balanceLabel}</p>
             <Image
@@ -200,7 +212,10 @@ export default function C1Dashboard({
             <button
               type="button"
               className="c1-eye"
-              onClick={() => setShowBalance((v) => !v)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowBalance((v) => !v);
+              }}
               aria-label={showBalance ? 'Masquer le solde' : 'Afficher le solde'}
             >
               {showBalance ? (
@@ -227,7 +242,7 @@ export default function C1Dashboard({
                     <button
                       type="button"
                       className="c1-kondanne"
-                      onClick={() => router.push('/portal/sama-naffa')}
+                      onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
                     >
                       <div className="c1-kondanne-head">
                         <span className="c1-kondanne-name">

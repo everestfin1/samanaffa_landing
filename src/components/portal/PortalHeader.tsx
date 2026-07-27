@@ -74,9 +74,9 @@ export default function PortalHeader({
     },
     {
       id: 'sama-naffa' as ActiveTab,
-      label: 'Sama Naffa',
+      label: 'Nattukaay Yéené',
       icon: DevicePhoneMobileIcon,
-      ariaLabel: 'Accéder à Sama Naffa',
+      ariaLabel: 'Accéder à Nattukaay Yéené',
       href: '/portal/sama-naffa',
       requiresKYC: true // Requires KYC approval
     },

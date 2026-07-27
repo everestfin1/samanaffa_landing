@@ -59,7 +59,7 @@ export default function Footer() {
                   href="/sama-naffa"
                   className="block text-white/60 hover:text-sama-accent-gold transition-all duration-300 text-left font-light hover:translate-x-1"
                 >
-                  SAMA NAFFA • Votre épargne gérée
+                  Nattukaay Yéené • Mesure ton projet
                 </Link>
               </div>
             </div>

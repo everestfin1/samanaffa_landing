@@ -40,11 +40,11 @@ Key files: `src/app/onboarding/page.tsx`, `src/lib/onboarding-progress.ts`, `src
 
 ## Portal next
 
-| Step | Node | Target |
-|------|------|--------|
-| C2 Liste | `124:43007` | `/portal/sama-naffa` |
-| C2 Détail | `10:2878` | Kondanné detail |
-| C3+ | see map | Alimenter → … |
+| Step | Node | Target | Status |
+|------|------|--------|--------|
+| C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
+| C2 Détail | `10:2878` | `/portal/sama-naffa/[id]` | Stub — **do next** |
+| C3+ | see map | Alimenter → … | Pending |
 
 ---
 

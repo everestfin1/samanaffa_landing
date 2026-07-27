@@ -1272,7 +1272,7 @@ body.c1-dashboard {
 
 .c1-kyc-banner,
 .c1-deposit-banner {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
@@ -1282,6 +1282,7 @@ body.c1-dashboard {
   font-size: 0.875rem;
   font-weight: 500;
   max-width: 100%;
+  line-height: 1.2;
 }
 
 .c1-kyc-banner {
@@ -1290,10 +1291,16 @@ body.c1-dashboard {
 }
 
 .c1-deposit-banner {
-  display: flex;
   width: 100%;
   background: #edf0e6;
   color: var(--sama-forest);
+}
+
+.c1-deposit-banner > p,
+.c1-kyc-banner > p {
+  margin: 0;
+  display: flex;
+  align-items: center;
 }
 
 .c1-kyc-action,
@@ -1358,6 +1365,175 @@ body.c1-dashboard {
   box-shadow: none;
 }
 
+/* —— C2 Liste Kondannés (Figma 124:43007) —— */
+.c2-shell {
+  width: 100%;
+  margin: 0;
+  padding: 2rem 1.25rem 3.5rem;
+  min-height: calc(100dvh - 4.25rem);
+  background: transparent;
+}
+
+@media (min-width: 768px) {
+  .c2-shell {
+    padding: 2.25rem clamp(1.5rem, 5vw, 3.75rem) 4rem;
+  }
+}
+
+.c2-main {
+  width: 100%;
+  max-width: 599px;
+}
+
+.c2-pending {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  max-width: 599px;
+  margin: 1.25rem auto 0;
+  padding: 0 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .c2-pending {
+    margin-left: clamp(1.5rem, 5vw, 3.75rem);
+    padding: 0;
+  }
+}
+
+.c2-back {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.c2-back:hover {
+  color: #1a1a1a;
+}
+
+.c2-title {
+  margin: 0 0 0.85rem;
+  font-size: clamp(1.85rem, 3.5vw, 2.375rem);
+  font-weight: 500;
+  letter-spacing: -0.68px;
+  color: #1a1a1a;
+  line-height: 1.2;
+}
+
+.c2-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.875rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.c2-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 140px;
+  padding: 2.125rem 2.375rem 2.25rem;
+  border: 0;
+  border-radius: 24px;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.c2-card:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.c2-card-name {
+  margin: 0 0 0.35rem;
+  color: #f1f3ee;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.c2-card-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.c2-card-balance {
+  margin: 0;
+  color: #eff3eb;
+}
+
+.c2-card-amount {
+  font-size: 1.875rem;
+  font-weight: 500;
+  letter-spacing: -0.84px;
+  line-height: 1.2;
+}
+
+.c2-card-currency {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.88px;
+}
+
+.c2-card-eye {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem;
+  border: 0;
+  background: transparent;
+  color: #fbfbfb;
+  cursor: pointer;
+}
+
+.c2-card-date {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 31px;
+  padding: 0.25rem 0.7rem 0.25rem 0.625rem;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #ae8103;
+  font-size: 1.125rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.c2-empty {
+  margin-top: 1rem;
+  color: #1a1a1a;
+}
+
+.c2-empty .c1-create {
+  margin-top: 1rem;
+}
+
+.c2-detail-balance {
+  margin: 0 0 0.75rem;
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #1a1a1a;
+}
+
+.c2-detail-note {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
 .c1-balance {
   position: relative;
   padding: 1.75rem 2.1rem;
@@ -1366,6 +1542,21 @@ body.c1-dashboard {
   box-shadow: 0 12px 34px rgb(30 40 20 / 6%);
   color: #f1f3ee;
   margin-bottom: 1.9rem;
+}
+
+.c1-balance--link {
+  cursor: pointer;
+  transition: filter 0.15s ease, transform 0.15s ease;
+}
+
+.c1-balance--link:hover {
+  filter: brightness(1.04);
+  transform: translateY(-1px);
+}
+
+.c1-balance--link:focus-visible {
+  outline: 2px solid #c4972f;
+  outline-offset: 3px;
 }
 
 .c1-balance-top {

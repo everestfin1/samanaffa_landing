@@ -14,8 +14,8 @@ export default function ApeDeprecatedNotice() {
       </div>
       <h1 className="text-2xl font-bold text-night">Emprunt obligataire</h1>
       <p className="text-sm text-night/70 leading-relaxed">
-        Les nouvelles souscriptions à l&apos;Emprunt obligataire ne sont plus proposées sur
-        Sama Naffa. Votre épargne et vos services restent disponibles sur Sama Naffa.
+        Les nouvelles souscriptions à l&apos;Emprunt obligataire ne sont plus proposées.
+        Votre épargne et vos services restent disponibles sur Nattukaay Yéené.
       </p>
       <p className="text-xs text-night/50">
         Pour toute question sur un investissement existant, contactez le support.
@@ -24,7 +24,7 @@ export default function ApeDeprecatedNotice() {
         href="/portal/sama-naffa"
         className="inline-block w-full py-3 px-4 bg-gold-metallic text-white font-semibold rounded-xl hover:bg-gold-dark transition-colors"
       >
-        Aller à Sama Naffa
+        Aller à Nattukaay Yéené
       </Link>
       <Link
         href="/portal/dashboard"
