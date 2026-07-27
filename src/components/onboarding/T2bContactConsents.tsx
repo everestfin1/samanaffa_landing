@@ -1,14 +1,16 @@
 'use client';
 
+import Image from 'next/image';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { CheckIcon } from '@heroicons/react/24/outline';
-import { CGU_TITLE, CGU_VERSION } from '@/lib/legal/cgu';
 
 interface T2bContactConsentsProps {
   firstName: string;
   initialEmail?: string;
-  onSuccess: (data: { email: string; privacyAccepted: boolean; marketingAccepted: boolean }) => void | Promise<void>;
+  onSuccess: (data: {
+    email: string;
+    privacyAccepted: boolean;
+    marketingAccepted: boolean;
+  }) => void | Promise<void>;
   onBack?: () => void;
 }
 
@@ -18,7 +20,6 @@ export default function T2bContactConsents({
   onSuccess,
   onBack,
 }: T2bContactConsentsProps) {
-  const router = useRouter();
   const [email, setEmail] = useState(initialEmail || '');
   const [privacyAccepted, setPrivacyAccepted] = useState(false);
   const [marketingAccepted, setMarketingAccepted] = useState(false);
@@ -28,7 +29,8 @@ export default function T2bContactConsents({
 
   const isValidEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e.trim());
   const isPlaceholderEmail = (e: string) => e.includes('@onboarding.samanaffa.tmp');
-  const canSubmit = email.trim() && isValidEmail(email) && !isPlaceholderEmail(email) && privacyAccepted;
+  const canSubmit =
+    email.trim() && isValidEmail(email) && !isPlaceholderEmail(email) && privacyAccepted;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -46,7 +48,11 @@ export default function T2bContactConsents({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Erreur');
-      await onSuccess({ email: email.trim(), privacyAccepted: true, marketingAccepted });
+      await onSuccess({
+        email: email.trim(),
+        privacyAccepted: true,
+        marketingAccepted,
+      });
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Erreur');
     } finally {
@@ -79,7 +85,7 @@ export default function T2bContactConsents({
   return (
     <div className="e1-shell">
       <div className="e1-art" aria-hidden>
-        <img
+        <Image
           src="/figma/e1/kondanne-chests.png"
           alt=""
           width={1102}
@@ -97,13 +103,11 @@ export default function T2bContactConsents({
             </button>
           )}
 
-          <h1 className="e1-title">
-            {greetingName}, restons en contact
-          </h1>
+          <h1 className="e1-title">{greetingName}, restons en contact</h1>
 
           <div className="e1-card">
             <p className="e1-hint">
-              Votre identité est vérifiée via Didit. Indiquez votre email pour recevoir vos relevés et alertes.
+              Indiquez votre email pour recevoir vos relevés et alertes.
             </p>
 
             <div className="e1-field">
