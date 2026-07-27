@@ -19,8 +19,6 @@ import T6Dashboard from '@/components/onboarding/T6Dashboard';
 import { ensureOnboardingDepositReleased } from '@/lib/onboarding-deposit-release';
 import {
   DEFAULT_ONBOARDING_FORMULA,
-  getOnboardingProgressPercent,
-  ONBOARDING_VISIBLE_STEPS,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
@@ -39,22 +37,6 @@ interface OnboardingState {
   depositAmount: number | null;
   wallet: string | null;
 }
-
-/** Momar flow (PM corrected): E1→E2→E8→E3→E4→E5(KYC+pay)→C1. */
-const visibleStepIndex: Record<OnboardingStep, number> = {
-  T0: 0,
-  T1: 1,
-  T2: 2,
-  T2B: 2,
-  E8: 3,
-  E3: 4,
-  T3: 5,
-  T4: 5,
-  T5: 6,
-  E6: 7,
-  T6: 7,
-  C1: 7,
-};
 
 const DEFAULT_SIMULATION: T0Result = {
   project: 'autres',
@@ -274,11 +256,6 @@ function OnboardingPageContent() {
     [state],
   );
 
-  const currentVisible = visibleStepIndex[step];
-  // Progress starts at E1 (T1); hide on portal handoff.
-  const showProgress = step !== 'C1' && step !== 'T6';
-  const progressPercent = getOnboardingProgressPercent(currentVisible);
-
   const finishToPortal = useCallback(async () => {
     const saved = await saveProgress('C1', {
       depositAmount: state.depositAmount,
@@ -360,39 +337,6 @@ function OnboardingPageContent() {
   return (
     <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
       <E0MarketingHeader />
-      <AnimatePresence>
-        {showProgress && (
-          <motion.div
-            key="progress"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.2 }}
-            className="shrink-0 bg-white/95 backdrop-blur border-b border-timberwolf/20 z-40"
-          >
-            <div className="max-w-md mx-auto px-4 py-3">
-              <div className="flex items-center justify-between text-xs text-night/60 mb-2">
-                <span className="font-medium">Sama Naffa</span>
-                <span>
-                  Étape {currentVisible} sur {ONBOARDING_VISIBLE_STEPS}
-                </span>
-              </div>
-              <div
-                className="w-full h-1.5 bg-timberwolf/30 rounded-full overflow-hidden"
-                role="progressbar"
-                aria-valuenow={Math.round(progressPercent)}
-                aria-valuemin={0}
-                aria-valuemax={100}
-              >
-                <div
-                  className="h-full min-w-0 rounded-full bg-gold-metallic transition-[width] duration-500 ease-in-out"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {progressError && (
         <div className="shrink-0 max-w-md mx-auto w-full px-4 pt-3">
