@@ -132,6 +132,10 @@ export default function C1Dashboard({
   const primaryAccount = accounts.length === 1 ? accounts[0] : null;
   const balanceLabel = primaryAccount?.productName?.trim() || 'Sama Naffa';
   const showKondanneList = accounts.length > 1;
+  const kondanneDestination =
+    accounts.length === 1
+      ? `/portal/sama-naffa/${accounts[0].id}`
+      : '/portal/sama-naffa';
 
   return (
     <div className="c1-shell">
@@ -178,11 +182,11 @@ export default function C1Dashboard({
           aria-label={`Solde ${balanceLabel}`}
           role="link"
           tabIndex={0}
-          onClick={() => router.push('/portal/sama-naffa')}
+          onClick={() => router.push(kondanneDestination)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              router.push('/portal/sama-naffa');
+              router.push(kondanneDestination);
             }
           }}
         >

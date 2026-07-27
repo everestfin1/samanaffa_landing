@@ -7,21 +7,22 @@ import { useUserProfile } from '../../../../hooks/useUserProfile';
 import { useSamaNaffaAccounts } from '../../../../hooks/useAccounts';
 import PortalHeader from '../../../../components/portal/PortalHeader';
 import C1PageBackground from '../../../../components/portal/C1PageBackground';
-import { formatCurrency } from '@/lib/utils';
+import C2KondanneDetail from '../../../../components/portal/C2KondanneDetail';
+import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
-/**
- * Temporary C2 detail shell so list cards don’t 404.
- * Full Momar détail (10:2878) is the next portal step.
- */
 export default function KondanneDetailPage() {
   const router = useRouter();
   const params = useParams();
   const accountId = typeof params.accountId === 'string' ? params.accountId : '';
   const { data: session, status } = useSession();
-  const { data: userData, isLoading: isLoadingProfile } = useUserProfile();
-  const { data: accounts = [], isLoading: isLoadingAccounts } = useSamaNaffaAccounts();
+  const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
+  const {
+    data: accounts = [],
+    isLoading: isLoadingAccounts,
+    error: accountsError,
+  } = useSamaNaffaAccounts();
 
   useEffect(() => {
     document.documentElement.classList.add('c1-dashboard');
@@ -46,8 +47,27 @@ export default function KondanneDetailPage() {
     return null;
   }
 
+  if (profileError || accountsError || !userData) {
+    return (
+      <div className="c1-page c1-page--center">
+        <C1PageBackground />
+        <div className="text-center px-4">
+          <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-night/70 mb-4">Erreur lors du chargement du Kondanné</p>
+          <button
+            type="button"
+            className="c1-create"
+            onClick={() => window.location.reload()}
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   const account = accounts.find((a) => a.id === accountId);
-  const kycStatus = (userData?.kycStatus as KYCStatus) || 'PENDING';
+  const kycStatus = (userData.kycStatus as KYCStatus) || 'PENDING';
 
   return (
     <div className="c1-page">
@@ -55,11 +75,11 @@ export default function KondanneDetailPage() {
       <PortalHeader
         variant="momar"
         userData={{
-          firstName: userData?.firstName || '',
-          lastName: userData?.lastName || '',
-          email: userData?.email || '',
-          phone: userData?.phone || '',
-          userId: userData?.id || '',
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          email: userData.email || '',
+          phone: userData.phone || '',
+          userId: userData.id || '',
           isNewUser: false,
           kycStatus,
         }}
@@ -70,29 +90,22 @@ export default function KondanneDetailPage() {
         }}
       />
 
-      <div className="c2-shell">
-        <div className="c2-main">
-          <button
-            type="button"
-            className="c2-back"
-            onClick={() => router.push('/portal/sama-naffa')}
-          >
-            ← Mes Kondannés
-          </button>
-
-          {!account ? (
+      {!account ? (
+        <div className="c2-shell">
+          <div className="c2-main">
+            <button
+              type="button"
+              className="c2-back"
+              onClick={() => router.push('/portal/sama-naffa')}
+            >
+              ← Mes Kondannés
+            </button>
             <p className="c2-empty">Kondanné introuvable.</p>
-          ) : (
-            <>
-              <h1 className="c2-title">{account.productName?.trim() || 'Mon Kondanné'}</h1>
-              <p className="c2-detail-balance">{formatCurrency(account.balance)}</p>
-              <p className="c2-detail-note">
-                Détail Momar (C2) à venir — Alimente / Retire / historique.
-              </p>
-            </>
-          )}
+          </div>
         </div>
-      </div>
+      ) : (
+        <C2KondanneDetail account={account} kycStatus={kycStatus} />
+      )}
     </div>
   );
 }

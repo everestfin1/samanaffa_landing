@@ -43,8 +43,10 @@ Key files: `src/app/onboarding/page.tsx`, `src/lib/onboarding-progress.ts`, `src
 | Step | Node | Target | Status |
 |------|------|--------|--------|
 | C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
-| C2 Détail | `10:2878` | `/portal/sama-naffa/[id]` | Stub — **do next** |
-| C3+ | see map | Alimenter → … | Pending |
+| C2 Détail | `10:2878` | `/portal/sama-naffa/[id]` | Done |
+| C3 Alimenter | `10:2977` | Deposit screen | **Do next** (modal wired) |
+| C5 Retrait | `10:3131` | Withdraw screen | Pending (modal wired) |
+| C4 / C6–C8 | see map | Create / docs / profile / aide | Pending |
 
 ---
 
