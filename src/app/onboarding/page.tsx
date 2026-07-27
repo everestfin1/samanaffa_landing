@@ -10,6 +10,7 @@ import E0MarketingHeader from '@/components/landing/E0MarketingHeader';
 import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
+import T2bContactConsents from '@/components/onboarding/T2bContactConsents';
 import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E3CreateKondanne';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
@@ -45,13 +46,14 @@ const visibleStepIndex: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
   T2: 2,
-  E3: 3,
-  T3: 4, // remapped to T4 on resume
-  T4: 4,
-  T5: 5,
-  E6: 6,
-  E8: 7,
-  T6: 8,
+  T2B: 3,
+  E3: 4,
+  T3: 5, // remapped to T4 on resume
+  T4: 5,
+  T5: 6,
+  E6: 7,
+  E8: 8,
+  T6: 9,
 };
 
 const DEFAULT_SIMULATION: T0Result = {

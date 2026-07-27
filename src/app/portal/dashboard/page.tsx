@@ -11,8 +11,6 @@ import PortalHeader from '../../../components/portal/PortalHeader';
 import C1Dashboard from '../../../components/portal/C1Dashboard';
 import C1PageBackground from '../../../components/portal/C1PageBackground';
 import KYCInitiationModal from '../../../components/portal/KYCInitiationModal';
-import ProfileCompletionModal from '../../../components/portal/ProfileCompletionModal';
-import { meetsPortalCommunicationsRequirements } from '@/lib/portal-profile-completion';
 import type { PendingOnboardingDeposit } from '../../../components/portal/OnboardingDepositModal';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -22,7 +20,6 @@ export default function DashboardPage() {
   const { data: session, status } = useSession();
   const [showKycModal, setShowKycModal] = useState(false);
   const [pendingDeposit, setPendingDeposit] = useState<PendingOnboardingDeposit | null>(null);
-  const [profileDismissed, setProfileDismissed] = useState(false);
 
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const {
@@ -128,15 +125,6 @@ export default function DashboardPage() {
 
   const kycStatus = (userData.kycStatus as KYCStatus) || 'PENDING';
 
-  const needsProfileCompletion =
-    !profileDismissed &&
-    kycStatus === 'APPROVED' &&
-    !meetsPortalCommunicationsRequirements({
-      email: userData.email,
-      termsAccepted: userData.termsAccepted,
-      privacyAccepted: userData.privacyAccepted,
-    });
-
   return (
     <div className="c1-page">
       <C1PageBackground />
@@ -170,18 +158,6 @@ export default function DashboardPage() {
         isOpen={showKycModal}
         onClose={() => setShowKycModal(false)}
         onComplete={() => window.location.reload()}
-      />
-
-      <ProfileCompletionModal
-        isOpen={needsProfileCompletion}
-        onClose={() => setProfileDismissed(true)}
-        dismissible
-        initialData={{
-          email: userData.email,
-          termsAccepted: userData.termsAccepted,
-          privacyAccepted: userData.privacyAccepted,
-          marketingAccepted: userData.marketingAccepted,
-        }}
       />
     </div>
   );
