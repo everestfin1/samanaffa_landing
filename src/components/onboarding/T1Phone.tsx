@@ -560,7 +560,7 @@ export default function T1Phone({
               type="button"
               onClick={() => void handleSendOtp()}
               disabled={loading || !canSendOtp}
-              className="e1-cta"
+              className="e1-cta e1-cta--wide"
             >
               {loading ? 'Envoi…' : 'Envoie moi le code de vérification par SMS'}
             </button>
