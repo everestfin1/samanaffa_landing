@@ -2352,6 +2352,328 @@ body.c1-dashboard:has(.c1-page--soft) {
   color: #6b7280;
 }
 
+/* —— C4 Créer un Kondanné (Momar 10:3058 / E3) —— */
+.c4-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5rem 1.25rem 3rem;
+}
+
+.c4-back {
+  margin-bottom: 0.75rem;
+}
+
+.c4-shell .e3-create {
+  margin-top: 0.25rem;
+}
+
+/* —— C7 Profil & sécurité (Momar 10:3293) —— */
+.c7-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 3rem;
+}
+
+.c7-back {
+  margin-bottom: 0.75rem;
+}
+
+.c7-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  line-height: 1.15;
+}
+
+.c7-hero {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 1.5rem 1.75rem;
+  margin-bottom: 1.25rem;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(30 40 20 / 6%);
+}
+
+.c7-avatar {
+  display: inline-flex;
+  width: 4.5rem;
+  height: 4.5rem;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--sama-forest);
+  color: #fff;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.c7-name {
+  margin: 0 0 0.35rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.c7-contact {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: #6b7280;
+}
+
+.c7-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.15rem;
+}
+
+@media (min-width: 800px) {
+  .c7-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.c7-card {
+  padding: 1.35rem 1.5rem 0.5rem;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(30 40 20 / 6%);
+}
+
+.c7-card-eyebrow {
+  margin: 0 0 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9aa091;
+}
+
+.c7-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.c7-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding: 1rem 0;
+  border: 0;
+  border-bottom: 1px solid #eeeae0;
+  background: transparent;
+  text-align: left;
+  color: inherit;
+}
+
+.c7-rows > li:last-child .c7-row,
+.c7-rows > li:last-child.c7-row {
+  border-bottom: 0;
+}
+
+.c7-row--action {
+  cursor: pointer;
+}
+
+.c7-row-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.c7-row-label {
+  font-size: 0.975rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.c7-row-meta {
+  font-size: 0.8125rem;
+  color: #9aa091;
+  word-break: break-word;
+}
+
+.c7-link {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #c4972f;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.c7-chevron {
+  color: #9aa091;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.c7-toggle {
+  position: relative;
+  width: 2.75rem;
+  height: 1.55rem;
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #d9d5c8;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.c7-toggle.is-on {
+  background: var(--sama-forest);
+}
+
+.c7-toggle:disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+
+.c7-toggle-knob {
+  position: absolute;
+  top: 0.18rem;
+  left: 0.18rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+  transition: transform 0.15s ease;
+}
+
+.c7-toggle.is-on .c7-toggle-knob {
+  transform: translateX(1.2rem);
+}
+
+.c7-message {
+  margin: 1.15rem 0 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* —— C8 Aide & réclamations (Momar 10:3376) —— */
+.c8-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 3rem;
+}
+
+.c8-back {
+  margin-bottom: 0.75rem;
+}
+
+.c8-title {
+  margin: 0 0 1.5rem;
+  font-size: clamp(1.75rem, 3.5vw, 2.375rem);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #1a1a1a;
+  line-height: 1.15;
+}
+
+.c8-cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 800px) {
+  .c8-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.c8-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  padding: 1.35rem 1.35rem 1.5rem;
+  border: 0;
+  border-radius: 22px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgb(30 40 20 / 6%);
+  text-align: left;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.c8-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 36px rgb(30 40 20 / 10%);
+}
+
+.c8-card-icon {
+  display: inline-flex;
+  width: 2.75rem;
+  height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+}
+
+.c8-card-icon--wa {
+  background: #e7f3ea;
+  color: #2e4620;
+}
+
+.c8-card-icon--phone {
+  background: #f4ebe3;
+  color: #9a4a2a;
+}
+
+.c8-card-icon--claim {
+  background: #fbf6e2;
+  color: #9a7a1c;
+}
+
+.c8-card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1a1a1a;
+}
+
+.c8-card-sub {
+  font-size: 0.875rem;
+  color: #6b7280;
+  line-height: 1.35;
+}
+
+.c8-banner {
+  margin: 0;
+  padding: 1.15rem 1.35rem;
+  border-radius: 16px;
+  background: #f0eee6;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: #6b7280;
+}
+
 .c1-balance {
   position: relative;
   padding: 1.75rem 2.1rem;

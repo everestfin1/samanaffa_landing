@@ -15,6 +15,7 @@ import {
   BellIcon,
   DevicePhoneMobileIcon,
   BuildingLibraryIcon,
+  QuestionMarkCircleIcon,
 } from '@heroicons/react/24/outline';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
@@ -308,6 +309,17 @@ export default function PortalHeader({
                     <span className="flex-1 text-left">Mon profil</span>
                   </button>
 
+                  <button
+                    onClick={() => {
+                      setIsUserDropdownOpen(false);
+                      router.push('/portal/aide');
+                    }}
+                    className="flex items-center w-full px-4 py-2 text-sm text-night/80 hover:bg-timberwolf/10 hover:text-night transition-colors"
+                  >
+                    <QuestionMarkCircleIcon className="w-4 h-4 mr-3 flex-shrink-0 text-night/70" />
+                    <span className="flex-1 text-left">Aide & réclamations</span>
+                  </button>
+
                   {/* Divider */}
                   <div className="my-1 border-t border-timberwolf/10"></div>
 
@@ -432,6 +444,17 @@ export default function PortalHeader({
                 >
                   <UserIcon className="w-4 h-4 mr-2 flex-shrink-0 text-night/70" />
                   <span className="flex-1 text-left">Mon profil</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    setIsUserDropdownOpen(false);
+                    router.push('/portal/aide');
+                  }}
+                  className="flex items-center w-full px-3 py-2 text-xs text-night/80 hover:bg-timberwolf/10 hover:text-night transition-colors"
+                >
+                  <QuestionMarkCircleIcon className="w-4 h-4 mr-2 flex-shrink-0 text-night/70" />
+                  <span className="flex-1 text-left">Aide & réclamations</span>
                 </button>
 
                 {/* Divider */}

@@ -171,7 +171,7 @@ export default function C1Dashboard({
           <button
             type="button"
             className="c1-create"
-            onClick={() => router.push('/portal/sama-naffa')}
+            onClick={() => router.push('/portal/sama-naffa/creer')}
           >
             + Créer un Kondanné
           </button>

@@ -89,7 +89,7 @@ export default function C2KondanneList({ accounts }: C2KondanneListProps) {
             <button
               type="button"
               className="c1-create"
-              onClick={() => router.push('/portal/dashboard')}
+              onClick={() => router.push('/portal/sama-naffa/creer')}
             >
               + Créer un Kondanné
             </button>

@@ -1,6 +1,6 @@
 # Momar Figma redesign — agent handover
 
-**Updated:** 2026-07-28 (C5 Retrait + C6 Relevés)  
+**Updated:** 2026-07-28 (C4 + C7 + C8 portal sprint)  
 **Branch:** `staging`  
 **Source of truth:** [Sama-Naffa-UI](https://www.figma.com/design/blKrnZxk8pWEjfPFa2XS9K/Sama-Naffa-UI) (`blKrnZxk8pWEjfPFa2XS9K`)
 
@@ -21,22 +21,25 @@ E1 (phone/OTP) → E2 (infos) → E8 (mandat + signature)
 
 ---
 
-## Portal next
+## Portal status
 
 | Step | Node | Target | Status |
 |------|------|--------|--------|
 | C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
-| C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done |
-| C3 Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimenter` → `C3Alimenter` | Done (methods → Intouch) |
-| C5 Retrait | `10:3131` | `/portal/sama-naffa/[accountId]/retrait` → `C5Retrait` | Done (confirm → Intouch) |
-| C6 Relevés | `10:3223` | `/portal/releves` → `C6Releves` | Done (mocked rows faded; see [c6-releves-documents-notes.md](./c6-releves-documents-notes.md)) |
-| C4 / C7–C8 | see map | Create Kondanné / profile / aide | **Do next** |
+| C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` | Done |
+| C3 Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimenter` | Done |
+| C4 Créer | `10:3058` | `/portal/sama-naffa/creer` (reuses `E3CreateKondanne`) | Done → `POST /api/accounts` |
+| C5 Retrait | `10:3131` | `/portal/sama-naffa/[accountId]/retrait` | Done |
+| C6 Relevés | `10:3223` | `/portal/releves` | Done (mocked docs; see notes) |
+| C7 Profil | `10:3293` | `/portal/profile` → `C7Profil` | Done |
+| C8 Aide | `10:3376` | `/portal/aide` → `C8Aide` | Done |
 
 ---
 
 ## Open PM notes
 
-- **C6 documents:** Figma catalog ≠ CGU. Meeting notes + recommended real doc set → [c6-releves-documents-notes.md](./c6-releves-documents-notes.md).
+- **C6 documents:** Figma catalog ≠ CGU. → [c6-releves-documents-notes.md](./c6-releves-documents-notes.md).
+- **C7:** Email address change still blocked server-side; SMS toggle maps to `marketingAccepted`. 2FA shown as OTP-login (read-only on). Multi-session management not wired.
 
 ---
 

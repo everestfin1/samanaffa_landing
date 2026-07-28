@@ -134,6 +134,9 @@ export async function PUT(request: NextRequest) {
     if (body.preferredLanguage !== undefined) {
       updateData.preferredLanguage = body.preferredLanguage
     }
+    if (body.marketingAccepted !== undefined) {
+      updateData.marketingAccepted = Boolean(body.marketingAccepted)
+    }
     if (body.region !== undefined) updateData.region = body.region
     if (body.department !== undefined) updateData.department = body.department
     if (body.arrondissement !== undefined) updateData.arrondissement = body.arrondissement
