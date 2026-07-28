@@ -220,16 +220,16 @@ export function useDiditKycVerification({
       try {
         await openDiditSdkVerification(url, handleSdkResult);
       } catch (e: unknown) {
-        stopPolling();
-        setStage('error');
-        setError(
-          e instanceof Error
-            ? e.message
-            : "Impossible d'ouvrir la fenêtre de vérification. Réessayez.",
-        );
+        // Camera permissions and embedded SDK support vary across mobile
+        // browsers. Preserve the verification session and degrade to Didit's
+        // existing full-page flow instead of leaving the user blocked.
+        console.warn('[didit] SDK modal unavailable; falling back to redirect', e);
+        setStage('verifying');
+        setError(null);
+        navigateToDiditVerification(url, sessionId, returnPath);
       }
     },
-    [handleSdkResult, startPolling, stopPolling],
+    [handleSdkResult, returnPath, startPolling],
   );
 
   const resolveVerificationUrl = useCallback(
@@ -312,6 +312,11 @@ export function useDiditKycVerification({
       if (data.bypass && data.sessionId) {
         setDiditSessionId(data.sessionId);
         sessionIdRef.current = data.sessionId;
+        if (autoAdvanceOnApproved && onApproved) {
+          approvedHandledRef.current = true;
+          onApproved();
+          return;
+        }
         applyStatus('approved');
         return;
       }

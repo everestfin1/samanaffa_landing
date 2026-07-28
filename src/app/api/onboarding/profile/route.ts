@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { authOptions } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
@@ -20,7 +20,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const { firstName, lastName, investorProfile, referralCode, metiers, country, region } =
+    const { firstName, lastName, email, investorProfile, referralCode, metiers, country, region } =
       await request.json();
 
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
@@ -31,6 +31,21 @@ export async function PATCH(request: NextRequest) {
     const data: Record<string, unknown> = {};
     if (typeof firstName === 'string' && firstName.trim()) data.firstName = firstName.trim();
     if (typeof lastName === 'string' && lastName.trim()) data.lastName = lastName.trim();
+    if (typeof email === 'string' && email.trim()) {
+      const normalizedEmail = email.trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+        return NextResponse.json({ error: 'Adresse e-mail invalide' }, { status: 400 });
+      }
+      const [existingEmail] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(and(eq(users.email, normalizedEmail), ne(users.id, userId)))
+        .limit(1);
+      if (existingEmail) {
+        return NextResponse.json({ error: 'Cette adresse e-mail est déjà utilisée' }, { status: 409 });
+      }
+      data.email = normalizedEmail;
+    }
     if (typeof metiers === 'string' && metiers.trim()) data.metiers = metiers.trim();
     if (typeof country === 'string' && country.trim()) data.country = country.trim().toUpperCase();
     if (typeof region === 'string' && region.trim()) data.region = region.trim();
@@ -110,6 +125,7 @@ export async function PATCH(request: NextRequest) {
         id: updated.id,
         firstName: updated.firstName,
         lastName: updated.lastName,
+        email: updated.email,
         referralCode: savedReferral,
         metiers: updated.metiers,
         country: updated.country,

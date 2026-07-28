@@ -10,7 +10,6 @@ import E0MarketingHeader from '@/components/landing/E0MarketingHeader';
 import { type ProjectId, type T0Result } from '@/components/onboarding/T0Simulator';
 import T1Phone, { type T1ProfileDraft } from '@/components/onboarding/T1Phone';
 import T2PersonalInfo from '@/components/onboarding/T2PersonalInfo';
-import E3CreateKondanne, { type E3CreateResult } from '@/components/onboarding/E3CreateKondanne';
 import T4Deposit from '@/components/onboarding/T4Deposit';
 import T5KYC from '@/components/onboarding/T5KYC';
 import E6Payment from '@/components/onboarding/E6Payment';
@@ -21,6 +20,7 @@ import {
   DEFAULT_ONBOARDING_FORMULA,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
+import { getDefaultOnboardingAccount } from '@/lib/onboarding-default-account-config';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 import { isApeDeprecated } from '@/lib/product-flags';
 import { useSelection, type SamaNaffaSelection } from '@/lib/selection-context';
@@ -164,15 +164,10 @@ function OnboardingPageContent() {
         } else if (p.kycApproved && resumeStep === 'T5') {
           // Post-KYC → Intouch payment (still part of Momar E5).
           setStep('E6');
-        } else if (resumeStep === 'T3') {
-          // Legacy quiz step — Momar skips quiz → first deposit.
+        } else if (resumeStep === 'T3' || resumeStep === 'E3') {
+          // Legacy quiz/Kondanné steps are no longer part of onboarding.
           if (!p.formula) {
             try {
-              await fetch('/api/onboarding/apply-formula', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ formulaName: DEFAULT_ONBOARDING_FORMULA }),
-              });
               await fetch('/api/onboarding/progress', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
@@ -181,16 +176,16 @@ function OnboardingPageContent() {
                   simulation: p.simulation,
                   firstName: p.firstName,
                   referralCode: p.referralCode,
-                  formula: DEFAULT_ONBOARDING_FORMULA,
+                  formula: getDefaultOnboardingAccount().productName,
                   depositAmount: p.depositAmount,
                   wallet: p.wallet,
                 }),
               });
               if (!cancelled) {
-                setState((s) => ({ ...s, formula: DEFAULT_ONBOARDING_FORMULA }));
+                setState((s) => ({ ...s, formula: getDefaultOnboardingAccount().productName }));
               }
             } catch {
-              // Non-blocking — user can still deposit; formula retry on next E3 complete
+              // Non-blocking — user can still deposit; retry on a subsequent resume.
             }
           }
           setStep('T4');
@@ -256,6 +251,29 @@ function OnboardingPageContent() {
     [state],
   );
 
+  const moveToStep = useCallback(
+    async (nextStep: OnboardingStep) => {
+      const saved = await saveProgress(nextStep);
+      if (saved) setStep(nextStep);
+    },
+    [saveProgress],
+  );
+
+  useEffect(() => {
+    if (!resumeChecked || !activeUserId) return;
+
+    let fallback: OnboardingStep | null = null;
+    if ((step === 'E8' || step === 'T4') && !state.firstName) {
+      fallback = 'T2';
+    } else if ((step === 'T5' || step === 'E6') && !state.firstName) {
+      fallback = 'T2';
+    } else if ((step === 'T5' || step === 'E6') && !state.depositAmount) {
+      fallback = 'T4';
+    }
+
+    if (fallback) void moveToStep(fallback);
+  }, [activeUserId, moveToStep, resumeChecked, state.depositAmount, state.firstName, step]);
+
   const finishToPortal = useCallback(async () => {
     const saved = await saveProgress('C1', {
       depositAmount: state.depositAmount,
@@ -304,6 +322,7 @@ function OnboardingPageContent() {
             body: JSON.stringify({
               firstName: profile.firstName,
               lastName: profile.lastName || undefined,
+              email: profile.email || undefined,
               referralCode: profile.referralCode,
             }),
           });
@@ -385,6 +404,7 @@ function OnboardingPageContent() {
               >
                 <T2PersonalInfo
                   firstName={state.firstName ?? 'toi'}
+                  onBack={() => router.push('/sama-naffa')}
                   onSuccess={async () => {
                     const saved = await saveProgress('E8', { firstName: state.firstName });
                     if (!saved) return;
@@ -405,77 +425,15 @@ function OnboardingPageContent() {
               >
                 <E8Mandate
                   firstName={state.firstName}
-                  onBack={() => setStep('T2')}
+                  onBack={() => void moveToStep('T2')}
                   onSuccess={async () => {
-                    const saved = await saveProgress('E3', { firstName: state.firstName });
-                    if (!saved) return;
-                    setStep('E3');
-                  }}
-                />
-              </motion.div>
-            )}
-
-            {step === 'E3' && activeUserId && (
-              <motion.div
-                key="E3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.3 }}
-                className="w-full"
-              >
-                <E3CreateKondanne
-                  firstName={state.firstName}
-                  initial={{
-                    ...(state.simulation ?? DEFAULT_SIMULATION),
-                    kondanneName:
-                      state.simulation && 'kondanneName' in state.simulation
-                        ? state.simulation.kondanneName
-                        : selectionData?.type === 'sama-naffa'
-                          ? selectionData.objective
-                          : undefined,
-                  }}
-                  onBack={() => setStep('E8')}
-                  onSuccess={async (result: E3CreateResult) => {
-                    const simulation = {
-                      project: result.project,
-                      monthlyAmount: result.monthlyAmount,
-                      durationMonths: result.durationMonths,
-                      kondanneName: result.kondanneName,
-                    };
-                    try {
-                      const planRes = await fetch('/api/onboarding/apply-kondanne', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                          kondanneName: result.kondanneName,
-                          monthlyAmount: result.monthlyAmount,
-                          durationMonths: result.durationMonths,
-                          project: result.project,
-                        }),
-                      });
-                      if (!planRes.ok) {
-                        const data = (await planRes.json().catch(() => ({}))) as {
-                          error?: string;
-                        };
-                        throw new Error(
-                          data.error || "Impossible d'enregistrer le Kondanné",
-                        );
-                      }
-                    } catch (e) {
-                      console.error('[onboarding E3→T4 apply-kondanne]', e);
-                      return;
-                    }
+                    const defaultAccount = getDefaultOnboardingAccount();
                     const saved = await saveProgress('T4', {
-                      simulation,
-                      formula: result.kondanneName,
+                      firstName: state.firstName,
+                      formula: defaultAccount.productName,
                     });
                     if (!saved) return;
-                    setState((s) => ({
-                      ...s,
-                      simulation,
-                      formula: result.kondanneName,
-                    }));
+                    setState((s) => ({ ...s, formula: defaultAccount.productName }));
                     setStep('T4');
                   }}
                 />
@@ -495,7 +453,7 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   initialAmount={state.depositAmount ?? undefined}
                   initialWallet={state.wallet}
-                  onBack={() => setStep('E3')}
+                  onBack={() => void moveToStep('E8')}
                   onSuccess={async (amount, wallet) => {
                     const saved = await saveProgress('T5', { depositAmount: amount, wallet });
                     if (!saved) return;
@@ -519,7 +477,7 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   depositAmount={state.depositAmount}
                   resumeSessionId={kycResumeSessionId}
-                  onBack={() => setStep('T4')}
+                  onBack={() => void moveToStep('T4')}
                   onApproved={async () => {
                     const { ready } = await ensureOnboardingDepositReleased();
                     setDepositReady(ready);
@@ -549,7 +507,7 @@ function OnboardingPageContent() {
                 <E6Payment
                   firstName={state.firstName}
                   initialAmount={state.depositAmount}
-                  onBack={() => setStep('T5')}
+                  onBack={() => void moveToStep('T4')}
                   onSkip={async () => {
                     await finishToPortal();
                   }}
@@ -605,7 +563,6 @@ function OnboardingStepContainer({
   const wide =
     step === 'T1' ||
     step === 'T2' ||
-    step === 'E3' ||
     step === 'T4' ||
     step === 'T5' ||
     step === 'E6' ||

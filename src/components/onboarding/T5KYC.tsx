@@ -18,31 +18,6 @@ interface T5KYCProps {
   resumeSessionId?: string | null;
 }
 
-type ProgressStepStatus = 'done' | 'active' | 'upcoming';
-
-const PROGRESS_STEPS: { id: string; label: string; icon: string }[] = [
-  { id: 'recto', label: "Pièce d'identité (recto)", icon: '✓' },
-  { id: 'verso', label: "Pièce d'identité (verso)", icon: '📷' },
-  { id: 'selfie', label: 'Selfie', icon: '🎥' },
-];
-
-function progressStatuses(stage: string): ProgressStepStatus[] {
-  if (stage === 'success' || stage === 'in_review') {
-    return ['done', 'done', 'done'];
-  }
-  if (stage === 'verifying' || stage === 'loading') {
-    // Figma sibling 10:2344 shows recto done / verso active / selfie upcoming.
-    return ['done', 'active', 'upcoming'];
-  }
-  return ['upcoming', 'upcoming', 'upcoming'];
-}
-
-function statusLabel(status: ProgressStepStatus): string {
-  if (status === 'done') return 'Terminé';
-  if (status === 'active') return 'En cours';
-  return 'À venir';
-}
-
 export default function T5KYC({
   firstName,
   depositAmount,
@@ -79,15 +54,11 @@ export default function T5KYC({
 
   const greetingName = firstName.trim() || 'toi';
   const showIntro = kyc.stage === 'idle';
-  const showProgress =
-    kyc.stage === 'loading' || kyc.stage === 'verifying';
   const showOutcome =
     kyc.stage === 'success' ||
     kyc.stage === 'in_review' ||
     kyc.stage === 'declined' ||
     kyc.stage === 'error';
-  const stepStatuses = progressStatuses(kyc.stage);
-
   return (
     <div className="e1-shell e5-shell">
       <div className="e1-layout e5-layout">
@@ -98,7 +69,7 @@ export default function T5KYC({
             </button>
           )}
 
-          {(showIntro || showProgress) && (
+          {showIntro && (
             <>
               <h1 className="e1-title e5-title">
                 {greetingName}, protège ton Naffa.
@@ -136,55 +107,12 @@ export default function T5KYC({
             </>
           )}
 
-          {showProgress && (
-            <div className="e5-progress" role="status" aria-live="polite">
-              {PROGRESS_STEPS.map((step, index) => {
-                const status = stepStatuses[index] ?? 'upcoming';
-                return (
-                  <div
-                    key={step.id}
-                    className={`e5-progress-row e5-progress-row--${status}`}
-                  >
-                    <div className="e5-progress-icon" aria-hidden>
-                      {status === 'done' ? '✓' : step.icon}
-                    </div>
-                    <div className="e5-progress-copy">
-                      <p className="e5-progress-label">{step.label}</p>
-                      <p className="e5-progress-status">{statusLabel(status)}</p>
-                    </div>
-                    {status === 'active' && (
-                      <span className="e5-progress-chevron" aria-hidden>
-                        ›
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-
-              {kyc.stage === 'loading' && (
-                <p className="e5-progress-hint">Préparation de la vérification…</p>
-              )}
-
-              {kyc.stage === 'verifying' && (
-                <>
-                  <p className="e5-progress-hint">
-                    Complète les étapes avec Didit. Cette page se met à jour
-                    automatiquement.
-                  </p>
-                  {(kyc.verificationUrl || kyc.useWebSdk) && (
-                    <button
-                      type="button"
-                      onClick={() => void kyc.resumeVerification()}
-                      className="e5-resume"
-                    >
-                      Reprendre la vérification
-                    </button>
-                  )}
-                </>
-              )}
-
-              {kyc.error && <p className="e1-error">{kyc.error}</p>}
-            </div>
+          {(kyc.stage === 'loading' || kyc.stage === 'verifying') && (
+            <p className="e5-progress-hint" role="status" aria-live="polite">
+              {kyc.stage === 'loading'
+                ? 'Ouverture de la vérification sécurisée…'
+                : 'La vérification est en cours dans la fenêtre Didit.'}
+            </p>
           )}
 
           {showOutcome && (

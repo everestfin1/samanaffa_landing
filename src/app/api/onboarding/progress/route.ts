@@ -31,27 +31,28 @@ function isValidStep(step: string): step is OnboardingStep {
   return STEPS.includes(step as OnboardingStep);
 }
 
-/** Corrected Momar order: E1→E2→E8→E3→E4→E5(KYC)→E5(pay)→C1 */
+/** Corrected Momar order: E1→E2→E8→E4→E5(KYC)→E5(pay)→C1. */
 const STEP_ORDER: Record<OnboardingStep, number> = {
   T0: 0,
   T1: 1,
   T2: 2,
   T2B: 2,
   E8: 3,
+  // Legacy E3 sessions resume at T4; never advance new users through E3.
   E3: 4,
-  T3: 5,
-  T4: 5,
-  T5: 6,
-  E6: 7,
-  T6: 8,
-  C1: 8,
+  T3: 4,
+  T4: 4,
+  T5: 5,
+  E6: 6,
+  T6: 7,
+  C1: 7,
 };
 
 const ALLOWED_TRANSITIONS: Partial<Record<OnboardingStep, OnboardingStep[]>> = {
   T1: ['T2'],
   T2: ['E8'],
   T2B: ['E8'],
-  E8: ['E3'],
+  E8: ['T4'],
   E3: ['T4'],
   T3: ['T4'],
   T4: ['T5'],
@@ -65,13 +66,16 @@ const MIN_DEPOSIT = 1_000;
 
 function isValidTransition(
   from: OnboardingStep | null,
+  maxStep: OnboardingStep | null,
   to: OnboardingStep,
 ): boolean {
   if (!from) return true;
   if (from === to) return true;
+  // A user may revisit every already-reached step. The following step remains
+  // available so a persisted Back action does not block forward progress.
+  if (maxStep && STEP_ORDER[to] <= STEP_ORDER[maxStep]) return true;
   const allowed = ALLOWED_TRANSITIONS[from];
   if (allowed && allowed.includes(to)) return true;
-  if (STEP_ORDER[to] > STEP_ORDER[from]) return true;
   return false;
 }
 
@@ -139,6 +143,7 @@ export async function GET() {
       success: true,
       progress: {
         step: saved.step ?? 'T2',
+        maxStep: saved.maxStep ?? saved.step ?? 'T2',
         simulation: saved.simulation ?? null,
         firstName: saved.firstName ?? user.firstName,
         referralCode: saved.referralCode ?? null,
@@ -189,6 +194,7 @@ export async function PATCH(request: NextRequest) {
 
     const currentProgress = readOnboardingProgress(user.investorProfile);
     const currentStep = currentProgress.step ?? null;
+    const currentMaxStep = currentProgress.maxStep ?? currentStep;
 
     if (STEP_ORDER[body.step] > STEP_ORDER.E8) {
       if (!user.termsAccepted) {
@@ -205,7 +211,7 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (!isValidTransition(currentStep, body.step)) {
+    if (!isValidTransition(currentStep, currentMaxStep, body.step)) {
       return NextResponse.json(
         { error: `Transition invalide: ${currentStep ?? '—'} → ${body.step}` },
         { status: 403 },
@@ -254,7 +260,14 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    const onboardingPatch: Partial<OnboardingProgressPayload> = { step: body.step };
+    const maxStep =
+      !currentMaxStep || STEP_ORDER[body.step] > STEP_ORDER[currentMaxStep]
+        ? body.step
+        : currentMaxStep;
+    const onboardingPatch: Partial<OnboardingProgressPayload> = {
+      step: body.step,
+      maxStep,
+    };
     if (body.simulation !== undefined) onboardingPatch.simulation = body.simulation;
     if (body.firstName !== undefined) onboardingPatch.firstName = body.firstName;
     if (body.referralCode !== undefined) onboardingPatch.referralCode = body.referralCode;
@@ -296,6 +309,7 @@ export async function PATCH(request: NextRequest) {
       success: true,
       progress: {
         step: progress.step ?? body.step,
+        maxStep: progress.maxStep ?? maxStep,
         simulation: progress.simulation ?? null,
         firstName: progress.firstName ?? refreshed.firstName,
         referralCode: progress.referralCode ?? null,

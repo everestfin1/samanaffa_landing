@@ -208,6 +208,9 @@ export default function T1Phone({
           action: 'send-otp',
           phone: fullPhone,
           simulation,
+          firstName: draft.firstName,
+          lastName: draft.lastName,
+          email: draft.email || undefined,
           referralCode: draft.referralCode || undefined,
         }),
       });

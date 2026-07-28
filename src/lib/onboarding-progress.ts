@@ -14,10 +14,10 @@ export type OnboardingStep =
 
 /**
  * Momar corrected sequence (PM 2026-07-27):
- * E1 → E2 → E8 mandat → E3 Kondanné → E4 versement → E5 (KYC + Intouch) → C1
- * Internal ids: T1, T2, E8, E3, T4, T5, E6, C1
+ * E1 → E2 → E8 mandat → E4 versement → E5 (KYC + Intouch) → C1.
+ * E3 remains only as a legacy resume alias for accounts created before this sequence.
  */
-export const ONBOARDING_VISIBLE_STEPS = 7;
+export const ONBOARDING_VISIBLE_STEPS = 6;
 
 /** @deprecated Quiz removed from Momar flow — kept for older imports. */
 export const ONBOARDING_QUIZ_QUESTIONS = 0;
@@ -33,6 +33,8 @@ export function getOnboardingProgressPercent(visibleStep: number): number {
 
 export interface OnboardingProgressPayload {
   step: OnboardingStep;
+  /** Furthest completed/reachable step. Keeps a persisted Back action after refresh. */
+  maxStep?: OnboardingStep;
   simulation?: unknown;
   firstName?: string | null;
   /** Validated sponsor/referral code from `ape_sponsor_codes`. */

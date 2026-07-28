@@ -484,6 +484,21 @@ export type NewPeeLead = typeof peeLeads.$inferInsert;
 export type FormDraft = typeof formDrafts.$inferSelect;
 export type NewFormDraft = typeof formDrafts.$inferInsert;
 
+/** Singleton determinant values applied to a customer's first Sama Naffa account. */
+export const DEFAULT_ONBOARDING_ACCOUNT_SETTINGS_ID = 'default';
+export const onboardingAccountSettings = pgTable('onboarding_account_settings', {
+  id: text('id').primaryKey().notNull().default('default'),
+  productCode: text('productCode').notNull().default('SN-DEFAULT'),
+  productName: text('productName').notNull().default('Naffa Classique'),
+  interestRate: decimal('interestRate', { precision: 5, scale: 2 }).notNull().default('4.50'),
+  lockPeriodMonths: integer('lockPeriodMonths').notNull().default(12),
+  allowAdditionalDeposits: boolean('allowAdditionalDeposits').notNull().default(true),
+  updatedAt: timestamp('updatedAt', { mode: 'date' }).notNull().defaultNow().$onUpdate(() => new Date()),
+});
+
+export type OnboardingAccountSettings = typeof onboardingAccountSettings.$inferSelect;
+export type NewOnboardingAccountSettings = typeof onboardingAccountSettings.$inferInsert;
+
 /** Singleton admin notification toggles (id = 'default'). */
 export const ADMIN_NOTIFICATION_SETTINGS_ID = 'default';
 

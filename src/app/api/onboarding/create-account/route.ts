@@ -8,13 +8,14 @@ import {
   normalizeInternationalPhone,
   generateAccountNumber,
   generatePhoneFormats,
+  addMonths,
 } from '@/lib/utils';
-import { getNaffaProductById } from '@/lib/naffa-products';
 import { checkOTPRateLimitAsync } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
 import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 import { issuePostSignupToken } from '@/lib/post-signup-token';
 import { genericOtpSendResponse } from '@/lib/otp-send-response';
+import { resolveDefaultOnboardingAccount } from '@/lib/onboarding-default-account';
 
 function isUniqueConstraintError(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
@@ -23,17 +24,27 @@ function isUniqueConstraintError(err: unknown): boolean {
 }
 
 /**
- * New onboarding flow (T1) — phone-only account creation.
+ * New onboarding flow (T1) — phone OTP account creation.
  *
  * Two-step protocol:
  *   1. action: 'send-otp'    -> creates a registration_session keyed by phone, sends a 6-digit OTP
- *   2. action: 'verify-otp'  -> verifies OTP, creates a real user (phone + placeholder email)
+ *   2. action: 'verify-otp'  -> verifies OTP, creates a real user
  *                                + Sama Naffa + APE accounts
  */
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { action, phone, sessionId, otp, simulation, referralCode } = body;
+    const {
+      action,
+      phone,
+      sessionId,
+      otp,
+      simulation,
+      referralCode,
+      email,
+      firstName: requestedFirstName,
+      lastName: requestedLastName,
+    } = body;
 
     if (!action) {
       return NextResponse.json({ error: 'Action requise' }, { status: 400 });
@@ -66,7 +77,12 @@ export async function POST(request: NextRequest) {
         }
       }
 
-      const placeholderEmail = `${normalizedPhone.replace(/\+/g, '')}@onboarding.samanaffa.tmp`;
+      const requestedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+      if (requestedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail)) {
+        return NextResponse.json({ error: 'Adresse e-mail invalide' }, { status: 400 });
+      }
+      const storedEmail =
+        requestedEmail || `${normalizedPhone.replace(/\+/g, '')}@onboarding.samanaffa.tmp`;
 
       await db
         .delete(registrationSessions)
@@ -75,11 +91,13 @@ export async function POST(request: NextRequest) {
       const [session] = await db
         .insert(registrationSessions)
         .values({
-          email: placeholderEmail,
+          email: storedEmail,
           phone: normalizedPhone,
           data: JSON.stringify({
             phone: normalizedPhone,
-            email: placeholderEmail,
+            email: storedEmail,
+            firstName: typeof requestedFirstName === 'string' ? requestedFirstName.trim() : '',
+            lastName: typeof requestedLastName === 'string' ? requestedLastName.trim() : '',
             simulation: simulation || null,
             referralCode:
               typeof referralCode === 'string' && referralCode.trim()
@@ -96,7 +114,7 @@ export async function POST(request: NextRequest) {
       }
 
       const result = await sendOTP(
-        placeholderEmail,
+        storedEmail,
         normalizedPhone,
         'register',
         'sms',
@@ -176,6 +194,15 @@ export async function POST(request: NextRequest) {
       const sessionData = JSON.parse(session.data);
       const phone: string = sessionData.phone;
       const email: string = sessionData.email;
+      const firstName =
+        typeof sessionData.firstName === 'string' && sessionData.firstName.trim()
+          ? sessionData.firstName.trim()
+          : 'Nouveau';
+      const lastName =
+        typeof sessionData.lastName === 'string' && sessionData.lastName.trim()
+          ? sessionData.lastName.trim()
+          : 'Membre';
+      const defaultAccount = await resolveDefaultOnboardingAccount();
 
       const phoneFormats = generatePhoneFormats(phone);
       let temporaryUserId: string | null = null;
@@ -191,6 +218,20 @@ export async function POST(request: NextRequest) {
           }
           await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
           return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
+        }
+      }
+      if (!email.endsWith('@onboarding.samanaffa.tmp')) {
+        const [existingEmail] = await db
+          .select({ id: users.id })
+          .from(users)
+          .where(eq(users.email, email))
+          .limit(1);
+        if (existingEmail) {
+          await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
+          return NextResponse.json(
+            { error: 'Cette adresse e-mail est déjà utilisée' },
+            { status: 409 },
+          );
         }
       }
       if (temporaryUserId) {
@@ -213,8 +254,8 @@ export async function POST(request: NextRequest) {
             .values({
               phone,
               email,
-              firstName: 'Nouveau',
-              lastName: 'Membre',
+              firstName,
+              lastName,
               phoneVerified: true,
               otpVerifiedAt: new Date(),
               preferredLanguage: 'fr',
@@ -226,16 +267,18 @@ export async function POST(request: NextRequest) {
             throw new Error('Failed to create user');
           }
 
-          const defaultProduct = getNaffaProductById('default');
+          const accountCreatedAt = new Date();
           await tx.insert(userAccounts).values({
             userId: createdUser.id,
             accountType: 'SAMA_NAFFA',
             accountNumber: generateAccountNumber('SN'),
-            productCode: defaultProduct.productCode,
-            productName: defaultProduct.name,
-            interestRate: defaultProduct.interestRate.toFixed(2),
-            lockPeriodMonths: defaultProduct.lockPeriodMonths ?? 0,
-            allowAdditionalDeposits: defaultProduct.allowAdditionalDeposits,
+            productCode: defaultAccount.productCode,
+            productName: defaultAccount.productName,
+            interestRate: defaultAccount.interestRate.toFixed(2),
+            lockPeriodMonths: defaultAccount.lockPeriodMonths,
+            lockedUntil: addMonths(accountCreatedAt, defaultAccount.lockPeriodMonths),
+            allowAdditionalDeposits: defaultAccount.allowAdditionalDeposits,
+            createdAt: accountCreatedAt,
           });
           await tx.insert(userAccounts).values({
             userId: createdUser.id,

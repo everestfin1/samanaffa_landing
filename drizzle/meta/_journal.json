@@ -92,6 +92,13 @@
       "when": 1783087200000,
       "tag": "0014_admin_notification_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785419200000,
+      "tag": "0015_onboarding_account_settings",
+      "breakpoints": true
     }
   ]
 }

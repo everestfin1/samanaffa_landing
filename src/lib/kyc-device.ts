@@ -1,7 +1,5 @@
-/** Prefer Didit JS SDK modal on desktop with a fine pointer (not touch-primary). */
+/** Prefer Didit's SDK modal whenever the browser can securely access the camera. */
 export function shouldUseDiditWebSdk(): boolean {
   if (typeof window === 'undefined') return false;
-  if (window.matchMedia('(pointer: coarse)').matches) return false;
-  if (window.matchMedia('(max-width: 1023px)').matches) return false;
-  return true;
+  return window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
 }
