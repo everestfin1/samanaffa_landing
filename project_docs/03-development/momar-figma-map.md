@@ -54,10 +54,10 @@ Internal step ids remain `T1`…`E8`…`E3`…`T4`…`T5`…`E6`…`C1`. Visible
 | C1 | Tableau de bord | `10:2754` | `C1Dashboard` + Momar `PortalHeader` | Full-bleed `dashboard-bg.jpg` via `C1PageBackground` (`object-fit: cover`); cards over left |
 | C2 | Liste Kondanne | `124:43007` | `/portal/sama-naffa` → `C2KondanneList` | Done (Momar cards) |
 | C2 | Détail Kondanne | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done |
-| C3 | Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimentar` → `C3Alimenter` | Done (amount screen; Continue opens Intouch via TransferModal) |
+| C3 | Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimenter` → `C3Alimenter` | Done (payment methods → Intouch) |
 | C4 | Créer un Kondanne | `10:3058` | Portal create + onboarding `E3CreateKondanne` | Reprend E3; CTA « Je crée mon Kondanné » |
-| C5 | Retrait | `10:3131` | Withdrawal subflow | Pending (`TransferModal` wired from C2) |
-| C6 | Relevés & documents | `10:3223` | `/portal/releves` | Stub (2026-07-28); full Momar screen pending |
+| C5 | Retrait | `10:3131` | `/portal/sama-naffa/[accountId]/retrait` → `C5Retrait` | Done (estimation + confirm → Intouch) |
+| C6 | Relevés & documents | `10:3223` | `/portal/releves` → `C6Releves` | Done (mocked catalog faded; see [c6-releves-documents-notes.md](./c6-releves-documents-notes.md)) |
 | C7 | Profil & sécurité | `10:3293` | Profile/settings | Account and security settings |
 | C8 | Aide & réclamations | `10:3376` | Support | WhatsApp, phone, claims |
 

@@ -1,6 +1,6 @@
 # Momar Figma redesign — agent handover
 
-**Updated:** 2026-07-28 (C3 Alimenter page)  
+**Updated:** 2026-07-28 (C5 Retrait + C6 Relevés)  
 **Branch:** `staging`  
 **Source of truth:** [Sama-Naffa-UI](https://www.figma.com/design/blKrnZxk8pWEjfPFa2XS9K/Sama-Naffa-UI) (`blKrnZxk8pWEjfPFa2XS9K`)
 
@@ -27,10 +27,16 @@ E1 (phone/OTP) → E2 (infos) → E8 (mandat + signature)
 |------|------|--------|--------|
 | C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
 | C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done |
-| C3 Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimentar` → `C3Alimenter` | Done (Continue → TransferModal/Intouch) |
-| C5 Retrait | `10:3131` | Dedicated withdraw screen | **Do next** (`TransferModal` still wired) |
-| C6 Relevés | `10:3223` | `/portal/releves` | Stub only — full Momar screen pending |
-| C4 / C7–C8 | see map | Create Kondanné / profile / aide | Pending |
+| C3 Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimenter` → `C3Alimenter` | Done (methods → Intouch) |
+| C5 Retrait | `10:3131` | `/portal/sama-naffa/[accountId]/retrait` → `C5Retrait` | Done (confirm → Intouch) |
+| C6 Relevés | `10:3223` | `/portal/releves` → `C6Releves` | Done (mocked rows faded; see [c6-releves-documents-notes.md](./c6-releves-documents-notes.md)) |
+| C4 / C7–C8 | see map | Create Kondanné / profile / aide | **Do next** |
+
+---
+
+## Open PM notes
+
+- **C6 documents:** Figma catalog ≠ CGU. Meeting notes + recommended real doc set → [c6-releves-documents-notes.md](./c6-releves-documents-notes.md).
 
 ---
 

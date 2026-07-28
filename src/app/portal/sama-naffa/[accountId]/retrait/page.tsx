@@ -2,17 +2,19 @@
 
 import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useUserProfile } from '../../../hooks/useUserProfile';
-import { useSamaNaffaAccounts } from '../../../hooks/useAccounts';
-import PortalHeader from '../../../components/portal/PortalHeader';
-import C6Releves from '../../../components/portal/C6Releves';
+import { useParams, useRouter } from 'next/navigation';
+import { useUserProfile } from '../../../../../hooks/useUserProfile';
+import { useSamaNaffaAccounts } from '../../../../../hooks/useAccounts';
+import PortalHeader from '../../../../../components/portal/PortalHeader';
+import C5Retrait from '../../../../../components/portal/C5Retrait';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
-export default function RelevesPage() {
+export default function RetraitPage() {
   const router = useRouter();
+  const params = useParams();
+  const accountId = typeof params.accountId === 'string' ? params.accountId : '';
   const { data: session, status } = useSession();
   const { data: userData, isLoading: isLoadingProfile, error: profileError } = useUserProfile();
   const {
@@ -57,6 +59,7 @@ export default function RelevesPage() {
     );
   }
 
+  const account = accounts.find((a) => a.id === accountId);
   const kycStatus = (userData.kycStatus as KYCStatus) || 'PENDING';
 
   return (
@@ -73,12 +76,28 @@ export default function RelevesPage() {
           kycStatus,
         }}
         kycStatus={kycStatus}
-        activeTab="dashboard"
+        activeTab="sama-naffa"
         onLogout={async () => {
           await signOut({ callbackUrl: '/login' });
         }}
       />
-      <C6Releves accounts={accounts} />
+
+      {!account ? (
+        <div className="c2-shell">
+          <div className="c2-main">
+            <button
+              type="button"
+              className="c2-back"
+              onClick={() => router.push('/portal/sama-naffa')}
+            >
+              ← Mes Kondannés
+            </button>
+            <p className="c2-empty">Kondanné introuvable.</p>
+          </div>
+        </div>
+      ) : (
+        <C5Retrait account={account} kycStatus={kycStatus} />
+      )}
     </div>
   );
 }

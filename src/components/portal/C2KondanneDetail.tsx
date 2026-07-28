@@ -3,9 +3,7 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
-import TransferModal from '@/components/modals/TransferModal';
 import type { C1Account } from '@/components/portal/C1Dashboard';
 import { formatCurrency } from '@/lib/utils';
 import { calculerCapitalFinal, tauxParDuree } from '@/lib/savings-simulation';
@@ -79,15 +77,11 @@ function historyTitle(tx: C2Transaction): string {
   return 'Versement';
 }
 
-export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetailProps) {
+export default function C2KondanneDetail({ account }: C2KondanneDetailProps) {
   const router = useRouter();
-  const queryClient = useQueryClient();
   const [showBalance, setShowBalance] = useState(true);
   const [transactions, setTransactions] = useState<C2Transaction[]>([]);
   const [isLoadingTx, setIsLoadingTx] = useState(true);
-  const [showTransferModal, setShowTransferModal] = useState(false);
-  const [transferType, setTransferType] = useState<'deposit' | 'withdraw'>('deposit');
-  const [actionWarning, setActionWarning] = useState<string | null>(null);
 
   const meta = account.metadata ?? undefined;
   const monthlyAmount = readMetaNumber(meta, 'monthlyAmount');
@@ -141,25 +135,6 @@ export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetai
       cancelled = true;
     };
   }, [account.id]);
-
-  const openTransfer = (type: 'deposit' | 'withdraw') => {
-    setActionWarning(null);
-    if (type === 'withdraw') {
-      const lockedUntil = account.lockedUntil ? new Date(account.lockedUntil) : null;
-      if (lockedUntil && lockedUntil > new Date()) {
-        setActionWarning(
-          `Ce Kondanné est bloqué jusqu'au ${lockedUntil.toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric',
-          })}. Les retraits seront disponibles à partir de cette date.`,
-        );
-        return;
-      }
-    }
-    setTransferType(type);
-    setShowTransferModal(true);
-  };
 
   const name = account.productName?.trim() || 'Mon Kondanné';
 
@@ -242,12 +217,6 @@ export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetai
           </div>
         </div>
 
-        {actionWarning && (
-          <p className="c2-action-warning" role="status">
-            {actionWarning}
-          </p>
-        )}
-
         <div className="c2-actions">
           <button
             type="button"
@@ -259,7 +228,7 @@ export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetai
           <button
             type="button"
             className="c2-action c2-action--outline"
-            onClick={() => openTransfer('withdraw')}
+            onClick={() => router.push(`/portal/sama-naffa/${account.id}/retrait`)}
           >
             Retire
           </button>
@@ -304,28 +273,6 @@ export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetai
           )}
         </div>
       </div>
-
-      <TransferModal
-        isOpen={showTransferModal}
-        onClose={() => setShowTransferModal(false)}
-        currentBalance={account.balance}
-        type={transferType}
-        accountName={name}
-        accountId={account.id}
-        accountType="sama_naffa"
-        kycStatus={kycStatus}
-        onConfirm={async () => {
-          setShowTransferModal(false);
-          await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
-          const res = await fetch(
-            `/api/transactions/intent?accountId=${encodeURIComponent(account.id)}&limit=20`,
-          );
-          if (res.ok) {
-            const data = await res.json();
-            setTransactions(data.transactionIntents || []);
-          }
-        }}
-      />
     </div>
   );
 }
