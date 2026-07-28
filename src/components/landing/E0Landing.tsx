@@ -10,6 +10,7 @@ const benefits = [
     image: "/figma/e0/calculator.png",
     title: "Nattukaay Yéené",
     description: "Mesure ton projet",
+    href: "/sama-naffa",
     width: 138,
     height: 124,
   },
@@ -17,6 +18,7 @@ const benefits = [
     image: "/figma/e0/savings-hand.png",
     title: "Sama Yéené",
     description: "Fixe ton objectif",
+    href: "/login",
     width: 121,
     height: 107,
   },
@@ -24,6 +26,7 @@ const benefits = [
     image: "/figma/e0/savings-sacks.png",
     title: "Samay Kondanné",
     description: "Suis ton épargne",
+    href: "/login",
     width: 138,
     height: 95,
   },
@@ -68,27 +71,27 @@ function Benefits() {
         <h2 id="benefits-title" className="e0-benefits-title">
           Suis ton épargne simplement
         </h2>
-        <div className="mt-16 grid grid-cols-1 gap-14 text-center sm:grid-cols-3 sm:gap-8">
+        <div className="mt-10 grid grid-cols-1 gap-14 text-center sm:mt-12 sm:grid-cols-3 sm:gap-8">
           {benefits.map((benefit) => (
             <article key={benefit.title} className="flex flex-col items-center">
-              <div className="flex h-32 items-end justify-center">
-                <Image
-                  src={benefit.image}
-                  alt=""
-                  width={benefit.width}
-                  height={benefit.height}
-                  className="max-h-32 w-auto object-contain"
-                />
-              </div>
-              <h3 className="e0-benefit-title">{benefit.title}</h3>
-              <p className="mt-2 text-base text-white/90">{benefit.description}</p>
+              <Link
+                href={benefit.href}
+                className="e0-benefit-link flex flex-col items-center"
+              >
+                <div className="flex h-32 items-end justify-center">
+                  <Image
+                    src={benefit.image}
+                    alt=""
+                    width={benefit.width}
+                    height={benefit.height}
+                    className="max-h-32 w-auto object-contain"
+                  />
+                </div>
+                <h3 className="e0-benefit-title">{benefit.title}</h3>
+                <p className="mt-2 text-base text-white/90">{benefit.description}</p>
+              </Link>
             </article>
           ))}
-        </div>
-        <div className="mt-12 text-center">
-          <Link href="/sama-naffa" className="e0-cta-marigold">
-            Mesurer mon projet
-          </Link>
         </div>
       </div>
     </section>

@@ -700,16 +700,33 @@ video {
 .e0-benefits {
   background: var(--sama-forest);
   color: var(--sama-white);
-  padding: 5rem 1.5rem;
+  padding: 3.25rem 1.5rem;
 }
 
 .e0-benefits-title {
   margin: 0;
   text-align: center;
   font-size: clamp(1.75rem, 3.2vw, 2.375rem);
-  font-weight: 500;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--sama-white);
+}
+
+.e0-benefit-link {
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.e0-benefit-link:hover {
+  transform: translateY(-2px);
+  opacity: 0.92;
+}
+
+.e0-benefit-link:focus-visible {
+  outline: 2px solid var(--sama-marigold);
+  outline-offset: 6px;
+  border-radius: 8px;
 }
 
 .e0-benefit-title {
@@ -728,7 +745,7 @@ video {
   margin: 0;
   text-align: center;
   font-size: clamp(1.8rem, 3.2vw, 2.375rem);
-  font-weight: 500;
+  font-weight: 800;
   letter-spacing: -0.02em;
   color: var(--sama-forest);
 }
