@@ -1,17 +1,18 @@
 import type { Metadata } from 'next';
 import LegalDocumentPage from '@/components/legal/LegalDocumentPage';
-import { CGU } from '@/lib/legal/cgu';
+import { CCU, LEGAL_DRAFT_BANNER } from '@/lib/legal/ccu';
 
 export const metadata: Metadata = {
-  title: "Conditions générales d'utilisation | Sama Naffa",
+  title: 'Convention-Cadre Utilisateur (CCU) | Sama Naffa',
   description:
-    "Conditions générales d'utilisation du service Sama Naffa — EVEREST Finance SA. Version 1.0, en vigueur à compter du 01/06/2026.",
+    'Convention-Cadre Utilisateur de Sama Naffa — EVEREST Finance SA. Version projet 21/07/2026 (en revue juridique).',
 };
 
 export default function TermsPage() {
   return (
     <LegalDocumentPage
-      document={CGU}
+      document={CCU}
+      draftBanner={LEGAL_DRAFT_BANNER}
       relatedLinks={[
         { href: '/privacy', label: 'Politique de confidentialité' },
         { href: '/cookies', label: 'Politique cookies' },

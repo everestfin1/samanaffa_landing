@@ -14,7 +14,7 @@ export default function CookiesPage() {
       document={COOKIE_POLICY}
       relatedLinks={[
         { href: '/privacy', label: 'Politique de confidentialité' },
-        { href: '/terms', label: "Conditions générales d'utilisation" },
+        { href: '/terms', label: 'Convention-Cadre Utilisateur (CCU)' },
       ]}
     />
   );

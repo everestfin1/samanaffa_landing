@@ -135,7 +135,7 @@ export default function Footer() {
           <p>&copy; {currentYear} EVEREST FINANCE SA</p>
           <div className="flex gap-8 flex-wrap justify-center sm:justify-end">
             <Link href="/privacy" className="hover:text-sama-accent-gold transition-colors duration-300">Confidentialité</Link>
-            <Link href="/terms" className="hover:text-sama-accent-gold transition-colors duration-300">CGU</Link>
+            <Link href="/terms" className="hover:text-sama-accent-gold transition-colors duration-300">CCU</Link>
             <Link href="/cookies" className="hover:text-sama-accent-gold transition-colors duration-300">Cookies</Link>
             <Link href="/faq" className="hover:text-sama-accent-gold transition-colors duration-300">FAQ</Link>
             <Link href="/contact" className="hover:text-sama-accent-gold transition-colors duration-300">Contact</Link>

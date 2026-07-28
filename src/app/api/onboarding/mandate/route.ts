@@ -24,20 +24,22 @@ export async function POST(request: NextRequest) {
 
     const body = (await request.json()) as {
       signature?: string;
+      ccuAccepted?: boolean;
+      /** @deprecated Use ccuAccepted */
       cguAccepted?: boolean;
       mandateAccepted?: boolean;
     };
 
-    if (body.cguAccepted !== true) {
+    if (body.ccuAccepted !== true && body.cguAccepted !== true) {
       return NextResponse.json(
-        { error: 'Vous devez accepter les conditions générales d\'utilisation (CGU).' },
+        { error: 'Vous devez accepter la Convention-Cadre Utilisateur (CCU).' },
         { status: 400 },
       );
     }
 
     if (body.mandateAccepted !== true) {
       return NextResponse.json(
-        { error: 'Vous devez accepter la convention de gestion sous mandat (CGSM).' },
+        { error: 'Vous devez accepter le mandat de gestion (Livre III).' },
         { status: 400 },
       );
     }

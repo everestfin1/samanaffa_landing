@@ -200,7 +200,7 @@ export async function PATCH(request: NextRequest) {
     if (STEP_ORDER[body.step] > STEP_ORDER.E8) {
       if (!user.termsAccepted) {
         return NextResponse.json(
-          { error: 'Les CGU et le mandat (CGSM) doivent être acceptés avant de continuer' },
+          { error: 'La CCU et le mandat de gestion (Livre III) doivent être acceptés avant de continuer' },
           { status: 403 },
         );
       }
@@ -239,7 +239,7 @@ export async function PATCH(request: NextRequest) {
     if (body.step === 'C1' || body.step === 'T6') {
       if (!user.termsAccepted) {
         return NextResponse.json(
-          { error: 'Le mandat (CGSM) doit être accepté avant de finaliser' },
+          { error: 'Le mandat de gestion (Livre III) doit être accepté avant de finaliser' },
           { status: 403 },
         );
       }

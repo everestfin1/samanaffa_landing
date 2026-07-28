@@ -3,10 +3,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCommunicationsCompletionProgress } from '@/lib/portal-profile-completion';
 import {
-  CGU_ACCEPTANCE_SUMMARY,
-  CGU_TITLE,
-  CGU_VERSION,
-} from '@/lib/legal/cgu';
+  CCU_ACCEPTANCE_SUMMARY,
+  CCU_TITLE,
+  CCU_VERSION,
+} from '@/lib/legal/ccu';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { useQueryClient } from '@tanstack/react-query';
@@ -99,7 +99,7 @@ export default function ProfileCompletionModal({
     }
     if (step === 'terms') {
       if (!formData.termsAccepted) {
-        setError('Veuillez accepter les conditions générales d\'utilisation (CGU).');
+        setError('Veuillez accepter la Convention-Cadre Utilisateur (CCU).');
         return;
       }
       if (!formData.privacyAccepted) {
@@ -168,13 +168,13 @@ export default function ProfileCompletionModal({
         'Votre identité est vérifiée via Didit. Indiquez votre email pour recevoir vos relevés et alertes.',
     },
     terms: {
-      title: 'Conditions générales',
-      subtitle: CGU_TITLE,
+      title: 'Convention-Cadre Utilisateur',
+      subtitle: CCU_TITLE,
     },
     signature: {
       title: 'Signature électronique',
       subtitle:
-        'Signez pour confirmer votre acceptation des CGU et du mandat de gestion (article 5.1).',
+        'Signez pour confirmer votre acceptation de la CCU et du mandat de gestion (Livre III).',
     },
   };
 
@@ -289,9 +289,9 @@ export default function ProfileCompletionModal({
 
           {step === 'terms' && (
             <div className="space-y-4">
-              <p className="text-xs text-night/55">{CGU_VERSION}</p>
+              <p className="text-xs text-night/55">{CCU_VERSION}</p>
               <div className="bg-white border border-timberwolf/25 rounded-lg p-4 max-h-52 overflow-y-auto text-sm text-night/80 leading-relaxed text-justify">
-                {CGU_ACCEPTANCE_SUMMARY.map((section) => (
+                {CCU_ACCEPTANCE_SUMMARY.map((section) => (
                   <div key={section.heading} className="mb-4 last:mb-0">
                     <p className="font-semibold text-night mb-1">{section.heading}</p>
                     <p className="text-justify">{section.body}</p>
@@ -299,14 +299,14 @@ export default function ProfileCompletionModal({
                 ))}
               </div>
               <p className="text-xs text-night/60">
-                Extrait des CGU.{' '}
+                Extrait de la CCU.{' '}
                 <a
                   href="/terms"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-gold-metallic hover:underline font-medium"
                 >
-                  Lire l&apos;intégralité des conditions générales
+                  Lire l&apos;intégralité de la Convention-Cadre Utilisateur
                 </a>
               </p>
 
@@ -320,14 +320,14 @@ export default function ProfileCompletionModal({
                   className="mt-0.5 w-5 h-5 accent-gold-metallic border-timberwolf rounded focus:ring-gold"
                 />
                 <span className="text-sm text-night">
-                  J&apos;accepte les{' '}
+                  J&apos;accepte la{' '}
                   <a
                     href="/terms"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gold-metallic hover:underline"
                   >
-                    conditions générales d&apos;utilisation
+                    Convention-Cadre Utilisateur (CCU)
                   </a>{' '}
                   *
                 </span>

@@ -27,7 +27,7 @@ const faqData: FAQItem[] = [
   {
     id: 1,
     question: "Qu'est-ce que Sama Naffa?",
-    answer: "SAMA NAFFA est un service de gestion sous mandat proposé par EVEREST Finance (SGI). Nous plaçons et gérons votre épargne en obligations de l'État, pour votre compte, avec un objectif de rendement. Le rendement n'est pas garanti et la valeur peut varier.",
+    answer: "SAMA NAFFA est un service de gestion sous mandat proposé par EVEREST Finance (SGI). Nous plaçons et gérons votre épargne en titres souverains de l'État du Sénégal, pour votre compte, avec un objectif de rendement annuel moyen net par horizon. Ce rendement n'est pas garanti et la valeur peut varier.",
     category: 'decouvrir'
   },
   {
@@ -161,7 +161,7 @@ const faqData: FAQItem[] = [
   {
     id: 23,
     question: "Quels sont les frais liés à l'utilisation de Sama Naffa ?",
-    answer: "L'ouverture d'un compte Sama Naffa est gratuite. Des frais de gestion (0,45 % trimestriel) et de valorisation (0,25 % trimestriel) s'appliquent selon la grille tarifaire homologuée AMF-UMOA. Le détail figure dans nos conditions générales d'utilisation (page CGU).",
+    answer: "L'ouverture d'un compte Sama Naffa est gratuite. Des frais de gestion et de valorisation trimestriels s'appliquent selon la grille tarifaire homologuée AMF-UMOA (taux publiés dans l'application, dans la limite des plafonds homologués). Le détail figure dans la Convention-Cadre Utilisateur (Livre IV — page CCU).",
     category: 'utilisation'
   },
 ];

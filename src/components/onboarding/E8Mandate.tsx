@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import SignaturePad from '@/components/portal/SignaturePad';
 import ScrollableTermsPanel from '@/components/legal/ScrollableTermsPanel';
-import { CGU } from '@/lib/legal/cgu';
+import { CCU } from '@/lib/legal/ccu';
 import { isValidSignatureDataUrl } from '@/lib/signature';
 
 interface E8MandateProps {
@@ -33,7 +33,7 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           signature,
-          cguAccepted: true,
+          ccuAccepted: true,
           mandateAccepted: true,
         }),
       });
@@ -70,16 +70,16 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
           </h1>
 
           <div className="e8-terms-panel">
-            <h2 className="e8-terms-title">{CGU.title}</h2>
+            <h2 className="e8-terms-title">{CCU.title}</h2>
             <ScrollableTermsPanel
-              document={CGU}
+              document={CCU}
               accepted={accepted}
               onAcceptedChange={(next) => {
                 setAccepted(next);
                 if (!next) setSignature('');
                 setError(null);
               }}
-              acceptanceLabel="J'accepte les conditions générales d'utilisation (CGU) et la convention de gestion sous mandat (CGSM)."
+              acceptanceLabel="J'accepte la Convention-Cadre Utilisateur (CCU) et je signe électroniquement le mandat de gestion (Livre III)."
             />
           </div>
 

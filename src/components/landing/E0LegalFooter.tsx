@@ -65,7 +65,7 @@ export default function E0LegalFooter() {
               Confidentialité
             </Link>
             <Link href="/terms" className="hover:text-white">
-              CGU
+              CCU
             </Link>
             <Link href="/cookies" className="hover:text-white">
               Cookies

@@ -6,16 +6,27 @@ type LegalDocumentPageProps = {
   document: LegalDocument;
   extraDocuments?: { id: string; document: LegalDocument }[];
   relatedLinks?: { href: string; label: string }[];
+  /** Staging/dev draft notice — shown above the title when set. */
+  draftBanner?: string;
 };
 
 export default function LegalDocumentPage({
   document,
   extraDocuments = [],
   relatedLinks = [],
+  draftBanner,
 }: LegalDocumentPageProps) {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-3xl mx-auto px-6 py-16 sm:py-24">
+        {draftBanner ? (
+          <p
+            role="status"
+            className="mb-8 rounded-lg border border-amber-300/80 bg-amber-50 px-4 py-3 text-sm text-amber-950"
+          >
+            {draftBanner}
+          </p>
+        ) : null}
         <h1 className="text-3xl sm:text-4xl font-light text-night mb-3">
           {document.title}
         </h1>
