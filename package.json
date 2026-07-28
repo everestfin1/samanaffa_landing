@@ -22,6 +22,7 @@
     "minio:up": "docker compose -f docker-compose.minio.yml up -d",
     "minio:down": "docker compose -f docker-compose.minio.yml down",
     "minio:smoke": "tsx scripts/minio-smoke-test.ts",
+    "storage:smoke-signatures": "tsx scripts/signatures-smoke-test.ts",
     "db:migrate-kyc-blob": "tsx scripts/migrate-kyc-blob-to-minio.ts",
     "docs:user-flows-pdf": "node scripts/generate-user-flows-pdf.mjs"
   },

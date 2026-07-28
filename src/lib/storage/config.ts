@@ -9,6 +9,7 @@ export interface StorageConfig {
   secretKey: string
   diditAssetsBucket: string
   kycBucket: string
+  signaturesBucket: string
   signedUrlTtlSeconds: number
 }
 
@@ -21,26 +22,55 @@ export function isStorageConfigured(): boolean {
   )
 }
 
+/** True when mandate signatures can be uploaded to S3-compatible storage (e.g. Cloudflare R2). */
+export function isSignatureStorageConfigured(): boolean {
+  return !!(
+    process.env.S3_ENDPOINT &&
+    process.env.S3_ACCESS_KEY &&
+    process.env.S3_SECRET_KEY &&
+    process.env.S3_BUCKET_SIGNATURES
+  )
+}
+
 export function getStorageConfig(): StorageConfig {
   const endpoint = process.env.S3_ENDPOINT
   const accessKey = process.env.S3_ACCESS_KEY
   const secretKey = process.env.S3_SECRET_KEY
-  const diditAssetsBucket = process.env.S3_BUCKET_DIDIT_ASSETS
 
-  if (!endpoint || !accessKey || !secretKey || !diditAssetsBucket) {
+  if (!endpoint || !accessKey || !secretKey) {
     throw new Error(
-      'Object storage is not configured (S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET_DIDIT_ASSETS)',
+      'Object storage is not configured (S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY)',
     )
   }
 
   return {
     endpoint,
-    region: process.env.S3_REGION ?? 'us-east-1',
+    region: process.env.S3_REGION ?? 'auto',
     accessKey,
     secretKey,
-    diditAssetsBucket,
+    diditAssetsBucket: process.env.S3_BUCKET_DIDIT_ASSETS ?? 'samanaffa-didit-assets',
     kycBucket: process.env.S3_BUCKET_KYC ?? 'samanaffa-kyc',
+    signaturesBucket: process.env.S3_BUCKET_SIGNATURES ?? 'samanaffa-signatures',
     signedUrlTtlSeconds: Number(process.env.S3_SIGNED_URL_TTL_SECONDS ?? '900'),
+  }
+}
+
+/** @deprecated Use getStorageConfig — kept for signature smoke tests. */
+export function getSignatureStorageConfig(): Pick<
+  StorageConfig,
+  'endpoint' | 'region' | 'accessKey' | 'secretKey' | 'signaturesBucket' | 'signedUrlTtlSeconds'
+> {
+  const config = getStorageConfig()
+  if (!process.env.S3_BUCKET_SIGNATURES) {
+    throw new Error('S3_BUCKET_SIGNATURES is not configured')
+  }
+  return {
+    endpoint: config.endpoint,
+    region: config.region,
+    accessKey: config.accessKey,
+    secretKey: config.secretKey,
+    signaturesBucket: config.signaturesBucket,
+    signedUrlTtlSeconds: config.signedUrlTtlSeconds,
   }
 }
 

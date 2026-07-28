@@ -10,6 +10,7 @@ import {
   type OnboardingProgressPayload,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
+import { isPersistedSignature } from '@/lib/signature';
 
 const STEPS: OnboardingStep[] = [
   'T0',
@@ -112,6 +113,7 @@ const progressSelect = {
   investorProfile: users.investorProfile,
   kycStatus: users.kycStatus,
   termsAccepted: users.termsAccepted,
+  signature: users.signature,
 };
 
 export async function GET() {
@@ -175,6 +177,7 @@ export async function PATCH(request: NextRequest) {
         firstName: users.firstName,
         kycStatus: users.kycStatus,
         termsAccepted: users.termsAccepted,
+        signature: users.signature,
       })
       .from(users)
       .where(eq(users.id, session.user.id))
@@ -186,6 +189,21 @@ export async function PATCH(request: NextRequest) {
 
     const currentProgress = readOnboardingProgress(user.investorProfile);
     const currentStep = currentProgress.step ?? null;
+
+    if (STEP_ORDER[body.step] > STEP_ORDER.E8) {
+      if (!user.termsAccepted) {
+        return NextResponse.json(
+          { error: 'Les CGU et le mandat (CGSM) doivent être acceptés avant de continuer' },
+          { status: 403 },
+        );
+      }
+      if (!isPersistedSignature(user.signature)) {
+        return NextResponse.json(
+          { error: 'Une signature électronique valide est requise avant de continuer' },
+          { status: 403 },
+        );
+      }
+    }
 
     if (!isValidTransition(currentStep, body.step)) {
       return NextResponse.json(

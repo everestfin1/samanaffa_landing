@@ -2,6 +2,9 @@
 
 import { useState } from 'react';
 import SignaturePad from '@/components/portal/SignaturePad';
+import ScrollableTermsPanel from '@/components/legal/ScrollableTermsPanel';
+import { CGU } from '@/lib/legal/cgu';
+import { isValidSignatureDataUrl } from '@/lib/signature';
 
 interface E8MandateProps {
   firstName: string;
@@ -16,7 +19,8 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
   const [error, setError] = useState<string | null>(null);
 
   const greetingName = firstName.trim() || 'toi';
-  const canSubmit = Boolean(signature) && accepted && !loading;
+  const hasSignature = isValidSignatureDataUrl(signature);
+  const canSubmit = hasSignature && accepted && !loading;
 
   const handleSubmit = async () => {
     if (!canSubmit) return;
@@ -25,15 +29,23 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
     try {
       const res = await fetch('/api/onboarding/mandate', {
         method: 'POST',
+        credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           signature,
+          cguAccepted: true,
           mandateAccepted: true,
         }),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        signatureSaved?: boolean;
+      };
       if (!res.ok) {
         throw new Error(data.error || 'Impossible d’enregistrer le mandat');
+      }
+      if (!data.signatureSaved) {
+        throw new Error('La signature n’a pas pu être enregistrée. Veuillez réessayer.');
       }
       onSuccess();
     } catch (e) {
@@ -57,7 +69,21 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
             {greetingName}, voici notre engagement
           </h1>
 
+          <div className="e8-terms-panel">
+            <h2 className="e8-terms-title">{CGU.title}</h2>
+            <ScrollableTermsPanel
+              document={CGU}
+              accepted={accepted}
+              onAcceptedChange={(next) => {
+                setAccepted(next);
+                setError(null);
+              }}
+              acceptanceLabel="J'accepte les conditions générales d'utilisation (CGU) et la convention de gestion sous mandat (CGSM)."
+            />
+          </div>
+
           <div className="e8-card">
+            <p className="e8-signature-label">Signature électronique</p>
             <SignaturePad
               variant="mandate"
               value={signature}
@@ -66,21 +92,6 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
                 setError(null);
               }}
             />
-
-            <label className="e8-check">
-              <input
-                type="checkbox"
-                checked={accepted}
-                onChange={(e) => {
-                  setAccepted(e.target.checked);
-                  setError(null);
-                }}
-                className="e8-check-input"
-              />
-              <span className="e8-check-label">
-                J&apos;accepte les termes de la convention de gestion sous mandat (CGSM).
-              </span>
-            </label>
           </div>
 
           {error && <p className="e1-error e8-error">{error}</p>}

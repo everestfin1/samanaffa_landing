@@ -12,7 +12,10 @@
  *   S3_BUCKET_KYC=samanaffa-kyc
  *   S3_FORCE_PATH_STYLE=true
  */
-import 'dotenv/config'
+import { loadProjectEnv } from './load-env'
+
+loadProjectEnv()
+
 import { isStorageConfigured } from '../src/lib/storage/config'
 import {
   buildDiditAssetKey,

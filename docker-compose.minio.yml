@@ -32,6 +32,7 @@ services:
       until mc alias set local http://minio:9000 minioadmin minioadmin 2>/dev/null; do sleep 1; done;
       mc mb --ignore-existing local/samanaffa-didit-assets;
       mc mb --ignore-existing local/samanaffa-kyc;
+      mc mb --ignore-existing local/samanaffa-signatures;
       echo 'Buckets ready';
       "
 

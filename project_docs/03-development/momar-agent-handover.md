@@ -1,6 +1,6 @@
 # Momar Figma redesign — agent handover
 
-**Updated:** 2026-07-27 (PM sequence correction)  
+**Updated:** 2026-07-28 (C2 detail + C6 Relevés stub)  
 **Branch:** `staging`  
 **Source of truth:** [Sama-Naffa-UI](https://www.figma.com/design/blKrnZxk8pWEjfPFa2XS9K/Sama-Naffa-UI) (`blKrnZxk8pWEjfPFa2XS9K`)
 
@@ -43,10 +43,11 @@ Key files: `src/app/onboarding/page.tsx`, `src/lib/onboarding-progress.ts`, `src
 | Step | Node | Target | Status |
 |------|------|--------|--------|
 | C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
-| C2 Détail | `10:2878` | `/portal/sama-naffa/[id]` | Done |
-| C3 Alimenter | `10:2977` | Deposit screen | **Do next** (modal wired) |
-| C5 Retrait | `10:3131` | Withdraw screen | Pending (modal wired) |
-| C4 / C6–C8 | see map | Create / docs / profile / aide | Pending |
+| C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done (2026-07-28) |
+| C3 Alimenter | `10:2977` | Dedicated deposit screen | **Do next** (`TransferModal` wired from detail) |
+| C5 Retrait | `10:3131` | Withdraw screen | Pending (`TransferModal` wired) |
+| C6 Relevés | `10:3223` | `/portal/releves` | Stub only — full Momar screen pending |
+| C4 / C7–C8 | see map | Create Kondanné / profile / aide | Pending |
 
 ---
 
