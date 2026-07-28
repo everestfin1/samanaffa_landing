@@ -76,34 +76,39 @@ export default function E8Mandate({ firstName, onSuccess, onBack }: E8MandatePro
               accepted={accepted}
               onAcceptedChange={(next) => {
                 setAccepted(next);
+                if (!next) setSignature('');
                 setError(null);
               }}
               acceptanceLabel="J'accepte les conditions générales d'utilisation (CGU) et la convention de gestion sous mandat (CGSM)."
             />
           </div>
 
-          <div className="e8-card">
-            <p className="e8-signature-label">Signature électronique</p>
-            <SignaturePad
-              variant="mandate"
-              value={signature}
-              onChange={(next) => {
-                setSignature(next);
-                setError(null);
-              }}
-            />
-          </div>
+          {accepted && (
+            <>
+              <div className="e8-card">
+                <p className="e8-signature-label">Signature électronique</p>
+                <SignaturePad
+                  variant="mandate"
+                  value={signature}
+                  onChange={(next) => {
+                    setSignature(next);
+                    setError(null);
+                  }}
+                />
+              </div>
 
-          {error && <p className="e1-error e8-error">{error}</p>}
+              {error && <p className="e1-error e8-error">{error}</p>}
 
-          <button
-            type="button"
-            className="e1-cta e8-cta"
-            disabled={!canSubmit}
-            onClick={() => void handleSubmit()}
-          >
-            {loading ? 'Enregistrement…' : 'J’accepte et je signe'}
-          </button>
+              <button
+                type="button"
+                className="e1-cta e8-cta"
+                disabled={!canSubmit}
+                onClick={() => void handleSubmit()}
+              >
+                {loading ? 'Enregistrement…' : 'J’accepte et je signe'}
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

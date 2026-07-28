@@ -99,6 +99,13 @@
       "when": 1785419200000,
       "tag": "0015_onboarding_account_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785420000000,
+      "tag": "0016_default_naffa_sama_naffa",
+      "breakpoints": true
     }
   ]
 }

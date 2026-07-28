@@ -314,7 +314,17 @@ export function useDiditKycVerification({
         sessionIdRef.current = data.sessionId;
         if (autoAdvanceOnApproved && onApproved) {
           approvedHandledRef.current = true;
-          onApproved();
+          try {
+            await onApproved();
+          } catch (e: unknown) {
+            approvedHandledRef.current = false;
+            setStage('error');
+            setError(
+              e instanceof Error
+                ? e.message
+                : 'Impossible de continuer après la vérification. Réessayez.',
+            );
+          }
           return;
         }
         applyStatus('approved');

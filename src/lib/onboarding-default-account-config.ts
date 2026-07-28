@@ -9,7 +9,7 @@ export type DefaultOnboardingAccount = {
 /** Client-safe fallback used before a back-office setting is introduced. */
 export const DEFAULT_ONBOARDING_ACCOUNT: DefaultOnboardingAccount = {
   productCode: 'SN-DEFAULT',
-  productName: 'Naffa Classique',
+  productName: 'Sama Naffa',
   interestRate: 4.5,
   lockPeriodMonths: 12,
   allowAdditionalDeposits: true,

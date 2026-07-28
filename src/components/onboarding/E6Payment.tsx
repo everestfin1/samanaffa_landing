@@ -9,6 +9,7 @@ import {
   type OnboardingPaymentMethodId,
   getPaymentRail,
 } from '@/lib/payments/onboarding-payment-methods';
+import { isOnboardingPaymentBypassEnabled } from '@/lib/onboarding-payment-bypass';
 
 interface PendingIntent {
   id: string;
@@ -22,7 +23,8 @@ interface E6PaymentProps {
   firstName: string;
   initialAmount?: number | null;
   onSuccess: (amount: number, wallet: string) => void;
-  onSkip: () => void;
+  /** Only wired when payment bypass is enabled (dev). */
+  onSkip?: () => void;
   onBack?: () => void;
 }
 
@@ -62,6 +64,7 @@ export default function E6Payment({
 
   const amount = useMemo(() => parseAmountInput(amountDraft), [amountDraft]);
   const greetingName = firstName.trim() || 'toi';
+  const allowSkip = isOnboardingPaymentBypassEnabled() && typeof onSkip === 'function';
 
   useEffect(() => {
     let cancelled = false;
@@ -220,35 +223,35 @@ export default function E6Payment({
               />
             </label>
             <p className="e6-hint">Minimum 1 000 FCFA</p>
-          </div>
 
-          <p className="e6-methods-title">Choisis ton moyen de paiement</p>
+            <p className="e6-methods-title">Choisis ton moyen de paiement</p>
 
-          <div className="e6-methods" role="list">
-            {ONBOARDING_PAYMENT_METHODS.map((method) => {
-              const selected = selectedMethod === method.id;
-              return (
-                <button
-                  key={method.id}
-                  type="button"
-                  role="listitem"
-                  className={`e6-method${selected ? ' is-selected' : ''}`}
-                  onClick={() => void handleSelectMethod(method.id)}
-                  disabled={loading || paying}
-                  aria-label={`Payer avec ${method.label}`}
-                  title={method.label}
-                >
-                  <Image
-                    src={method.iconSrc}
-                    alt=""
-                    width={62}
-                    height={62}
-                    className="e6-method-icon"
-                    unoptimized
-                  />
-                </button>
-              );
-            })}
+            <div className="e6-methods" role="list">
+              {ONBOARDING_PAYMENT_METHODS.map((method) => {
+                const selected = selectedMethod === method.id;
+                return (
+                  <button
+                    key={method.id}
+                    type="button"
+                    role="listitem"
+                    className={`e6-method${selected ? ' is-selected' : ''}`}
+                    onClick={() => void handleSelectMethod(method.id)}
+                    disabled={loading || paying}
+                    aria-label={`Payer avec ${method.label}`}
+                    title={method.label}
+                  >
+                    <Image
+                      src={method.iconSrc}
+                      alt=""
+                      width={62}
+                      height={62}
+                      className="e6-method-icon"
+                      unoptimized
+                    />
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {(error || (!loading && !intent)) && (
@@ -260,9 +263,11 @@ export default function E6Payment({
 
           {paying && <p className="e6-status">Préparation du paiement…</p>}
 
-          <button type="button" className="e6-skip" onClick={onSkip} disabled={paying}>
-            Plus tard
-          </button>
+          {allowSkip && (
+            <button type="button" className="e6-skip" onClick={onSkip} disabled={paying}>
+              Plus tard
+            </button>
+          )}
         </div>
       </div>
     </div>

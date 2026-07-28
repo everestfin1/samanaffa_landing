@@ -489,7 +489,7 @@ export const DEFAULT_ONBOARDING_ACCOUNT_SETTINGS_ID = 'default';
 export const onboardingAccountSettings = pgTable('onboarding_account_settings', {
   id: text('id').primaryKey().notNull().default('default'),
   productCode: text('productCode').notNull().default('SN-DEFAULT'),
-  productName: text('productName').notNull().default('Naffa Classique'),
+  productName: text('productName').notNull().default('Sama Naffa'),
   interestRate: decimal('interestRate', { precision: 5, scale: 2 }).notNull().default('4.50'),
   lockPeriodMonths: integer('lockPeriodMonths').notNull().default(12),
   allowAdditionalDeposits: boolean('allowAdditionalDeposits').notNull().default(true),

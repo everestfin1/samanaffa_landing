@@ -11,6 +11,7 @@ import {
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
 import { isPersistedSignature } from '@/lib/signature';
+import { resolveDefaultOnboardingAccount } from '@/lib/onboarding-default-account';
 
 const STEPS: OnboardingStep[] = [
   'T0',
@@ -218,6 +219,15 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
+    // Server owns the default product label (back-office settings). Fill before
+    // C1/T6 guards so a missing client formula never blocks finalization.
+    let resolvedFormula = body.formula ?? currentProgress.formula ?? null;
+    if (STEP_ORDER[body.step] >= STEP_ORDER.T4 && !resolvedFormula) {
+      const defaultAccount = await resolveDefaultOnboardingAccount();
+      resolvedFormula = defaultAccount.productName;
+      body.formula = resolvedFormula;
+    }
+
     // Mandat (E8) is early in the corrected flow — KYC is only required before payment / C1.
     if ((body.step === 'E6' || body.step === 'C1' || body.step === 'T6') && user.kycStatus !== 'APPROVED') {
       return NextResponse.json(
@@ -234,7 +244,7 @@ export async function PATCH(request: NextRequest) {
         );
       }
       const effectiveDeposit = body.depositAmount ?? currentProgress.depositAmount;
-      const effectiveFormula = body.formula ?? currentProgress.formula;
+      const effectiveFormula = resolvedFormula;
       if (effectiveDeposit == null || effectiveDeposit < MIN_DEPOSIT) {
         return NextResponse.json(
           { error: 'Un versement valide est requis pour finaliser' },
@@ -271,7 +281,11 @@ export async function PATCH(request: NextRequest) {
     if (body.simulation !== undefined) onboardingPatch.simulation = body.simulation;
     if (body.firstName !== undefined) onboardingPatch.firstName = body.firstName;
     if (body.referralCode !== undefined) onboardingPatch.referralCode = body.referralCode;
-    if (body.formula !== undefined) onboardingPatch.formula = body.formula;
+    if (resolvedFormula !== undefined && resolvedFormula !== null) {
+      onboardingPatch.formula = resolvedFormula;
+    } else if (body.formula !== undefined) {
+      onboardingPatch.formula = body.formula;
+    }
     if (body.depositAmount !== undefined) onboardingPatch.depositAmount = body.depositAmount;
     if (body.wallet !== undefined) onboardingPatch.wallet = body.wallet;
 

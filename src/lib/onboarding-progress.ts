@@ -42,6 +42,8 @@ export interface OnboardingProgressPayload {
   formula?: string | null;
   depositAmount?: number | null;
   wallet?: string | null;
+  /** Requested signup email that could not be bound yet (already taken / unverified). */
+  pendingEmail?: string | null;
   /** @deprecated Server derives from user.kycStatus — never trust client */
   kycApproved?: boolean;
   /** One-time post-signup session exchange (AUTH-002) */

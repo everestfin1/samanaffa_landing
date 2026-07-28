@@ -20,7 +20,7 @@ import {
   DEFAULT_ONBOARDING_FORMULA,
   type OnboardingStep,
 } from '@/lib/onboarding-progress';
-import { getDefaultOnboardingAccount } from '@/lib/onboarding-default-account-config';
+import { isOnboardingPaymentBypassEnabled } from '@/lib/onboarding-payment-bypass';
 import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 import { isApeDeprecated } from '@/lib/product-flags';
 import { useSelection, type SamaNaffaSelection } from '@/lib/selection-context';
@@ -107,6 +107,8 @@ function OnboardingPageContent() {
   const [authPending, setAuthPending] = useState(false);
   const [resumeChecked, setResumeChecked] = useState(false);
   const [progressError, setProgressError] = useState<string | null>(null);
+  const emailConfirmation = searchParams.get('emailConfirmation');
+  const [emailNotice, setEmailNotice] = useState<string | null>(null);
   const [depositReady, setDepositReady] = useState(true);
   const sessionUserId = (session?.user as { id?: string } | undefined)?.id ?? null;
   const activeUserId = state.userId ?? sessionUserId;
@@ -166,29 +168,59 @@ function OnboardingPageContent() {
           setStep('E6');
         } else if (resumeStep === 'T3' || resumeStep === 'E3') {
           // Legacy quiz/Kondanné steps are no longer part of onboarding.
-          if (!p.formula) {
-            try {
-              await fetch('/api/onboarding/progress', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  step: 'T4',
-                  simulation: p.simulation,
-                  firstName: p.firstName,
-                  referralCode: p.referralCode,
-                  formula: getDefaultOnboardingAccount().productName,
-                  depositAmount: p.depositAmount,
-                  wallet: p.wallet,
-                }),
-              });
+          // Always migrate the server step to T4 so the next forward PATCH
+          // (T4 → T5) is not rejected as E3 → T5.
+          try {
+            const migrateRes = await fetch('/api/onboarding/progress', {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                step: 'T4',
+                simulation: p.simulation,
+                firstName: p.firstName,
+                referralCode: p.referralCode,
+                formula: p.formula ?? null,
+                depositAmount: p.depositAmount,
+                wallet: p.wallet,
+              }),
+            });
+            const migrateData = (await migrateRes.json().catch(() => ({}))) as {
+              error?: string;
+              progress?: { formula?: string | null };
+            };
+            if (!migrateRes.ok) {
               if (!cancelled) {
-                setState((s) => ({ ...s, formula: getDefaultOnboardingAccount().productName }));
+                // Legacy sessions can lack the mandat acceptance or a persisted
+                // signature that T4 requires. Send them back to E8 to sign
+                // rather than leaving them on a dead end.
+                if (migrateRes.status === 403) {
+                  setProgressError(
+                    'Veuillez accepter et signer le mandat pour reprendre votre inscription.',
+                  );
+                  setStep('E8');
+                } else {
+                  setProgressError(
+                    migrateData.error ||
+                      'Impossible de reprendre votre inscription. Réessayez.',
+                  );
+                }
               }
-            } catch {
-              // Non-blocking — user can still deposit; retry on a subsequent resume.
+              return;
+            }
+            if (!cancelled) {
+              setState((s) => ({
+                ...s,
+                formula: migrateData.progress?.formula ?? p.formula ?? s.formula,
+              }));
+              setStep('T4');
+            }
+          } catch {
+            if (!cancelled) {
+              setProgressError(
+                'Erreur de connexion. Vérifiez votre réseau et réessayez.',
+              );
             }
           }
-          setStep('T4');
         } else if (resumeStep) {
           setStep(resumeStep);
         }
@@ -201,6 +233,20 @@ function OnboardingPageContent() {
       cancelled = true;
     };
   }, [sessionStatus, sessionUserId, router]);
+
+  useEffect(() => {
+    if (!emailConfirmation) return;
+    const messages: Record<string, string> = {
+      success: 'Votre adresse e-mail est confirmée.',
+      already: 'Cette adresse e-mail est déjà confirmée.',
+      expired: 'Ce lien de confirmation n’est plus valide. Renseignez à nouveau votre adresse e-mail.',
+      invalid: 'Ce lien de confirmation est invalide.',
+      taken: 'Cette adresse e-mail est déjà utilisée par un autre compte.',
+      error: 'La confirmation a échoué. Réessayez plus tard.',
+    };
+    setEmailNotice(messages[emailConfirmation] ?? messages.error);
+    router.replace('/onboarding', { scroll: false });
+  }, [emailConfirmation, router]);
 
   useEffect(() => {
     if (!kycResumeFromUrl || !resumeChecked) return;
@@ -234,13 +280,18 @@ function OnboardingPageContent() {
             wallet: merged.wallet,
           }),
         });
+        const data = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          progress?: { formula?: string | null };
+        };
         if (!res.ok) {
-          const data = await res.json().catch(() => ({}));
           setProgressError(
-            (data as { error?: string }).error ||
-              'Impossible d\'enregistrer votre progression. Réessayez.',
+            data.error || "Impossible d'enregistrer votre progression. Réessayez.",
           );
           return false;
+        }
+        if (data.progress?.formula) {
+          setState((s) => ({ ...s, formula: data.progress?.formula ?? s.formula }));
         }
         return true;
       } catch {
@@ -302,6 +353,7 @@ function OnboardingPageContent() {
     };
     setState((s) => ({ ...s, ...next }));
     setAuthPending(true);
+    let emailNotLinked = false;
     try {
       const result = await signIn('credentials', {
         postSignupToken: sessionToken,
@@ -315,17 +367,35 @@ function OnboardingPageContent() {
 
       // Momar E1 collects identity before OTP — persist after session is live.
       if (profile.firstName) {
-        try {
-          await fetch('/api/onboarding/profile', {
+        const patchProfile = (withEmail: boolean) =>
+          fetch('/api/onboarding/profile', {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               firstName: profile.firstName,
               lastName: profile.lastName || undefined,
-              email: profile.email || undefined,
+              email: withEmail ? profile.email || undefined : undefined,
               referralCode: profile.referralCode,
             }),
           });
+
+        try {
+          const res = await patchProfile(true);
+          if (res.status === 409 && profile.email) {
+            // The address belongs to another account: keep the rest of the
+            // profile and tell the user their email was not linked.
+            await patchProfile(false);
+            emailNotLinked = true;
+          } else if (res.ok && profile.email) {
+            const data = (await res.json().catch(() => ({}))) as {
+              emailPendingConfirmation?: string | null;
+            };
+            if (data.emailPendingConfirmation) {
+              setEmailNotice(
+                `Un lien de confirmation a été envoyé à ${data.emailPendingConfirmation}. Vous pouvez continuer votre inscription.`,
+              );
+            }
+          }
         } catch {
           // Non-blocking — profile can still be completed on later steps
         }
@@ -338,6 +408,12 @@ function OnboardingPageContent() {
         referralCode: profile.referralCode,
       });
       if (saved) setStep('T2');
+      // saveProgress clears the banner, so surface the email notice after it.
+      if (emailNotLinked) {
+        setProgressError(
+          'Cette adresse e-mail est déjà utilisée par un autre compte. Votre inscription continue, vous pourrez en renseigner une autre depuis votre espace.',
+        );
+      }
     } catch {
       router.push('/login?message=auto_login_failed');
     } finally {
@@ -356,6 +432,14 @@ function OnboardingPageContent() {
   return (
     <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
       <E0MarketingHeader />
+
+      {emailNotice && (
+        <div className="shrink-0 max-w-md mx-auto w-full px-4 pt-3">
+          <p className="text-sm text-night/80 bg-gold-light/20 border border-gold-metallic/30 rounded-lg px-3 py-2">
+            {emailNotice}
+          </p>
+        </div>
+      )}
 
       {progressError && (
         <div className="shrink-0 max-w-md mx-auto w-full px-4 pt-3">
@@ -427,13 +511,12 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   onBack={() => void moveToStep('T2')}
                   onSuccess={async () => {
-                    const defaultAccount = getDefaultOnboardingAccount();
+                    // Server fills formula from onboarding_account_settings.
                     const saved = await saveProgress('T4', {
                       firstName: state.firstName,
-                      formula: defaultAccount.productName,
+                      formula: null,
                     });
                     if (!saved) return;
-                    setState((s) => ({ ...s, formula: defaultAccount.productName }));
                     setStep('T4');
                   }}
                 />
@@ -508,9 +591,13 @@ function OnboardingPageContent() {
                   firstName={state.firstName}
                   initialAmount={state.depositAmount}
                   onBack={() => void moveToStep('T4')}
-                  onSkip={async () => {
-                    await finishToPortal();
-                  }}
+                  onSkip={
+                    isOnboardingPaymentBypassEnabled()
+                      ? async () => {
+                          await finishToPortal();
+                        }
+                      : undefined
+                  }
                   onSuccess={async (amount, wallet) => {
                     setDepositReady(true);
                     setState((s) => ({ ...s, depositAmount: amount, wallet }));

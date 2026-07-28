@@ -52,6 +52,41 @@ export async function sendEmailOTP(email: string, otp: string): Promise<void> {
   await emailTransporter.sendMail(mailOptions)
 }
 
+export async function sendEmailVerificationLink(
+  email: string,
+  confirmUrl: string,
+  firstName?: string | null,
+): Promise<void> {
+  if (email.includes('@onboarding.samanaffa.tmp')) return;
+
+  if (isMockOtpEnabled()) {
+    console.info(`[mock-otp] email verification link for ${email}: ${confirmUrl}`)
+    return
+  }
+
+  await emailTransporter.sendMail({
+    from: process.env.EMAIL_SENDER,
+    to: email,
+    subject: 'Confirmez votre adresse e-mail Sama Naffa',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #2563eb;">Sama Naffa</h2>
+        <p>Bonjour${firstName ? ` ${firstName}` : ''},</p>
+        <p>Confirmez cette adresse e-mail pour la rattacher à votre compte Sama Naffa :</p>
+        <p style="margin: 24px 0;">
+          <a href="${confirmUrl}" style="background-color: #2563eb; color: #ffffff; padding: 12px 20px; border-radius: 6px; text-decoration: none;">
+            Confirmer mon adresse e-mail
+          </a>
+        </p>
+        <p>Ce lien expire dans 24 heures.</p>
+        <p>Si vous n'êtes pas à l'origine de cette demande, ignorez cet email : aucune modification ne sera faite.</p>
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #6b7280; font-size: 14px;">L'équipe Sama Naffa</p>
+      </div>
+    `,
+  })
+}
+
 export async function sendSMSOTP(phone: string, otp: string): Promise<void> {
   if (isMockOtpEnabled()) {
     console.info(`[mock-otp] sms sent to ${phone.replace(/\d(?=\d{4})/g, '*')}`)

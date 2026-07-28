@@ -8,6 +8,9 @@ import { mergeInvestorProfile, readOnboardingProgress } from '@/lib/onboarding-p
 import { recordSponsorCodeUsage, verifySponsorCode } from '@/lib/sponsor-code';
 import { recordAgentCodeUsage, verifyAgentCode } from '@/lib/field-agent';
 import { isLegacyCampaignDeprecated } from '@/lib/legacy-campaign-deprecation';
+import { issueEmailVerificationToken } from '@/lib/email-verification-token';
+import { sendEmailVerificationLink } from '@/lib/notifications';
+import { getAppBaseUrl } from '@/lib/app-url';
 
 /**
  * Onboarding T2/T3 — progressively enrich the authenticated user's record.
@@ -31,6 +34,11 @@ export async function PATCH(request: NextRequest) {
     const data: Record<string, unknown> = {};
     if (typeof firstName === 'string' && firstName.trim()) data.firstName = firstName.trim();
     if (typeof lastName === 'string' && lastName.trim()) data.lastName = lastName.trim();
+
+    // An address is never bound from user input alone — that would let anyone
+    // squat a mailbox they do not own. It is held as pendingEmail until the
+    // confirmation link is opened.
+    let emailAwaitingConfirmation: string | null = null;
     if (typeof email === 'string' && email.trim()) {
       const normalizedEmail = email.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
@@ -44,7 +52,9 @@ export async function PATCH(request: NextRequest) {
       if (existingEmail) {
         return NextResponse.json({ error: 'Cette adresse e-mail est déjà utilisée' }, { status: 409 });
       }
-      data.email = normalizedEmail;
+      if (normalizedEmail !== user.email) {
+        emailAwaitingConfirmation = normalizedEmail;
+      }
     }
     if (typeof metiers === 'string' && metiers.trim()) data.metiers = metiers.trim();
     if (typeof country === 'string' && country.trim()) data.country = country.trim().toUpperCase();
@@ -96,6 +106,12 @@ export async function PATCH(request: NextRequest) {
       });
     }
 
+    if (emailAwaitingConfirmation) {
+      data.investorProfile = mergeInvestorProfile(data.investorProfile ?? user.investorProfile, {
+        onboarding: { pendingEmail: emailAwaitingConfirmation },
+      });
+    }
+
     if (Object.keys(data).length === 0) {
       return NextResponse.json({ error: 'Aucune donnée à mettre à jour' }, { status: 400 });
     }
@@ -117,10 +133,27 @@ export async function PATCH(request: NextRequest) {
       await recordAgentCodeUsage(validatedReferralCode);
     }
 
+    if (emailAwaitingConfirmation) {
+      try {
+        const token = issueEmailVerificationToken(userId, emailAwaitingConfirmation);
+        const confirmUrl = `${getAppBaseUrl(request)}/api/onboarding/email/confirm?token=${encodeURIComponent(token)}`;
+        await sendEmailVerificationLink(
+          emailAwaitingConfirmation,
+          confirmUrl,
+          updated.firstName,
+        );
+      } catch (mailError) {
+        // Onboarding must not stall on mail delivery — the address stays pending
+        // and the user can request a new link later.
+        console.error('[onboarding/profile] email verification link', mailError);
+      }
+    }
+
     const savedReferral = readOnboardingProgress(updated.investorProfile).referralCode ?? null;
 
     return NextResponse.json({
       success: true,
+      emailPendingConfirmation: emailAwaitingConfirmation,
       user: {
         id: updated.id,
         firstName: updated.firstName,

@@ -264,6 +264,16 @@ export default function T1Phone({
         body: JSON.stringify({ action: 'verify-otp', sessionId, otp: otp.join('') }),
       });
       const data = await res.json();
+      if (res.status === 409) {
+        // Duplicate phone is only disclosed after the code is verified: send the
+        // user back to the phone screen where the login link lives.
+        setSessionId(null);
+        setOtp(['', '', '', '', '', '']);
+        setExistingAccountHint(
+          typeof data.error === 'string' ? data.error : GENERIC_OTP_SEND_MESSAGE,
+        );
+        return;
+      }
       if (!res.ok) throw new Error(data.error || 'Erreur');
       if (!data.sessionToken) throw new Error('Session de connexion manquante');
       onSuccess(data.userId, data.phone, displayPhone, country.code, data.sessionToken, profileDraft());

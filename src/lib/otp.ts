@@ -316,6 +316,33 @@ export async function sendOTP(
   }
 }
 
+/**
+ * Sends a registration-session SMS code without checking whether an account
+ * already exists. The onboarding route makes that decision itself, so keeping
+ * it out of the delivery path is what lets send-otp answer identically for
+ * registered and unregistered phones.
+ */
+export async function sendRegistrationSessionSmsOtp(
+  registrationSessionId: string,
+  phone: string,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    const otp = generateSecureOtpCode()
+    await db.insert(otpCodes).values({
+      userId: null,
+      registrationSessionId,
+      code: otp,
+      type: 'SMS',
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+    })
+    await sendSMSOTP(phone, otp)
+    return { success: true, message: 'Code OTP envoyé par SMS' }
+  } catch (error) {
+    console.error('Error sending registration session OTP:', error)
+    return { success: false, message: "Erreur lors de l'envoi du code OTP" }
+  }
+}
+
 export async function cleanupExpiredOTPs(): Promise<void> {
   await db.delete(otpCodes).where(lt(otpCodes.expiresAt, new Date()))
 }

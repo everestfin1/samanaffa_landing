@@ -2308,12 +2308,16 @@ body.c1-dashboard {
 .e6-card {
   width: 100%;
   max-width: 578px;
-  padding: 2rem 2.125rem 1.5rem;
+  padding: 2rem 2.125rem 2.25rem;
   text-align: left;
 }
 
 .e6-field {
   margin-bottom: 0.55rem;
+}
+
+.e6-card .e1-label {
+  font-size: 1rem; /* 16px */
 }
 
 .e6-input {
@@ -2327,9 +2331,9 @@ body.c1-dashboard {
 }
 
 .e6-methods-title {
-  margin: 2.25rem 0 1.15rem;
-  font-size: 1.25rem;
-  font-weight: 400;
+  margin: 2.25rem 0 1rem;
+  font-size: 1rem; /* match Montant label */
+  font-weight: 600;
   color: #1a1a1a;
 }
 
@@ -2337,7 +2341,7 @@ body.c1-dashboard {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 1.1rem;
 }
 

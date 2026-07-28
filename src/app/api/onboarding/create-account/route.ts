@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { and, desc, eq, gt, inArray } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { otpCodes, registrationSessions, userAccounts, users } from '@/lib/db/schema';
-import { verifyOTPWithRateLimit, sendOTP } from '@/lib/otp';
+import { verifyOTPWithRateLimit, sendRegistrationSessionSmsOtp } from '@/lib/otp';
 import { logMockOtp, recordMockOtpSend } from '@/lib/mock-otp-hint';
 import {
   normalizeInternationalPhone,
@@ -14,14 +14,34 @@ import { checkOTPRateLimitAsync } from '@/lib/rate-limit';
 import { isMockOtpEnabled } from '@/lib/mock-otp';
 import { mergeInvestorProfile } from '@/lib/onboarding-progress';
 import { issuePostSignupToken } from '@/lib/post-signup-token';
-import { genericOtpSendResponse } from '@/lib/otp-send-response';
 import { resolveDefaultOnboardingAccount } from '@/lib/onboarding-default-account';
+
+const PLACEHOLDER_EMAIL_SUFFIX = '@onboarding.samanaffa.tmp';
+const MAX_NAME_LEN = 100;
 
 function isUniqueConstraintError(err: unknown): boolean {
   if (!err || typeof err !== 'object') return false;
   const e = err as { code?: string };
   return e.code === 'P2002' || e.code === '23505';
 }
+
+function isPlaceholderOnboardingEmail(email: string): boolean {
+  return email.endsWith(PLACEHOLDER_EMAIL_SUFFIX);
+}
+
+function placeholderEmailForPhone(phone: string): string {
+  return `${phone.replace(/\+/g, '')}${PLACEHOLDER_EMAIL_SUFFIX}`;
+}
+
+function clampName(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim().slice(0, MAX_NAME_LEN);
+  return trimmed || fallback;
+}
+
+/** Only shown after the caller proves possession of the phone via OTP. */
+const EXISTING_ACCOUNT_MESSAGE =
+  'Un compte existe déjà pour ce numéro. Connectez-vous pour continuer.';
 
 /**
  * New onboarding flow (T1) — phone OTP account creation.
@@ -64,6 +84,10 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // An already-registered phone still gets a session and a real SMS code so
+      // this response cannot be used to enumerate customers. The duplicate is
+      // only revealed at verify-otp, once the caller proves phone possession.
+      let phoneAlreadyRegistered = false;
       const phoneFormats = generatePhoneFormats(normalizedPhone);
       if (phoneFormats.length > 0) {
         const existingRows = await db
@@ -73,7 +97,7 @@ export async function POST(request: NextRequest) {
           .limit(1);
         const existing = existingRows[0];
         if (existing && !(existing.firstName === 'Temporary' && existing.lastName === 'User')) {
-          return NextResponse.json(genericOtpSendResponse());
+          phoneAlreadyRegistered = true;
         }
       }
 
@@ -81,8 +105,15 @@ export async function POST(request: NextRequest) {
       if (requestedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(requestedEmail)) {
         return NextResponse.json({ error: 'Adresse e-mail invalide' }, { status: 400 });
       }
-      const storedEmail =
-        requestedEmail || `${normalizedPhone.replace(/\+/g, '')}@onboarding.samanaffa.tmp`;
+
+      // The requested address is only ever a request: the session carries a
+      // placeholder so nothing here depends on whether the address is already
+      // registered, which is what removes the enumeration side channel.
+      const sessionEmail = placeholderEmailForPhone(normalizedPhone);
+      const pendingEmail: string | null = requestedEmail || null;
+
+      const sessionFirstName = clampName(requestedFirstName, '');
+      const sessionLastName = clampName(requestedLastName, '');
 
       await db
         .delete(registrationSessions)
@@ -91,13 +122,15 @@ export async function POST(request: NextRequest) {
       const [session] = await db
         .insert(registrationSessions)
         .values({
-          email: storedEmail,
+          email: sessionEmail,
           phone: normalizedPhone,
           data: JSON.stringify({
             phone: normalizedPhone,
-            email: storedEmail,
-            firstName: typeof requestedFirstName === 'string' ? requestedFirstName.trim() : '',
-            lastName: typeof requestedLastName === 'string' ? requestedLastName.trim() : '',
+            email: sessionEmail,
+            pendingEmail,
+            phoneAlreadyRegistered,
+            firstName: sessionFirstName,
+            lastName: sessionLastName,
             simulation: simulation || null,
             referralCode:
               typeof referralCode === 'string' && referralCode.trim()
@@ -113,13 +146,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Erreur lors de la création de la session' }, { status: 500 });
       }
 
-      const result = await sendOTP(
-        storedEmail,
-        normalizedPhone,
-        'register',
-        'sms',
-        session.id,
-      );
+      const result = await sendRegistrationSessionSmsOtp(session.id, normalizedPhone);
 
       if (!result.success) {
         await db.delete(registrationSessions).where(eq(registrationSessions.id, session.id));
@@ -193,15 +220,20 @@ export async function POST(request: NextRequest) {
 
       const sessionData = JSON.parse(session.data);
       const phone: string = sessionData.phone;
-      const email: string = sessionData.email;
-      const firstName =
-        typeof sessionData.firstName === 'string' && sessionData.firstName.trim()
-          ? sessionData.firstName.trim()
-          : 'Nouveau';
-      const lastName =
-        typeof sessionData.lastName === 'string' && sessionData.lastName.trim()
-          ? sessionData.lastName.trim()
-          : 'Membre';
+      const pendingEmail =
+        typeof sessionData.pendingEmail === 'string' && sessionData.pendingEmail.trim()
+          ? sessionData.pendingEmail.trim().toLowerCase()
+          : null;
+      const firstName = clampName(sessionData.firstName, 'Nouveau');
+      const lastName = clampName(sessionData.lastName, 'Membre');
+
+      // The duplicate-phone decision was made at send-otp and deliberately not
+      // disclosed there; possession of the code is now proven, so disclose it.
+      if (sessionData.phoneAlreadyRegistered === true) {
+        await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
+        return NextResponse.json({ error: EXISTING_ACCOUNT_MESSAGE }, { status: 409 });
+      }
+
       const defaultAccount = await resolveDefaultOnboardingAccount();
 
       const phoneFormats = generatePhoneFormats(phone);
@@ -217,34 +249,32 @@ export async function POST(request: NextRequest) {
             break;
           }
           await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
-          return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
+          return NextResponse.json({ error: EXISTING_ACCOUNT_MESSAGE }, { status: 409 });
         }
       }
-      if (!email.endsWith('@onboarding.samanaffa.tmp')) {
-        const [existingEmail] = await db
-          .select({ id: users.id })
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
-        if (existingEmail) {
-          await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
-          return NextResponse.json(
-            { error: 'Cette adresse e-mail est déjà utilisée' },
-            { status: 409 },
-          );
-        }
-      }
+
+      // Phone OTP proves the phone, never the mailbox: the account always starts
+      // on a placeholder address and the requested one stays pending until its
+      // confirmation link is opened.
+      const accountEmail = placeholderEmailForPhone(phone);
+      const unresolvedPendingEmail =
+        pendingEmail && !isPlaceholderOnboardingEmail(pendingEmail) ? pendingEmail : null;
+
       if (temporaryUserId) {
         await db.delete(users).where(eq(users.id, temporaryUserId));
       }
 
       const sessionSimulation = sessionData.simulation ?? null;
-      const investorProfile = sessionSimulation
-        ? mergeInvestorProfile(null, {
-            simulation: sessionSimulation,
-            onboarding: { step: 'T2', simulation: sessionSimulation },
-          })
-        : mergeInvestorProfile(null, { onboarding: { step: 'T2' } });
+      const investorProfile = mergeInvestorProfile(null, {
+        ...(sessionSimulation ? { simulation: sessionSimulation } : {}),
+        onboarding: {
+          step: 'T2',
+          maxStep: 'T2',
+          formula: defaultAccount.productName,
+          ...(sessionSimulation ? { simulation: sessionSimulation } : {}),
+          ...(unresolvedPendingEmail ? { pendingEmail: unresolvedPendingEmail } : {}),
+        },
+      });
 
       let newUser;
       try {
@@ -253,7 +283,7 @@ export async function POST(request: NextRequest) {
             .insert(users)
             .values({
               phone,
-              email,
+              email: accountEmail,
               firstName,
               lastName,
               phoneVerified: true,
@@ -293,7 +323,7 @@ export async function POST(request: NextRequest) {
       } catch (err) {
         if (isUniqueConstraintError(err)) {
           await db.delete(registrationSessions).where(eq(registrationSessions.id, sessionId));
-          return NextResponse.json({ error: 'Compte déjà existant' }, { status: 409 });
+          return NextResponse.json({ error: EXISTING_ACCOUNT_MESSAGE }, { status: 409 });
         }
         throw err;
       }
