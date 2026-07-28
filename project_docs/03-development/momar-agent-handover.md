@@ -1,6 +1,6 @@
 # Momar Figma redesign — agent handover
 
-**Updated:** 2026-07-28 (C2 detail + C6 Relevés stub)  
+**Updated:** 2026-07-28 (C3 Alimenter page)  
 **Branch:** `staging`  
 **Source of truth:** [Sama-Naffa-UI](https://www.figma.com/design/blKrnZxk8pWEjfPFa2XS9K/Sama-Naffa-UI) (`blKrnZxk8pWEjfPFa2XS9K`)
 
@@ -14,27 +14,10 @@ Figma badges were wrong. **Ship this order:**
 
 ```
 E1 (phone/OTP) → E2 (infos) → E8 (mandat + signature)
-  → E3 (Créer Kondanné) → E4 (premier versement)
-  → E5 (KYC Didit → paiement Intouch) → C1 (portal dashboard)
+  → E4 (premier versement) → E5 (KYC Didit → paiement Intouch) → C1
 ```
 
-| Product | Internal step | Component |
-|---------|---------------|-----------|
-| E1 | `T1` | `T1Phone` |
-| E2 | `T2` | `T2PersonalInfo` |
-| E8 | `E8` | `E8Mandate` |
-| E3 | `E3` | `E3CreateKondanne` |
-| E4 | `T4` | `T4Deposit` |
-| E5 vérif | `T5` | `T5KYC` |
-| E5 paiement | `E6` | `E6Payment` |
-| C1 | `C1` | `/portal/dashboard` |
-
-- **No T6** on the happy path (legacy `T6` still resumes → portal).  
-- **T2B** contact/consents is **not** in this PM sequence — leave unwired.  
-- Progress bar: **7** visible steps.  
-- Gates: mandat **before** KYC; KYC required before payment/`C1`; deposit required for `T5`/`E6`/`C1`.
-
-Key files: `src/app/onboarding/page.tsx`, `src/lib/onboarding-progress.ts`, `src/app/api/onboarding/progress/route.ts`.
+(E3 Kondanné creation removed from onboarding happy path — default Sama Naffa account.)
 
 ---
 
@@ -43,9 +26,9 @@ Key files: `src/app/onboarding/page.tsx`, `src/lib/onboarding-progress.ts`, `src
 | Step | Node | Target | Status |
 |------|------|--------|--------|
 | C2 Liste | `124:43007` | `/portal/sama-naffa` | Done |
-| C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done (2026-07-28) |
-| C3 Alimenter | `10:2977` | Dedicated deposit screen | **Do next** (`TransferModal` wired from detail) |
-| C5 Retrait | `10:3131` | Withdraw screen | Pending (`TransferModal` wired) |
+| C2 Détail | `10:2878` | `/portal/sama-naffa/[accountId]` → `C2KondanneDetail` | Done |
+| C3 Alimenter | `10:2977` | `/portal/sama-naffa/[accountId]/alimentar` → `C3Alimenter` | Done (Continue → TransferModal/Intouch) |
+| C5 Retrait | `10:3131` | Dedicated withdraw screen | **Do next** (`TransferModal` still wired) |
 | C6 Relevés | `10:3223` | `/portal/releves` | Stub only — full Momar screen pending |
 | C4 / C7–C8 | see map | Create Kondanné / profile / aide | Pending |
 

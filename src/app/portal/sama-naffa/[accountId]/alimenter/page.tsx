@@ -3,14 +3,15 @@
 import { useEffect } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { useParams, useRouter } from 'next/navigation';
-import { useUserProfile } from '../../../../hooks/useUserProfile';
-import { useSamaNaffaAccounts } from '../../../../hooks/useAccounts';
-import PortalHeader from '../../../../components/portal/PortalHeader';
-import C2KondanneDetail from '../../../../components/portal/C2KondanneDetail';
+import { useUserProfile } from '../../../../../hooks/useUserProfile';
+import { useSamaNaffaAccounts } from '../../../../../hooks/useAccounts';
+import PortalHeader from '../../../../../components/portal/PortalHeader';
+import C3Alimenter from '../../../../../components/portal/C3Alimenter';
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
-export default function KondanneDetailPage() {
+export default function AlimenterPage() {
   const router = useRouter();
   const params = useParams();
   const accountId = typeof params.accountId === 'string' ? params.accountId : '';
@@ -49,12 +50,8 @@ export default function KondanneDetailPage() {
       <div className="c1-page c1-page--soft c1-page--center">
         <div className="text-center px-4">
           <ExclamationTriangleIcon className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <p className="text-night/70 mb-4">Erreur lors du chargement du Kondanné</p>
-          <button
-            type="button"
-            className="c1-create"
-            onClick={() => window.location.reload()}
-          >
+          <p className="text-night/70 mb-4">Erreur lors du chargement</p>
+          <button type="button" className="c1-create" onClick={() => window.location.reload()}>
             Réessayer
           </button>
         </div>
@@ -99,7 +96,7 @@ export default function KondanneDetailPage() {
           </div>
         </div>
       ) : (
-        <C2KondanneDetail account={account} kycStatus={kycStatus} />
+        <C3Alimenter account={account} kycStatus={kycStatus} />
       )}
     </div>
   );

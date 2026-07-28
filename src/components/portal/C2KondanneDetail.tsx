@@ -251,17 +251,17 @@ export default function C2KondanneDetail({ account, kycStatus }: C2KondanneDetai
         <div className="c2-actions">
           <button
             type="button"
-            className="c1-create c1-create--inline"
-            onClick={() => openTransfer('deposit')}
+            className="c2-action c2-action--primary"
+            onClick={() => router.push(`/portal/sama-naffa/${account.id}/alimenter`)}
           >
-            Alimenter
+            Alimente
           </button>
           <button
             type="button"
             className="c2-action c2-action--outline"
             onClick={() => openTransfer('withdraw')}
           >
-            Retirer
+            Retire
           </button>
           <button
             type="button"
