@@ -25,8 +25,8 @@ export default function E0LegalFooter() {
             </p>
           </div>
           <nav aria-label="Support">
-            <h2 className="m-0 text-sm font-bold text-[var(--sama-periglacial)]">Support</h2>
-            <div className="e0-legal-muted mt-4 flex flex-col gap-2 text-sm">
+            <h2 className="e0-legal-col-title">Support</h2>
+            <div className="e0-legal-muted mt-4 flex flex-col text-[13.5px] leading-[27px] font-normal">
               <Link href="/faq" className="hover:text-white">
                 FAQ
               </Link>
@@ -39,8 +39,8 @@ export default function E0LegalFooter() {
             </div>
           </nav>
           <address className="not-italic">
-            <h2 className="m-0 text-sm font-bold text-[var(--sama-periglacial)]">Contact</h2>
-            <div className="e0-legal-muted mt-4 space-y-3 text-sm">
+            <h2 className="e0-legal-col-title">Contact</h2>
+            <div className="e0-legal-muted mt-4 space-y-1.5 text-[13px] leading-[24.7px] font-normal">
               <a className="flex items-center gap-3 hover:text-white" href="tel:+221338228700">
                 <PhoneIcon className="size-4" />
                 +221 33 822 87 00
@@ -58,7 +58,7 @@ export default function E0LegalFooter() {
             </div>
           </address>
         </div>
-        <div className="e0-legal-soft mx-auto mt-10 flex max-w-[1080px] flex-col gap-4 border-t border-white/10 pt-5 text-xs sm:flex-row sm:items-center sm:justify-between">
+        <div className="e0-legal-soft mx-auto mt-10 flex max-w-[1080px] flex-col gap-4 border-t border-white/10 pt-5 text-[12.5px] sm:flex-row sm:items-center sm:justify-between">
           <p className="m-0">© 2026 EVEREST Finance</p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/privacy" className="hover:text-white">

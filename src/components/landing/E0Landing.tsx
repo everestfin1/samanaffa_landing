@@ -53,7 +53,7 @@ function Hero() {
           Ton épargne,
           <span className="e0-hero-title-accent">notre expertise</span>
         </h1>
-        <p className="mt-5 max-w-lg text-base font-normal text-[var(--sama-cod-gray)] drop-shadow-sm md:text-xl">
+        <p className="mt-5 max-w-lg text-base font-normal text-black drop-shadow-sm md:text-xl">
           La plateforme qui accompagne ton épargne, pas à pas
         </p>
         <Link href="/onboarding" className="e0-cta-marigold mt-8">
@@ -88,7 +88,7 @@ function Benefits() {
                   />
                 </div>
                 <h3 className="e0-benefit-title">{benefit.title}</h3>
-                <p className="mt-2 text-base text-white/90">{benefit.description}</p>
+                <p className="mt-2 text-lg font-normal text-white">{benefit.description}</p>
               </Link>
             </article>
           ))}

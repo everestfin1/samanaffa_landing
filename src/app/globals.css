@@ -685,7 +685,7 @@ video {
   max-width: 28rem;
   font-size: clamp(2.5rem, 4.1vw, 2.875rem);
   font-weight: 800;
-  line-height: 0.975;
+  line-height: 1.2655;
   letter-spacing: -0.02em;
   color: var(--sama-forest);
   text-wrap: balance;
@@ -707,8 +707,8 @@ video {
   margin: 0;
   text-align: center;
   font-size: clamp(1.75rem, 3.2vw, 2.375rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--sama-white);
 }
 
@@ -733,6 +733,7 @@ video {
   margin: 1.25rem 0 0;
   font-size: clamp(1.25rem, 2vw, 1.5rem);
   font-weight: 700;
+  letter-spacing: 0;
   color: var(--sama-marigold);
 }
 
@@ -745,8 +746,8 @@ video {
   margin: 0;
   text-align: center;
   font-size: clamp(1.8rem, 3.2vw, 2.375rem);
-  font-weight: 800;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  letter-spacing: 0;
   color: var(--sama-forest);
 }
 
@@ -784,9 +785,9 @@ video {
 .e0-first-step-title {
   margin: 0;
   font-size: clamp(2rem, 4vw, 2.375rem);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-weight: 500;
+  line-height: 1.218;
+  letter-spacing: 0;
   color: var(--sama-forest);
 }
 
@@ -794,6 +795,17 @@ video {
   background: var(--sama-forest);
   color: var(--sama-white);
   padding: 3rem 1.5rem;
+}
+
+/* Unlayered — must beat global h2 { font-size: 2rem } at md+ */
+.e0-legal-col-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 18px;
+  letter-spacing: 0;
+  text-wrap: wrap;
+  color: var(--sama-periglacial);
 }
 
 .e0-legal-muted {

@@ -8,7 +8,7 @@ type E0MarketingHeaderProps = {
 export default function E0MarketingHeader({ active = "accueil" }: E0MarketingHeaderProps) {
   const linkClass = (key: "accueil" | "nattukaay") =>
     [
-      "text-lg font-medium transition-colors hover:text-[var(--sama-marigold)]",
+      "text-[15px] font-medium transition-colors hover:text-[var(--sama-marigold)]",
       active === key ? "text-[var(--sama-forest)]" : "text-[var(--sama-cod-gray)]",
     ].join(" ");
 
@@ -39,7 +39,7 @@ export default function E0MarketingHeader({ active = "accueil" }: E0MarketingHea
           />
         </Link>
 
-        <Link href="/login" className="e0-cta-forest ml-auto text-[15px]">
+        <Link href="/login" className="e0-cta-forest ml-auto">
           Se connecter
         </Link>
       </div>
