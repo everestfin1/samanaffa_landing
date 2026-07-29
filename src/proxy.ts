@@ -11,8 +11,7 @@ import {
   legacyCampaignRedirect,
   LEGACY_ADMIN_PATH_PREFIXES,
   LEGACY_API_PATH_PREFIXES,
-  LEGACY_PUBLIC_PATH_PREFIXES,
-  matchesPathPrefix,
+  shouldRedirectLegacyPublicPath,
 } from '@/lib/legacy-campaign-deprecation';
 
 export async function proxy(request: NextRequest) {
@@ -28,7 +27,7 @@ export async function proxy(request: NextRequest) {
       return legacyAdminRedirect(request.url);
     }
 
-    if (matchesPathPrefix(pathname, LEGACY_PUBLIC_PATH_PREFIXES)) {
+    if (shouldRedirectLegacyPublicPath(pathname)) {
       return legacyCampaignRedirect(request.url);
     }
   }

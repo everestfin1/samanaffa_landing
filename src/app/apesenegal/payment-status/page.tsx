@@ -94,7 +94,7 @@ function PaymentStatusContent() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/apesenegal');
+          router.push('/sama-naffa');
           return 0;
         }
         return prev - 1;
@@ -287,7 +287,7 @@ function PaymentStatusContent() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
-              href="/apesenegal"
+              href="/sama-naffa"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gold-metallic text-white font-medium rounded-lg hover:bg-gold-dark transition-colors"
             >
               Retour à l'accueil

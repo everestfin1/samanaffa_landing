@@ -10,6 +10,7 @@ import {
   getPaymentRail,
 } from '@/lib/payments/onboarding-payment-methods';
 import { isOnboardingPaymentBypassEnabled } from '@/lib/onboarding-payment-bypass';
+import { ONBOARDING_PAYMENT_RETURN_PATH } from '@/lib/payment-return-url';
 
 interface PendingIntent {
   id: string;
@@ -174,6 +175,7 @@ export default function E6Payment({
                 accountType="sama_naffa"
                 intentType="deposit"
                 referenceNumber={intent.referenceNumber}
+                returnTo={ONBOARDING_PAYMENT_RETURN_PATH}
                 onSuccess={() => {
                   onSuccess(amount >= MIN_AMOUNT ? amount : intent.amount, selectedMethod ?? 'intouch');
                 }}

@@ -8,15 +8,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: '/apesenegal', destination: '/sama-naffa', permanent: true },
-      { source: '/apesenegal/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/ape', destination: '/sama-naffa', permanent: true },
-      { source: '/ape/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/souscrire-ape', destination: '/sama-naffa', permanent: true },
-      { source: '/souscrire-ape/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/portal/ape', destination: '/portal/sama-naffa', permanent: true },
-      { source: '/portal/ape/:path*', destination: '/portal/sama-naffa', permanent: true },
       { source: '/pee', destination: '/sama-naffa', permanent: true },
-      { source: '/pee/:path*', destination: '/sama-naffa', permanent: true },
       { source: '/politique-confidentialite', destination: '/privacy', permanent: true },
     ];
   },

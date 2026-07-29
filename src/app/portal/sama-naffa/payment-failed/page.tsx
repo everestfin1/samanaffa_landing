@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { XCircleIcon } from '@heroicons/react/24/solid';
+import { getPaymentReturnPath } from '@/lib/payment-return-url';
 
 function PaymentFailedContent() {
   const router = useRouter();
@@ -12,6 +13,8 @@ function PaymentFailedContent() {
   const referenceNumber = searchParams.get('referenceNumber');
   const status = searchParams.get('status');
   const reason = searchParams.get('reason');
+  const returnPath = getPaymentReturnPath(searchParams.get('returnTo'));
+  const isOnboardingReturn = returnPath === '/onboarding';
 
   useEffect(() => {
     // Countdown timer (longer for failed payments)
@@ -19,7 +22,7 @@ function PaymentFailedContent() {
       setCountdown((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/portal/sama-naffa');
+          router.push(returnPath);
           return 0;
         }
         return prev - 1;
@@ -27,7 +30,7 @@ function PaymentFailedContent() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [router]);
+  }, [router, returnPath]);
 
   const getReasonMessage = (reason: string | null) => {
     if (!reason) return 'Le paiement n\'a pas pu être finalisé.';
@@ -118,17 +121,19 @@ function PaymentFailedContent() {
           {/* Action Buttons */}
           <div className="space-y-3">
             <button
-              onClick={() => router.push('/portal/sama-naffa')}
+              onClick={() => router.push(returnPath)}
               className="w-full bg-gold-metallic hover:bg-gold-dark text-white font-medium py-3 px-6 rounded-lg transition-colors"
             >
-              Réessayer le paiement
+              {isOnboardingReturn ? "Reprendre l'inscription" : 'Réessayer le paiement'}
             </button>
-            <button
-              onClick={() => router.push('/portal/dashboard')}
-              className="w-full border border-gold-metallic/30 text-gold-dark hover:bg-gold-light/10 font-medium py-3 px-6 rounded-lg transition-colors"
-            >
-              Retour au tableau de bord
-            </button>
+            {!isOnboardingReturn && (
+              <button
+                onClick={() => router.push('/portal/dashboard')}
+                className="w-full border border-gold-metallic/30 text-gold-dark hover:bg-gold-light/10 font-medium py-3 px-6 rounded-lg transition-colors"
+              >
+                Retour au tableau de bord
+              </button>
+            )}
             <a
               href="https://wa.me/221770993382"
               target="_blank"

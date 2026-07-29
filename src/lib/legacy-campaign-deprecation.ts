@@ -17,6 +17,15 @@ export const LEGACY_PUBLIC_PATH_PREFIXES = [
   '/portal/ape',
 ] as const;
 
+/** Intouch return URLs — must stay reachable when legacy campaigns are deprecated. */
+export const LEGACY_PAYMENT_RETURN_PATH_PREFIXES = [
+  '/pee/payment-status',
+  '/ape/payment-status',
+  '/apesenegal/payment-status',
+  '/apesenegal/payment-failed',
+  '/apesenegal/payment-success',
+] as const;
+
 export const LEGACY_API_PATH_PREFIXES = [
   '/api/ape',
   '/api/pee',
@@ -35,6 +44,14 @@ export function matchesPathPrefix(pathname: string, prefixes: readonly string[])
   return prefixes.some(
     (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
   );
+}
+
+/** Redirect legacy marketing pages, but keep payment return handlers for InTouch. */
+export function shouldRedirectLegacyPublicPath(pathname: string): boolean {
+  if (!matchesPathPrefix(pathname, LEGACY_PUBLIC_PATH_PREFIXES)) {
+    return false;
+  }
+  return !matchesPathPrefix(pathname, LEGACY_PAYMENT_RETURN_PATH_PREFIXES);
 }
 
 export function legacyCampaignGoneResponse(): NextResponse {

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { getClientAppBaseUrl } from '@/lib/app-url';
+import { withReturnTo } from '@/lib/payment-return-url';
 
 interface IntouchPaymentProps {
   amount: number;
@@ -16,6 +17,8 @@ interface IntouchPaymentProps {
   onCancel: () => void;
   investmentTranche?: 'A' | 'B' | 'C' | 'D';
   investmentTerm?: 3 | 5 | 7 | 10;
+  /** Post-payment redirect target (e.g. /onboarding during E6). */
+  returnTo?: string;
 }
 
 interface IntouchPaymentData {
@@ -80,6 +83,7 @@ export default function IntouchPayment({
   onCancel,
   investmentTranche,
   investmentTerm,
+  returnTo,
 }: IntouchPaymentProps) {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
@@ -293,8 +297,14 @@ export default function IntouchPayment({
       // InTouch only redirects to URLs on the registered merchant domain (see `domain` arg).
       // On localhost, use dev.samanaffa.com (or NEXT_PUBLIC_APP_URL) — not window.location.origin.
       const baseUrl = getClientAppBaseUrl();
-      const successUrl = `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`;
-      const failedUrl = `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`;
+      const successUrl = withReturnTo(
+        `${baseUrl}/portal/sama-naffa/payment-success?transactionId=${transactionId}&referenceNumber=${encodeURIComponent(referenceNumber)}&amount=${amount}&status=success&accountType=${accountType}`,
+        returnTo,
+      );
+      const failedUrl = withReturnTo(
+        `${baseUrl}/portal/sama-naffa/payment-failed?referenceNumber=${encodeURIComponent(referenceNumber)}&status=failed&accountType=${accountType}`,
+        returnTo,
+      );
 
       if (
         typeof window !== 'undefined' &&
@@ -366,6 +376,7 @@ export default function IntouchPayment({
     onError,
     referenceNumber,
     resetPaymentState,
+    returnTo,
     scriptReady,
     userId,
   ]);

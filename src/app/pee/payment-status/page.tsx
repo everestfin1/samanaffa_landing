@@ -85,7 +85,7 @@ function PaymentStatusContent() {
       setCountdown(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          router.push('/pee');
+          router.push('/sama-naffa');
           return 0;
         }
         return prev - 1;
@@ -275,7 +275,7 @@ function PaymentStatusContent() {
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <Link
-              href="/pee"
+              href="/sama-naffa"
               className="flex-1 inline-flex items-center justify-center px-6 py-3 bg-[#C09037] text-white font-medium rounded-lg hover:bg-[#b3830f] transition-colors"
             >
               Retour à l'accueil
