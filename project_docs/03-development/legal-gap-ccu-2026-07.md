@@ -1,10 +1,12 @@
 # Legal gap — CCU 21/07/2026 + privacy (2)
 
-**Status:** staging content swapped. Product rules **not** changed yet.  
+**Status:** staging content swapped (`12b7dd7`). Product rules **not** changed yet.  
 **Sources:** `CCU Sama Naffa 21072026 VF.docx`, `Politique de confidentialite et mentions legales (2).docx`  
 **Old keep:** `CGU Sama Naffa 24062026 VF.docx` (rollback), privacy `(1).docx`
 
 Both new docs say *projet soumis à revue juridique*. Pages `/terms` and `/privacy` show an amber draft banner.
+
+**Related (not legal):** email confirmation UI is deferred for PM — [email-confirmation-deferred.md](./email-confirmation-deferred.md).
 
 ---
 

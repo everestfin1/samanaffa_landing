@@ -14,7 +14,10 @@ Developer guides, setup instructions, and technical implementation details.
 | [06-drizzle-migration-tracker.md](./06-drizzle-migration-tracker.md) | Prisma shim → native Drizzle progress |
 | [07-git-workflow.md](./07-git-workflow.md) | Branches, remotes, commits, archives |
 | [momar-figma-map.md](./momar-figma-map.md) | Momar Figma → app screen map (E0–C8) |
-| [momar-agent-handover.md](./momar-agent-handover.md) | Agent handover for Momar redesign (T6/C1 done; C2+ next) |
+| [momar-agent-handover.md](./momar-agent-handover.md) | Agent handover (portal done; legal + email status) |
+| [legal-gap-ccu-2026-07.md](./legal-gap-ccu-2026-07.md) | CCU / privacy staging swap + deferred product rules |
+| [email-confirmation-deferred.md](./email-confirmation-deferred.md) | Email confirmation UI deferred; stash restore guide |
+| [ux-ia-review-2026-07.md](./ux-ia-review-2026-07.md) | Ranked UX/IA review after Momar screen set |
 
 ## Quick Start
 

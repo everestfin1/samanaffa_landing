@@ -25,6 +25,15 @@ import { normalizeSponsorCode } from '@/lib/sponsor-code-utils';
 import { isApeDeprecated } from '@/lib/product-flags';
 import { useSelection, type SamaNaffaSelection } from '@/lib/selection-context';
 
+/**
+ * PM (2026-07-29): hide in-app email-confirmation notices until product
+ * greenlights the flow. Backend still parks pendingEmail + sends the link.
+ * Full readiness UI (resend, interstitial, C7 edit) is in git stash
+ * `wip(email): confirmation readiness pack` — see
+ * project_docs/03-development/email-confirmation-deferred.md
+ */
+const SHOW_EMAIL_CONFIRMATION_UI = false;
+
 interface OnboardingState {
   simulation: (T0Result & { kondanneName?: string }) | null;
   userId: string | null;
@@ -236,15 +245,19 @@ function OnboardingPageContent() {
 
   useEffect(() => {
     if (!emailConfirmation) return;
-    const messages: Record<string, string> = {
-      success: 'Votre adresse e-mail est confirmée.',
-      already: 'Cette adresse e-mail est déjà confirmée.',
-      expired: 'Ce lien de confirmation n’est plus valide. Renseignez à nouveau votre adresse e-mail.',
-      invalid: 'Ce lien de confirmation est invalide.',
-      taken: 'Cette adresse e-mail est déjà utilisée par un autre compte.',
-      error: 'La confirmation a échoué. Réessayez plus tard.',
-    };
-    setEmailNotice(messages[emailConfirmation] ?? messages.error);
+    // Always strip the query param so resumes stay clean; only surface copy when UI is on.
+    if (SHOW_EMAIL_CONFIRMATION_UI) {
+      const messages: Record<string, string> = {
+        success: 'Votre adresse e-mail est confirmée.',
+        already: 'Cette adresse e-mail est déjà confirmée.',
+        expired:
+          'Ce lien de confirmation n’est plus valide. Renseignez à nouveau votre adresse e-mail.',
+        invalid: 'Ce lien de confirmation est invalide.',
+        taken: 'Cette adresse e-mail est déjà utilisée par un autre compte.',
+        error: 'La confirmation a échoué. Réessayez plus tard.',
+      };
+      setEmailNotice(messages[emailConfirmation] ?? messages.error);
+    }
     router.replace('/onboarding', { scroll: false });
   }, [emailConfirmation, router]);
 
@@ -390,7 +403,7 @@ function OnboardingPageContent() {
             const data = (await res.json().catch(() => ({}))) as {
               emailPendingConfirmation?: string | null;
             };
-            if (data.emailPendingConfirmation) {
+            if (SHOW_EMAIL_CONFIRMATION_UI && data.emailPendingConfirmation) {
               setEmailNotice(
                 `Un lien de confirmation a été envoyé à ${data.emailPendingConfirmation}. Vous pouvez continuer votre inscription.`,
               );
@@ -433,7 +446,7 @@ function OnboardingPageContent() {
     <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
       <E0MarketingHeader />
 
-      {emailNotice && (
+      {SHOW_EMAIL_CONFIRMATION_UI && emailNotice && (
         <div className="shrink-0 max-w-md mx-auto w-full px-4 pt-3">
           <p className="text-sm text-night/80 bg-gold-light/20 border border-gold-metallic/30 rounded-lg px-3 py-2">
             {emailNotice}
