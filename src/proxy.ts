@@ -9,9 +9,10 @@ import {
   legacyAdminRedirect,
   legacyCampaignGoneResponse,
   legacyCampaignRedirect,
+  matchesPathPrefix,
+  shouldRedirectLegacyPublicPath,
   LEGACY_ADMIN_PATH_PREFIXES,
   LEGACY_API_PATH_PREFIXES,
-  shouldRedirectLegacyPublicPath,
 } from '@/lib/legacy-campaign-deprecation';
 
 export async function proxy(request: NextRequest) {
