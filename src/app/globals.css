@@ -937,8 +937,9 @@ video {
   position: relative;
   display: grid;
   place-items: center;
-  width: 4.75rem;
-  height: 4.75rem;
+  /* Room for amber disc to read as a backdrop around the 72px icon */
+  width: 5.5rem;
+  height: 5.5rem;
   border-radius: 999px;
   background: transparent;
   z-index: 0;
@@ -948,8 +949,8 @@ video {
   content: "";
   position: absolute;
   inset: 50% auto auto 50%;
-  width: 3rem;
-  height: 3rem;
+  width: 4.5rem;
+  height: 4.5rem;
   border-radius: 999px;
   background: transparent;
   transform: translate(-50%, -50%);
@@ -958,7 +959,6 @@ video {
 }
 
 .e0-nattukaay-project.is-active .e0-nattukaay-project-icon::before {
-  /* Momar: amber selection discs (#d58500) sit behind oversized icons */
   background: #d58500;
   box-shadow: 0 8px 20px rgb(213 133 0 / 28%);
 }
