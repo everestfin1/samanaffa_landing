@@ -5,6 +5,10 @@ const isDev = process.env.NODE_ENV === 'development';
 const isStaging = process.env.NEXT_PUBLIC_APP_ENV === 'staging';
 
 const nextConfig: NextConfig = {
+  // Client bundles cannot read VERCEL_ENV unless exposed; used by bypass helpers.
+  env: {
+    NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? '',
+  },
   async redirects() {
     return [
       { source: '/apesenegal', destination: '/sama-naffa', permanent: true },
