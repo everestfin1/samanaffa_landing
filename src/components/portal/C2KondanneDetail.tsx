@@ -156,11 +156,11 @@ export default function C2KondanneDetail({ account, accounts }: C2KondanneDetail
         <div className="c2-detail-hero">
           <section
             className="c1-balance c2-detail-balance"
-            aria-label="Solde du Kondanné"
+            aria-label={`Solde ${name}`}
             style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
           >
             <div className="c1-balance-top">
-              <p className="c1-balance-label">Sama Kondanné</p>
+              <p className="c1-balance-label">{name}</p>
               <Image
                 src="/sama_naffa_logo.png"
                 alt=""

@@ -2,9 +2,10 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/lib/utils';
+import { sortAccountsByCreation } from '@/lib/kondanne-card-colors';
 
 export interface C1Account {
   id: string;
@@ -126,16 +127,46 @@ export default function C1Dashboard({
 }: C1DashboardProps) {
   const router = useRouter();
   const [showBalance, setShowBalance] = useState(true);
+  const [activeKondanneIndex, setActiveKondanneIndex] = useState(0);
+  const kondanneSliderRef = useRef<HTMLDivElement>(null);
   const greetingName = firstName.trim() || 'toi';
+  // Extra Kondannés only — default/first Sama Naffa is already the top balance card.
+  const sliderAccounts = useMemo(() => {
+    const ordered = sortAccountsByCreation(accounts);
+    return ordered.length > 1 ? ordered.slice(1) : [];
+  }, [accounts]);
   const totalBalance = accounts.reduce((sum, a) => sum + (Number(a.balance) || 0), 0);
   const showKycBanner = kycStatus !== 'APPROVED';
   const primaryAccount = accounts.length === 1 ? accounts[0] : null;
   const balanceLabel = primaryAccount?.productName?.trim() || 'Sama Naffa';
-  const showKondanneList = accounts.length > 1;
+  const showKondanneList = sliderAccounts.length > 0;
   const kondanneDestination =
     accounts.length === 1
       ? `/portal/sama-naffa/${accounts[0].id}`
       : '/portal/sama-naffa';
+
+  const syncActiveKondanne = useCallback(() => {
+    const slider = kondanneSliderRef.current;
+    if (!slider || sliderAccounts.length === 0) return;
+    const slideWidth = slider.clientWidth;
+    if (slideWidth <= 0) return;
+    const index = Math.round(slider.scrollLeft / slideWidth);
+    setActiveKondanneIndex(Math.min(Math.max(index, 0), sliderAccounts.length - 1));
+  }, [sliderAccounts.length]);
+
+  useEffect(() => {
+    if (activeKondanneIndex >= sliderAccounts.length) {
+      setActiveKondanneIndex(0);
+    }
+  }, [activeKondanneIndex, sliderAccounts.length]);
+
+  const scrollToKondanne = (index: number) => {
+    const slider = kondanneSliderRef.current;
+    if (!slider) return;
+    const slideWidth = slider.clientWidth;
+    slider.scrollTo({ left: slideWidth * index, behavior: 'smooth' });
+    setActiveKondanneIndex(index);
+  };
 
   return (
     <div className="c1-shell">
@@ -232,51 +263,73 @@ export default function C1Dashboard({
         </section>
 
         {showKondanneList && (
-          <section className="c1-section">
+          <section className="c1-section c1-section--kondanne">
             <h2 className="c1-section-title">Mes Kondannés</h2>
-            <ul className="c1-kondanne-list">
-              {accounts.map((account) => {
-                const months =
-                  account.lockPeriodMonths ??
-                  readMetaNumber(account.metadata ?? undefined, 'durationMonths');
-                const anniversary = formatAnniversary(account);
-                const progress = progressForAccount(account);
-                return (
-                  <li key={account.id}>
-                    <button
-                      type="button"
-                      className="c1-kondanne"
-                      onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
-                    >
-                      <div className="c1-kondanne-head">
-                        <span className="c1-kondanne-name">
-                          {account.productName?.trim() || 'Mon Kondanné'}
-                        </span>
-                        {months != null && (
-                          <span className="c1-kondanne-pill">{Math.round(months)} mois</span>
-                        )}
-                      </div>
-                      <p className="c1-kondanne-balance">
-                        {showBalance
-                          ? `${Math.round(account.balance).toLocaleString('fr-FR')} FCFA`
-                          : '••••••••'}
-                      </p>
-                      {anniversary && (
-                        <p className="c1-kondanne-meta">
-                          Prochaine date anniversaire · {anniversary}
+            <div
+              ref={kondanneSliderRef}
+              className="c1-kondanne-slider"
+              onScroll={syncActiveKondanne}
+              aria-label="Mes Kondannés"
+            >
+              <ul className="c1-kondanne-track">
+                {sliderAccounts.map((account) => {
+                  const months =
+                    account.lockPeriodMonths ??
+                    readMetaNumber(account.metadata ?? undefined, 'durationMonths');
+                  const anniversary = formatAnniversary(account);
+                  const progress = progressForAccount(account);
+                  return (
+                    <li key={account.id} className="c1-kondanne-slide">
+                      <button
+                        type="button"
+                        className="c1-kondanne"
+                        onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
+                      >
+                        <div className="c1-kondanne-head">
+                          <span className="c1-kondanne-name">
+                            {account.productName?.trim() || 'Mon Kondanné'}
+                          </span>
+                          {months != null && (
+                            <span className="c1-kondanne-pill">{Math.round(months)} mois</span>
+                          )}
+                        </div>
+                        <p className="c1-kondanne-balance">
+                          {showBalance
+                            ? `${Math.round(account.balance).toLocaleString('fr-FR')} FCFA`
+                            : '••••••••'}
                         </p>
-                      )}
-                      <div className="c1-progress" aria-hidden>
-                        <div
-                          className="c1-progress-fill"
-                          style={{ width: `${Math.round(progress * 100)}%` }}
-                        />
-                      </div>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+                        {anniversary && (
+                          <p className="c1-kondanne-meta">
+                            Prochaine date anniversaire · {anniversary}
+                          </p>
+                        )}
+                        <div className="c1-progress" aria-hidden>
+                          <div
+                            className="c1-progress-fill"
+                            style={{ width: `${Math.round(progress * 100)}%` }}
+                          />
+                        </div>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+            {sliderAccounts.length > 1 && (
+              <div className="c1-kondanne-indicators" role="tablist" aria-label="Sélectionner un Kondanné">
+                {sliderAccounts.map((account, index) => (
+                  <button
+                    key={account.id}
+                    type="button"
+                    role="tab"
+                    className={`c1-kondanne-indicator${index === activeKondanneIndex ? ' is-active' : ''}`}
+                    aria-label={account.productName?.trim() || `Kondanné ${index + 1}`}
+                    aria-selected={index === activeKondanneIndex}
+                    onClick={() => scrollToKondanne(index)}
+                  />
+                ))}
+              </div>
+            )}
           </section>
         )}
 

@@ -2773,6 +2773,22 @@ body.c1-dashboard:has(.c1-page--soft) {
 .c1-balance.c2-detail-balance {
   margin-bottom: 0;
   min-width: 0;
+  color: #eff3eb;
+}
+
+/* Match C2 list cards: light type on brand fills (not muted norway). */
+.c1-balance.c2-detail-balance .c1-balance-label {
+  color: #f1f3ee;
+}
+
+.c1-balance.c2-detail-balance .c1-balance-amount,
+.c1-balance.c2-detail-balance .c1-balance-number,
+.c1-balance.c2-detail-balance .c1-balance-currency {
+  color: #eff3eb;
+}
+
+.c1-balance.c2-detail-balance .c1-eye {
+  color: #fbfbfb;
 }
 
 .c1-balance--link {
@@ -2867,6 +2883,90 @@ body.c1-dashboard:has(.c1-page--soft) {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.c1-section--kondanne {
+  margin-bottom: 1.5rem;
+}
+
+.c1-kondanne-slider {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.c1-kondanne-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.c1-kondanne-track {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  width: 100%;
+}
+
+.c1-kondanne-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.c1-kondanne-indicators {
+  display: flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  margin: 1.15rem auto 0;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgb(30 40 20 / 8%);
+  border-radius: 999px;
+  background: #ffffff;
+  box-shadow: 0 10px 28px rgb(30 40 20 / 12%);
+}
+
+.c1-kondanne-indicator {
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  min-height: 11px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #b8b3a4;
+  cursor: pointer;
+  transition:
+    width 0.2s ease,
+    background-color 0.2s ease,
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.c1-kondanne-indicator:hover {
+  background: #8a8578;
+  transform: scale(1.08);
+}
+
+.c1-kondanne-indicator.is-active {
+  width: 36px;
+  background: var(--sama-marigold);
+  box-shadow: 0 2px 8px rgb(196 151 47 / 45%);
+}
+
+.c1-kondanne-indicator.is-active:hover {
+  background: var(--sama-marigold-dark);
+  transform: none;
+}
+
+.c1-kondanne-indicator:focus-visible {
+  outline: 2px solid var(--sama-forest);
+  outline-offset: 3px;
 }
 
 .c1-kondanne {
