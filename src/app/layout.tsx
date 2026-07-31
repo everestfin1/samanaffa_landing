@@ -10,6 +10,7 @@ import QueryProvider from "@/components/providers/QueryProvider";
 import CookieConsent from "@/components/compliance/CookieConsent";
 import ConsentGatedAnalytics from "@/components/compliance/ConsentGatedAnalytics";
 import PwaRegister from "@/components/PwaRegister";
+import PwaInstallPrompt from "@/components/PwaInstallPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -82,6 +83,7 @@ export default function RootLayout({
         </QueryProvider>
         <ConsentGatedAnalytics />
         <PwaRegister />
+        <PwaInstallPrompt />
       </body>
     </html>
   );
