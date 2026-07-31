@@ -85,7 +85,10 @@ export default function E0MarketingHeader({ active = 'accueil' }: E0MarketingHea
           />
         </Link>
 
-        <Link href="/login" className="e0-cta-forest relative z-10 ml-auto shrink-0">
+        <Link
+          href="/login"
+          className="e0-cta-forest e0-header-login relative z-10 ml-auto shrink-0"
+        >
           Se connecter
         </Link>
       </div>

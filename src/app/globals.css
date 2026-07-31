@@ -691,6 +691,20 @@ video {
   outline-offset: 2px;
 }
 
+.e0-page a.e0-header-login {
+  min-height: 32px;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .e0-page a.e0-header-login {
+    min-height: 40px;
+    padding: 11px 22px;
+    font-size: 14px;
+  }
+}
+
 .e0-header-mobile-nav a {
   display: block;
   padding: 0.75rem 0.5rem;
