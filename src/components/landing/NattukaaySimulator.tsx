@@ -3,7 +3,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import RiskDisclaimer from "@/components/compliance/RiskDisclaimer";
 import { objectives } from "@/components/data/objectives";
 import {
   NATTUKAAY_AMOUNT_MAX,
@@ -173,7 +172,7 @@ export default function NattukaaySimulator() {
               onChange={(e) => setMensualite(Number(e.target.value))}
               className="e0-nattukaay-slider"
               style={{
-                background: `linear-gradient(to right, var(--sama-forest) 0%, var(--sama-forest) ${amountFill}%, #e8ebe3 ${amountFill}%, #e8ebe3 100%)`,
+                background: `linear-gradient(to right, #2e4620 0%, #2e4620 ${amountFill}%, #eae7dc ${amountFill}%, #eae7dc 100%)`,
               }}
             />
             <div className="e0-nattukaay-slider-labels">
@@ -214,7 +213,7 @@ export default function NattukaaySimulator() {
               onChange={(e) => setDuree(Number(e.target.value))}
               className="e0-nattukaay-slider"
               style={{
-                background: `linear-gradient(to right, var(--sama-forest) 0%, var(--sama-forest) ${dureeFill}%, #e8ebe3 ${dureeFill}%, #e8ebe3 100%)`,
+                background: `linear-gradient(to right, #2e4620 0%, #2e4620 ${dureeFill}%, #eae7dc ${dureeFill}%, #eae7dc 100%)`,
               }}
             />
             <div className="e0-nattukaay-slider-labels">
@@ -246,13 +245,12 @@ export default function NattukaaySimulator() {
           </div>
           <div className="e0-nattukaay-result">
             <p className="e0-nattukaay-result-label">Total versement</p>
-            <p className="e0-nattukaay-result-value e0-nattukaay-result-value--sm">
+            <p className="e0-nattukaay-result-value e0-nattukaay-result-value--xs">
               {formatResultAmount(interets)}
             </p>
           </div>
         </div>
 
-        <RiskDisclaimer variant="simulator" className="mt-4 text-center text-xs" />
       </div>
 
       <button type="button" className="e0-nattukaay-cta" onClick={handleStart}>
