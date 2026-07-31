@@ -60,7 +60,7 @@ export default function E3CreateKondanne({
   const [selectedSlug, setSelectedSlug] = useState<NattukaaySlug>(
     slugFromProject(initial?.project),
   );
-  const [kondanneName, setKondanneName] = useState(initial?.kondanneName ?? '');
+  const [kondanneName, setKondanneName] = useState('');
   const [mensualite, setMensualite] = useState(
     initial?.monthlyAmount && initial.monthlyAmount >= NATTUKAAY_AMOUNT_MIN
       ? initial.monthlyAmount
@@ -98,9 +98,6 @@ export default function E3CreateKondanne({
     if (!project) return;
     const objective = objectives.find((o) => o.id === project.objectiveId);
     setSelectedSlug(slug);
-    if (!kondanneName.trim()) {
-      setKondanneName(project.label);
-    }
     if (objective) {
       setMensualite(Math.min(NATTUKAAY_AMOUNT_MAX, objective.mensualite));
       setDuree(Math.min(NATTUKAAY_DUREE_MAX, objective.duree));
@@ -183,8 +180,9 @@ export default function E3CreateKondanne({
             value={kondanneName}
             onChange={(e) => setKondanneName(e.target.value.slice(0, NATTUKAAY_NAME_MAX))}
             placeholder="Ex. Voyage, Voiture..."
-            className="e0-nattukaay-input"
+            className="e0-nattukaay-input e0-nattukaay-input--name"
             autoComplete="off"
+            name="kondanne-custom-name"
           />
           <p className="e0-nattukaay-hint">
             {kondanneName.length} / {NATTUKAAY_NAME_MAX} caractères

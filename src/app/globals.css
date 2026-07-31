@@ -1045,14 +1045,31 @@ video {
   background: var(--sama-white);
   font-size: 1rem; /* 16px */
   font-weight: 400;
-  color: #6b7280;
+  color: #1a1a1a;
+  caret-color: #1a1a1a;
   outline: none;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .e0-nattukaay-input::placeholder {
-  color: #757575;
+  color: #9ca3af;
   font-weight: 400;
+  opacity: 1;
+}
+
+/* WebKit keeps typed text gray unless text-fill is set explicitly. */
+.e0-nattukaay-input:not(:placeholder-shown),
+.e0-nattukaay-input:focus {
+  color: #1a1a1a;
+  -webkit-text-fill-color: #1a1a1a;
+}
+
+.e0-nattukaay-input:-webkit-autofill,
+.e0-nattukaay-input:-webkit-autofill:hover,
+.e0-nattukaay-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #1a1a1a;
+  -webkit-box-shadow: 0 0 0 1000px var(--sama-white) inset;
+  box-shadow: 0 0 0 1000px var(--sama-white) inset;
 }
 
 .e0-nattukaay-input:focus {
