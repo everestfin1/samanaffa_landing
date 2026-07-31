@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import type { C1Account } from '@/components/portal/C1Dashboard';
+import { kondanneCardColor } from '@/lib/kondanne-card-colors';
 import { formatCurrency } from '@/lib/utils';
 import { calculerCapitalFinal, tauxParDuree } from '@/lib/savings-simulation';
 
@@ -21,6 +22,7 @@ interface C2Transaction {
 
 interface C2KondanneDetailProps {
   account: C1Account;
+  accounts: C1Account[];
   kycStatus: KYCStatus;
 }
 
@@ -77,7 +79,7 @@ function historyTitle(tx: C2Transaction): string {
   return 'Versement';
 }
 
-export default function C2KondanneDetail({ account }: C2KondanneDetailProps) {
+export default function C2KondanneDetail({ account, accounts }: C2KondanneDetailProps) {
   const router = useRouter();
   const [showBalance, setShowBalance] = useState(true);
   const [transactions, setTransactions] = useState<C2Transaction[]>([]);
@@ -152,7 +154,11 @@ export default function C2KondanneDetail({ account }: C2KondanneDetailProps) {
         <h1 className="c2-title">{name}</h1>
 
         <div className="c2-detail-hero">
-          <section className="c1-balance c2-detail-balance" aria-label="Solde du Kondanné">
+          <section
+            className="c1-balance c2-detail-balance"
+            aria-label="Solde du Kondanné"
+            style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
+          >
             <div className="c1-balance-top">
               <p className="c1-balance-label">Sama Kondanné</p>
               <Image

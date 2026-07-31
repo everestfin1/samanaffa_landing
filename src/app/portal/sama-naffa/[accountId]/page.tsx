@@ -99,7 +99,7 @@ export default function KondanneDetailPage() {
           </div>
         </div>
       ) : (
-        <C2KondanneDetail account={account} kycStatus={kycStatus} />
+        <C2KondanneDetail account={account} accounts={accounts} kycStatus={kycStatus} />
       )}
     </div>
   );

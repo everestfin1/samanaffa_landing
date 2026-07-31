@@ -4,39 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import type { C1Account } from '@/components/portal/C1Dashboard';
-
-const CARD_COLORS = [
-  '#344425', // match C1 balance card
-  '#2e4620',
-  '#707c33',
-  '#ae8103',
-  '#c4874a',
-  '#8a5a2b',
-] as const;
-
-const SLUG_COLOR: Record<string, string> = {
-  maison: '#344425',
-  etudes: '#344425',
-  education: '#344425',
-  business: '#344425',
-  voyage: '#344425',
-  autres: '#344425',
-  reve: '#344425',
-  rêve: '#344425',
-};
-
-function readMetaString(
-  meta: Record<string, unknown> | null | undefined,
-  key: string,
-): string | null {
-  if (!meta || !(key in meta)) return null;
-  const v = meta[key];
-  return typeof v === 'string' && v.trim() ? v.trim() : null;
-}
-
-function colorForAccount(_account: C1Account, _index: number): string {
-  return '#344425';
-}
+import { kondanneCardColor, sortAccountsByCreation } from '@/lib/kondanne-card-colors';
 
 function formatAnniversary(account: C1Account): string | null {
   const locked = account.lockedUntil ? new Date(account.lockedUntil) : null;
@@ -65,6 +33,7 @@ interface C2KondanneListProps {
 export default function C2KondanneList({ accounts }: C2KondanneListProps) {
   const router = useRouter();
   const [hiddenIds, setHiddenIds] = useState<Record<string, boolean>>({});
+  const orderedAccounts = sortAccountsByCreation(accounts);
 
   const toggleBalance = (id: string) => {
     setHiddenIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -96,7 +65,7 @@ export default function C2KondanneList({ accounts }: C2KondanneListProps) {
           </div>
         ) : (
           <ul className="c2-list">
-            {accounts.map((account, index) => {
+            {orderedAccounts.map((account) => {
               const hidden = Boolean(hiddenIds[account.id]);
               const dateLabel = formatAnniversary(account);
               const name = account.productName?.trim() || 'Mon Kondanné';
@@ -106,7 +75,7 @@ export default function C2KondanneList({ accounts }: C2KondanneListProps) {
                     role="link"
                     tabIndex={0}
                     className="c2-card"
-                    style={{ backgroundColor: colorForAccount(account, index) }}
+                    style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
                     onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
