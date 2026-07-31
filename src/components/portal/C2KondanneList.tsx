@@ -2,29 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import type { C1Account } from '@/components/portal/C1Dashboard';
-import { kondanneCardColor, sortAccountsByCreation } from '@/lib/kondanne-card-colors';
-
-function formatAnniversary(account: C1Account): string | null {
-  const locked = account.lockedUntil ? new Date(account.lockedUntil) : null;
-  if (locked && !Number.isNaN(locked.getTime())) {
-    return locked.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-  const created = new Date(account.createdAt);
-  if (Number.isNaN(created.getTime())) return null;
-  const next = new Date(created);
-  next.setFullYear(next.getFullYear() + 1);
-  return next.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
+import KondanneCard from '@/components/portal/KondanneCard';
+import { sortAccountsByCreation } from '@/lib/kondanne-card-colors';
 
 interface C2KondanneListProps {
   accounts: C1Account[];
@@ -65,62 +45,17 @@ export default function C2KondanneList({ accounts }: C2KondanneListProps) {
           </div>
         ) : (
           <ul className="c2-list">
-            {orderedAccounts.map((account) => {
-              const hidden = Boolean(hiddenIds[account.id]);
-              const dateLabel = formatAnniversary(account);
-              const name = account.productName?.trim() || 'Mon Kondanné';
-              return (
-                <li key={account.id}>
-                  <div
-                    role="link"
-                    tabIndex={0}
-                    className="c2-card"
-                    style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
-                    onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        router.push(`/portal/sama-naffa/${account.id}`);
-                      }
-                    }}
-                  >
-                    <p className="c2-card-name">{name}</p>
-                    <div className="c2-card-row">
-                      <p className="c2-card-balance">
-                        {hidden ? (
-                          <span className="c2-card-amount">••••••••</span>
-                        ) : (
-                          <>
-                            <span className="c2-card-amount">
-                              {Math.round(account.balance).toLocaleString('fr-FR')}
-                            </span>{' '}
-                            <span className="c2-card-currency">FCFA</span>
-                          </>
-                        )}
-                      </p>
-                      <button
-                        type="button"
-                        className="c2-card-eye"
-                        aria-label={hidden ? 'Afficher le solde' : 'Masquer le solde'}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleBalance(account.id);
-                        }}
-                      >
-                        {hidden ? (
-                          <EyeSlashIcon className="h-5 w-5" />
-                        ) : (
-                          <EyeIcon className="h-5 w-5" />
-                        )}
-                      </button>
-                      {dateLabel && (
-                        <span className="c2-card-date">{dateLabel}</span>
-                      )}
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
+            {orderedAccounts.map((account) => (
+              <li key={account.id}>
+                <KondanneCard
+                  account={account}
+                  accounts={accounts}
+                  hidden={Boolean(hiddenIds[account.id])}
+                  onToggleBalance={() => toggleBalance(account.id)}
+                  onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
+                />
+              </li>
+            ))}
           </ul>
         )}
       </div>

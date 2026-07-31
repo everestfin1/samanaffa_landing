@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/lib/utils';
-import { kondanneCardColor, sortAccountsByCreation } from '@/lib/kondanne-card-colors';
+import { sortAccountsByCreation } from '@/lib/kondanne-card-colors';
+import KondanneCard from '@/components/portal/KondanneCard';
 
 export interface C1Account {
   id: string;
@@ -41,12 +42,6 @@ interface C1DashboardProps {
   onConfirmDeposit?: () => void;
 }
 
-function readMetaNumber(meta: Record<string, unknown> | null | undefined, key: string): number | null {
-  if (!meta || !(key in meta)) return null;
-  const n = Number(meta[key]);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
 function formatActivityDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('fr-FR', {
@@ -57,42 +52,6 @@ function formatActivityDate(iso: string): string {
   } catch {
     return '';
   }
-}
-
-function formatAnniversary(account: C1Account): string | null {
-  const locked = account.lockedUntil ? new Date(account.lockedUntil) : null;
-  if (locked && !Number.isNaN(locked.getTime())) {
-    return locked.toLocaleDateString('fr-FR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
-  }
-  const created = new Date(account.createdAt);
-  if (Number.isNaN(created.getTime())) return null;
-  const next = new Date(created);
-  next.setFullYear(next.getFullYear() + 1);
-  return next.toLocaleDateString('fr-FR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-}
-
-function progressForAccount(account: C1Account): number {
-  const monthly = readMetaNumber(account.metadata ?? undefined, 'monthlyAmount');
-  const duration =
-    readMetaNumber(account.metadata ?? undefined, 'durationMonths') ??
-    (account.lockPeriodMonths && account.lockPeriodMonths > 0
-      ? account.lockPeriodMonths
-      : null);
-  if (monthly && duration) {
-    const target = monthly * duration;
-    if (target > 0) return Math.min(1, Math.max(0.04, account.balance / target));
-  }
-  // Soft visual when we lack a target (Momar always shows a bar).
-  if (account.balance <= 0) return 0.08;
-  return Math.min(0.62, 0.18 + Math.log10(account.balance + 1) / 10);
 }
 
 function statusLabel(status: string): { text: string; tone: 'ok' | 'pending' | 'bad' } {
@@ -127,6 +86,7 @@ export default function C1Dashboard({
 }: C1DashboardProps) {
   const router = useRouter();
   const [showBalance, setShowBalance] = useState(true);
+  const [hiddenKondanneIds, setHiddenKondanneIds] = useState<Record<string, boolean>>({});
   const [activeKondanneIndex, setActiveKondanneIndex] = useState(0);
   const kondanneSliderRef = useRef<HTMLDivElement>(null);
   const greetingName = firstName.trim() || 'toi';
@@ -272,48 +232,22 @@ export default function C1Dashboard({
               aria-label="Mes Kondannés"
             >
               <ul className="c1-kondanne-track">
-                {sliderAccounts.map((account) => {
-                  const months =
-                    account.lockPeriodMonths ??
-                    readMetaNumber(account.metadata ?? undefined, 'durationMonths');
-                  const anniversary = formatAnniversary(account);
-                  const progress = progressForAccount(account);
-                  return (
-                    <li key={account.id} className="c1-kondanne-slide">
-                      <button
-                        type="button"
-                        className="c1-kondanne"
-                        style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
-                        onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
-                      >
-                        <div className="c1-kondanne-head">
-                          <span className="c1-kondanne-name">
-                            {account.productName?.trim() || 'Mon Kondanné'}
-                          </span>
-                          {months != null && (
-                            <span className="c1-kondanne-pill">{Math.round(months)} mois</span>
-                          )}
-                        </div>
-                        <p className="c1-kondanne-balance">
-                          {showBalance
-                            ? `${Math.round(account.balance).toLocaleString('fr-FR')} FCFA`
-                            : '••••••••'}
-                        </p>
-                        {anniversary && (
-                          <p className="c1-kondanne-meta">
-                            Prochaine date anniversaire · {anniversary}
-                          </p>
-                        )}
-                        <div className="c1-progress" aria-hidden>
-                          <div
-                            className="c1-progress-fill"
-                            style={{ width: `${Math.round(progress * 100)}%` }}
-                          />
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
+                {sliderAccounts.map((account) => (
+                  <li key={account.id} className="c1-kondanne-slide">
+                    <KondanneCard
+                      account={account}
+                      accounts={accounts}
+                      hidden={Boolean(hiddenKondanneIds[account.id])}
+                      onToggleBalance={() =>
+                        setHiddenKondanneIds((prev) => ({
+                          ...prev,
+                          [account.id]: !prev[account.id],
+                        }))
+                      }
+                      onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
+                    />
+                  </li>
+                ))}
               </ul>
             </div>
             {sliderAccounts.length > 1 && (
