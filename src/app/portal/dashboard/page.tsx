@@ -100,7 +100,7 @@ export default function DashboardPage() {
           }),
         });
         if (applyRes.ok && !cancelled) {
-          await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+          await queryClient.refetchQueries({ queryKey: ['samaNaffaAccounts'] });
         }
       } catch {
         // Non-fatal — user still sees dashboard with catalog name.

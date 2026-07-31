@@ -120,7 +120,7 @@ function SamaNaffaPageContent() {
             onCancelled={clearPending}
             onPaymentComplete={async () => {
               clearPending();
-              await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+              await queryClient.refetchQueries({ queryKey: ['samaNaffaAccounts'] });
             }}
           />
         </div>

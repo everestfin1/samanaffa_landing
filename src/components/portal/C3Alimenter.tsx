@@ -99,7 +99,7 @@ export default function C3Alimenter({ account }: C3AlimenterProps) {
                 referenceNumber={referenceNumber}
                 onSuccess={async () => {
                   setShowIntouch(false);
-                  await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+                  await queryClient.refetchQueries({ queryKey: ['samaNaffaAccounts'] });
                   router.push(`/portal/sama-naffa/${account.id}`);
                 }}
                 onError={(msg) => {

@@ -133,7 +133,7 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
             referenceNumber={referenceNumber}
             onSuccess={async () => {
               setShowIntouch(false);
-              await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+              await queryClient.refetchQueries({ queryKey: ['samaNaffaAccounts'] });
               router.push(`/portal/sama-naffa/${account.id}`);
             }}
             onError={(msg) => {
