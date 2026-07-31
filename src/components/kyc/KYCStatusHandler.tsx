@@ -13,6 +13,7 @@ import {
   PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline';
+import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
 
 type KYCStatus = 'PENDING' | 'UNDER_REVIEW' | 'APPROVED' | 'REJECTED';
 
@@ -222,9 +223,9 @@ export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCS
                 <h4 className="font-semibold text-night">Téléphone</h4>
 
                <div className="flex justify-between gap-4 items-end">
-                <span className="text-sm">+221 33 822 87 00</span>
-                <span className="text-sm">ou</span>
-                <span className="text-sm"></span>
+                <a href={SAMA_NAFFA_CONTACT.phoneHref} className="text-sm hover:text-gold-metallic">
+                  {SAMA_NAFFA_CONTACT.phone}
+                </a>
               </div>
               </div>
             </div>
@@ -234,7 +235,12 @@ export default function KYCStatusHandler({ kycStatus, userData, onLogout }: KYCS
               </div>
               <div>
                 <h4 className="font-semibold text-night">Email</h4>
-                <span className="text-sm text-night/70">contact@everestfin.com</span>
+                <a
+                  href={SAMA_NAFFA_CONTACT.emailHref}
+                  className="text-sm text-night/70 hover:text-gold-metallic"
+                >
+                  {SAMA_NAFFA_CONTACT.email}
+                </a>
               </div>
             </div>
           </div>

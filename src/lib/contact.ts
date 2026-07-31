@@ -9,3 +9,6 @@ export const SAMA_NAFFA_CONTACT = {
   addressLine1: '18 Boulevard de la République',
   addressLine2: 'Dakar, Sénégal BP: 11659-13000',
 } as const;
+
+/** Internal ops inbox for lead notifications (not shown to end users). */
+export const EVEREST_OPS_INBOX = 'contact@everestfin.com' as const;

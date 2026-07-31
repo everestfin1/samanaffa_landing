@@ -1,4 +1,5 @@
 import * as nodemailer from 'nodemailer'
+import { EVEREST_OPS_INBOX } from '@/lib/contact'
 import { isMockOtpEnabled } from '@/lib/mock-otp'
 
 // Email configuration
@@ -488,7 +489,7 @@ export async function sendPEELeadEmail(
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: 'contact@everestfin.com',
+    to: EVEREST_OPS_INBOX,
     subject: `Nouveau Lead PEE - ${prenom} ${nom}`,
     replyTo: email || undefined,
     html: `
