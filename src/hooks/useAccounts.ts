@@ -118,6 +118,8 @@ export const useSamaNaffaAccounts = () => {
     },
     staleTime: 2 * 60 * 1000,
     gcTime: 5 * 60 * 1000,
+    // Override global refetchOnMount:false so stale/invalidated lists refresh on navigation.
+    refetchOnMount: true,
     retry: 3,
   });
 };
@@ -160,6 +162,7 @@ export const useCreateAccount = () => {
     },
     onSuccess: () => {
       // Invalidate and refetch accounts
+      queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
       queryClient.invalidateQueries({ queryKey: ['userAccounts'] });
       queryClient.invalidateQueries({ queryKey: ['allUserAccounts'] });
     },
@@ -174,6 +177,7 @@ export const useInvalidateAccounts = () => {
   const queryClient = useQueryClient();
 
   return () => {
+    queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
     queryClient.invalidateQueries({ queryKey: ['userAccounts'] });
     queryClient.invalidateQueries({ queryKey: ['allUserAccounts'] });
   };
