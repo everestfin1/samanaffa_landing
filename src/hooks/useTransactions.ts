@@ -172,6 +172,7 @@ export const useCreateTransactionIntent = () => {
       queryClient.invalidateQueries({ queryKey: ['transactionsByAccountType'] });
 
       // Also invalidate accounts since balances might change
+      queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
       queryClient.invalidateQueries({ queryKey: ['userAccounts'] });
       queryClient.invalidateQueries({ queryKey: ['allUserAccounts'] });
     },
