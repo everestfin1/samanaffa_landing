@@ -1375,7 +1375,7 @@ body.c1-dashboard:has(.c1-page--soft) {
   width: 100%;
   max-width: none;
   margin: 0;
-  padding: 2rem 1.25rem 3.5rem;
+  padding: 1rem 1.25rem 2.5rem;
   min-height: calc(100dvh - 4.25rem);
   background: transparent;
   border: 0;
@@ -1452,9 +1452,21 @@ body.c1-dashboard:has(.c1-page--soft) {
   width: 100%;
 }
 
-.c1-hello {
+.c1-hello-block {
+  min-width: 0;
+}
+
+.c1-hello-greeting {
   margin: 0;
-  font-size: clamp(1.85rem, 3.5vw, 2.375rem);
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b7280;
+  line-height: 1.3;
+}
+
+.c1-hello {
+  margin: 0.125rem 0 0;
+  font-size: clamp(1.5rem, 3.5vw, 2.375rem);
   font-weight: 500;
   letter-spacing: -0.76px;
   color: #1a1a1a;
@@ -1493,6 +1505,88 @@ body.c1-dashboard:has(.c1-page--soft) {
 
 .c1-create--inline {
   margin-left: 0;
+}
+
+/* Mobile: section-header "+ Créer" text link (Claude C1). Desktop keeps pill in hello row. */
+.c1-create--section {
+  display: none;
+}
+
+.c1-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.9rem;
+}
+
+.c1-section-head .c1-section-title {
+  margin: 0;
+}
+
+@media (max-width: 767px) {
+  .c1-hello-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 1rem;
+  }
+
+  .c1-hello {
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+
+  /* Hide hello pill when Kondannés section owns the create control */
+  .c1-create--hello:not(.is-always-visible) {
+    display: none;
+  }
+
+  .c1-create--hello.is-always-visible {
+    margin-top: 1rem;
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .c1-create--section {
+    display: inline-flex;
+    min-height: 0;
+    margin-left: 0;
+    padding: 0;
+    border-radius: 0;
+    background: transparent;
+    color: #9a7a1c;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    box-shadow: none;
+  }
+
+  .c1-create--section:hover {
+    filter: none;
+    transform: none;
+    color: #c4972f;
+  }
+
+  /* Stack Kondanné cards vertically — no carousel on phone */
+  .c1-kondanne-slider {
+    overflow: visible;
+    scroll-snap-type: none;
+  }
+
+  .c1-kondanne-track {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .c1-kondanne-slide {
+    flex: none;
+    width: 100%;
+  }
+
+  .c1-kondanne-indicators {
+    display: none;
+  }
 }
 
 /* —— C2 Liste Kondannés (Figma 124:43007) —— */
@@ -1652,6 +1746,8 @@ body.c1-dashboard:has(.c1-page--soft) {
 }
 
 .c2-detail-main {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 1080px;
   margin-inline: auto;
@@ -1669,6 +1765,44 @@ body.c1-dashboard:has(.c1-page--soft) {
   .c2-detail-hero {
     grid-template-columns: minmax(0, 599px) minmax(0, 1fr);
     gap: 1.25rem;
+  }
+}
+
+/* Mobile (Claude C2): history above CTAs; equal-width action row for thumb reach */
+@media (max-width: 767px) {
+  .c2-detail-main > .c2-back {
+    order: 1;
+  }
+
+  .c2-detail-main > .c2-title {
+    order: 2;
+  }
+
+  .c2-detail-main > .c2-detail-hero {
+    order: 3;
+  }
+
+  .c2-detail-main > .c2-history-title {
+    order: 4;
+  }
+
+  .c2-detail-main > .c2-history {
+    order: 5;
+  }
+
+  .c2-detail-main > .c2-actions {
+    order: 6;
+    flex-wrap: nowrap;
+    gap: 0.625rem;
+    margin-top: 1.125rem;
+  }
+
+  .c2-detail-main > .c2-actions .c2-action {
+    flex: 1 1 0;
+    min-width: 0;
+    padding: 0.8125rem 0.4rem;
+    border-radius: 12px;
+    font-size: 0.84375rem;
   }
 }
 
@@ -1719,6 +1853,20 @@ body.c1-dashboard:has(.c1-page--soft) {
   align-items: center;
   gap: 0.875rem;
   margin-top: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .c2-detail-main > .c2-actions {
+    order: 4;
+  }
+
+  .c2-detail-main > .c2-history-title {
+    order: 5;
+  }
+
+  .c2-detail-main > .c2-history {
+    order: 6;
+  }
 }
 
 .c2-action {

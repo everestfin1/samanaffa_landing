@@ -158,10 +158,13 @@ export default function C1Dashboard({
         )}
 
         <div className="c1-hello-row">
-          <h1 className="c1-hello">Bonjour, {greetingName} !</h1>
+          <div className="c1-hello-block">
+            <p className="c1-hello-greeting">Bonjour,</p>
+            <h1 className="c1-hello">{greetingName}</h1>
+          </div>
           <button
             type="button"
-            className="c1-create"
+            className={`c1-create c1-create--hello${showKondanneList ? '' : ' is-always-visible'}`}
             onClick={() => router.push('/portal/sama-naffa/creer')}
           >
             + Créer un Kondanné
@@ -224,7 +227,16 @@ export default function C1Dashboard({
 
         {showKondanneList && (
           <section className="c1-section c1-section--kondanne">
-            <h2 className="c1-section-title">Mes Kondannés</h2>
+            <div className="c1-section-head">
+              <h2 className="c1-section-title">Mes Kondannés</h2>
+              <button
+                type="button"
+                className="c1-create c1-create--section"
+                onClick={() => router.push('/portal/sama-naffa/creer')}
+              >
+                + Créer
+              </button>
+            </div>
             <div
               ref={kondanneSliderRef}
               className="c1-kondanne-slider"
