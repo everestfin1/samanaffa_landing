@@ -4,7 +4,7 @@ import { getOnboardingPaymentMethod } from '@/lib/payments/onboarding-payment-me
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
   intouch: 'Intouch',
   card: 'Carte bancaire',
-  orange_money: 'Orange Money',
+  orange_money: 'Max it',
   wave: 'Wave',
   wizall: 'Wizall',
   yas: 'Yas',

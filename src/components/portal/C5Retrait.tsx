@@ -77,7 +77,16 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
     if (showIntouch || methodsDisabled) return;
     setError(null);
     setSelectedMethod(methodId);
+  };
 
+  const handleConfirmWithdraw = () => {
+    if (showIntouch || methodsDisabled) return;
+    setError(null);
+
+    if (!selectedMethod) {
+      setError('Choisis un moyen de paiement.');
+      return;
+    }
     if (kycBlocked) {
       setError("Votre identité doit être approuvée avant d'effectuer un retrait.");
       return;
@@ -207,9 +216,9 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
             </label>
             <p className="c5-hint">Minimum 1 000 FCFA</p>
 
-            <p className="c5-methods-title">Choisis ton moyen de paiement</p>
+            <p className="sn-pay-methods-title">Choisis ton moyen de paiement</p>
 
-            <div className="c5-methods" role="list">
+            <div className="sn-pay-methods" role="list">
               {ONBOARDING_PAYMENT_METHODS.map((method) => {
                 const selected = selectedMethod === method.id;
                 return (
@@ -217,7 +226,7 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
                     key={method.id}
                     type="button"
                     role="listitem"
-                    className={`c5-method${selected ? ' is-selected' : ''}`}
+                    className={`sn-pay-method${selected ? ' is-selected' : ''}`}
                     onClick={() => handleSelectMethod(method.id)}
                     disabled={methodsDisabled}
                     aria-label={`Retirer avec ${method.label}`}
@@ -228,17 +237,13 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
                       alt=""
                       width={62}
                       height={62}
-                      className="c5-method-icon"
+                      className="sn-pay-method-icon"
                       unoptimized
                     />
                   </button>
                 );
               })}
             </div>
-
-            {error && <p className="c5-error">{error}</p>}
-
-            <p className="c5-note">Les frais de transaction, nous gérons ça pour toi.</p>
           </div>
         </div>
 
@@ -254,6 +259,21 @@ export default function C5Retrait({ account, kycStatus }: C5RetraitProps) {
               </li>
             </ol>
           </section>
+
+          <div className="c5-confirm-actions">
+            {error && <p className="c5-error">{error}</p>}
+            <button
+              type="button"
+              className="c5-confirm-cta"
+              onClick={handleConfirmWithdraw}
+              disabled={methodsDisabled}
+            >
+              Confirme le retrait
+            </button>
+            <p className="c5-confirm-note">
+              Les frais de transaction, nous gérons ça pour toi.
+            </p>
+          </div>
         </div>
       </div>
     </div>

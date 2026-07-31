@@ -226,9 +226,9 @@ export default function E6Payment({
             </label>
             <p className="e6-hint">Minimum 1 000 FCFA</p>
 
-            <p className="e6-methods-title">Choisis ton moyen de paiement</p>
+            <p className="sn-pay-methods-title">Choisis ton moyen de paiement</p>
 
-            <div className="e6-methods" role="list">
+            <div className="sn-pay-methods" role="list">
               {ONBOARDING_PAYMENT_METHODS.map((method) => {
                 const selected = selectedMethod === method.id;
                 return (
@@ -236,7 +236,7 @@ export default function E6Payment({
                     key={method.id}
                     type="button"
                     role="listitem"
-                    className={`e6-method${selected ? ' is-selected' : ''}`}
+                    className={`sn-pay-method${selected ? ' is-selected' : ''}`}
                     onClick={() => void handleSelectMethod(method.id)}
                     disabled={loading || paying}
                     aria-label={`Payer avec ${method.label}`}
@@ -247,7 +247,7 @@ export default function E6Payment({
                       alt=""
                       width={62}
                       height={62}
-                      className="e6-method-icon"
+                      className="sn-pay-method-icon"
                       unoptimized
                     />
                   </button>

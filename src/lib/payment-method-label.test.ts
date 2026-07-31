@@ -7,7 +7,7 @@ import {
 describe('payment-method-label', () => {
   it('maps known wallet ids to French labels', () => {
     expect(getPaymentMethodDisplayLabel('intouch')).toBe('Intouch');
-    expect(getPaymentMethodDisplayLabel('orange_money')).toBe('Orange Money');
+    expect(getPaymentMethodDisplayLabel('orange_money')).toBe('Max it');
     expect(getPaymentMethodDisplayLabel('wave')).toBe('Wave');
   });
 

@@ -148,9 +148,9 @@ export default function C3Alimenter({ account }: C3AlimenterProps) {
             </label>
             <p className="c3-hint">Minimum 1 000 FCFA</p>
 
-            <p className="c3-methods-title">Choisis ton moyen de paiement</p>
+            <p className="sn-pay-methods-title">Choisis ton moyen de paiement</p>
 
-            <div className="c3-methods" role="list">
+            <div className="sn-pay-methods" role="list">
               {ONBOARDING_PAYMENT_METHODS.map((method) => {
                 const selected = selectedMethod === method.id;
                 return (
@@ -158,7 +158,7 @@ export default function C3Alimenter({ account }: C3AlimenterProps) {
                     key={method.id}
                     type="button"
                     role="listitem"
-                    className={`c3-method${selected ? ' is-selected' : ''}`}
+                    className={`sn-pay-method${selected ? ' is-selected' : ''}`}
                     onClick={() => handleSelectMethod(method.id)}
                     aria-label={`Payer avec ${method.label}`}
                     title={method.label}
@@ -168,7 +168,7 @@ export default function C3Alimenter({ account }: C3AlimenterProps) {
                       alt=""
                       width={62}
                       height={62}
-                      className="c3-method-icon"
+                      className="sn-pay-method-icon"
                       unoptimized
                     />
                   </button>

@@ -1817,6 +1817,69 @@ body.c1-dashboard:has(.c1-page--soft) {
   font-size: 0.9rem;
 }
 
+/* —— Shared payment method picker (C3 / C5 / E6) —— */
+.sn-pay-methods-title {
+  margin: 2.25rem 0 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1a1a1a;
+}
+
+.sn-pay-methods {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.1rem;
+}
+
+.sn-pay-method {
+  display: inline-flex;
+  width: 62px;
+  height: 62px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.sn-pay-method:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.sn-pay-method.is-selected {
+  box-shadow: none;
+}
+
+.sn-pay-method:focus {
+  outline: none;
+}
+
+.sn-pay-method:focus-visible {
+  outline: 2px solid var(--sama-forest);
+  outline-offset: 2px;
+}
+
+.sn-pay-method:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sn-pay-method-icon {
+  display: block;
+  width: 62px;
+  height: 62px;
+  border-radius: 0;
+  object-fit: cover;
+  pointer-events: none;
+}
+
 /* —— C3 Alimenter (Momar 10:2977) —— */
 .c3-shell {
   position: relative;
@@ -1874,7 +1937,7 @@ body.c1-dashboard:has(.c1-page--soft) {
 .c3-label {
   display: block;
   margin-bottom: 0.4rem;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -1905,56 +1968,6 @@ body.c1-dashboard:has(.c1-page--soft) {
   margin: 0;
   font-size: 0.78125rem;
   color: #9aa091;
-}
-
-.c3-methods-title {
-  margin: 2.25rem 0 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.c3-methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1.1rem;
-}
-
-.c3-method {
-  display: inline-flex;
-  width: 62px;
-  height: 62px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 14px;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.c3-method:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgb(30 40 20 / 12%);
-}
-
-.c3-method.is-selected {
-  border-color: var(--sama-forest);
-}
-
-.c3-method:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.c3-method-icon {
-  width: 62px;
-  height: 62px;
-  object-fit: contain;
-  pointer-events: none;
 }
 
 .c3-error {
@@ -2050,7 +2063,7 @@ body.c1-dashboard:has(.c1-page--soft) {
 }
 
 .c5-card {
-  padding: 1.75rem 1.875rem;
+  padding: 2rem 2.125rem 1.75rem;
   border-radius: 22px;
   background: #fff;
   box-shadow: 0 12px 34px rgb(30 40 20 / 6%);
@@ -2107,7 +2120,7 @@ body.c1-dashboard:has(.c1-page--soft) {
 .c5-label {
   display: block;
   margin-bottom: 0.4rem;
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
   color: #1a1a1a;
 }
@@ -2145,59 +2158,51 @@ body.c1-dashboard:has(.c1-page--soft) {
   color: #9aa091;
 }
 
-.c5-methods-title {
-  margin: 2.25rem 0 1rem;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.c5-methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1.1rem;
-}
-
-.c5-method {
-  display: inline-flex;
-  width: 62px;
-  height: 62px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 14px;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.c5-method:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgb(30 40 20 / 12%);
-}
-
-.c5-method.is-selected {
-  border-color: var(--sama-forest);
-}
-
-.c5-method:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.c5-method-icon {
-  width: 62px;
-  height: 62px;
-  object-fit: contain;
-  pointer-events: none;
-}
-
 .c5-confirm {
   border: 1px solid #e0dccf;
   box-shadow: none;
+}
+
+.c5-confirm-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+.c5-confirm-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 56px;
+  padding: 1rem 1rem;
+  border: none;
+  border-radius: 78px;
+  background: #263a18;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.c5-confirm-cta:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.c5-confirm-cta:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.c5-confirm-note {
+  margin: 0;
+  text-align: center;
+  font-size: 0.875rem;
+  line-height: 18px;
+  color: #9aa091;
 }
 
 .c5-confirm-title {
@@ -3364,7 +3369,7 @@ body.c1-dashboard:has(.c1-page--soft) {
 }
 
 .e6-card .e1-label {
-  font-size: 1rem; /* 16px */
+  font-size: 0.875rem;
 }
 
 .e6-input {
@@ -3375,57 +3380,6 @@ body.c1-dashboard:has(.c1-page--soft) {
   margin: 0;
   font-size: 0.78125rem;
   color: #9aa091;
-}
-
-.e6-methods-title {
-  margin: 2.25rem 0 1rem;
-  font-size: 1rem; /* match Montant label */
-  font-weight: 600;
-  color: #1a1a1a;
-}
-
-.e6-methods {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 1.1rem;
-}
-
-.e6-method {
-  display: inline-flex;
-  width: 62px;
-  height: 62px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 14px;
-  background: transparent;
-  cursor: pointer;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.e6-method:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgb(30 40 20 / 12%);
-}
-
-.e6-method.is-selected {
-  border-color: var(--sama-forest);
-}
-
-.e6-method:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.e6-method-icon {
-  display: block;
-  width: 62px;
-  height: 62px;
-  border-radius: 12px;
-  object-fit: cover;
 }
 
 .e6-error {

@@ -36,11 +36,11 @@ export const ONBOARDING_PAYMENT_METHODS: OnboardingPaymentMethod[] = [
     id: 'card',
     label: 'Carte bancaire',
     preferredRail: 'intouch',
-    iconSrc: '/figma/e6/card.png',
+    iconSrc: '/figma/e6/card-tile.png',
   },
   {
     id: 'orange_money',
-    label: 'Orange Money',
+    label: 'Max it',
     preferredRail: 'intouch',
     iconSrc: '/figma/e6/maxit.png',
   },
