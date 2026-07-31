@@ -6,7 +6,6 @@ import {
   EnvelopeIcon,
   MapPinIcon,
   ClockIcon,
-  ChatBubbleLeftRightIcon,
   PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
 import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
@@ -121,22 +120,6 @@ export default function ContactPage() {
                   </div>
                 );
               })}
-            </div>
-
-            {/* Quick Actions */}
-            <div className="bg-gradient-to-r from-gold-metallic/10 to-timberwolf/10 rounded-xl p-6">
-              <h3 className="font-semibold text-night mb-4 flex items-center">
-                <ChatBubbleLeftRightIcon className="w-5 h-5 mr-2" />
-                Besoin d'aide immédiate ?
-              </h3>
-              <div className="space-y-3">
-                <button className="w-full bg-gold-metallic text-white py-3 px-4 rounded-lg font-medium hover:bg-gold-metallic/90 transition-colors">
-                  Chat en direct
-                </button>
-                <button className="w-full bg-white text-night py-3 px-4 rounded-lg font-medium border border-timberwolf/20 hover:bg-timberwolf/10 transition-colors">
-                  Programmer un appel
-                </button>
-              </div>
             </div>
           </div>
 
@@ -265,20 +248,6 @@ export default function ContactPage() {
                 )}
               </button>
             </form>
-          </div>
-        </div>
-
-        {/* Map Section */}
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-night mb-8 text-center">
-            Notre localisation
-          </h2>
-          <div className="bg-timberwolf/20 rounded-xl h-64 flex items-center justify-center">
-            <div className="text-center text-night/50">
-              <MapPinIcon className="w-12 h-12 mx-auto mb-4" />
-              <p>Carte interactive à venir</p>
-              <p className="text-sm">18 Boulevard de la République, Dakar, Sénégal</p>
-            </div>
           </div>
         </div>
       </div>
