@@ -1,9 +1,6 @@
 import type { LegalDocument } from './types';
 
 /** Source: project_docs/Politique de confidentialite et mentions legales (2).docx — projet. */
-export const PRIVACY_DRAFT_BANNER =
-  'Projet — non opposable / en revue juridique. Texte du 21/07/2026 ; références CDP et quelques mentions légales encore à finaliser.';
-
 export const PRIVACY_POLICY: LegalDocument = {
   title: 'Politique de confidentialité et de protection des données personnelles',
   subtitle: 'Application et site Sama Naffa. EVEREST Finance SA. Version 1.0 (projet — partie intégrante de la CCU, art. I.5).',

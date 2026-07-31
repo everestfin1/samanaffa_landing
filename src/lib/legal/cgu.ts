@@ -11,5 +11,4 @@ export {
   CCU_TITLE,
   CCU_VERSION,
   CCU_ACCEPTANCE_SUMMARY,
-  LEGAL_DRAFT_BANNER,
 } from './ccu';
