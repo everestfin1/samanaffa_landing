@@ -9,6 +9,7 @@ import {
   ChatBubbleLeftRightIcon,
   PaperAirplaneIcon
 } from '@heroicons/react/24/outline';
+import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -54,20 +55,22 @@ export default function ContactPage() {
     {
       icon: PhoneIcon,
       title: 'Téléphone',
-      details: ['+221 33 822 87 00', ''],
-      action: 'Appelez-nous'
+      details: [SAMA_NAFFA_CONTACT.phone, ''],
+      action: 'Appelez-nous',
+      href: SAMA_NAFFA_CONTACT.phoneHref,
     },
     {
       icon: EnvelopeIcon,
       title: 'Email',
-      details: ['contact@everestfin.com'],
-      action: 'Écrivez-nous'
+      details: [SAMA_NAFFA_CONTACT.email],
+      action: 'Écrivez-nous',
+      href: SAMA_NAFFA_CONTACT.emailHref,
     },
     {
       icon: MapPinIcon,
       title: 'Adresse',
-      details: ['18 Boulevard de la République', 'Dakar, Sénégal BP: 11659-13000'],
-      action: 'Visitez-nous'
+      details: [SAMA_NAFFA_CONTACT.addressLine1, SAMA_NAFFA_CONTACT.addressLine2],
+      action: 'Visitez-nous',
     },
     {
       icon: ClockIcon,

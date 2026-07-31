@@ -22,7 +22,7 @@ export const Header = () => {
           </div>
 
           {/* Navigation */}
-          <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide font-titillium">
+          <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide">
             <Link
               href="/"
               className="text-gray-900 hover:text-[#C38D1C] transition-colors duration-200 font-semibold"

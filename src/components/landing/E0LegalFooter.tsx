@@ -5,8 +5,12 @@ import {
   MapPinIcon,
   PhoneIcon,
 } from "@heroicons/react/24/outline";
+import { SAMA_NAFFA_CONTACT } from "@/lib/contact";
+import { E0_FOOTER_AGREMENT_LINE } from "@/lib/compliance-copy";
 
 export default function E0LegalFooter() {
+  const currentYear = new Date().getFullYear();
+
   return (
     <footer>
       <div className="e0-legal">
@@ -20,8 +24,7 @@ export default function E0LegalFooter() {
               className="h-[58px] w-auto object-contain"
             />
             <p className="e0-legal-muted mt-4 max-w-sm text-sm leading-relaxed">
-              Sama Naffa est un service de gestion sous mandat de EVEREST Finance,
-              Société agréée et régulée par l&apos;AMF-UMOA n° SGI/2016-01
+              {E0_FOOTER_AGREMENT_LINE}
             </p>
           </div>
           <nav aria-label="Support">
@@ -41,25 +44,33 @@ export default function E0LegalFooter() {
           <address className="not-italic">
             <h2 className="e0-legal-col-title">Contact</h2>
             <div className="e0-legal-muted mt-4 space-y-1.5 text-[13px] leading-[24.7px] font-normal">
-              <a className="flex items-center gap-3 hover:text-white" href="tel:+221338228700">
+              <a
+                className="flex items-center gap-3 hover:text-white"
+                href={SAMA_NAFFA_CONTACT.phoneHref}
+              >
                 <PhoneIcon className="size-4" />
-                +221 33 822 87 00
+                {SAMA_NAFFA_CONTACT.phone}
               </a>
-              <a className="flex items-center gap-3 hover:text-white" href="mailto:contact@samanaffa.com">
+              <a
+                className="flex items-center gap-3 hover:text-white"
+                href={SAMA_NAFFA_CONTACT.emailHref}
+              >
                 <EnvelopeIcon className="size-4" />
-                contact@samanaffa.com
+                {SAMA_NAFFA_CONTACT.email}
               </a>
               <p className="m-0 flex items-start gap-3">
                 <MapPinIcon className="mt-0.5 size-4 shrink-0" />
-                18 Boulevard de la République
+                {SAMA_NAFFA_CONTACT.addressLine1}
                 <br />
-                Dakar, Sénégal BP: 11659-13000
+                {SAMA_NAFFA_CONTACT.addressLine2}
               </p>
             </div>
           </address>
         </div>
         <div className="e0-legal-soft mx-auto mt-10 flex max-w-[1080px] flex-col gap-4 border-t border-white/10 pt-5 text-[12.5px] sm:flex-row sm:items-center sm:justify-between">
-          <p className="m-0">© 2026 EVEREST Finance</p>
+          <p className="m-0">
+            &copy; {currentYear} EVEREST Finance
+          </p>
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/privacy" className="hover:text-white">
               Confidentialité

@@ -8,3 +8,6 @@ export const RISK_DISCLAIMER_SIMULATOR =
 
 export const CREPMF_AGREMENT_LINE =
   'Everest Finance, société agréée et régulée par l\'AMF-UMOA — n° SGI/2016-01';
+
+export const E0_FOOTER_AGREMENT_LINE =
+  'Sama Naffa est un service de gestion sous mandat de EVEREST Finance, Société agréée et régulée par l\'AMF-UMOA n° SGI/2016-01';

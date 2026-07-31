@@ -1,41 +1,35 @@
-"use client"
+"use client";
 
-import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { SAMA_NAFFA_CONTACT } from "@/lib/contact";
+import { shouldHideWhatsApp } from "@/lib/site-chrome";
+
+const WHATSAPP_PREFILL =
+  "Bonjour, je souhaite en savoir plus sur vos services d'investissement.";
 
 export const WhatsAppButton: React.FC = () => {
   const pathname = usePathname();
-  
-  // Hide WhatsApp button on marketing E0 pages and portals
-  if (
-    pathname === '/' ||
-    pathname === '/sama-naffa' ||
-    pathname.startsWith('/sama-naffa/') ||
-    pathname === '/onboarding' ||
-    pathname.startsWith('/onboarding/') ||
-    pathname.startsWith('/admin') ||
-    pathname.startsWith('/portal')
-  ) {
+
+  if (shouldHideWhatsApp(pathname)) {
     return null;
   }
 
   const handleClick = () => {
-    // Replace with actual WhatsApp number
-    const phoneNumber = '+221770993382';
-    const message = encodeURIComponent('Bonjour, je souhaite en savoir plus sur vos services d\'investissement.');
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
-    window.open(whatsappUrl, '_blank');
+    const message = encodeURIComponent(WHATSAPP_PREFILL);
+    const whatsappUrl = `${SAMA_NAFFA_CONTACT.whatsappHref}?text=${message}`;
+    window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
     <button
+      type="button"
       onClick={handleClick}
-      className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 focus:outline-none focus:ring-4 focus:ring-green-300"
+      className="fixed bottom-6 right-6 z-50 rounded-full bg-green-500 p-2 text-white shadow-lg transition-all duration-300 transform hover:scale-110 hover:bg-green-600 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-green-300"
       aria-label="Contacter Everest Finance sur WhatsApp"
       title="Discuter sur WhatsApp"
     >
-      <Image src="/whatsapp.png" alt="WhatsApp" width={24} height={24} />
+      <Image src="/whatsapp.png" alt="WhatsApp" width={36} height={36} />
     </button>
   );
 };
-

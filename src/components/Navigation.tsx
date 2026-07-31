@@ -10,6 +10,7 @@ import {
   DevicePhoneMobileIcon,
   UserIcon
 } from '@heroicons/react/24/outline';
+import { shouldHideLegacyNavigation } from '@/lib/site-chrome';
 
 export default function Navigation() {
   const router = useRouter();
@@ -21,11 +22,8 @@ export default function Navigation() {
   const [isAdminLoading, setIsAdminLoading] = useState(false);
 
   // Determine if we're on the home page or portal page based on current pathname
-  const isHomePage = pathname === '/';
   const isAdminPage = pathname.startsWith('/admin');
-  const isPortalPage = pathname.startsWith('/portal');
-  const isApePage = pathname.startsWith('/ape') || pathname.startsWith('/apesenegal');
-  const isPeePage = pathname.startsWith('/pee');
+  const isHomePage = pathname === '/';
   const isMaintenancePage = pathname === '/maintenance';
 
   // Check authentication status on mount - client-side only
@@ -124,22 +122,10 @@ export default function Navigation() {
 
   // Hide navigation on portal page, admin pages (including during auth flow), or maintenance page
   // For admin pages, hide immediately if it's not the login page, or if loading
-  const isNattukaayPage = pathname === '/sama-naffa' || pathname.startsWith('/sama-naffa/');
-  const isOnboardingPage = pathname === '/onboarding' || pathname.startsWith('/onboarding/');
-  const shouldHideNavigation =
-    isHomePage ||
-    isNattukaayPage ||
-    isOnboardingPage ||
-    isPortalPage ||
-    (isAdminPage && (!pathname.includes('/login') || isAdminLoading)) ||
-    isMaintenancePage;
-
-  if (shouldHideNavigation) {
-    return null;
-  }
-
-  // Hide navigation on APE pages (they have their own header)
-  if (isApePage || isPeePage) {
+  if (
+    shouldHideLegacyNavigation(pathname) ||
+    (isAdminPage && pathname.includes('/login') && isAdminLoading)
+  ) {
     return null;
   }
 

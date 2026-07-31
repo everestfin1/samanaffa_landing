@@ -6,24 +6,12 @@ import { usePathname } from 'next/navigation'
 import React from 'react'
 import { PhoneIcon, EnvelopeIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import { CREPMF_AGREMENT_LINE } from '@/lib/compliance-copy';
+import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
+import { shouldHideLegacyFooter } from '@/lib/site-chrome';
 
 export default function Footer() {
     const pathname = usePathname();
-    const isAdminPage = pathname.startsWith('/admin');
-    const isApePage = pathname.startsWith('/apesenegal') || pathname.startsWith('/ape');
-    const isPeePage = pathname.startsWith('/pee');
-    // Hide footer on portal pages, admin pages, and APE Senegal pages (APE has its own footer)
-    if (
-        pathname === '/' ||
-        pathname === '/sama-naffa' ||
-        pathname.startsWith('/sama-naffa/') ||
-        pathname === '/onboarding' ||
-        pathname.startsWith('/onboarding/') ||
-        pathname.startsWith('/portal') ||
-        isAdminPage ||
-        isApePage ||
-        isPeePage
-    ) {
+    if (shouldHideLegacyFooter(pathname)) {
         return null;
     }
     const currentYear = new Date().getFullYear();
@@ -109,19 +97,25 @@ export default function Footer() {
           <div>
             <h4 className="font-light mb-6 text-white/90 text-lg">Nous Contacter</h4>
             <div className="space-y-4 text-white/60 font-light">
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex gap-3">
-                <PhoneIcon className="w-5 h-5 mt-1" />
-                <p className="text-lg mb-0 leading-none">+221 33 822 87 00</p>
-              </div>
-              <div className="group hover:text-sama-accent-gold transition-colors duration-300 cursor-pointer flex gap-3">
-                <EnvelopeIcon className="w-5 h-5 mt-1" />
-                <p className="text-lg mb-0 leading-none">contact@everestfin.com</p>
-              </div>
-              <div className="pt-2 flex gap-3">
-                <MapPinIcon className="w-5 h-5 mt-1" />
+              <a
+                href={SAMA_NAFFA_CONTACT.phoneHref}
+                className="group flex gap-3 transition-colors duration-300 hover:text-sama-accent-gold"
+              >
+                <PhoneIcon className="mt-1 h-5 w-5" />
+                <span className="text-lg leading-none">{SAMA_NAFFA_CONTACT.phone}</span>
+              </a>
+              <a
+                href={SAMA_NAFFA_CONTACT.emailHref}
+                className="group flex gap-3 transition-colors duration-300 hover:text-sama-accent-gold"
+              >
+                <EnvelopeIcon className="mt-1 h-5 w-5" />
+                <span className="text-lg leading-none">{SAMA_NAFFA_CONTACT.email}</span>
+              </a>
+              <div className="flex gap-3 pt-2">
+                <MapPinIcon className="mt-1 h-5 w-5" />
                 <div>
-                  <p className="text-white/50 mb-0 leading-none">18 Boulevard de la République</p>
-                  <p className="text-white/50 mb-0 leading-none">Dakar, Sénégal BP: 11659-13000</p>
+                  <p className="mb-0 leading-none text-white/50">{SAMA_NAFFA_CONTACT.addressLine1}</p>
+                  <p className="mb-0 leading-none text-white/50">{SAMA_NAFFA_CONTACT.addressLine2}</p>
                 </div>
               </div>
             </div>

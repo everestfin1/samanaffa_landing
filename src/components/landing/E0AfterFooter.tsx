@@ -35,7 +35,9 @@ export default function E0AfterFooter() {
         sizes="(max-width: 640px) 90vw, 586px"
         className="h-auto w-full max-w-[586px] object-contain"
       />
-      <h2 className="e0-brand-tagline">Dencukaay bu jáppandi te woor</h2>
+      <p className="e0-brand-tagline" role="doc-subtitle">
+        Dencukaay bu jáppandi te woor
+      </p>
       <div className="e0-social-row">
         <p className="e0-social-label">Rejoins-nous sur nos plateformes</p>
         <ul className="e0-social-icons" aria-label="Réseaux sociaux">

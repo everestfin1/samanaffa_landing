@@ -4,6 +4,8 @@ import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { CheckCircleIcon, ExclamationTriangleIcon, ArrowRightIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
+import ProductPageShell from '@/components/APE/ProductPageShell';
+import { SAMA_NAFFA_CONTACT } from '@/lib/contact';
 
 function PaymentStatusContent() {
   const searchParams = useSearchParams();
@@ -319,8 +321,8 @@ function PaymentStatusContent() {
         {/* Support Info */}
         <p className="text-center text-sm text-gray-500 mt-6">
           Besoin d'aide ? Contactez-nous à{' '}
-          <a href="mailto:support@everestfin.com" className="text-gold-metallic hover:underline">
-            support@everestfin.com
+          <a href={SAMA_NAFFA_CONTACT.emailHref} className="text-gold-metallic hover:underline">
+            {SAMA_NAFFA_CONTACT.email}
           </a>
         </p>
       </div>
@@ -330,12 +332,14 @@ function PaymentStatusContent() {
 
 export default function ApeTogoPaymentStatusPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
-      </div>
-    }>
-      <PaymentStatusContent />
-    </Suspense>
+    <ProductPageShell product="ape">
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
+        </div>
+      }>
+        <PaymentStatusContent />
+      </Suspense>
+    </ProductPageShell>
   );
 }

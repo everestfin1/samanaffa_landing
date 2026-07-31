@@ -444,6 +444,9 @@ function OnboardingPageContent() {
 
   return (
     <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
+      <a href="#main" className="skip-link">
+        Aller au contenu principal
+      </a>
       <E0MarketingHeader />
 
       {SHOW_EMAIL_CONFIRMATION_UI && emailNotice && (
@@ -462,7 +465,7 @@ function OnboardingPageContent() {
         </div>
       )}
 
-      <div className="flex flex-1 flex-col">
+      <div id="main" className="flex flex-1 flex-col">
         <OnboardingStepContainer step={step}>
           <AnimatePresence mode="wait">
             {step === 'T1' && (

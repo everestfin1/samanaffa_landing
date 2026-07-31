@@ -331,15 +331,15 @@ export default function FAQPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="tel:+221123456789"
-              className="inline-flex items-center justify-center space-x-2 bg-gold-metallic text-white px-6 py-3 rounded-lg font-semibold hover:bg-gold-metallic/90 transition-colors"
+              href={SAMA_NAFFA_CONTACT.phoneHref}
+              className="inline-flex items-center justify-center space-x-2 rounded-lg bg-gold-metallic px-6 py-3 font-semibold text-white transition-colors hover:bg-gold-metallic/90"
             >
-              <BanknotesIcon className="w-5 h-5" />
+              <BanknotesIcon className="h-5 w-5" />
               <span>Appelez-nous</span>
             </a>
             <a
-              href="mailto:support@samanaffa.sn"
-              className="inline-flex items-center justify-center space-x-2 bg-white text-night px-6 py-3 rounded-lg font-semibold border border-timberwolf/20 hover:bg-timberwolf/10 transition-colors"
+              href={SAMA_NAFFA_CONTACT.emailHref}
+              className="inline-flex items-center justify-center space-x-2 rounded-lg border border-timberwolf/20 bg-white px-6 py-3 font-semibold text-night transition-colors hover:bg-timberwolf/10"
             >
               <span>Écrivez-nous</span>
             </a>

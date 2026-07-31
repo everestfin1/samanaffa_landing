@@ -47,7 +47,7 @@ export default function Header() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide font-titillium">
+          <nav className="hidden lg:flex items-center space-x-10 text-base tracking-wide">
             {navLinks.map((link) => (
               <button
                 key={link.name}
@@ -83,7 +83,7 @@ export default function Header() {
               <button
                 key={link.name}
                 onClick={() => scrollToSection(link.id)}
-                className="block w-full text-left px-3 py-2 text-base font-semibold text-[#2e0e36] hover:bg-gray-50 hover:text-[#C09037] rounded-md font-titillium"
+                className="block w-full text-left px-3 py-2 text-base font-semibold text-[#2e0e36] hover:bg-gray-50 hover:text-[#C09037] rounded-md"
               >
                 {link.name}
               </button>
