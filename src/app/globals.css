@@ -675,7 +675,7 @@ video {
 }
 
 .e0-header-menu-btn {
-  display: inline-flex;
+  /* No `display` here — Tailwind `inline-flex md:hidden` must win on desktop. */
   align-items: center;
   justify-content: center;
   padding: 0.5rem;

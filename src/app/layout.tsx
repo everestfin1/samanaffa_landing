@@ -9,6 +9,7 @@ import { WhatsAppButton } from "@/components/WhatsAppButton";
 import QueryProvider from "@/components/providers/QueryProvider";
 import CookieConsent from "@/components/compliance/CookieConsent";
 import ConsentGatedAnalytics from "@/components/compliance/ConsentGatedAnalytics";
+import PwaRegister from "@/components/PwaRegister";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,6 +22,7 @@ const geistSans = Geist({
 // });
 
 export const metadata: Metadata = {
+  applicationName: "Sama Naffa",
   title: "Sama Naffa — Nous gérons votre épargne | Everest Finance (SGI)",
   description:
     "Sama Naffa : nous plaçons et gérons votre épargne en obligations de l'État, avec un objectif de rendement. Une solution simple d'Everest Finance, société agréée et régulée (CREPMF).",
@@ -28,21 +30,26 @@ export const metadata: Metadata = {
     "épargne gérée, faire fructifier son épargne, obligations de l'État, investir au Sénégal, Everest Finance, CREPMF",
   authors: [{ name: "Everest Finance SGI" }],
   manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Sama Naffa",
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       { url: "/fav-samanaffa.png", sizes: "32x32", type: "image/png" },
-      { url: "/fav-samanaffa.png", sizes: "16x16", type: "image/png" },
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
     ],
     shortcut: "/fav-samanaffa.png",
-    apple: "/fav-samanaffa.png",
-    other: [
+    apple: [
       {
-        rel: "android-chrome-192x192",
-        url: "/sama_naffa_logo.png",
-      },
-      {
-        rel: "android-chrome-512x512",
-        url: "/sama_naffa_logo.png",
+        url: "/icons/apple-touch-icon.png",
+        sizes: "180x180",
+        type: "image/png",
       },
     ],
   },
@@ -61,14 +68,6 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
-      <head>
-        <link
-          rel="apple-touch-icon"
-          href="/fav-samanaffa.png"
-          type="image/<generated>"
-          sizes="180x180"
-        />
-      </head>
       <body className={`${geistSans.variable} antialiased`}>
         <QueryProvider>
           <SessionProvider>
@@ -82,6 +81,7 @@ export default function RootLayout({
           </SessionProvider>
         </QueryProvider>
         <ConsentGatedAnalytics />
+        <PwaRegister />
       </body>
     </html>
   );

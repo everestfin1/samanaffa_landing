@@ -49,7 +49,10 @@ export async function proxy(request: NextRequest) {
       pathname.startsWith('/login') ||
       pathname.startsWith('/onboarding') ||
       pathname === '/maintenance' ||
-      pathname === '/manifest.json';
+      pathname === '/offline' ||
+      pathname === '/offline.html' ||
+      pathname === '/manifest.json' ||
+      pathname === '/sw.js';
 
     if (!isStaticAsset && !isAllowedRoute) {
       return NextResponse.redirect(new URL('/maintenance', request.url));

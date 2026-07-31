@@ -14,6 +14,7 @@ export function buildContentSecurityPolicy(isDev: boolean): string {
   const directives = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
+    "worker-src 'self'",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: https: blob: https://www.facebook.com https://cdn.jsdelivr.net",

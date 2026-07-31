@@ -3,23 +3,36 @@
   "short_name": "Sama Naffa",
   "description": "Nous plaçons et gérons votre épargne en obligations de l'État, avec un objectif de rendement. Everest Finance (SGI), agréée CREPMF.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#000000",
+  "background_color": "#f8faf9",
   "theme_color": "#e4bd61",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "lang": "fr",
   "icons": [
     {
-      "src": "/sama_naffa_logo.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "/sama_naffa_logo.png",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

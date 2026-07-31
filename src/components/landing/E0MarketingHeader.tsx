@@ -1,7 +1,5 @@
 'use client';
 
-'use client';
-
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -51,7 +49,7 @@ export default function E0MarketingHeader({ active = 'accueil' }: E0MarketingHea
         <div className="flex min-w-0 flex-1 items-center gap-3 md:gap-8">
           <button
             type="button"
-            className="e0-header-menu-btn md:hidden"
+            className="e0-header-menu-btn inline-flex md:hidden"
             onClick={() => setIsMobileMenuOpen((open) => !open)}
             aria-expanded={isMobileMenuOpen}
             aria-controls="e0-mobile-nav"
