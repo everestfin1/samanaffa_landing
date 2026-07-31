@@ -443,7 +443,7 @@ function OnboardingPageContent() {
   }
 
   return (
-    <div className="e0-page flex min-h-dvh flex-col bg-[linear-gradient(180deg,#edf0e6_0%,#ffffff_55%)] overflow-x-hidden">
+    <div className="e0-page e1-page flex min-h-dvh flex-col overflow-x-hidden">
       <a href="#main" className="skip-link">
         Aller au contenu principal
       </a>
@@ -482,7 +482,6 @@ function OnboardingPageContent() {
                   referralCode={state.referralCode}
                   initialPhone={state.phone ?? undefined}
                   initialCountry={state.countryCode ?? undefined}
-                  onBack={() => router.push('/sama-naffa')}
                   onSuccess={handleT1Success}
                 />
                 {authPending && (
