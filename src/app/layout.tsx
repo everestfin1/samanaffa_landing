@@ -47,9 +47,15 @@ export const metadata: Metadata = {
     ],
     shortcut: "/fav-samanaffa.png",
     apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
       {
-        url: "/icons/apple-touch-icon.png",
-        sizes: "180x180",
+        url: "/icons/apple-touch-icon-167x167.png",
+        sizes: "167x167",
+        type: "image/png",
+      },
+      {
+        url: "/icons/apple-touch-icon-152x152.png",
+        sizes: "152x152",
         type: "image/png",
       },
     ],
@@ -69,6 +75,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr" data-scroll-behavior="smooth">
+      <head>
+        {/* iOS Safari fetches /apple-touch-icon.png at the site root by default */}
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+        <link
+          rel="apple-touch-icon-precomposed"
+          href="/apple-touch-icon.png"
+          sizes="180x180"
+        />
+      </head>
       <body className={`${geistSans.variable} antialiased`}>
         <QueryProvider>
           <SessionProvider>

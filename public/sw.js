@@ -1,16 +1,19 @@
 /* Sama Naffa — installable PWA shell + offline fallback (no offline banking). */
-const CACHE_NAME = "sama-naffa-shell-v2";
+const CACHE_NAME = "sama-naffa-shell-v3";
 /** Self-contained HTML — does not depend on Next.js /_next assets. */
 const OFFLINE_URL = "/offline.html";
 
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.json",
+  "/apple-touch-icon.png",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
   "/icons/icon-192-maskable.png",
   "/icons/icon-512-maskable.png",
   "/icons/apple-touch-icon.png",
+  "/icons/apple-touch-icon-152x152.png",
+  "/icons/apple-touch-icon-167x167.png",
 ];
 
 self.addEventListener("install", (event) => {
@@ -75,6 +78,7 @@ self.addEventListener("fetch", (event) => {
   if (
     url.pathname.startsWith("/icons/") ||
     url.pathname === "/manifest.json" ||
+    url.pathname === "/apple-touch-icon.png" ||
     url.pathname === "/fav-samanaffa.png"
   ) {
     event.respondWith(
