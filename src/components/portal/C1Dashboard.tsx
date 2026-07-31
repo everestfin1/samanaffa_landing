@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 import { formatCurrency } from '@/lib/utils';
-import { sortAccountsByCreation } from '@/lib/kondanne-card-colors';
+import { kondanneCardColor, sortAccountsByCreation } from '@/lib/kondanne-card-colors';
 
 export interface C1Account {
   id: string;
@@ -283,6 +283,7 @@ export default function C1Dashboard({
                       <button
                         type="button"
                         className="c1-kondanne"
+                        style={{ backgroundColor: kondanneCardColor(account.id, accounts) }}
                         onClick={() => router.push(`/portal/sama-naffa/${account.id}`)}
                       >
                         <div className="c1-kondanne-head">
