@@ -103,7 +103,8 @@ export default function CreerKondannePage() {
       throw new Error(data.error || 'Impossible de créer le Kondanné');
     }
 
-    await queryClient.invalidateQueries({ queryKey: ['samaNaffaAccounts'] });
+    // Force fetch: invalidate alone leaves inactive queries stale under refetchOnMount:false.
+    await queryClient.refetchQueries({ queryKey: ['samaNaffaAccounts'] });
     router.push(`/portal/sama-naffa/${data.account.id}`);
   };
 
