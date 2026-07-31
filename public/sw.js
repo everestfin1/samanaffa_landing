@@ -1,5 +1,5 @@
 /* Sama Naffa — installable PWA shell + offline fallback (no offline banking). */
-const CACHE_NAME = "sama-naffa-shell-v1";
+const CACHE_NAME = "sama-naffa-shell-v2";
 /** Self-contained HTML — does not depend on Next.js /_next assets. */
 const OFFLINE_URL = "/offline.html";
 
@@ -8,6 +8,8 @@ const PRECACHE_URLS = [
   "/manifest.json",
   "/icons/icon-192.png",
   "/icons/icon-512.png",
+  "/icons/icon-192-maskable.png",
+  "/icons/icon-512-maskable.png",
   "/icons/apple-touch-icon.png",
 ];
 
